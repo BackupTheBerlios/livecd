@@ -1,5 +1,11 @@
-# $Id: CHANGELOG,v 1.1 2003/11/21 13:37:23 jaco Exp $
+# $Id: CHANGELOG,v 1.2 2003/11/30 16:21:56 jaco Exp $
 
+* Sun, Nov 30, 2003, 0.2.0-cvs
+  + Jaco Greeff <jaco@linuxminicd.org>:
+    [livecd-install]:
+      - Total revamp using perl-Qt
+      - Initial release/announcement
+      
 * Fri, Nov 21, 2003, 0.1.0-cvs
   + Jaco Greeff <jaco@linuxminicd.org>:
     [livecd-install]:
