@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: handles.h,v 1.1 2004/01/18 15:47:52 jaco Exp $
+ * $Id: handles.h,v 1.2 2004/01/22 08:38:13 jaco Exp $
  */
  
 #ifndef _HANDLES_dot_H_
@@ -50,7 +50,7 @@ public:
 	void add(string, int, unsigned, unsigned); 
 	void erase(vector<t_handle>::iterator it);
 	
-	int size() { handles.size(); }
+	int size() { return handles.size(); }
 };
  
 #endif
