@@ -1,0 +1,21 @@
+# $Id: README.USAGE,v 1.1 2004/01/27 12:27:24 jaco Exp $
+
+Usage: 
+    mount -t lufs none <mount> -o fs=livecdfs,rw_tmp=<tmp>,ro_root=<root> 
+    
+    or
+    
+    lufsd none <mount> -o fs=livecdfs,rw_tmp=<tmp>,ro_root=<root> 
+
+Required Options:
+    <mount>            The final mountpoint where the fs is to be visible
+    rw_tmp=<tmp>       The writable space (for new files, appends, etc.)
+    ro_root=<root>     The read-only root to be visible at <mount>
+
+General Options:
+    own_fs             The executing user owns the filesystem
+    fmask=<mask>       The minimal permissions for files
+    dmask=<mask>       The minimal permissions for directories              
+    uid=<id>           The user id to own the filesystem
+    gid=<id>           The group id to own the filesystem
+    

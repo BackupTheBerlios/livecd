@@ -1,22 +1,37 @@
-LiveCDFS is a UnionFS copy-on-write (COW) implementation on top of the Linux 
-User Filesystem (LUFS) to allow for writable CD images.
+# $Id: README,v 1.3 2004/01/27 12:27:24 jaco Exp $
 
-Usage: 
-    mount -t lufs none <mount> -o fs=livecdfs,rw_tmp=<tmp>,ro_root=<root> 
-    
-    or
-    
-    lufsd none <mount> -o fs=livecdfs,rw_tmp=<tmp>,ro_root=<root> 
+LiveCDFS is a UnionFS copy-on-write (COW) implementation on top of the 
+Linux User Filesystem (LUFS) to allow for writable CD images.
 
-Required Options:
-    <mount>            The final mountpoint where the fs is to be visible
-    rw_tmp=<tmp>       The writable space (for new files, appends, etc.)
-    ro_root=<root>     The read-only root to be visible at <mount>
+The latest stable version of the package can alway be found at
+the following URL:
 
-General Options:
-    own_fs             The executing user owns the filesystem
-    fmask=<mask>       The minimal permissions for files
-    dmask=<mask>       The minimal permissions for directories              
-    uid=<id>           The user id to own the filesystem
-    gid=<id>           The group id to own the filesystem
-    
+    http://livecd.berlios.de
+
+If you want to contibute, or just fancy running the latest-
+greatest version, you can also get the latest development version
+from CVS:
+
+    export CVSROOT=:pserver:anonymous@cvs.livecd.berlios.de:/cvsroot/livecd
+    cvs login (There is no anonymous password, a simple Enter will do)
+    cvs -z3 co livecdfs
+
+If you have been granted developer access to the project, you can
+access CVS with the following commands:
+
+    export CVS_RSH=ssh
+    export CVSROOT=:ext:USERNAME@cvs.livecd.berlios.de:/cvsroot/livecd
+    cvs -z3 co livecdfs
+
+There is a mailing list available for discussion of the livecd scripts
+and their associated programs (including LiveCDFS). More information on 
+this list, including subscription details can be found at:
+
+    http://lists.berlios.de/mailman/listinfo/livecd-users
+    http://lists.berlios.de/mailman/listinfo/livecd-devel
+
+Patches, suggestions, flames and general comments are always
+welcome at the above adress. Good luck!
+
+    - Jaco Greeff <jaco@linuxminicd.org>,
+      Tue, Jan 27, 2004
