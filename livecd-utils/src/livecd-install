@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.12 2003/11/22 17:34:41 jaco Exp $
+# $Id: livecd-install,v 1.13 2003/11/22 17:49:34 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -102,7 +102,13 @@ my %str = (
 	'INSTPROG_TIT'     => [ "Installing",
 				"Installasie" ],
 	'INSTPROG_STR'     => [ "Installing $distro LiveCD to",
-				"Installasie van $distro LiveCD na" ]
+				"Installasie van $distro LiveCD na" ],
+
+	# finished
+	'FIN_TIT'          => [ "Installation completed",
+				"Installasie voltooi" ],
+	'FIN_STR'          => [ "Congratulations, you have completed the install of\n$distro LiveCD to your hard drive. Do you want\nto reboot the system now for the changes to take\neffect?",
+				"Geluk, jy het die installasie prosedure vir\n$distro LiveCD voltooi. Wil jy nou die\nstelsel herlaai om die veranderinge te voltooi?" ]
 );
 
 # languages for %str (numbers represent positions)
@@ -269,6 +275,8 @@ sub do_install {
 				make_fstab($dev, $mnt);
 				make_lilo($dev, $mnt);
 				qx(umount $mnt && rm -rf $mnt);
+				$ret = qx($dlg --question --title "$str{'FIN_TIT'}[$lang]" --text "$str{'FIN_STR'}[$lang]" && echo reboot);
+				exec("reboot") if ($ret =~ /reboot/);
 				exit(0);
 			}
 		}
