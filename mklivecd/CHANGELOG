@@ -1,7 +1,10 @@
-# $Id: CHANGELOG,v 1.74 2003/11/16 19:49:47 jaco Exp $
+# $Id: CHANGELOG,v 1.75 2003/11/20 07:18:05 jaco Exp $
 
-* Sun, Nov 16, 2003, 0.5.7-cvs
+* Thu, Nov 20, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
+    [halt.local]:
+      - Added for custom commands to be executed at shutdown, eg.
+        CD eject
     [linuxrc]:
       - Fix error on illegal attempt to unmount /initrd/cdrom upon
         system shutdown
@@ -34,6 +37,7 @@
       - Allow xres=1024x768|1280x1024|1400x1050|1600x1400 to
         specify the resolution in the case where the monitor
         cannot be reliably detected, eg. laptop panels
+      - Add xbpp option to specify the X depth
       - Add support for Nvidia GLX drivers
       - Add support for ATI GLX drivers
       - Detect USB Flash devices and mount them rw
