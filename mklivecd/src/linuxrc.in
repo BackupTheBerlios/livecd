@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.4 2003/09/30 08:45:21 jaco Exp $
+# $Id: linuxrc.in,v 1.5 2003/09/30 09:32:51 jaco Exp $
 #
 
 ### global variables
@@ -337,6 +337,7 @@ createramdisk() {
 					esac \
 				fi \
 			done" \
+			"mkdir -p /var/lock/subsys" \
 			"mkdir -p /var/log && touch /var/log/wtmp" \
 			"mkdir -p /var/run && touch /var/run/utmp" \
 			"ln -s /tmp /var/tmp"
