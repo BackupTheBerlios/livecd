@@ -19,12 +19,13 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.11 2003/10/02 05:29:48 jaco Exp $
+# $Id: mklivecd.in,v 1.12 2003/10/02 09:55:09 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
 export PATH
 VERSION="@MKLIVECDVER@"
+PROGNAME="@PKGNAME@"
 
 rootdir=/
 target=""
@@ -45,6 +46,7 @@ LIVECDISOCLP="livecd.iso.clp"
 loopcmp="create_compressed_fs"
 loopmod="cloop"
 blocksize=64
+keyboard=""
 
 usage () {
 	echo "Usage:" >&2
@@ -64,6 +66,7 @@ usage () {
 	echo "    --looptype=<cloop|bzloop>  Create a cloop (default) or bzloop image (3)" >&2
 	echo "    --lowmem                   Use disk as temporary storage for iso images" >&2
 	echo "    --final                    Strip extra lines from the scripts on the initrd" >&2
+	echo "    --keyboard=<language>      Specify a different keyboard layout (default: @DEF_KEYBOARD@)" >&2
 	echo "" >&2
 	echo "Notes for options:" >&2
 	echo "    1. Patterns passed to these options is to be valid in a grep(1) search, " >&2
@@ -242,7 +245,7 @@ $e"
 ### install isolinux
 create_isolinux() {
 	do_cp /usr/lib/syslinux/isolinux.bin $ISOLINUXDIR/isolinux.bin
-	do_cp /usr/share/mklivecd/isolinux.cfg $ISOLINUXDIR/isolinux.cfg
+	do_cmd "cat /usr/share/mklivecd/isolinux.cfg | sed -e 's/\@BOOT_KEYB\@/$keyboard/g' >$ISOLINUXDIR/isolinux.cfg"
 	do_cp ${rootdir}/boot/vmlinuz-$kernel $ISOLINUXDIR/vmlinuz
 	do_cmd "dd if=/dev/zero of=$ISOLINUXDIR/boot.cat bs=1k count=2 2> /dev/null"
 }
@@ -259,6 +262,9 @@ create_liveiso() {
 		-o $target $LIVECDDIR"
 }
 
+echo "$PROGNAME, version $VERSION, http://www.linuxminicd.org/mklivecd/" >&2
+echo "Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>" >&2
+echo "" >&2
 while [ $# -gt 0 ]; do
 	case $1 in
 		--cloop*)
@@ -361,8 +367,18 @@ while [ $# -gt 0 ]; do
 			final=1
 			;;
 
+		--keyboard*)
+			if echo $1 | grep '=' >/dev/null ; then
+				language=`echo $1 | sed 's/^--keyboard=//'`
+			else
+				language=$2
+				shift
+			fi
+			keyboard="keyb=$language"
+			;;
+
 		--version)
-			echo "mklivecd, version $VERSION, http://www.linuxminicd.org/mklivecd/" >&2
+			echo "$PROGNAME, version $VERSION, http://www.linuxminicd.org/mklivecd/" >&2
 			echo "Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>" >&2
 			echo "" >&2
 			echo "This program is free software; you can redistribute it and/or modify" >&2

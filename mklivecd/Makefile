@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.16 2003/10/02 08:08:28 jaco Exp $
+# $Id: Makefile,v 1.17 2003/10/02 09:55:09 jaco Exp $
 
 include Rules.mk
 
@@ -18,7 +18,7 @@ mklivecd:
 		$(SED) -e 's/@MKLIVECDVER@/$(ARCHIVEVER)/g;s/@KERNELVER@/$(KERNELVER)/g' \
 		>$(DISTDIR)/linuxrc
 	$(CAT) $(SRCDIR)/$(PKGNAME).in | \
-		$(SED) -e 's/@MKLIVECDVER@/$(ARCHIVEVER)/g' \
+		$(SED) -e 's/@PKGNAME@/$(PKGNAME)/g;s/@MKLIVECDVER@/$(ARCHIVEVER)/g;s/@DEF_KEYBOARD@/$(DEF_KEYBOARD)/g' \
 		>$(DISTDIR)/$(PKGNAME)
 
 install:

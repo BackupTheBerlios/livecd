@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.22 2003/10/02 09:21:08 jaco Exp $
+# $Id: CHANGELOG,v 1.23 2003/10/02 09:55:09 jaco Exp $
 
 * Wed, Oct 01, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -62,6 +62,8 @@
         and '--help' command-line options
       - Added '--final' option, stripping unneeded lines from the
         scripts on the initrd image, saving some space
+      - Added '--keyboard=<language>' option to override the
+        default keyboard layout
     [mklivecd.spec]:
       - Synced with contrib spec
       - Ability to auto-generate version info for changelog
