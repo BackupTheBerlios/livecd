@@ -1,8 +1,8 @@
-# $Id: Makefile,v 1.3 2004/01/18 17:52:03 jaco Exp $
+# $Id: Makefile,v 1.4 2004/01/22 08:43:15 jaco Exp $
 
 include Rules.mk
 
-all: $(LIBRARY) test
+all: $(LIBRARY)
 
 $(LIBRARY): $(OBJECTS)
 	$(CC) -shared -Wl,-soname -Wl,$(LIBRARY).0.0 -o $(LIBRARY).0.0.0 $(OBJECTS)
