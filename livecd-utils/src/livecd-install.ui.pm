@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.35 2004/06/12 14:52:52 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.36 2004/06/16 15:04:12 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -805,19 +805,19 @@ sub writeFstab {
 		fs::write_fstab($hdds, $mnt);
 
 		open FSTAB, '>', "$mnt/etc/fstab";
-		print FSTAB "## livecd-install ".getStr('fstab_info')."\n";
+		print FSTAB "## Livecd-install ".getStr('fstab_info')."\n";
 		print FSTAB "\nnone"."\t"."/proc"."\t"."proc"."\t"."defaults"."\t"."0 0";
 		print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";
+		print FSTAB "\nnone"."\t"."/dev/pts"."\t"."devpts"."\t"."mode=0620"."\t"."0 0";
 
 		if (index(qx(uname -r), "2.4") eq '-1') {   # If NOT 2.4 kernel add these lines...
-                   print "DEBUG: Added 2.6 kernel to FSTAB\n";
+		   print "DEBUG: Added 2.6 kernel to FSTAB\n";
 		   print FSTAB "\nnone"."\t"."/proc/bus/usb"."\t"."usbdevfs"."\t"."defaults"."\t"."0 0";
 		   print FSTAB "\nnone"."\t"."/sys"."\t"."sysfs"."\t"."defaults"."\t"."0 0";
-		   print FSTAB "\nnone"."\t"."/dev/pts"."\t"."devpts"."\t"."mode=0620"."\t"."0 0";
 		   print FSTAB "\nnone"."\t"."/tmp"."\t"."tmpfs"."\t"."defaults"."\t"."0 0";
 		}
                 else {
-                   print "DEBUG: 2.4 kernel found Index:", index(qx(uname -r), "2.6"),"QX:",qx(uname -r),"\n";
+		   print "DEBUG: 2.4 kernel found. Index:", index(qx(uname -r), "2.6"),"QX:",qx(uname -r),"\n";
 		}
 
 		print FSTAB "\n";
@@ -850,8 +850,8 @@ sub writeFstab {
 				$opt = $fsopts{$devs->{$dev}{type}};
 			}
 			else {
-				do_system("mkdir -p $mnt/mnt/$devpnt 2>/dev/null");
 				$mount = $devs->{$dev}{mount};
+				do_system2("mkdir -p $mnt/$mount 2>/dev/null");
 				unless ($devs->{$dev}{supermount}) {
 					$opt = $devs->{$dev}{opt};
 				}
@@ -877,7 +877,7 @@ sub writeFstab {
 			$opt .= $devs->{$dev}{extopt} if ($devs->{$dev}{extopt});
 			$entry .= $opt."\t"."0 0\n";
 			print FSTAB $entry;
-			print "FSTAB: $entry";
+			print "FSTAB: $entry \n";
 		}
 		close FSTAB;
 	}
