@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: main.cpp,v 1.4 2004/01/25 14:28:11 jaco Exp $
+ * $Id: main.cpp,v 1.5 2004/01/25 15:43:03 jaco Exp $
  */
  
 #include <lufs/proto.h>
@@ -36,9 +36,7 @@ livecdfs_init(struct list_head *cfg,
 	      struct credentials *cred, 
 	      void **global_ctx)
 {
-	FUNC("cfg=%p, cache=%p, cred=%p, global_ctx=%p", cfg, cache, cred, global_ctx);
-	
-	TRACE_START();    
+	TRACE_START("cfg=%p, cache=%p, cred=%p, global_ctx=%p", cfg, cache, cred, global_ctx);
 	void *fs = (void *)LiveCDFS::create(cfg, cache, cred);
 	TRACE("create(...)=%p", fs);
 	TRACE_RET(fs);
@@ -48,9 +46,7 @@ livecdfs_init(struct list_head *cfg,
 void 
 livecdfs_free(void *fs)
 {
-	FUNC("fs=%p", fs);
-	
-	TRACE_START();
+	TRACE_START("fs=%p", fs);
 	LiveCDFS::destroy((LiveCDFS*)fs);
 	TRACE_END();
 }
@@ -59,9 +55,7 @@ livecdfs_free(void *fs)
 int 
 livecdfs_mount(void *fs)
 {
-	FUNC("fs=%p", fs);
-	
-	TRACE_START();
+	TRACE_START("fs=%p", fs);
 	int ret = ((LiveCDFS*)fs)->doMount();
 	TRACE("(fs=%p)->doMount()=%d", fs, ret);
 	TRACE_RET(ret);
@@ -71,9 +65,7 @@ livecdfs_mount(void *fs)
 void 
 livecdfs_umount(void *fs)
 {
-	FUNC("fs=%p", fs);
-	
-	TRACE_START();
+	TRACE_START("fs=%p", fs);
 	((LiveCDFS*)fs)->doUmount();
 	TRACE_END();
 }
@@ -84,9 +76,7 @@ livecdfs_readdir(void *fs,
 		 char *name, 
 		 struct directory *dir)
 {
-	FUNC("fs=%p, name='%s', dir=%p", fs, name, dir);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, name='%s', dir=%p", fs, name, dir);
 	int ret = ((LiveCDFS*)fs)->doReaddir(name, dir);
 	TRACE("(fs=%p)->doReaddir(...)=%d", fs, ret);
 	TRACE_RET(ret);
@@ -98,9 +88,7 @@ livecdfs_stat(void *fs,
 	      char *name, 
 	      struct lufs_fattr *attr)
 {
-	FUNC("fs=%p, name='%s', attr=%p", fs, name, attr);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, name='%s', attr=%p", fs, name, attr);
 	int ret = ((LiveCDFS*)fs)->doStat(name, attr);
 	TRACE("(fs=%p)->doStat(...)=%d", fs, ret);
 	TRACE_RET(ret);
@@ -112,9 +100,7 @@ livecdfs_mkdir(void *fs,
 	       char *dir, 
 	       int mode)
 {
-	FUNC("fs=%p, dir='%s', mode=%u", fs, dir, mode);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, dir='%s', mode=%u", fs, dir, mode);
 	int ret = ((LiveCDFS*)fs)->doMkdir(dir, mode);
 	TRACE("(fs=%p)->doMkdir(...)=%d", fs, ret);
 	TRACE_RET(ret);
@@ -125,9 +111,7 @@ int
 livecdfs_rmdir(void *fs, 
 	       char *dir)
 {
-	FUNC("fs=%p, dir='%s'", fs, dir);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, dir='%s'", fs, dir);
 	int ret = ((LiveCDFS*)fs)->doRmdir(dir);
 	TRACE("(fs=%p)->doRmdir(...)=%d", fs, ret);
 	TRACE_RET(ret);
@@ -139,9 +123,7 @@ livecdfs_create(void *fs,
 		char *file, 
 		int mode)
 {
-	FUNC("fs=%p, file='%s', mode=%u", fs, file, mode);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, file='%s', mode=%u", fs, file, mode);
 	int ret = ((LiveCDFS*)fs)->doCreate(file, mode);
 	TRACE("(fs=%p)->doCreate(...)=%d", fs, ret);
 	TRACE_RET(ret);
@@ -152,9 +134,7 @@ int
 livecdfs_unlink(void *fs, 
 		char *file)
 {
-	FUNC("fs=%p, file='%s'", fs, file);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, file='%s'", fs, file);
 	int ret = ((LiveCDFS*)fs)->doUnlink(file);
 	TRACE("(fs=%p)->doUnlink(...)=%d", ret);
 	TRACE_RET(ret);
@@ -166,9 +146,7 @@ livecdfs_rename(void *fs,
 		char *oldname, 
 		char *newname)
 {
-	FUNC("fs=%p, old='%s', new='%s'", fs, oldname, newname);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, old='%s', new='%s'", fs, oldname, newname);
 	int ret = ((LiveCDFS*)fs)->doRename(oldname, newname);
 	TRACE("(fs=%p)->doRename(...)=%d", fs, ret);
 	TRACE_RET(ret);
@@ -180,9 +158,7 @@ livecdfs_open(void *fs,
 	      char *file, 
 	      unsigned mode)
 {
-	FUNC("fs=%p, file='%s', mode=%u", fs, file, mode);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, file='%s', mode=%u", fs, file, mode);
 	int ret = ((LiveCDFS*)fs)->doOpen(file, mode);
 	TRACE("(fs=%p)->doOpen(...)=%d", fs, ret);
 	TRACE_RET(ret);
@@ -193,9 +169,7 @@ int
 livecdfs_release(void *fs, 
 		 char *file)
 {
-	FUNC("fs=%p, file='%s'", fs, file);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, file='%s'", fs, file);
 	int ret = ((LiveCDFS*)fs)->doRelease(file);
 	TRACE("(fs=%p)->doRelease(...)=%d", fs, ret);
 	TRACE_RET(ret);
@@ -209,9 +183,7 @@ livecdfs_read(void *fs,
 	      unsigned long count, 
 	      char *buf)
 {
-	FUNC("fs=%p, file='%s', offset=%l, count=%ul, buf=%p", fs, file, offset, count, buf);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, file='%s', offset=%l, count=%ul, buf=%p", fs, file, offset, count, buf);
 	int ret = ((LiveCDFS*)fs)->doRead(file, offset, count, buf);
 	TRACE("(fs=%p)->doRead(...)=%d", fs, ret);
 	TRACE_RET(ret);
@@ -225,9 +197,7 @@ livecdfs_write(void *fs,
 	       unsigned long count, 
 	       char *buf)
 {
-	FUNC("fs=%p, file='%s', offset=%l, count=%ul, buf=%p", fs, file, offset, count, buf);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, file='%s', offset=%l, count=%ul, buf=%p", fs, file, offset, count, buf);
 	int ret = ((LiveCDFS*)fs)->doWrite(file, offset, count, buf);
 	TRACE("(fs=%p)->doWrite(...)=", fs, ret);
 	TRACE_RET(ret);
@@ -240,9 +210,7 @@ livecdfs_readlink(void *fs,
 		  char *buf, 
 		  int buflen)
 {
-	FUNC("fs=%p, link='%s', buf=%p, buflen=%u", fs, link, buf, buflen);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, link='%s', buf=%p, buflen=%u", fs, link, buf, buflen);
 	int ret = ((LiveCDFS*)fs)->doReadlink(link, buf, buflen);
 	TRACE("(fs=%pdoReadlink(...)=%d", fs, ret);
 	TRACE_RET(ret);
@@ -254,9 +222,7 @@ livecdfs_link(void *fs,
 	      char *target, 
 	      char *link)
 {
-	FUNC("fs=%p, target='%s', link='%s'", fs, target, link);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, target='%s', link='%s'", fs, target, link);
 	int ret = ((LiveCDFS*)fs)->doLink(target, link);
 	TRACE("(fs=%p)->doLink(...)=%d", fs, ret);
 	TRACE_RET(ret);
@@ -268,9 +234,7 @@ livecdfs_symlink(void *fs,
 		 char *target, 
 		 char *link)
 {
-	FUNC("fs=%p, target='%s', link='%s'", fs, target, link);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, target='%s', link='%s'", fs, target, link);
 	int ret = ((LiveCDFS*)fs)->doSymlink(target, link);
 	TRACE("(fs=%p)->doSymlink(...)=%d", fs, ret);
 	TRACE_RET(ret);
@@ -282,9 +246,7 @@ livecdfs_setattr(void *fs,
 		 char *file, 
 		 struct lufs_fattr *attr)
 {
-	FUNC("fs=%p, file='%s', attr=%p", fs, file, attr);
-	
-	TRACE_START();
+	TRACE_START("fs=%p, file='%s', attr=%p", fs, file, attr);
 	int ret = ((LiveCDFS*)fs)->doSetattr(file, attr);
 	TRACE("(fs=%p)->doSetattr(...)=%d", fs, ret);
 	TRACE_RET(ret);
