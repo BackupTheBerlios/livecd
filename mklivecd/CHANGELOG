@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.65 2003/11/03 10:32:31 jaco Exp $
+# $Id: CHANGELOG,v 1.66 2003/11/03 11:35:36 jaco Exp $
 
 * Mon, Nov 03, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -28,6 +28,7 @@
       - Add support for Nvidia GLX drivers
       - Add support for ATI GLX drivers
       - Detect USB Flash devices and mount them rw
+      - s/LIVECD.MNT/.livecd.mnt/
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
@@ -48,6 +49,8 @@
         passed to the kernel with '--bootopt' options
       - Add --volumeid, --application, --preparer, --publisher
         options to identify iso uniquely
+      - Add --usbhome option to always use connected USB flash
+        devices as a persistent home
 
 
 * Mon, Oct 06, 2003, 0.5.6
