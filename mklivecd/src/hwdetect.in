@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.52 2003/11/18 09:54:09 jaco Exp $
+# $Id: hwdetect.in,v 1.53 2003/11/18 11:10:26 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -508,17 +508,18 @@ sub hwdetect_getvideo {
 	$probed_card;
 }
 
+# res => [ laptop, generic, x, y ]
+my %generic_res = (
+	'1024x768'  => ['Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 70 Hz',  1024, 768 ],
+	'1280x1024' => ['Generic|Flat Panel 1280x1024', 'Generic|1280x1024 @ 60 Hz', 1280, 1024],
+	'1400x1050' => ['Generic|Flat Panel 1400x1050', 'Generic|1280x1024 @ 60 Hz', 1400, 1050],
+	'1600x1400' => ['Generic|Flat Panel 1600x1200', 'Generic|1600x1200 @ 70 Hz', 1600, 1400]
+);
+
 sub hwdetect_getgenericmonitor() {
-	# res => [ laptop, generic ]
-	my %generic_monitors = (
-		'1024x768'  => ['Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 70 Hz'],
-		'1280x1024' => ['Generic|Flat Panel 1280x1024', 'Generic|1280x1024 @ 60 Hz'],
-		'1400x1050' => ['Generic|Flat Panel 1400x1050', 'Generic|1280x1024 @ 60 Hz'],
-		'1600x1400' => ['Generic|Flat Panel 1600x1200', 'Generic|1600x1200 @ 70 Hz']
-	);
 	my $pos = detect_devices::isLaptop() ? 0 : 1;
-	my $generic_monitor = $generic_monitors{$cmdline{'xres'}}[$pos];
-	$generic_monitor = $generic_monitors{'1024x768'}[$pos] unless ($generic_monitor);
+	my $generic_monitor = $generic_res{$cmdline{'xres'}}[$pos];
+	$generic_monitor = $generic_res{'1024x768'}[$pos] unless ($generic_monitor);
 	$generic_monitor;
 }
 
@@ -551,7 +552,24 @@ sub hwdetect_getxfree {
 
 	Xconfig::card::to_raw_X($def_card, $rawX);
 	Xconfig::screen::configure($rawX, $def_card);
+
+	# do some resolution magic
+	my $resolution = undef;
+	if ($cmdline{'xres'}) {
+		$resolution->{X} = $generic_res{$cmdline{'xres'}}[2] || 1024;
+		$resolution->{Y} = $generic_res{$cmdline{'xres'}}[3] || 768;
+	}
+	$resolution->{Depth} = $cmdline{'xbpp'} if ($cmdline{'xbpp'});
+	$rawX->set_resolution($resolution) if ($resolution);
 	Xconfig::resolution_and_depth::configure(undef, $rawX, $def_card, $def_monitor, 1);
+	$resolution = $rawX->get_resolution;
+	if (($resolution->{X} lt 1024) && (!$cmdline{'xres'} || !$cmdline{'xbpp'})) {
+		$resolution->{X} = 1024;
+		$resolution->{Y} = 768;
+		$resolution->{Depth} = 16;
+		$rawX->set_resolution($resolution);
+		Xconfig::resolution_and_depth::configure(undef, $rawX, $def_card, $def_monitor, 1);
+	}
 
 	unless ($probe) {
 		print "Writing X configuration: ";
