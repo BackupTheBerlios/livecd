@@ -1,8 +1,11 @@
-# $Id: mklivecd.spec.in,v 1.5 2003/09/30 08:21:32 jaco Exp $
+# $Id: mklivecd.spec.in,v 1.6 2003/09/30 22:33:06 bgmilne Exp $
 
 %define name		mklivecd
 %define version		@MKLIVECDVER
 %define release		@RELEASE
+%if %(echo %release|grep -q cvs; echo $[1-$?])
+%global	cvs		%(echo 0.cvs.20031001.1mdk| tr -d [a-z]|cut -d. -f3)
+%endif
 
 %define summary		Builds a LiveCD from an existing Mandrake Linux installation
 
@@ -13,7 +16,7 @@ Release:		%{release}
 License:		GPL
 Group:			System/Configuration/Boot and Init
 URL:			http://www.linuxminicd.org/mklivecd/
-Source0:		%{name}-%{version}.tar.bz2
+Source0:		%{name}-%{version}%{?cvs:-cvs.%{cvs}}.tar.bz2
 Requires:		busybox, cloop-utils, mkisofs
 BuildRoot:		%{_tmppath}/%{name}-root
 Buildarch:		noarch
@@ -22,7 +25,7 @@ Buildarch:		noarch
 %{summary}
 
 %prep
-%setup -q
+%setup -q %{?cvs:-n %{name}-%{version}-cvs.%{cvs}}
 
 %build
 %make
