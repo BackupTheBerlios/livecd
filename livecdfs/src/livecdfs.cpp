@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.15 2004/01/23 17:56:05 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.16 2004/01/24 17:57:25 jaco Exp $
  */
 
 #include <dirent.h>
@@ -237,6 +237,9 @@ LiveCDFS::doReaddir(const char *name,
 		}
 		closedir(tdir);
 	}
+	else {
+		path->recurseMkdir(name);
+	}
 	
 	string rootpath = path->mkroot(name);
 	if (whiteout->isVisible(name) && 
@@ -354,7 +357,7 @@ LiveCDFS::doOpen(const char *file,
 		string dir = path->getDir(file);
 		if ((dir.length() != 0) && !path->isTmp(dir)) {
 			TRACE("Creating directory dir='" << dir << "'");
-			doMkdir(dir.c_str(), 0666); 
+			path->recurseMkdir(dir.c_str()); 
 		}
 	
 		openpath = tmppath;
@@ -365,11 +368,6 @@ LiveCDFS::doOpen(const char *file,
 		string rootpath = path->mkroot(file);
 		if (path->exists(rootpath.c_str(), S_IFREG) || path->exists(rootpath.c_str(), S_IFLNK)) {
 			if (!path->exists(tmppath.c_str(), 0)) {
-				string dir = path->getDir(file);
-				if ((dir.length() != 0) && !path->isTmp(dir)) {
-					TRACE("Creating directory dir='" << dir << "'");
-					doMkdir(dir.c_str(), 0666); 
-				}
 				path->copyTmp(file);
 			}
 			openpath = tmppath;
@@ -555,7 +553,7 @@ LiveCDFS::doCreate(const char *file,
 	string dir = path->getDir(file);
 	if ((dir.length() != 0) && !path->isTmp(dir)) {
 		TRACE("Creating directory dir='" << dir << "'");
-		doMkdir(dir.c_str(), 0666); 
+		path->recurseMkdir(dir); 
 	}
 	
 	int fd = open(path->mktmp(file).c_str(), O_WRONLY | O_CREAT | O_TRUNC, mode);
@@ -595,11 +593,6 @@ LiveCDFS::doRename(const char *oldname,
 	string sold = path->mktmp(oldname);
 	string snew = path->mktmp(newname);
 	if (!path->exists(sold.c_str(), 0)) {
-		string dir = path->getDir(oldname);
-		if ((dir.length() != 0) && !path->isTmp(dir)) {
-			TRACE("Creating directory dir='" << dir << "'");
-			doMkdir(dir.c_str(), 0666); 
-		}
 		path->copyTmp(oldname);
 	}
 	
@@ -623,6 +616,18 @@ LiveCDFS::doLink(const char *target,
 	FUNC("target='" << target << "', " <<
 	     "link='"   << link) << "'";
 	
+	string dir = path->getDir(target);
+	if ((dir.length() != 0) && !path->isTmp(dir)) {
+		TRACE("Creating directory dir='" << dir << "' (target)");
+		path->recurseMkdir(dir); 
+	}
+	
+	dir = path->getDir(link);
+	if ((dir.length() != 0) && !path->isTmp(dir)) {
+		TRACE("Creating directory dir='" << dir << "' (link)");
+		path->recurseMkdir(dir); 
+	}
+	
 	return -1;
 }
 
@@ -633,6 +638,18 @@ LiveCDFS::doSymlink(const char *target,
 {
 	FUNC("target='" << target << "', " <<
 	     "link='"   << link << "'");
+	
+	string dir = path->getDir(target);
+	if ((dir.length() != 0) && !path->isTmp(dir)) {
+		TRACE("Creating directory dir='" << dir << "' (target)");
+		path->recurseMkdir(dir); 
+	}
+	
+	dir = path->getDir(link);
+	if ((dir.length() != 0) && !path->isTmp(dir)) {
+		TRACE("Creating directory dir='" << dir << "' (link)");
+		path->recurseMkdir(dir); 
+	}
 	
 	return -1;
 }
