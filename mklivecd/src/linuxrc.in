@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.39 2003/11/16 19:49:47 jaco Exp $
+# $Id: linuxrc.in,v 1.40 2003/11/18 23:53:50 bgmilne Exp $
 #
 
 ### global variables
@@ -521,7 +521,7 @@ setupinit() {
 	fi
 
 	#clean up the shutdown sequence:
-	sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/initrd\\\/\.\*\/\3,' /etc/rc.d/init.d/halt
+	sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/initrd\\\/\.\*\/\3,;s,/sbin/halt.local,/initrd/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g' /etc/rc.d/init.d/halt
 
 	# restart the splash before MDK init (this is very hacky)
 	silent=`grep -i splash=silent /proc/cmdline`

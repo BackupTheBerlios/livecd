@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.24 2003/10/10 04:52:17 jaco Exp $
+# $Id: Makefile,v 1.25 2003/11/18 23:53:50 bgmilne Exp $
 
 include Rules.mk
 include Modules.mk
@@ -23,6 +23,7 @@ mklivecd:
 		$(SED) -e 's,@DEF_SCSI_MODULES@,$(DEF_SCSI_MODULES),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_DEP@,$(DEF_SCSI_MODULES_DEP),g' \
 			>$(DISTDIR)/linuxrc
+	$(CP) $(SRCDIR)/halt.local.in $(DISTDIR)/halt.local
 	$(CAT) $(SRCDIR)/$(PKGNAME).in | \
 		$(SED) -e 's,@PKGNAME@,$(PKGNAME),g' | \
 		$(SED) -e 's,@MKLIVECDVER@,$(ARCHIVEVER),g' | \
@@ -40,6 +41,7 @@ install:
 	$(MKDIR) -p $(DESTDIR)$(SHAREDIR)
 	$(MKDIR) -p $(DESTDIR)$(SBINDIR)
 	$(INSTALL) -m 644 $(DISTDIR)/linuxrc $(DESTDIR)$(SHAREDIR)
+	$(INSTALL) -m 644 $(DISTDIR)/halt.local $(DESTDIR)$(SHAREDIR)
 	$(INSTALL) -m 755 $(DISTDIR)/$(PKGNAME) $(DESTDIR)$(SBINDIR)
 	$(INSTALL) -m 755 $(DISTDIR)/hwdetect $(DESTDIR)$(SBINDIR)
 

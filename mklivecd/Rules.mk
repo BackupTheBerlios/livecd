@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.17 2003/11/16 19:17:53 jaco Exp $
+# $Id: Rules.mk,v 1.18 2003/11/18 23:53:50 bgmilne Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -80,4 +80,5 @@ DOCDIST=\
 SRCDIST=\
 	$(SRCDIR)/linuxrc.in \
 	$(SRCDIR)/$(PKGNAME).in \
-	$(SRCDIR)/hwdetect.in
+	$(SRCDIR)/hwdetect.in \
+	$(SRCDIR)/halt.local.in

@@ -20,7 +20,7 @@
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.59 2003/11/16 19:41:48 jaco Exp $
+# $Id: mklivecd.in,v 1.60 2003/11/18 23:53:50 bgmilne Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -274,6 +274,8 @@ create_initrdimg() {
 	do_cmd "chmod 755 $INITRDDIR/linuxrc"
 	do_cp_strip /usr/sbin/hwdetect $INITRDDIR/usr/sbin/hwdetect
 	do_cmd "chmod 755 $INITRDDIR/usr/sbin/hwdetect"
+	do_cp_strip /usr/share/mklivecd/halt.local $INITRDDIR/sbin/halt.local
+	do_cmd "chmod 755 $INITRDDIR/sbin/halt.local"
 
 	### modules
 	echo "* Copying initrd kernel modules..." >&2

@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# This script is part of mklivecd and is here to:
+# 1)Check if we should eject the CD
+# 2)If so unmount the cloop and CD, ensuring we have everything necessary
+#   below
+# 3)Eject the CD with a prompt (so eject must be in memory)
+# 4)Run /sbin/halt as it would normally be run, but halt needs to be in
+#   memory. We call it because the halt script would call /sbin/halt
+#   where /sbin was a link to the cloop image (no longer accessible) so we
+#   either need to have our own halt or pivot_root
+
+# Variables
+MNTCDROM="/cdrom"
+MNTLIVECD="/loopfs"
+
+#grep -q noeject /proc/cmdline && exit 0 ||:
+grep -q eject /proc/cmdline || exit 0
+
+# We probably want to be able to localise this:
+MSG="Remove the CD, and press [Enter] to power the computer off"
+
+# Copy the binaries we need
+cp -f /sbin/halt /usr/bin/eject /initrd/sbin
+
+# Find which device we want to eject:
+#DEVICE=`awk "/initrd\\$MNTCDROM/ {print \$1}" /proc/mounts`
+DEVICE=`grep "$MNTCDROM" /proc/mounts`
+DEVICE=${DEVICE// *}
+
+# Unmount the filesystems
+# We can unmount proc now
+#echo "Unmounting /proc"
+#umount /proc 2>/dev/null
+
+echo "Unmounting /initrd$MNTLIVECD"
+umount /initrd$MNTLIVECD 2>/dev/null
+echo "Unmounting /initrd$MNTCDROM"
+umount /initrd$MNTCDROM 2>/dev/null
+
+# Hopefully we are unmounted now, try eject
+echo "Ejecting $DEVICE"
+
+/initrd/sbin/eject $DEVICE 2>/dev/null
+
+/initrd/bin/ash < /dev/console 1>/dev/console
+
+echo "$MSG"
+read key </dev/console
+
+# We can unmount proc now
+echo "Unmounting /proc"
+umount /proc 2>/dev/null
+
+#Hope this works ;-)
+/initrd/sbin/halt -i -d -p >/dev/null 2>/dev/null
