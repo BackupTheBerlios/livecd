@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.81 2004/01/07 05:54:01 jaco Exp $
+# $Id: mklivecd.in,v 1.82 2004/01/07 09:31:57 jaco Exp $
 #
 
 use strict;
@@ -108,11 +108,12 @@ General Options:
    --help                      Display this message
    --version                   Display version information
    --verbose                   Be verbose in output
+   --noclean                   Don't remove temporary files on exit
 
 Image generation:
    --root <rootdir>            Root directory of the live filesystem to use as
                                the image for the LiveCD (default: $o_root)
-   --tmp <tmpdir>              Name of the diirectory to be used for temporary
+   --tmp <tmpdir>              Name of the directory to be used for temporary
                                storage (default: $o_tmp)
    --img <image>               Name of the saved compressed image. When an image
                                by this name is found, it will not be re-created
@@ -355,6 +356,7 @@ sub parse_options {
 		'help',
 		'version',
 		'verbose+',
+		'noclean',
 		'root=s',
 		'tmp=s',
 		'img=s',
@@ -402,7 +404,7 @@ sub parse_options {
 	die_("\nFATAL: Kernel (--kernel) '".$o_kernel."' not installed on the root image\n") if (!(-d $o_root."/lib/modules/".$o_kernel));
 	die_("\nFATAL: Extra ISO directory (--isoextrafiles) '".$opts{isoextrafiles}."' does not exist\n") if (defined($opts{isoextrafiles}) && !(-d $opts{isoextrafiles}));
 	die_("\nFATAL: Unknown splash (--splash) option '$o_splash'\n") unless ($o_splash =~ /yes|no/);
-
+	
 	# final iso name
 	if (scalar(@ARGV) > 0) {
 		die_("\nFATAL: Too many command-line arguments\n") if (scalar(@ARGV) > 1);
@@ -426,6 +428,7 @@ sub parse_options {
 	$workdir = $o_tmp."mklivecd.$$";
 	system("mkdir -p $workdir");
 	die_("\nFATAL: Unable to create working directory, '$workdir'\n") unless (-e $workdir);
+	print STDERR "\nWARNING: The temporary directory '$o_workdir' will not be removed at exit, please do so manually" if (defined($opts{noclean}));
 
 	# massage where we might have options csv
 	@{$opts{nofile}} = split(/,/, join(',', @{$opts{nofile}})) if (defined($opts{nofile}));
@@ -837,7 +840,7 @@ sub create_finaliso {
 sub cleanup {
 	if (defined($workdir)) {
 		system("umount $workdir/initrd.mnt 2>/dev/null");
-		system("rm -rf $workdir");
+		system("rm -rf $workdir") unless (defined($opts{noclean}));
 	}
 }
 
