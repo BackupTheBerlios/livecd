@@ -18,10 +18,11 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.cpp,v 1.7 2004/01/24 17:56:13 jaco Exp $
+ * $Id: path.cpp,v 1.8 2004/01/24 19:42:33 jaco Exp $
  */
 
 #include <fcntl.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -39,7 +40,7 @@ Path::create(const string &root,
 	FUNC("root='" << root << "', " <<
 	     "tmp='" << tmp << "'");
 	     
-	if (!exists(tmp.c_str(), S_IFDIR)) {
+	if (!exists(tmp, S_IFDIR)) {
 		ERROR("FATAL: The path specified by 'rw_tmp='" << tmp << "' does not exist as a directory.");
 		return NULL;
 	}
@@ -166,7 +167,7 @@ Path::exists(const string &path,
 		}
 	}
 	else {
-		ERROR("errno=" << errno << " on stat('" << path << "', &buf)");
+		ERROR("strerror(errno)='" << strerror(errno) << "' on stat('" << path << "', &buf)");
 	}
 	
 	return false;
@@ -178,7 +179,30 @@ Path::isDir(const string &path)
 {
 	FUNC("path='" << path << "'");
 	
-	return exists(mkpath(path).c_str(), S_IFDIR);
+	string full = mkpath(path);
+	if (!exists(full, S_IFDIR)) {
+		if (!exists(full, S_IFLNK)) {
+			WARN("path='" << path << "' is not a directory");
+			return false;
+		}
+		
+		char buf[2048];
+		int num = readlink(full.c_str(), buf, 2048);
+		if (num < 0) {
+			WARN("path='" << path << "' is not a directory");
+			return false;
+		}
+		buf[num] = '\0';
+		string link = mkpath(buf);
+		if (!exists(link, S_IFDIR)) {
+			WARN("path='" << path << "' is not a directory");
+			return false;
+		}
+		TRACE("path='" << path << "' is a directory (link)");
+	}
+	
+	TRACE("path='" << path << "' is a directory");
+	return true;
 }
 
 
@@ -203,12 +227,12 @@ Path::recurseMkdir(const string &path,
 	FUNC("path='" << path << "', " <<
 	     "root='" << root << "'");
 	
-	if (exists(mktmp(join(root, path)).c_str(), 0)) {
+	if (exists(mktmp(join(root, path)), 0)) {
 		TRACE("Already existing (tmp) root='" << root << "', path='" << path << "'");
 		return;
 	}
 	
-	if (!exists(mktmp(root).c_str(), 0)) {
+	if (!exists(mktmp(root), 0)) {
 		TRACE("Making root='" << root << "'");
 		if (mkdir(mktmp(root).c_str(), 0666) != 0) {
 			ERROR("Creation of root='" << root << "' failed");
@@ -221,11 +245,16 @@ Path::recurseMkdir(const string &path,
 	
 	int pos = path.find("/", 1);
 	if (pos > 0) {
-		recurseMkdir(path.substr(pos), join(root, path.substr(0, pos)));
+		string newpath = path.substr(pos);
+		string newroot = join(root, path.substr(0, pos));
+		TRACE("Recursing path='" << newpath << "', root='" << newroot << "'");
+		recurseMkdir(newpath, newroot);
 	}
 	else {
 		string dir = join(root, path);
 		TRACE("Making dir='" << dir << "'");
 		mkdir(mktmp(dir).c_str(), 0666);
 	}
+	
+	TRACE("Recurse path='" << path << "', " << "root='" << root << "' completed");
 }

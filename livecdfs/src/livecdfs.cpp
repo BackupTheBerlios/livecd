@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.16 2004/01/24 17:57:25 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.17 2004/01/24 19:42:33 jaco Exp $
  */
 
 #include <dirent.h>
@@ -227,7 +227,7 @@ LiveCDFS::doReaddir(const char *name,
 			if (whiteout->isVisible(subpath)) {
 				TRACE("Adding direntry='" << ent->d_name << "'");
 				if ((doStat(subpath.c_str(), &attr)) < 0) {
-					ERROR("could not stat file='" << ent->d_name << "'");
+					ERROR("Could not stat file='" << ent->d_name << "'");
 					closedir(rdir);
 					return -1;
 				}
@@ -287,25 +287,25 @@ LiveCDFS::doStat(const char *name,
 	}
 	
 	string fullpath = path->mkpath(name);
-	struct stat stat;
-	if (lstat(fullpath.c_str(), &stat) < 0) {
-		WARN("Could not perform stat on file='" << name << "'");
+	struct stat buf;
+	if (stat(fullpath.c_str(), &buf) < 0) {
+		WARN("Could not perform stat on file='" << fullpath << "'");
 		return -1;
 	}
 
-	TRACE("name='"        << name         << "', " << std::dec <<
-	      "stat.st_uid="  << stat.st_uid  << ", " <<
-	      "stat.st_uid="  << stat.st_uid  << ", " <<
-	      "stat.st_size=" << stat.st_size);
+	TRACE("name='"       << name         << "', " << std::dec <<
+	      "buf.st_uid="  << buf.st_uid  << ", " <<
+	      "buf.st_uid="  << buf.st_uid  << ", " <<
+	      "buf.st_size=" << buf.st_size);
 	      
-	attr->f_mode = stat.st_mode;
-	attr->f_nlink = stat.st_nlink;
-	attr->f_uid = stat.st_uid; 
-	attr->f_gid = stat.st_gid;
-	attr->f_size = stat.st_size;
-	attr->f_atime = stat.st_atime;
-	attr->f_mtime = stat.st_mtime;
-	attr->f_ctime = stat.st_ctime;
+	attr->f_mode  = buf.st_mode;
+	attr->f_nlink = buf.st_nlink;
+	attr->f_uid   = buf.st_uid; 
+	attr->f_gid   = buf.st_gid;
+	attr->f_size  = buf.st_size;
+	attr->f_atime = buf.st_atime;
+	attr->f_mtime = buf.st_mtime;
+	attr->f_ctime = buf.st_ctime;
 	
 	return 0;
 }
@@ -366,13 +366,13 @@ LiveCDFS::doOpen(const char *file,
 	}
 	else if ((flags & O_RDWR) || (flags & O_WRONLY)) {
 		string rootpath = path->mkroot(file);
-		if (path->exists(rootpath.c_str(), S_IFREG) || path->exists(rootpath.c_str(), S_IFLNK)) {
-			if (!path->exists(tmppath.c_str(), 0)) {
+		if (path->exists(rootpath, S_IFREG) || path->exists(rootpath, S_IFLNK)) {
+			if (!path->exists(tmppath, 0)) {
 				path->copyTmp(file);
 			}
 			openpath = tmppath;
 		}
-		else if (path->exists(tmppath.c_str(), S_IFREG) || path->exists(tmppath.c_str(), S_IFLNK)) {
+		else if (path->exists(tmppath, S_IFREG) || path->exists(tmppath, S_IFLNK)) {
 			openpath = tmppath;
 		}
 		else {
@@ -592,7 +592,7 @@ LiveCDFS::doRename(const char *oldname,
 	
 	string sold = path->mktmp(oldname);
 	string snew = path->mktmp(newname);
-	if (!path->exists(sold.c_str(), 0)) {
+	if (!path->exists(sold, 0)) {
 		path->copyTmp(oldname);
 	}
 	
@@ -611,47 +611,66 @@ LiveCDFS::doRename(const char *oldname,
 
 int 
 LiveCDFS::doLink(const char *target, 
-		 const char *link)
+		 const char *newlink)
 {
 	FUNC("target='" << target << "', " <<
-	     "link='"   << link) << "'";
+	     "link='"   << newlink << "'");
 	
-	string dir = path->getDir(target);
-	if ((dir.length() != 0) && !path->isTmp(dir)) {
-		TRACE("Creating directory dir='" << dir << "' (target)");
-		path->recurseMkdir(dir); 
+	if (!whiteout->isVisible(target)) {
+		return -1;
 	}
 	
-	dir = path->getDir(link);
+	string dir = path->getDir(newlink);
 	if ((dir.length() != 0) && !path->isTmp(dir)) {
 		TRACE("Creating directory dir='" << dir << "' (link)");
 		path->recurseMkdir(dir); 
 	}
 	
-	return -1;
+	if (!path->isDir(target)) {
+		if ((dir.length() != 0) && !path->isTmp(dir)) {
+			TRACE("Creating directory dir='" << dir << "' (target)");
+			path->recurseMkdir(dir); 
+		}
+	}
+	else if (!path->exists(path->mktmp(target), 0)) {
+		path->copyTmp(target);
+	}
+	
+	TRACE("Creating link, target='" << target << "', link='" << newlink << "'");
+	return link(target, path->mktmp(newlink).c_str());
 }
 
 
 int 
 LiveCDFS::doSymlink(const char *target, 
-		    const char *link)
+		    const char *newlink)
 {
 	FUNC("target='" << target << "', " <<
-	     "link='"   << link << "'");
-	
-	string dir = path->getDir(target);
-	if ((dir.length() != 0) && !path->isTmp(dir)) {
-		TRACE("Creating directory dir='" << dir << "' (target)");
-		path->recurseMkdir(dir); 
+	     "link='"   << newlink << "'");
+	     
+	if (!whiteout->isVisible(target)) {
+		return -1;
 	}
 	
-	dir = path->getDir(link);
+	string dir = path->getDir(newlink);
 	if ((dir.length() != 0) && !path->isTmp(dir)) {
 		TRACE("Creating directory dir='" << dir << "' (link)");
 		path->recurseMkdir(dir); 
 	}
 	
-	return -1;
+	if (!path->isDir(target)) {
+		dir = path->getDir(target);
+		if ((dir.length() != 0) && !path->isTmp(dir)) {
+			TRACE("Creating directory dir='" << dir << "' (target)");
+			path->recurseMkdir(dir); 
+		}
+	}
+	else if (!path->exists(path->mktmp(target), 0)) {
+		path->copyTmp(target);
+	}
+	
+	TRACE("Creating link, target='" << target << "', link='" << newlink << "'");
+	return symlink(target, path->mktmp(newlink).c_str());
 }
 
 
@@ -671,14 +690,14 @@ LiveCDFS::doSetattr(const char *file,
 	}
 	
 	string tmppath = path->mktmp(file);
-	struct stat stat;
+	struct stat buf;
 	int res;
-	if ((res = lstat(tmppath.c_str(), &stat)) < 0) {
+	if ((res = stat(tmppath.c_str(), &buf)) < 0) {
 		ERROR("Could not perform stat on file='" << file << "', res=" << std::dec << res);
 		return res;
 	}
 	
-	if (stat.st_size > attr->f_size) {
+	if (buf.st_size > attr->f_size) {
 		TRACE("Truncating file to " << std::dec << attr->f_size << " bytes");
 		if ((res = truncate(tmppath.c_str(), attr->f_size)) < 0) {
 			ERROR("Unable to truncate, res=" << std::dec << res);
@@ -686,16 +705,16 @@ LiveCDFS::doSetattr(const char *file,
 		}
 	}
 	
-	if (stat.st_mode != attr->f_mode) {
-		TRACE("Set mode=" <<  attr->f_mode << ", old=" << stat.st_mode);
+	if (buf.st_mode != attr->f_mode) {
+		TRACE("Set mode=" <<  attr->f_mode << ", old=" << buf.st_mode);
 		if ((res = chmod(tmppath.c_str(), attr->f_mode)) < 0) {
 			ERROR("Unable to chmod, res=" << std::dec << res);
 			return res;
 		}
 	}
 	
-	if ((stat.st_atime != (time_t)attr->f_atime) || 
-	    (stat.st_mtime != (time_t)attr->f_mtime)) {
+	if ((buf.st_atime != (time_t)attr->f_atime) || 
+	    (buf.st_mtime != (time_t)attr->f_mtime)) {
 		struct utimbuf utim = {attr->f_atime, attr->f_mtime};
 		if ((res = utime(tmppath.c_str(), &utim)) < 0) {
 			ERROR("Unable to utime, res=" << std::dec << res);
