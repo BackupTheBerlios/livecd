@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.50 2004/12/21 19:30:32 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.51 2004/12/31 21:37:49 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -41,8 +41,8 @@ use lib qw(/usr/lib/libDrakX);
 
 use fs;
 
-my $debug   : shared = undef;
-my $nocopy  : shared = undef;
+#my $debug   : shared = undef;
+#my $nocopy  : shared = undef;
 
 if ($opt_debug) {$debug = 1};
 if ($opt_nocopy) {$nocopy = 1};

@@ -1,10 +1,13 @@
-# $Id: CHANGELOG,v 1.4 2004/12/21 19:30:32 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.5 2004/12/31 21:37:49 tom_kelly33 Exp $
 
-* 2004 Dec 20
+* 2004-12-20/31
         [livecd-utils]
+	- made format swap default to yes
         - added 'nomce acpi=ht' to append options
         - changed bootloader item number
         - added touch  $mnt/halt (and commented out other)
+
+* 2004: Numerous changes
 
 * Tue, Dec 02, 2003, 0.2.0-cvs
   + Jaco Greeff <jaco@linuxminicd.org>:
