@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.13 2004/01/21 06:33:13 jaco Exp $
+# $Id: rc.sysinit.in,v 1.14 2004/01/29 10:13:51 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -195,8 +195,7 @@ setuproot() {
 					esac ; \
 				fi ; \
 			done" \
-			"mkdir -p /mnt/cdrom && mount -n -o bind $MNTCDROM /mnt/cdrom" \
-			"mkdir -p /tmp && chmod 777 /tmp"
+			"mkdir -p /mnt/cdrom && mount -n -o bind $MNTCDROM /mnt/cdrom"
 		set_progress
 			
 		if [ -f /initrd/lib/libplasticfs.so.0 ]; then
@@ -303,8 +302,7 @@ setuproot() {
 			"rm -rf /opt && ln -sf $MNTLIVECD/opt" \
 			"rm -rf /sbin && ln -sf $MNTLIVECD/sbin" \
 			"rm -rf /usr && ln -sf $MNTLIVECD/usr" \
-			"mkdir -p /mnt && ln -sf $MNTCDROM /mnt/cdrom" \
-			"mkdir -p /tmp && chmod 777 /tmp"
+			"mkdir -p /mnt && ln -sf $MNTCDROM /mnt/cdrom"
 		set_progress
 		PREV=
 		docmd   "Creating /var structure" \

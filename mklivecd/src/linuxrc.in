@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.69 2004/01/28 06:00:19 jaco Exp $
+# $Id: linuxrc.in,v 1.70 2004/01/29 10:13:51 jaco Exp $
 #
 
 ### global variables
@@ -417,6 +417,7 @@ createramdisk() {
 			"mkdir -p /proc && mount -n -t proc none /proc" \
 			"mkdir -p /dev && mount -n -t devfs none /dev" \
 			"mkdir -p /sys /udev" \
+			"mkdir -p /tmp && chmod 777 /tmp" \
 			"cd /" \
 			"ln -s /initrd/bin" \
 			"ln -s /initrd/etc" \
