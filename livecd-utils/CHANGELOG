@@ -1,4 +1,7 @@
-# $Id: CHANGELOG,v 1.5 2004/12/31 21:37:49 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.6 2005/01/15 16:28:34 tom_kelly33 Exp $
+
+* 2005-01-15
+	- added 'don't install lilo' entry
 
 * 2004-12-20/31
         [livecd-utils]

@@ -10,7 +10,8 @@
 
 #
 # LiveCD-Install script
-# Copyright (C) 2003-2004, Jaco Greeff <jaco@linuxminicd.org>
+# Copyright (C) 2003-2004, Jaco Greeff <jaco@puxedo.org>
+# Copyright (C) 2004-2005, Tom Kelly  <tom_kelly33@yahoo.com>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -28,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.51 2004/12/31 21:37:49 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.52 2005/01/15 16:28:34 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -804,6 +805,7 @@ sub showBootloader
 
 	this->setBackEnabled($page, 0);
 	this->lbBootloader->clear();
+	this->lbBootloader->insertItem("--"." Do not install");
 	this->lbBootloader->insertItem("$rootpart ".getStr('boot_bs'));
 
 	my @drives = ();
@@ -821,7 +823,7 @@ sub showBootloader
 	    }
 	}
 	this->lbBootloader->insertItem("$_ ".getStr('boot_mbr')) foreach (@drives);
-	this->lbBootloader->setCurrentItem(1);
+	this->lbBootloader->setCurrentItem(0);
     }
 }
 
@@ -837,8 +839,7 @@ sub doLoaderInstall # SLOT: ( )
 		chomp($distro);
 
 		my $bootstr = lbBootloader->selectedItem()->text();
-		my ($bdev, $text) = split(/ /, $bootstr);
-		$bootdev = $bdev;
+		my ($bootdev, $text) = split(/ /, $bootstr);
 
 		my $kbdmap = "$mnt/usr/lib/kbd/keymaps/livecd.map";
 		do_system("mkdir -p $mnt/usr/lib/kbd/keymaps ; dumpkeys >$kbdmap");
@@ -846,6 +847,7 @@ sub doLoaderInstall # SLOT: ( )
 		
 		do_system("mkdir -p $mnt/etc");
 		do_system("cp $mnt/etc/lilo.conf $mnt/etc/lilo.conf.old");
+
 		open LILO, '>', "$mnt/etc/lilo.conf";
 		print LILO "boot=$bootdev
 map=/boot/map
@@ -931,6 +933,7 @@ label=\"$label\"
 		} else {
 			do_system("mount -t devfs none $mnt/dev"); # Mount for devfs
 		}
+		return if ($bootdev eq "--");
 		do_system2("/sbin/lilo -v -r $mnt");
 		do_system("umount $mnt/dev");
 		do_system("umount $mnt/proc");
