@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.47 2003/11/05 12:51:18 jaco Exp $
+# $Id: hwdetect.in,v 1.48 2003/11/12 05:05:51 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -573,7 +573,9 @@ sub hwdetect_getsound {
 		modules::add_alias("sound-slot-$num", $card->{driver}) unless ($probe);
 		print "modules::add_alias('sound-slot-$num', '".$card->{driver}."')\n" if ($debug);
 		$num++;
-		hwdetect_loadmod($card->{driver}, $probed_vendor, $probed_desc);
+		# hwdetect_loadmod($card->{driver}, ...) makes alsa break since the init scripts
+		# want to load the correct module.
+		hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
 		print_hash($card) if ($debug);
 	}
 	set_progress();
