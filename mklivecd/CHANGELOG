@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.119 2004/01/31 08:18:17 jaco Exp $
+# $Id: CHANGELOG,v 1.120 2004/02/16 05:43:46 jaco Exp $
 
-* Sat, Jan 31, 2003, 0.5.7-cvs
+* Mon, Feb 16, 2004, 0.5.7-cvs
   + Buchan Milne <bgmilne@obsidian.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
@@ -169,6 +169,8 @@
       - Always run ash when booting to initrd
       - Also make us skip hwdetect if "nodetect" is specified
       - Allow experimental overlay support with LiveCDFS
+      - Add /dev/pts mountpoint to /etc/fstab (Thanks 
+        Ross Melin <rdmelin@yahoo.com>)
 
 
 * Mon, Oct 06, 2003, 0.5.6

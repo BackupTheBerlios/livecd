@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.21 2004/02/02 04:59:28 jaco Exp $
+# $Id: rc.sysinit.in,v 1.22 2004/02/16 05:43:46 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -194,9 +194,10 @@ setupdir_etc() {
 	
 	mkdir -p /etc/livecd/hwdetect
 	rm -rf /etc/fstab && touch /etc/fstab
-	echo 'none      /proc proc  defaults 0 0' >/etc/fstab
-	echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab
-	echo '/dev/rd/3 /     tmpfs defaults 0 0' >>/etc/fstab
+	echo 'none      /proc    proc   defaults  0 0' >/etc/fstab
+	echo 'none      /dev     devfs  defaults  0 0' >>/etc/fstab
+	echo 'none      /dev/pts devpts mode=0620 0 0' >>/etc/fstab
+	echo '/dev/rd/3 /        tmpfs  defaults  0 0' >>/etc/fstab
 	rm -rf /etc/mtab && ln -s /proc/mounts /etc/mtab
 	rm -rf /etc/modules.conf && touch /etc/modules.conf
 	rm -rf /etc/rc.d/rc3.d/S05harddrake
