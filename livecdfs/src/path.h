@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.h,v 1.1 2004/01/18 15:47:52 jaco Exp $
+ * $Id: path.h,v 1.2 2004/01/21 19:21:03 jaco Exp $
  */
  
 #ifndef _PATH_dot_H_
@@ -28,8 +28,6 @@ using namespace std;
 
 #include <string>
 
-#define WHITEOUT		".whiteout"
-
 class Path
 {
 private:
@@ -37,7 +35,7 @@ private:
 	string tmp;
 
 public:
-	static Path *createPath(const string &, const string &);
+	static Path *create(const string &, const string &);
 	
 	Path(const string &, const string &);
 	~Path();
@@ -49,21 +47,18 @@ public:
 	string mkpath(const char *path) { return mkpath(string(path)); }
 	
 	string mktmp(const string &path) { return join(tmp, path); }
-	string mktmp(const char *path) { return join(tmp, path); }
+	string mktmp(const char *path) { return mktmp(string(path)); }
 	
 	string mkroot(const string &path) { return join(root, path); }
-	string mkroot(const char *path) { return join(root, path); }
+	string mkroot(const char *path) { return mkroot(string(path)); }
 	
 	bool copyTmp(const string &);
 	bool copyTmp(const char *path) { return copyTmp(string(path)); }
 	
-	bool isWhiteout(const string &);
-	bool isWhiteout(const char *path) { return isWhiteout(string(path)); }
-	
-	bool isTmp(const string &path, int flags = 0) { return isWhiteout(path) ? false : exists(join(tmp, path), flags); }
+	bool isTmp(const string &path, int flags = 0) { return exists(join(tmp, path), flags); }
 	bool isTmp(const char *path, int flags = 0) { return isTmp(string(path), flags); }
 	
-	bool isRoot(const string &path, int flags = 0) { return isWhiteout(path) ? false : exists(join(root, path), flags); }
+	bool isRoot(const string &path, int flags = 0) { return exists(join(root, path), flags); }
 	bool isRoot(const char *path, int flags = 0) { return isRoot(string(path), flags); }
 	
 public:

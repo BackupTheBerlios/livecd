@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: handles.cpp,v 1.2 2004/01/18 18:14:30 jaco Exp $
+ * $Id: handles.cpp,v 1.3 2004/01/21 19:21:03 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -41,8 +41,8 @@ Handles::~Handles()
 
 t_handle *
 Handles::find(const char *file, 
-	     unsigned flags, 
-	     unsigned modes)
+	      unsigned flags, 
+	      unsigned modes)
 {
 	FUNC("file='"   << file << "', " <<
 	     "flags="   << flags << ", " <<

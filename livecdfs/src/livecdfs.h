@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.h,v 1.1 2004/01/18 15:47:52 jaco Exp $
+ * $Id: livecdfs.h,v 1.2 2004/01/21 19:21:03 jaco Exp $
  */
 
 #ifndef _LIVECDFS_dot_H_
@@ -34,6 +34,7 @@ using namespace std;
 
 #include "handles.h"
 #include "path.h"
+#include "whiteout.h"
 
 class LiveCDFS
 {
@@ -43,17 +44,19 @@ private:
 	struct list_head *cfg;
 	
 	Path *path;
+	Whiteout *whiteout;
 	Handles *handles;
 
 public:
-	static LiveCDFS *createLiveCDFS(struct list_head *, 
-					struct dir_cache *, 
-					struct credentials *);
-					
+	static LiveCDFS *create(struct list_head *, 
+				struct dir_cache *, 
+				struct credentials *);
+				
 	LiveCDFS(struct list_head *, 
 		 struct dir_cache *, 
 		 struct credentials *,
-		 Path *);
+		 Path *,
+		 Whiteout *);
 	~LiveCDFS();
 	
 	int doMount();

@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.cpp,v 1.2 2004/01/18 17:54:04 jaco Exp $
+ * $Id: path.cpp,v 1.3 2004/01/21 19:21:03 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -33,8 +33,8 @@
 #include "debug.h"
 
 Path *
-Path::createPath(const string &root, 
-		 const string &tmp)
+Path::create(const string &root, 
+	     const string &tmp)
 {
 	FUNC("root='" << root << "', " <<
 	     "tmp='" << tmp << "'");
@@ -44,15 +44,7 @@ Path::createPath(const string &root,
 		return NULL;
 	}
 	
-	int fd = open(join(tmp, string(WHITEOUT)).c_str(), O_RDWR | O_CREAT, 0644);
-	if (fd > 0) {
-		close(fd);
-		return new Path(root, tmp);
-	}
-	else {
-		ERROR("FATAL: Unable to create/read '.whiteout' in rw_tmp='" << tmp << "'");
-		return NULL;
-	}
+	return new Path(root, tmp);
 }
 
 
@@ -95,7 +87,7 @@ Path::copyTmp(const string &path)
 	struct stat buf;
 	string rootpath = mkroot(path);
 	
-	if (!isWhiteout(path) && (stat(rootpath.c_str(), &buf) == 0)) {
+	if (stat(rootpath.c_str(), &buf) == 0) {
 		string tmppath = mktmp(path);
 		int dst = open(tmppath.c_str(), O_WRONLY | O_CREAT | O_TRUNC, buf.st_mode);
 		if (dst > 0) {
@@ -123,17 +115,6 @@ Path::copyTmp(const string &path)
 	}
 	
 	return ret;
-}
-
-
-bool 
-Path::isWhiteout(const string &path)
-{
-	FUNC("path='" << path << "'");
-
-	bool whiteout = false;
-	whiteout = (path.rfind(WHITEOUT) < path.length()) ? true : false;
-	return whiteout;
 }
 
 

@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: main.cpp,v 1.1 2004/01/18 15:47:52 jaco Exp $
+ * $Id: main.cpp,v 1.2 2004/01/21 19:21:03 jaco Exp $
  */
  
 #include <lufs/proto.h>
@@ -42,8 +42,8 @@ livecdfs_init(struct list_head *cfg,
 	     "global_ctx=" << global_ctx);
 	
 	TRACE_START();    
-	void *fs = (void *)LiveCDFS::createLiveCDFS(cfg, cache, cred);
-	TRACE("createLiveCDFS(...)=" << fs);
+	void *fs = (void *)LiveCDFS::create(cfg, cache, cred);
+	TRACE("create(...)=" << fs);
 	TRACE_RET(fs);
 }
 

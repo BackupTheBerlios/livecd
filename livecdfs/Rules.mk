@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.2 2004/01/18 16:51:02 jaco Exp $
+# $Id: Rules.mk,v 1.3 2004/01/21 19:21:03 jaco Exp $
 
 TOPDIR=$(shell pwd)
 SRCDIR=src
@@ -21,6 +21,7 @@ OBJECTS=$(SRCDIR)/handles.o \
 	$(SRCDIR)/livecdfs.o \
 	$(SRCDIR)/main.o \
 	$(SRCDIR)/path.o \
+	$(SRCDIR)/whiteout.o \
 	$(LUFSDIR)/lufsd/dircache.o
 
 LIBRARY=liblufs-livecdfs.so

@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.5 2004/01/19 06:54:30 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.6 2004/01/21 19:21:03 jaco Exp $
  */
 
 #include <dirent.h>
@@ -36,9 +36,9 @@
 #include "debug.h"
 
 LiveCDFS *
-LiveCDFS::createLiveCDFS(struct list_head *cfg, 
-			 struct dir_cache *cache, 
-			 struct credentials *cred)
+LiveCDFS::create(struct list_head *cfg, 
+		 struct dir_cache *cache, 
+		 struct credentials *cred)
 {
 	FUNC("cfg="   << cfg   << ", " <<
 	     "cache=" << cache << ", " <<
@@ -58,15 +58,17 @@ LiveCDFS::createLiveCDFS(struct list_head *cfg,
 	}
 	string tmp = string(opt);
 
-	Path *path = Path::createPath(root, tmp);
-	return path ? new LiveCDFS(cfg, cache, cred, path) : NULL;
+	Path *path = Path::create(root, tmp);
+	Whiteout *wo = Whiteout::create(tmp);
+	return ((path != NULL) && (wo != NULL)) ? new LiveCDFS(cfg, cache, cred, path, wo) : NULL;
 }
 
 
 LiveCDFS::LiveCDFS(struct list_head *cfg, 
 		   struct dir_cache *cache, 
 		   struct credentials *cred,
-		   Path *path) 
+		   Path *path,
+		   Whiteout *whiteout) 
 {
 	FUNC("cfg="   << cfg   << ", "  <<
 	     "cache=" << cache << ", "  <<
@@ -76,7 +78,9 @@ LiveCDFS::LiveCDFS(struct list_head *cfg,
 	this->cfg = cfg;
 	this->cache = cache;
 	this->cred = cred;
+	
 	this->path = path;
+	this->whiteout = whiteout;
 	
 	this->handles = new Handles();
 }
@@ -87,6 +91,7 @@ LiveCDFS::~LiveCDFS()
 	FUNC("~destructor");
 	
 	delete path;
+	delete whiteout;
 	delete handles;
 }
 
@@ -114,7 +119,7 @@ LiveCDFS::doReaddir(char *name,
 	FUNC("name='" << name << "', " <<
 	     "dir="   << dir);
 	
-	if (path->isWhiteout(name)) {
+	if (!whiteout->isVisible(name)) {
 		return -1;
 	}
 	
@@ -134,7 +139,7 @@ LiveCDFS::doReaddir(char *name,
 		while ((ent = readdir(tdir))) {
 			TRACE("Adding direntry='" << ent->d_name << "'");
 			string subpath = path->join(name, ent->d_name);
-			if (!path->isWhiteout(subpath)) {
+			if (whiteout->isVisible(subpath)) {
 				if ((doStat(subpath.c_str(), &attr)) < 0) {
 					WARN("could not stat file='" << ent->d_name << "'");
 					closedir(tdir);
@@ -159,7 +164,7 @@ LiveCDFS::doReaddir(char *name,
 			} 
 			i++;
 		}
-		if (!found && !path->isWhiteout(subpath)) {
+		if (!found) {
 			if ((doStat(subpath.c_str(), &attr)) < 0) {
 				WARN("could not stat file='" << ent->d_name << "'");
 				closedir(rdir);
@@ -181,7 +186,7 @@ LiveCDFS::doStat(const char *name,
 	FUNC("name='" << name << "', " <<
 	     "attr="  << attr);
 	
-	if (path->isWhiteout(name)) {
+	if (!whiteout->isVisible(name)) {
 		return -1;
 	}
 	
@@ -231,7 +236,7 @@ LiveCDFS::doOpen(char *file,
 	     "modes=" << modes << ", " <<
 	     "flags=" << flags);
 	
-	if (path->isWhiteout(file)) {
+	if (!whiteout->isVisible(file)) {
 		return -1;
 	}
 	
@@ -240,12 +245,14 @@ LiveCDFS::doOpen(char *file,
 		return 0;
 	}
 	
+	bool created = false;
 	string tmppath = path->mktmp(file);
 	string openpath = string("");
 	if (flags & O_CREAT) {
 		// if we are creating a file, do so on the temp space
 		TRACE("Creating empty file='" << file << "' on temp space");
 		openpath = tmppath;
+		created = true;
 	}
 	else if ((flags & O_RDWR) || (flags & O_WRONLY)) {
 		struct stat buf;
@@ -274,6 +281,9 @@ LiveCDFS::doOpen(char *file,
 	if (fd <= 0) {
 		WARN("Unable to open file='" << file << "', flags=" << flags << ", modes=" << modes);
 		return -1;
+	}
+	else if (created) {
+		whiteout->setVisible(file, true);
 	}
 	
 	// We don't really use the opened handle since lufs currently doesn't
@@ -406,12 +416,9 @@ LiveCDFS::doCreate(char *file,
 	FUNC("file='" << file << "', " <<
 	     "mode=" << mode);
 	
-	if (path->isWhiteout(file)) {
-		return -1;
-	}
-	
 	int fd = open(path->mktmp(file).c_str(), O_WRONLY | O_CREAT | O_TRUNC, mode);
 	if (fd > 0) {
+		whiteout->setVisible(file, true);
 		close(fd);
 	}
 	return fd;
