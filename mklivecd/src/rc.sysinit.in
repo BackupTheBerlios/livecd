@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.47 2005/02/23 03:04:08 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.48 2005/02/26 00:34:05 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -517,7 +517,8 @@ do_union () {
    ## fix /var/tmp
    rm -f /var/tmp; ln -s /tmp /var/tmp
 
-## Testing section - can be deleted
+return 0
+## Testing section 
 echo "Starting a shell for testing purposes."
 echo -n "Enter '"
 $SETCOLOR_OK
