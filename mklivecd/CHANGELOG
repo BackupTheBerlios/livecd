@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.55 2003/10/29 12:14:54 jaco Exp $
+# $Id: CHANGELOG,v 1.56 2003/10/31 07:10:07 jaco Exp $
 
 * Wed, Oct 29, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -20,6 +20,8 @@
         by probing with all the SCSI modules
       - Added support for zlib_inflate if exists as a module
       - Added support for translucency kernel module
+      - Utilise the fstab option as passed on the iso commandline
+        to automatically mount partitions rw if specified
     [mklivecd]:
       - Be verbose in depmod command
       - Copy SCSI and optinal modules in addition to normal
@@ -27,6 +29,8 @@
       - Reworked command-line parameters to be more consistent
       - Added '--experimental' option for testing non-mainstream
         options and additions
+      - Added '--fstab' option for overriding the default fstab
+        creation behaviour
 
 
 * Mon, Oct 06, 2003, 0.5.6
