@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: debug.h,v 1.4 2004/01/21 19:16:58 jaco Exp $
+ * $Id: debug.h,v 1.5 2004/01/24 20:16:40 jaco Exp $
  */
  
 #ifndef _DEBUG_dot_H_
@@ -28,13 +28,13 @@ using namespace std;
 
 #include <iostream>
 
-#define PTR(x)		(void *)x
-#define DEC(x)		std::dec << x << std::hex
+#undef TRACE
+#undef WARN
+#undef ERROR
 
-#ifdef DEBUG
-	#undef TRACE
-	#undef WARN
-	#undef ERROR 
+#ifdef DEBUG 
+	#define PTR(x)		(void *)x
+	#define DEC(x)		std::dec << x << std::hex
 
 	#define HDR		__FILE__ << "(" << __LINE__ << "): "
 
@@ -46,6 +46,20 @@ using namespace std;
 	
 	#define WARN(x)		cout << " WARN: " << HDR << std::hex << x << std::dec << "\n"
 	#define ERROR(x)	cout << "ERROR: " << HDR << std::hex << x << std::dec << "\n"
+#else
+	#define PTR(x)		""
+	#define DEC(x)		""
+	
+	#define HDR		""
+
+	#define FUNC(x)		if (0) {}
+	#define TRACE(x) 	if (0) {}
+	#define TRACE_START()	if (0) {}
+	#define TRACE_END()	if (0) {}
+	#define TRACE_RET(x)	if (0) {}
+	
+	#define WARN(x)		if (0) {}
+	#define ERROR(x)	if (0) {}
 #endif
 
 #endif
