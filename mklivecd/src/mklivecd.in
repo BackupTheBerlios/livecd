@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.42 2003/10/07 06:28:07 jaco Exp $
+# $Id: mklivecd.in,v 1.43 2003/10/09 11:16:28 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -38,6 +38,7 @@ modulefile=/etc/modules.conf
 tmpdir=""
 rc=0
 kernel26=""
+modules_opt="@DEF_MODULES_OPT@"
 modules="@DEF_MODULES@ @DEF_MODULES_DEP@ @DEF_SCSI_MODULES@ @DEF_SCSI_MODULES_DEP@"
 
 excludedirs="^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/lock/subsys$ ^/var/run$ ^/var/tmp$"
@@ -208,7 +209,7 @@ create_initrdimg() {
 	### modules
 	echo "* Copying initrd kernel modules..." >&2
 	do_cmd "mkdir -p $INITRDDIR$MODULESDIR/kernel"
-	modules="$loopmod $modules"
+	modules="$loopmod $modules_opt $modules"
 	for m in $modules; do
 		modpath=`(cd ${rootdir}lib/modules/$kernel; find -type f -name $m.o.gz | grep -v build)`
 		if [ -n "$modpath" ]; then
@@ -216,15 +217,22 @@ create_initrdimg() {
 		else
 			modpath=`(cd ${rootdir}lib/modules/$kernel; find -type f -name $m.o | grep -v build)`
 			if [ -z "$modpath" ]; then
-				echo "ERROR: unable to find kernel module $m.o" >&2
-				exit 1
+				modopt=
+				for o in $modules_opt; do
+					[ "$o" == "$m" ] && modopt=1
+				done
+				if [ -z "$modopt" ]; then
+					echo "ERROR: unable to find kernel module $m.o" >&2
+					exit 1
+				fi
+			else
+				do_cp ${rootdir}lib/modules/$kernel/$modpath $INITRDDIR/$MODULESDIR/kernel/$m.o
 			fi
-			do_cp ${rootdir}lib/modules/$kernel/$modpath $INITRDDIR/$MODULESDIR/kernel/$m.o
 		fi
 	done
 	do_cmd ":> $INITRDDIR$modulefile"
 	if [ `uname -r` == "$kernel" ]; then
-		do_cmd "depmod -a --basedir $INITRDDIR --config $INITRDDIR$modulefile"
+		do_cmd "depmod -av --basedir $INITRDDIR --config $INITRDDIR$modulefile"
 	else
 		do_cp ${rootdir}lib/modules/$kernel/modules.* $INITRDDIR/$MODULESDIR/
 	fi
