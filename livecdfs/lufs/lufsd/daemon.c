@@ -22,7 +22,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: daemon.c,v 1.6 2004/02/01 13:05:32 jaco Exp $
+ * $Id: daemon.c,v 1.7 2004/02/02 04:57:24 jaco Exp $
  */
 
 #include <stdlib.h>
@@ -124,10 +124,8 @@ main(int argc, char **argv){
     
     mountpoint = argv[1];
     
-    odata = malloc(strlen(argv[3])+strlen(",fs=livecdfs,mount=")+strlen(mountpoint)+10);
-    strcpy(odata, argv[3]);
-    strcpy(odata+strlen(odata), ",fs=livecdfs,mount=");
-    strcpy(odata+strlen(odata), mountpoint);
+    odata = malloc(strlen(argv[3])+100);
+    sprintf(odata, "fs=livecdfs,fs_ids,ext_links,mount=%s,%s", mountpoint, argv[3]);
     
     nopts = malloc(strlen(odata) + 100);
     if(!nopts){
