@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.151 2005/02/17 15:07:25 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.152 2005/02/18 23:37:04 tom_kelly33 Exp $
 #
 
 use strict;
@@ -817,8 +817,8 @@ sub hwdetect_getnetwork() {
 		}
 		## Turn off IPV6
 		if ($kernel26) {
-			$modules_conf->set_alias("net-pf-10 off");
-			print "\$modules_conf->set_alias('net-pf-10 off')\n" if $debug;
+			$modules_conf->set_alias('net-pf-10', 'off');
+			print "\$modules_conf->set_alias('net-pf-10', 'off')\n" if $debug;
 			print "IPV6 turned off \n";
 		}
 	}

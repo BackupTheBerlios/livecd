@@ -1,5 +1,7 @@
-# $Id: CHANGELOG,v 1.141 2005/02/17 15:07:25 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.142 2005/02/18 23:37:03 tom_kelly33 Exp $
 
+* 2005-02-18
+	[hwdetect] corrected net-pf-10 off bug, thanks to Tex & Ikerek
 * 2005-02-17
 	[hwdetect & livecd-install] add sata_nv, thanks to Ocilent
 * 2005-02-13
