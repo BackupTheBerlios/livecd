@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#
 # This script is part of mklivecd and is here to:
 # 1)Check if we should eject the CD
 # 2)If so unmount the cloop and CD, ensuring we have everything necessary
@@ -9,6 +9,9 @@
 #   memory. We call it because the halt script would call /sbin/halt
 #   where /sbin was a link to the cloop image (no longer accessible) so we
 #   either need to have our own halt or pivot_root
+#
+# $Id: halt.local.in,v 1.2 2003/11/19 05:54:14 jaco Exp $
+#
 
 # Variables
 MNTCDROM="/cdrom"
