@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.55 2003/11/20 05:40:53 jaco Exp $
+# $Id: hwdetect.in,v 1.56 2003/11/20 05:41:44 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -564,8 +564,8 @@ sub hwdetect_getxfree {
 		$resolution->{Depth} = 16;
 	}
 	elsif (defined($cmdline{'xres'})) {
-		$resolution->{X} = $generic_res{$cmdline{'xres'}}[2];
-		$resolution->{Y} = $generic_res{$cmdline{'xres'}}[3];
+		$resolution->{X} = $generic_res{$cmdline{'xres'}}[2] || 1024;
+		$resolution->{Y} = $generic_res{$cmdline{'xres'}}[3] || 768;
 	}
 	$resolution->{Depth} = $cmdline{'xbpp'} if (defined($cmdline{'xbpp'}));
 	$rawX->set_resolution($resolution);
