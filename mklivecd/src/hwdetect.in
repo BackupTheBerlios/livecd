@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.129 2004/08/23 23:29:09 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.130 2004/09/14 18:49:47 tom_kelly33 Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -48,7 +48,6 @@ use Xconfig::parse;
 use Xconfig::resolution_and_depth;
 use Xconfig::screen;
 use Xconfig::xfree;
-use Xconfig::xfree4;
 
 use MDK::Common::File;
 use MDK::Common::System;
@@ -77,6 +76,7 @@ my $fdisk         = undef;
 my $prefix        = "";
 my @all_devices   = ();
 my %cmdline;
+my %modules_conf;
 my $owndevfsd     = 1;
 my $ownprocusb    = 1;
 my $haveswap      = 0;
@@ -413,13 +413,13 @@ sub hwdetect_probepci() {
 			my ($probed_vendor, $probed_desc) = split(/\|/, $pci->{description});
 			if ($pci->{media_type} =~ /SERIAL_USB/ && !defined($cmdline{'nousb'})) {
 				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc, 5);
-				modules::add_probeall("usb-interface", $pci->{driver}) unless ($probe);
-				print "modules::add_probeall('usb-interface', '".$pci->{driver}."')\n" if ($debug);
+				$modules_conf->add_probeall("usb-interface", $pci->{driver}) unless ($probe);
+				print "$modules_conf->add_probeall('usb-interface', '".$pci->{driver}."')\n" if ($debug);
 			}
 			elsif ($pci->{media_type} =~ /STORAGE_SCSI/ && !defined($cmdline{'noscsi'})) {
 				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
-				modules::add_probeall("scsi_hostadapter", $pci->{driver}) unless ($probe);
-				print "modules::add_probeall('scsi_hostadapter', '".$pci->{driver}."')\n" if ($debug);
+				$modules_conf->add_probeall("scsi_hostadapter", $pci->{driver}) unless ($probe);
+				print "$modules_conf->add_probeall('scsi_hostadapter', '".$pci->{driver}."')\n" if ($debug);
 			}
 			elsif ($pci->{media_type} =~ /BRIDGE_CARDBUS/ && !defined($cmdline{'nopcmcia'})) {
 				unless (is_loaded($pci->{driver})) {
@@ -497,7 +497,7 @@ sub hwdetect_initusb() {
 			!$num ? $probe ? print_warning() : print_failed() : print_loaded();
 		}
 		else {
-			print_failure();
+			print_failed();
 		}
 	}
 	set_progress();
@@ -540,7 +540,7 @@ sub hwdetect_getmouse {
 	my $probed_desc = "";
 	my $device = undef;
 	my $probed_mouse = undef;
-	eval { $probed_mouse = mouse::detect() and print_success(); } or print_failed();
+	eval { $probed_mouse = mouse::detect($modules_conf) and print_success(); } or print_failed();
 	if ($probed_mouse->{device} =~ /usbmouse/) {
 		my @probed_mice = hwdetect_get_mediatype('Mouse');
 		if (scalar @probed_mice) {
@@ -585,7 +585,7 @@ sub hwdetect_getvideo {
 					$probed_card->{Driver} = $probed_card->{Driver2};
 					$probed_card->{DRI_GLX_SPECIAL} = 1;
 					$module = $probed_card->{Driver2};
-					modules::add_alias("/dev/nvidia*", $module);
+					$modules_conf->set_alias("/dev/nvidia*", $module);
 				}
 				if ($probed_card->{Driver2} eq 'fglrx' &&
 				       -e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
@@ -627,31 +627,25 @@ my %generic_res = (
 	'1600x1400' => ['Generic|Flat Panel 1600x1200', 'Generic|1600x1200 @ 70 Hz', 1600, 1400]
 );
 
-sub hwdetect_getgenericmonitor() {
-	my $pos = detect_devices::isLaptop() ? 0 : 1;
-	my $generic_monitor = $generic_res{$cmdline{'xres'}}[$pos];
-	$generic_monitor = $generic_res{'1024x768'}[$pos] unless ($generic_monitor);
-	$generic_monitor;
-}
-
-sub hwdetect_getmonitor {
+sub hwdetect_getmonitors {
 	my ($rawX) = @_;
 	print getStr('monitor_probe').": ";
-	my $probed_monitor = undef;
+	my $probed_monitors = undef;
 
 	# try to get a monitor via DDC
-	eval { $probed_monitor = Xconfig::monitor::from_raw_X($rawX); };
-	if (!$probed_monitor->{HorizSync}) {
-		# just grab a good default
-		my $def_monitor = hwdetect_getgenericmonitor();
-		my $monitors = Xconfig::monitor::monitors();
-		my %h_monitors = map {; "$_->{VendorName}|$_->{ModelName}" => $_ } @$monitors;
-		$probed_monitor = $h_monitors{$def_monitor};
+	eval { 
+	    $probed_monitors = Xconfig::monitor::configure_auto_install($rawX, {});
+	};
+	if (int @$probed_monitors > 0) {
+	    print_success();
+	} else {
+	    print_failed();
 	}
-	eval { $rawX->set_monitors($probed_monitor) and print_success(); } or print_failure();
-	hwdetect_loadmod('unknown', $probed_monitor->{VendorName}, $probed_monitor->{ModelName}, 0);
-	print_hash($probed_monitor) if ($debug);
-	$probed_monitor;
+	foreach my $monitor (@$probed_monitors) {
+	    hwdetect_loadmod('unknown', $monitor->{VendorName}, $monitor->{ModelName}, 0);
+	    print_hash($monitor) if ($debug);
+	}
+	$probed_monitors;
 }
 
 sub hwdetect_getxfree {
@@ -659,7 +653,7 @@ sub hwdetect_getxfree {
 	my $def_mouse = hwdetect_getmouse();
 	my $def_card = hwdetect_getvideo();
 	my $rawX = Xconfig::default::configure($def_keyboard, $def_mouse);
-	my $def_monitor = hwdetect_getmonitor($rawX);
+	my @def_monitors = hwdetect_getmonitors($rawX);
 
 	# fix the de(nodeadkeys) keyboard
 	my $xkb = $rawX->get_keyboard();
@@ -675,18 +669,19 @@ sub hwdetect_getxfree {
 
 	# detect a resolution
 	print getStr('resolution_probe').": ";
-	$rawX->{default_depth} = defined($cmdline{'xbpp'}) ? $cmdline{'xbpp'} : 16;
+	my %old_X;
+	$old_X->{default_depth} = defined($cmdline{'xbpp'}) ?  $cmdline{'xbpp'} : 16;
 	my $resolution_wanted = undef;
 	if (defined($cmdline{'xres'})) {
-		$resolution_wanted->{Depth} = $rawX->{default_depth};
+		$resolution_wanted->{Depth} = $old_X->{default_depth};
 		$resolution_wanted->{X} = $generic_res{$cmdline{'xres'}}[2] || 1024;
 		$resolution_wanted->{Y} = $generic_res{$cmdline{'xres'}}[3] || 768;
-		$rawX->{resolution_wanted} = $resolution_wanted;
+		$old_X->{resolution_wanted} = $resolution_wanted;
 	}
 	
 	# set the desired res, and override if failed and we are not safe
 	my $resolution = undef;
-	eval { $resolution = Xconfig::resolution_and_depth::configure_auto_install($rawX, $def_card, $def_monitor, $rawX); };
+	eval { $resolution = Xconfig::resolution_and_depth::configure_auto_install($rawX, $def_card, $def_monitors, $old_X); };
 	if (!defined($resolution) && defined($resolution_wanted) && !defined($cmdline{'safex'})) {
 		eval { $rawX->set_resolution($resolution_wanted); };
 		eval { $resolution = $rawX->get_resolution; };
@@ -727,16 +722,16 @@ sub hwdetect_getsound {
 			my $driver = $card->{driver};
 			$driver = $cmdline{'sound'} if (defined($cmdline{'sound'}));
 			$driver = $cmdline{$sndnum} if (defined($cmdline{$sndnum}));
-			modules::add_alias("sound-slot-$num", $driver);
-			print "modules::add_alias('sound-slot-$num', '$driver')\n" if ($debug);
+			$modules_conf->set_alias("sound-slot-$num", $driver);
+			print "$modules_conf->set_alias('sound-slot-$num', '$driver')\n" if ($debug);
 			if ($card->{options} && ($driver eq $card->{driver})) {
-				modules::set_options($driver, $card->{options}); 
-				print "modules::set_options($driver, ".$card->{options}.")\n" if ($debug);
+				$modules_conf->set_options($driver, $card->{options}); 
+				print "$modules_conf->set_options($driver, ".$card->{options}.")\n" if ($debug);
 			}
 			
 			# sound card specifics not defaulted in MDK
-			modules::set_options('snd-via82xx', 'index=0 dxs_support=2') if ($driver =~ /via82xx/);
-			modules::set_options('snd-card-intel8x0', 'snd_ac97_clock=41194') if ($driver =~ /intel8x0/);
+			$modules_conf->set_options('snd-via82xx', 'index=0 dxs_support=2') if ($driver =~ /via82xx/);
+			$modules_conf->set_options('snd-card-intel8x0', 'snd_ac97_clock=41194') if ($driver =~ /intel8x0/);
 			
 			$num++;
 			# hwdetect_loadmod($card->{driver}, ...) makes alsa break since the init scripts
@@ -764,8 +759,8 @@ sub hwdetect_getnetwork {
 			$driver = $cmdline{'eth'} if (defined($cmdline{'eth'}));
 			$driver = $cmdline{$ethnum} if (defined($cmdline{$ethnum}));
 			
-			modules::add_alias("eth$num", $driver) unless ($probe);
-			print "modules::add_alias('eth$num', '$driver')\n" if ($debug);
+			$modules_conf->set_alias("eth$num", $driver) unless ($probe);
+			print "$modules_conf->set_alias('eth$num', '$driver')\n" if ($debug);
 			
 			$num++;
 			# don't loaded driver, only add to /etc/modules.conf (as with sound)
@@ -774,8 +769,8 @@ sub hwdetect_getnetwork {
 		}
 		## Turn off IPV6
 		if ($kernel26) {
-			modules::add_alias("net-pf-10 off");
-			print "modules::add_alias('net-pf-10 off')\n" if ($debug);
+			$modules_conf->set_alias("net-pf-10 off");
+			print "$modules_conf->set_alias('net-pf-10 off')\n" if ($debug);
 			print "IPV6 turned off \n";
 		}
 	}
@@ -837,7 +832,7 @@ sub hwdetect_all {
 
 sub hwdetect_readconf {
 	print getStr('mod_read').": ";
-	modules::mergein_conf('/etc/modules.conf') if -r '/etc/modules.conf';
+	$modules_conf = modules::any_conf->read;
 	print_success();
 	set_progress();
 }
@@ -848,7 +843,7 @@ sub hwdetect_writeconf {
 		system(":> $prefix/etc/modules.conf"); # clear first
 		system(":> $prefix/etc/modprobe.conf"); # clear first
 		$modules::prefix = $prefix;
-		modules::write_conf();
+		modules::any_conf::write($modules_conf);
 		print_success();
 	}
 	set_progress();
@@ -1169,17 +1164,17 @@ sub hwdetect_getdisks {
 				### the topmost extention might be set, which means
 				### we are missing it (only do this if we cannot find it,
 				### see it as a try 2)
-				$raw->{type} = $raw->{type} & 0xFF unless ($fstypes{$raw->{type}});
-				my @opts = @{$fsopts{$fstypes{$raw->{type}}[1]}};
-				if ($raw->{devfs_device} && $fstypes{$raw->{type}}[1] && @opts) {
+				$raw->{pt_type} = $raw->{pt_type} & 0xFF unless ($fstypes{$raw->{pt_type}});
+				my @opts = @{$fsopts{$fstypes{$raw->{pt_type}}[1]}};
+				if ($raw->{devfs_device} && $fstypes{$raw->{pt_type}}[1] && @opts) {
 					my $dev = $raw->{device};
-					$all_devs{$dev}->{info}    = "/dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{type} . ": " . $fstypes{$raw->{type}}[0] . " (primary)";
+					$all_devs{$dev}->{info}    = "/dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{pt_type} . ": " . $fstypes{$raw->{pt_type}}[0] . " (primary)";
 					$all_devs{$dev}->{dev}     = "/dev/" . $raw->{device};
 					$all_devs{$dev}->{devfs}   = "/dev/".$raw->{devfs_device};
 					$all_devs{$dev}->{size}    = $raw->{size};
 					$all_devs{$dev}->{media}   = "hd";
-					my $type = $fstypes{$raw->{type}}[1];
-					if ($raw->{type} =~ /^130/) {
+					my $type = $fstypes{$raw->{pt_type}}[1];
+					if ($raw->{pt_type} =~ /^130/) {
 						$haveswap = 1;
 						$all_devs{$dev}->{mount} = "swap";
 					}
@@ -1236,17 +1231,17 @@ sub hwdetect_getdisks {
 					### the topmost extention might be set, which means
 					### we are missing it (only do this if we cannot find it,
 					### see it as a try 2)
-					$raw->{type} = $raw->{type} & 0xFF unless ($fstypes{$raw->{type}});
-					my @opts = @{$fsopts{$fstypes{$raw->{type}}[1]}};
-					if ($raw->{devfs_device} && $fstypes{$raw->{type}}[1] && @opts) {
+					$raw->{pt_type} = $raw->{pt_type} & 0xFF unless ($fstypes{$raw->{type}});
+					my @opts = @{$fsopts{$fstypes{$raw->{pt_type}}[1]}};
+					if ($raw->{devfs_device} && $fstypes{$raw->{pt_type}}[1] && @opts) {
 						my $dev = $raw->{device};
-						$all_devs{$dev}->{info}    = "/dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{type} . ": " . $fstypes{$raw->{type}}[0] . " (extended)";
+						$all_devs{$dev}->{info}    = "/dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{pt_type} . ": " . $fstypes{$raw->{pt_type}}[0] . " (extended)";
 						$all_devs{$dev}->{dev}     = "/dev/" . $raw->{device};
 						$all_devs{$dev}->{devfs}   = "/dev/".$raw->{devfs_device};
 						$all_devs{$dev}->{size}    = $raw->{size};
 						$all_devs{$dev}->{media}   = "hd";
-						my $type = $fstypes{$raw->{type}}[1];
-						if ($raw->{type} =~ /^130/) {
+						my $type = $fstypes{$raw->{pt_type}}[1];
+						if ($raw->{pt_type} =~ /^130/) {
 							$haveswap = 1;
 							$all_devs{$dev}->{mount} = "swap";
 						}
@@ -1277,16 +1272,16 @@ sub hwdetect_getdisks {
 		my $name = $vol->{VG_name};
 		foreach my $disk ($vol->{primary}->{normal}) {
 			foreach my $lvm (@{$disk}) {
-				my $type = defined($fstypes{$lvm->{type}}) ? $fstypes{$lvm->{type}}[1] : "ext2";
-				my @opts = @{$fsopts{$type}};
+				my $type = defined($fstypes{$lvm->{pt_type}}) ? $fstypes{$lvm->{pt_type}}[1] : "ext2";
+				my @opts = @{$fsopts{$pt_type}};
 				if ($lvm->{device} && @opts) {
 					my $dev = $lvm->{device};
-					$all_devs{$dev}->{info}    = "/dev/" . $lvm->{device} . ", size=" . $lvm->{size} . ", type=" . $lvm->{type} . ": " . $type . " (lvm, $name)";
+					$all_devs{$dev}->{info}    = "/dev/" . $lvm->{device} . ", size=" . $lvm->{size} . ", type=" . $lvm->{pt_type} . ": " . $type . " (lvm, $name)";
 					$all_devs{$dev}->{dev}     = "/dev/" . $lvm->{device};
 					$all_devs{$dev}->{devfs}   = "/dev/" . $lvm->{device};
 					$all_devs{$dev}->{size}    = $lvm->{size};
 					$all_devs{$dev}->{media}   = "lvm";
-					if ($lvm->{type} =~ /^130/) {
+					if ($lvm->{pt_type} =~ /^130/) {
 						$haveswap = 1;
 						$all_devs{$dev}->{mount} = "swap";
 					}
@@ -1416,7 +1411,7 @@ sub hwdetect_writedisks {
 sub hwdetect_swapon {
 	if ($haveswap > 0) {
 		print getStr('swap_activate').": ";
-		system("/sbin/swapon -a -e") ? print_failure() : print_success();
+		system("/sbin/swapon -a -e") ? print_failed() : print_success();
 	}
 	set_progress();
 }

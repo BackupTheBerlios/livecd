@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.30 2004/09/12 16:57:21 tom_kelly33 Exp $
+# $Id: Rules.mk,v 1.31 2004/09/14 18:49:47 tom_kelly33 Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -31,9 +31,9 @@ VAL_SPLASH_FULL=20
 PKGNAME=mklivecd
 MAJORVER=0
 MINORVER=5
-PATCHVER=8
+PATCHVER=9
 RELVER=1
-CVSVER=no
+CVSVER=yes
 
 # Automatic variable updates, leave alone
 MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
