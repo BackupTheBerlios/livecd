@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.29 2003/11/03 07:40:56 jaco Exp $
+# $Id: linuxrc.in,v 1.30 2003/11/03 08:24:55 jaco Exp $
 #
 
 ### global variables
@@ -508,6 +508,16 @@ setupinit() {
 
 	#clean up the shutdown sequence:
 	sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/initrd\\\/\.\*\/\3,' /etc/rc.d/init.d/halt
+
+	# restart the splash before MDK init (this is very hacky)
+	silent=`grep -i splash=silent /proc/cmdline`
+	if [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
+		echo 0 > /proc/splash
+		. /etc/sysconfig/bootsplash
+		res=`/bin/fbresolution`
+		[ -f /etc/bootsplash/themes/$THEME/config/bootsplash-$res.cfg ] && /sbin/splash -s -u 0 /etc/bootsplash/themes/$THEME/config/bootsplash-$res.cfg
+		echo "silent" >/proc/splash
+	fi
 
 	# do we just want to complete the initrd (debug)?
 	if `grep -iq livecd=initrd /proc/cmdline`; then
