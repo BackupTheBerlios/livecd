@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.8 2003/10/01 12:44:11 jaco Exp $
+# $Id: hwdetect.in,v 1.9 2003/10/01 12:49:23 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -169,7 +169,7 @@ sub mount {
 
 sub modprobe {
 	my ($opt, $module) = @_;
-	my $res = 0;
+	my $res = 1;
 	$res = system("(/sbin/modprobe $opt $module) 2>/dev/null >/dev/null") unless ($probeonly);
 	$res;
 }
