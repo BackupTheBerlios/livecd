@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.43 2003/10/06 05:21:10 jaco Exp $
+# $Id: CHANGELOG,v 1.44 2003/10/06 05:29:22 jaco Exp $
 
-* Sat, Oct 04, 2003, 0.5.6-cvs
+* Mon, Oct 06, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [mklivecd]:
       - Fix rootdir to use the kernel/modules from the chroot
@@ -86,7 +86,8 @@
       - Case statement now has one combined entry for '-h', '-?'
         and '--help' command-line options
       - Added '--final' option, stripping unneeded lines from the
-        scripts on the initrd image, saving some space
+        scripts on the initrd image, saving some space. This
+        option also leaves out the 'debug' option from the CD
       - Added '--keyboard=<language>' option to override the
         default keyboard layout
       - Added '--iso-bootmsg=<boot.msg>' option to provide a
