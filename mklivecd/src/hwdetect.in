@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.56 2003/11/20 05:41:44 jaco Exp $
+# $Id: hwdetect.in,v 1.57 2003/11/21 06:10:03 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -591,6 +591,9 @@ sub hwdetect_getsound {
 		unless ($probe) {
 			modules::add_alias("sound-slot-$num", $card->{driver});
 			modules::set_options($card->{driver}, $card->{options}) if ($card->{options});
+
+			# sound card specifics not defaulted in MDK
+			modules::set_options('snd-via82xx', 'index=0 dxs_support=2') if ($card->{driver} =~ /via82xx/);
 		}
 		print "modules::add_alias('sound-slot-$num', '".$card->{driver}."')\n" if ($debug);
 		print "modules::set_options(".$card->{driver}.", ".$card->{options}.")\n" if ($debug && $card->{options});
