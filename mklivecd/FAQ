@@ -1,4 +1,4 @@
-# $Id: FAQ,v 1.16 2003/12/07 11:24:54 jaco Exp $
+# $Id: FAQ,v 1.17 2003/12/11 06:48:01 jaco Exp $
 
 Q: How do I create a tiny (truly minimal) bootable Mandrake
    LiveCD?
@@ -211,7 +211,7 @@ Q: What are these lss images that isolinux can display? How do I
    generate them?
 A: Ahhh, you found the '--bootimg' option. The LSS image
    format is a run-length encoded format, chosen by the syslinux
-   author as a fast/easy way of diaplying boot images. Here is
+   author as a fast/easy way of displaying boot images. Here is
    how you create them:
 
    1. Create a 16 colour (indexed palette) BMP file with a
