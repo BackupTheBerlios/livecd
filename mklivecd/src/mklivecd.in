@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.74 2004/01/05 12:28:05 jaco Exp $
+# $Id: mklivecd.in,v 1.75 2004/01/05 12:58:59 jaco Exp $
 #
 
 use strict;
@@ -470,13 +470,13 @@ sub check_kernel {
 		$kernel26 = 1;
 		$modfile = "/etc/modprobe.conf";
 		$opts{splash} = "no";
-		$depmod = "/sbin/depmod";
+		$depmod = "/sbin/depmod-25";
 		$modext = ".ko";
 		$modules = $modules_26;
 		$modules_opt = $modules_opt_26;
 	}
 	else {
-		$depmod = "/sbin/depmod-25";
+		$depmod = "/sbin/depmod";
 		$modext = ".o";
 		$modules = $modules_24;
 		$modules_opt = $modules_opt_24;
@@ -554,7 +554,7 @@ sub create_initrd {
 
 	# start progress bar
 	my $pos = 0;
-	start_progress("Creating initrd", 29+scalar(@allmods));
+	start_progress("Creating initrd", 30+scalar(@allmods));
 
 	# create directories
 	my $dir = $workdir."/initrd.dir";
@@ -597,7 +597,7 @@ sub create_initrd {
 		}
 		else {
 			$modpath = $modpath.".gz";
-			if (-f $modpath) {
+			if (!defined($kernel26) && -f $modpath) {
 				do_cmd("gzip -dc $modpath >$tomod", ++$pos);
 			}
 			else {
@@ -610,7 +610,11 @@ sub create_initrd {
 			}
 		}
 	}
-	do_cmd(":>$dir$modfile ; depmod -a --basedir $dir --config $dir$modfile 2>/dev/null", ++$pos) unless(defined($kernel26));
+
+	# generate modules file
+	do_cmd(":>$dir$modfile", ++$pos);
+	my $cfg = defined($kernel26) ? "" : "--config $dir$modfile";
+	do_cmd("depmod -a --basedir $dir ".$cfg." 2>/dev/null", ++$pos);
 
 	# get sizes
 	my $size = get_exec("du -ks $dir | awk '{print \$1}'");
