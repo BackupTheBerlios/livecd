@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.11 2003/10/04 19:00:27 jaco Exp $
+# $Id: linuxrc.in,v 1.12 2003/10/04 19:02:57 jaco Exp $
 #
 
 ### global variables
@@ -353,8 +353,7 @@ createramdisk() {
 			"rm -rf /etc/mtab && touch /etc/mtab" \
 			"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
 			"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
-			"rm -rf /etc/rc.d/rc5.d/S05harddrake" \
-			"rm -rf /etc/init.d/dm"
+			"rm -rf /etc/rc.d/rc5.d/S05harddrake"
 		docmd   "Creating user directories" \
 			"cp -a /initrd$MNTLIVECD/root /" \
 			"cp -a /initrd$MNTLIVECD/home /"
