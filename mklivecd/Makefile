@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.15 2003/10/02 07:57:55 jaco Exp $
+# $Id: Makefile,v 1.16 2003/10/02 08:08:28 jaco Exp $
 
 include Rules.mk
 
@@ -34,7 +34,7 @@ install:
 spec:
 	$(MKDIR) -p $(DISTDIR)
 	$(CAT) $(PKGNAME).spec.in | \
-		$(SED) -e 's/@MKLIVECDVER@/$(MKLIVECDVER)/g;s/@MKLIVECDREL@/$(MKLIVECDREL)/g;s/@SPECDATE@/$(SPECDATE)/g' \
+		$(SED) -e 's/@MKLIVECDVER@/$(MKLIVECDVER)/g;s/@MKLIVECDREL@/$(MKLIVECDREL)/g;s/@SPECDATE@/$(SPECDATE)/g;s/@ARCHIVEVER@/$(ARCHIVEVER)/g' \
 		>$(DISTDIR)/$(PKGNAME).spec
 
 clean:

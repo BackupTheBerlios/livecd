@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.20 2003/10/02 07:57:55 jaco Exp $
+# $Id: CHANGELOG,v 1.21 2003/10/02 08:08:28 jaco Exp $
 
 * Wed, Oct 01, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -66,6 +66,8 @@
       - Ability to auto-generate version info for changelog
       - Build CVS specs as per MDK guidelines
       - Automatically add build date to spec changelog
+      - Display archive version in last changelog
+      - Credit to Buchan for his spec fixes
 
 
 * Thu, Sep 25, 2003, 0.5.5

@@ -1,4 +1,4 @@
-# $Id: mklivecd.spec.in,v 1.9 2003/10/02 07:57:55 jaco Exp $
+# $Id: mklivecd.spec.in,v 1.10 2003/10/02 08:08:28 jaco Exp $
 
 %define name		mklivecd
 %define version		@MKLIVECDVER@
@@ -48,7 +48,8 @@ rm -rf %buildroot
 
 %changelog
 * @SPECDATE@ Jaco Greeff <jaco@linuxminicd.org> @MKLIVECDVER@-@MKLIVECDREL@mdk
-- version @MKLIVECDVER@
+- version @ARCHIVEVER@
+- spec fixes by Buchan Milne <bgmilne@cae.co.za>
 
 * Sat Sep 27 2003 Tibor Pittich <Tibor.Pittich@phuture.sk> 0.5.5-2mdk
 - rebuild
