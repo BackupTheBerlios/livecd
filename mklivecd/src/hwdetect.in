@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.40 2003/11/03 07:15:35 jaco Exp $
+# $Id: hwdetect.in,v 1.41 2003/11/03 07:28:44 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -75,6 +75,7 @@ my $haveusb       = 0;
 my $havepcmcia    = 0;
 my $progress_now  = 0;
 my $progress_full = 16;
+my $progress_on   = 0;
 my $kernel_ver    = qx(uname -r);
 chomp($kernel_ver);
 
@@ -160,7 +161,7 @@ sub print_device {
 }
 
 sub set_progress {
-	if ($debug &&
+	if ($progress_on &&
 	    -e '/proc/splash'  &&
 	    $cmdline{'splash'} =~ /silent/) {
 		my $pos = (65534*(++$progress_now+1))/$progress_full;
@@ -169,7 +170,7 @@ sub set_progress {
 }
 
 sub hwdetect_init {
-	#system("echo 0 >/proc/splash") if (-e '/proc/splash' && $cmdline{'splash'} =~ /silent/);
+	system("echo 'show 0' >/proc/splash") if ($progress_on && -e '/proc/splash' && $cmdline{'splash'} =~ /silent/);
 	select(STDOUT);
 	$| = 1;
 	open STDERR, '>', "/dev/null";
