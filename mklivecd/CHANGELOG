@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.95 2004/01/05 13:28:55 jaco Exp $
+# $Id: CHANGELOG,v 1.96 2004/01/06 13:25:10 jaco Exp $
 
-* Mon, Jan 05, 2003, 0.5.7-cvs
+* Tue, Jan 06, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
@@ -14,6 +14,8 @@
         additional files to the root of the LiveCD ISO image
         (ie to see when browsing the CD normally)
   + Jaco Greeff <jaco@linuxminicd.org>:
+    [BOOTCODES]:
+      - Added
     [FAQ]:
       - Point to the gif2lss program in the boot splash section
       - Show how to override Makefile parameters
@@ -32,6 +34,7 @@
         files (such as squashfs files) with the "-o loop" option
       - Removed hardcoded module extension, .o, 2.6 has .ko
       - Tweaked modules, two trees now (one for 2.4, one for 2.6)
+      - Added USB modules for USB device boots
     [Rules.mk]:
       - Created list for default normal and SCSI modules
       - Created listing for optional modules
@@ -87,6 +90,7 @@
       - Added squashfs support
       - Added module extension option based on kernel version,
         2.4.x == .o, 2.6.x == .ko
+      - Also load USB modules when booting from USB device
     [mklivecd]:
       - Be verbose in depmod command
       - Copy SCSI and optinal modules in addition to normal
@@ -143,8 +147,6 @@
       - Updated to allow for rpmbuild -ta <tarball> to work for
         a CVS snapshot generated via 'make dist'
   + Jaco Greeff <jaco@linuxminicd.org>:
-    [BOOTCODES]:
-      - Added
     [FAQ]:
       - Updated to include some compression parameter
         statistics (describes mklivecd '--blocksize' and

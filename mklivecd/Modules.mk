@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.8 2004/01/06 13:01:34 jaco Exp $
+# $Id: Modules.mk,v 1.9 2004/01/06 13:25:10 jaco Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -135,7 +135,7 @@ DEF_SCSI_MODULES_DEP_PATH_26=\
 	drivers/scsi/sd_mod
 
 DEF_USB_MODULES_PATH_24=\
-	drivers/usb/core/usbcore
+	drivers/usb/usbcore
 
 DEF_USB_MODULES_DRV_PATH_24=\
 	drivers/usb/host/uhci

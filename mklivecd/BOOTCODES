@@ -1,4 +1,4 @@
-# $Id: BOOTCODES,v 1.2 2003/12/13 18:13:05 jaco Exp $
+# $Id: BOOTCODES,v 1.3 2004/01/06 13:25:10 jaco Exp $
 
 LiveCD bootcodes: These codes allow you to override the LiveCD
 defaults to modify the boot process for your specific needs. The
@@ -13,7 +13,7 @@ The latest list will always be available from the LiveCD website
 
 http://livecd.berlios.de
 
-The following codes are available as of 13 December 2003:
+The following codes are available as of 06 January 2004:
 
 initrd                  Only boot the initrd, not the actual CD.
 			This option is (mostly) only useful to
@@ -141,9 +141,13 @@ livecd md5sum           Checks the MD5 sum of the compressed
 livecd noeject          Disable the ejection of the CD on
 			shutdown (power-down) or reboot.
 
-livecd noscsi           Disable the probing of SCSI devices. Do
-			not use this option when booting from a
+livecd noscsi           Disable the probing of SCSI devices at boot.
+			Do not use this option when booting from a
 			SCSI device since the boot will fail.
+
+livecd nousb            Disable the probing of USB devices at boot.
+			Do not use this option when booting from a
+			USB device since the boot will fail.
 
 livecd xbpp=<depth>     Specify the bitdepth for X. <depth> can
 			be one of 8, 15, 16, 24 or 32.
