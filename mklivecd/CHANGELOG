@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.39 2003/10/04 16:53:10 jaco Exp $
+# $Id: CHANGELOG,v 1.40 2003/10/04 22:09:58 jaco Exp $
 
 * Sat, Oct 04, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -7,6 +7,7 @@
       - Add basic bootsplash support if bootsplash is installed
         on the image'd system (normal as well as chroot)
       - Avoid premature shell expansion polluting the exclude list
+      - Optimised command-line parsing to not use redundant echo's
     [mklivecd.spec]:
       - Updated to allow for rpmbuild -ta <tarball> to work for
         a CVS snapshot generated via 'make dist'
@@ -66,6 +67,7 @@
       - Allow rw access to /lib/dev-state
       - Call hwdetect at end of sequence, before init
       - Allow for a non-hwdetect override with hwdetect=no
+      - Make current running kernel's modules.dep writable
     [mklivecd]:
       - Changed default blocksize back to 64K (sane default for
         fastest operation in decompressing the compressed image)
@@ -95,6 +97,7 @@
       - Added '--resolution' option for fb resolution setup
       - Added '--splash={yes|no}' option to try and create a
         bootsplash initrd (default: yes)
+      - Removed 'nomodules' parameter from isolinux.cfg
     [mklivecd.spec]:
       - Synced with contrib spec
       - Ability to auto-generate version info for changelog
