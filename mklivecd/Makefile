@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.17 2003/10/02 09:55:09 jaco Exp $
+# $Id: Makefile,v 1.18 2003/10/03 09:19:59 jaco Exp $
 
 include Rules.mk
 
@@ -26,7 +26,6 @@ install:
 	$(MKDIR) -p $(DESTDIR)$(SBINDIR)
 	$(MKDIR) -p $(DESTDIR)$(RCDIR)
 	$(INSTALL) -m 644 $(DISTDIR)/linuxrc $(DESTDIR)$(SHAREDIR)
-	$(INSTALL) -m 644 $(DISTDIR)/isolinux.cfg $(DESTDIR)$(SHAREDIR)
 	$(INSTALL) -m 755 $(DISTDIR)/$(PKGNAME) $(DESTDIR)$(SBINDIR)
 	$(INSTALL) -m 755 $(DISTDIR)/hwdetect $(DESTDIR)$(SBINDIR)
 	$(INSTALL) -m 755 $(DISTDIR)/init.d/hwdetect $(DESTDIR)$(RCDIR)
@@ -44,7 +43,6 @@ clean:
 dist: spec
 	$(MKDIR) -p $(MKLIVECDDIST)/$(SRCDIR)/init.d
 	$(CP) AUTHORS CHANGELOG COPYING FAQ README TODO Makefile Rules.mk $(DISTDIR)/$(PKGNAME).spec $(MKLIVECDDIST)
-	$(CP) $(SRCDIR)/isolinux.cfg $(MKLIVECDDIST)/$(SRCDIR)
 	$(CP) $(SRCDIR)/linuxrc.in $(MKLIVECDDIST)/$(SRCDIR)
 	$(CP) $(SRCDIR)/$(PKGNAME).in $(MKLIVECDDIST)/$(SRCDIR)
 	$(CP) $(SRCDIR)/hwdetect.in $(MKLIVECDDIST)/$(SRCDIR)
