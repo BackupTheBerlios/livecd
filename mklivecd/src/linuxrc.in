@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.82 2004/10/20 17:05:25 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.83 2004/10/25 05:16:53 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -276,187 +276,20 @@ checkmd5() {
 }
 
 
-### find the cloop device
-findcloop() {
-if [ $KERNEL26 ]; then
+findcdroms() {
 
-#1. Search for cdrom devices and add them to CDROM_LIST
-CDROM_LIST=""
-
-# Search in proc tree for ide cdrom devices. There used to be a section for devfs, but this was
-# edited for udev. Actually we should probably not use /proc anymore, but use sysfs instead...
-# Perhaps in the future;)
-        # a) Load basic modules.
-        echo -n "  Loading basic cdrom modules for Kernel 2.6"
-        for i in $OPT_MODULES; do
-                loadmod $i
-        done
-        set_progress
-
-        ALL_LOADED=1
-        for i in $DEP_MODULES; do
-                loadmod $i || ALL_LOADED=
-        done
-        sleep 2
-        [ -n "$ALL_LOADED" ] && printloaded || printfail
-        set_progress
-
-        # b) Probe the USB devices.
-        dousb=`grep -iq nousb /proc/cmdline || echo 1`
-        if [ -n "$dousb" ]; then
-                echo -n "  Probing USB devices: "
-                USB_FOUND=1
-                for i in $USB_MODULES; do
-                        loadmod $i || USB_FOUND=
-                done
-                sleep 1
-                for i in $USB_MODULES_DRV; do
-                        loadmod $i
-                done
-                sleep 1
-                [ -n "$USB_FOUND" ] && printloaded || printok
-        fi
-        set_progress
-
-        # c) Probe the SCSI devices.
-        doscsi=`grep -iq noscsi /proc/cmdline || echo 1`
-        if [ -n "$doscsi" ]; then
-                echo -n "  Probing SCSI devices: "
-                SCSI_FOUND=
-                for i in $SCSI_MODULES; do
-                        loadmod $i && SCSI_FOUND=1
-                done
-                sleep 1
-                [ -n "$SCSI_FOUND" ] && printloaded || printok
-        fi
-        set_progress
-
-  # Check for ide channels.
-  for ide_channel in /proc/ide/ide[0-9]
-  do
-
-    # If there are no ide channels found, then skip this
-    if [ ! -d "$ide_channel" ]; then
-	echo "  No ide channels found"
-     break
-    fi
-
-    # Try each ide device to see if we can find the cd-rom drive
-    for ide_device in hda hdb hdc hdd  #hde hdf hdg hdh hdi hdj hdk hdl hdm hdn
-    do
-      device_media_file="$ide_channel/$ide_device/media"
-      if [ -e "$device_media_file" ]; then
-        grep -i "cdrom" $device_media_file > /dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            CDROM_LIST="$CDROM_LIST /dev/$ide_device"
-        fi
-      fi
-    done
-  done
-
-  # Check for scsi cds
-  for scsi_cdrom in /dev/scd[0-99]
-  do
-    if [ -e "$scsi_cdrom" ]; then
-      CDROM_LIST="$CDROM_LIST $scsi_cdrom"
-    fi
-  done
-
-  echo -n "  CDROMs found: $CDROM_LIST"
-  printok
-
-#2. Now try to find the boot CD (we use ID as identification)
-   echo -n "  Finding loop image: "
-        for i in $CDROM_LIST; do
-                CDDEV="$i"
-                $MOVE_TO_COL
-                $SETCOLOR_OK
-                echo "$i"
-                $SETCOLOR_NORMAL
-                ISOTYPE="iso9660"
-		#echo "mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null"
-                if `mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null`; then
-			echo -n "  CDROM mounted"
-                        # try to find either the .iso, .clp, .bzlp or .sqfs loop image
-                        LOOPTYPE=""
-                        if [ -f $MNTCDROM/$BASEIMG$LOOPBEXT ]; then
-                                LOOPTYPE="$LOOPBEXT"
-                                DEVLOOP="/dev/bzloop/0"
-                                LOOPMOD="bzloop"
-                        elif [ -f $MNTCDROM/$BASEIMG$LOOPCEXT ]; then
-                                LOOPTYPE="$LOOPCEXT"
-                                DEVLOOP="/dev/cloop/0"
-                                LOOPMOD="cloop"
-                        elif [ -f $MNTCDROM/$BASEIMG$LOOPSEXT ]; then
-                                LOOPTYPE="$LOOPSEXT"
-                                DEVLOOP="/dev/loop/0"
-                                LOOPMOD="squashfs"
-                                ISOTYPE="squashfs"
-                        elif [ -f $MNTCDROM/$BASEIMG$LOOPIEXT ]; then
-                                LOOPTYPE="$LOOPIEXT"
-                                DEVLOOP="/dev/loop/0"
-                                LOOPMOD=
-			else echo "$BASEIMG$LOOPTYPE NOT FOUND on $i"
-                        fi
-
-                        # if it exists, load the correct module and mount
-                        if [ -n "$LOOPTYPE" ]; then
-                                FOUND_ISO="$i"
-                                printok
-
-                                checkmd5 ""
-
-                                if [ -n "$LOOPMOD" ]; then  # -n (not null string)
-                                        echo -n "  Loading compressed loop module: "
-                                        loadmod $LOOPMOD && printloaded || printfail
-                                fi
-
-                                echo -n "  Mounting loop image on /$MNTLIVECD: "
-                                if [ -e "$DEVLOOP" ]; then
-					#echo "  Detaching loop device: losetup -d $DEVLOOP"
-					#losetup -d $DEVLOOP
-					#echo "  losetup $DEVLOOP $MNTCDROM/$BASEIMG$LOOPTYPE"
-                                        losetup $DEVLOOP $MNTCDROM/$BASEIMG$LOOPTYPE 
-					#echo "  mount -r -t $ISOTYPE $DEVLOOP $MNTLIVECD" 
-                                        mount -r -t $ISOTYPE $DEVLOOP $MNTLIVECD && LOOPMNT=1
-                                fi
-
-                                # did we get it?
-				#if [ 1 ]; then   # force shell ZZ
-                                if [ -z "$LOOPMNT" ]; then
-                                        printfail
-                                        $SETCOLOR_FAIL
-                                        echo ""
-                                        echo "ERROR: Unable to mount loop filesystem,"
-                                        echo "       Dropping you to a limited shell."
-                                        $SETCOLOR_NORMAL
-                                        execshell
-                                else
-                                        printok
-                                        break
-                                fi
-                        fi
-                        `umount $MNTCDROM 2>&1 >/dev/null`
-                fi
-        done
-
-	if [ -z "$LOOPMNT" ]; then
-		printfail
-		$SETCOLOR_FAIL
-		echo ""
-		echo "ERROR: Unable to mount loop filesystem,"
-		echo "       Dropping you to a limited shell."
-		$SETCOLOR_NORMAL
-		execshell
+## Search for cdrom devices. 
+## Maybe we should not use /proc anymore, but use sysfs instead?
+	## Initialise
+	if [ $KERNEL26 ]; then 
+		CDROM_LIST=""
+        	echo -n "  Loading basic cdrom modules for Kernel 2.6"
+	else
+		echo -n "  Loading basic cdrom modules for kernel 2.4"
+		CDROM_LIST="/dev/cdroms/cdrom?"
 	fi
-
-else
-	# KERNEL 2.4 - all devices changed to take advantage of devfs
-	# cdrom devices
-	DEVICES="/dev/cdroms/cdrom?"
-
-	# load basic modules
-	echo -n "  Loading basic cdrom modules for kernel 2.4"
+	
+	## Load basic modules
 	for i in $OPT_MODULES; do
 		loadmod $i
 	done
@@ -470,7 +303,7 @@ else
 	[ -n "$ALL_LOADED" ] && printloaded || printfail
 	set_progress
 
-	# probe the USB devices
+	## Probe the USB devices.
 	dousb=`grep -iq nousb /proc/cmdline || echo 1`
 	if [ -n "$dousb" ]; then
 		echo -n "  Probing USB devices: "
@@ -486,8 +319,8 @@ else
 		[ -n "$USB_FOUND" ] && printloaded || printok
 	fi
 	set_progress
-	
-	# probe the SCSI devices
+
+	## Probe the SCSI devices.
 	doscsi=`grep -iq noscsi /proc/cmdline || echo 1`
 	if [ -n "$doscsi" ]; then
 		echo -n "  Probing SCSI devices: "
@@ -498,25 +331,67 @@ else
 		sleep 1
 		[ -n "$SCSI_FOUND" ] && printloaded || printok
 	fi
-	set_progress
 
-	# do the loop
+	## Kernel 26 udev additions
+	if [ $KERNEL26 ]; then
+		## Search for cdrom devices and add them to CDROM_LIST
+		## Check for ide channels.
+		for ide_channel in /proc/ide/ide[0-9]
+		do
+
+		## If there are no ide channels found, then skip this
+			if [ ! -d "$ide_channel" ]; then
+				echo "  No ide channels found"
+				break
+			fi
+
+		## Try each ide device to see if we can find the cd-rom drive
+			for ide_device in hda hdb hdc hdd  #hde hdf hdg hdh hdi hdj hdk hdl hdm hdn
+			do
+				device_media_file="$ide_channel/$ide_device/media"
+				if [ -e "$device_media_file" ]; then
+					grep -i "cdrom" $device_media_file > /dev/null 2>&1
+					if [ $? -eq 0 ]; then
+						CDROM_LIST="$CDROM_LIST /dev/$ide_device"
+					fi
+				fi
+			done
+		done
+
+		## Check for scsi cds
+		for scsi_cdrom in /dev/scd[0-99]
+		do
+			if [ -e "$scsi_cdrom" ]; then
+				CDROM_LIST="$CDROM_LIST $scsi_cdrom"
+			fi
+		done
+	fi
+
+	echo -n "  CDROMs found: $CDROM_LIST"
+	printok
+        set_progress
+}
+
+
+findcloop() {
+	## Now try to find and mount the boot CD (we use ID as identification)
 	echo -n "  Finding loop image: "
-	for i in $DEVICES; do
+        for i in $CDROM_LIST; do
 		CDDEV="$i"
 		$MOVE_TO_COL
 		$SETCOLOR_OK
 		echo "$i"
 		$SETCOLOR_NORMAL
 		ISOTYPE="iso9660"
+		#echo "mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null"
 		if `mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null`; then
 			echo -n "  CDROM mounted"
 			# try to find either the .iso, .clp, .bzlp or .sqfs loop image
 			LOOPTYPE=""
 			if [ -f $MNTCDROM/$BASEIMG$LOOPBEXT ]; then
-				LOOPTYPE="$LOOPBEXT"
-				DEVLOOP="/dev/bzloop/0"
-				LOOPMOD="bzloop"
+			LOOPTYPE="$LOOPBEXT"
+			DEVLOOP="/dev/bzloop/0"
+			LOOPMOD="bzloop"
 			elif [ -f $MNTCDROM/$BASEIMG$LOOPCEXT ]; then
 				LOOPTYPE="$LOOPCEXT"
 				DEVLOOP="/dev/cloop/0"
@@ -530,33 +405,39 @@ else
 				LOOPTYPE="$LOOPIEXT"
 				DEVLOOP="/dev/loop/0"
 				LOOPMOD=
+			else echo "$BASEIMG$LOOPTYPE NOT FOUND on $i"
+				echo "Mount command was:"
+				echo "mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null"
 			fi
 
 			# if it exists, load the correct module and mount
 			if [ -n "$LOOPTYPE" ]; then
-				FOUND_ISO="$i"
+			FOUND_ISO="$i"
 				printok
-
 				checkmd5 ""
 
-				if [ -n "$LOOPMOD" ]; then
+				if [ -n "$LOOPMOD" ]; then  # -n (not null string)
 					echo -n "  Loading compressed loop module: "
 					loadmod $LOOPMOD && printloaded || printfail
 				fi
 
-				echo -n "  Mounting loop image on $MNTLIVECD: "
+				echo -n "  Mounting loop image on /$MNTLIVECD: "
 				if [ -e "$DEVLOOP" ]; then
-					losetup $DEVLOOP $MNTCDROM/$BASEIMG$LOOPTYPE && \
+					losetup $DEVLOOP $MNTCDROM/$BASEIMG$LOOPTYPE 
 					mount -r -t $ISOTYPE $DEVLOOP $MNTLIVECD && LOOPMNT=1
 				fi
 
 				# did we get it?
+				#if [ 1 ]; then   # force shell ZZ
 				if [ -z "$LOOPMNT" ]; then
 					printfail
 					$SETCOLOR_FAIL
 					echo ""
 					echo "ERROR: Unable to mount loop filesystem,"
 					echo "       Dropping you to a limited shell."
+					echo "Commands were:"
+					echo "  losetup $DEVLOOP $MNTCDROM/$BASEIMG$LOOPTYPE"
+					echo "  mount -r -t $ISOTYPE $DEVLOOP $MNTLIVECD"
 					$SETCOLOR_NORMAL
 					execshell
 				else
@@ -568,17 +449,15 @@ else
 		fi
 	done
 
-	if [ -z "$FOUND_ISO" ]; then
+	if [ -z "$LOOPMNT" ]; then
 		printfail
 		$SETCOLOR_FAIL
 		echo ""
-		echo "ERROR: Unable to find the compressed CD filesystem,"
+		echo "ERROR: Unable to mount loop filesystem,"
 		echo "       Dropping you to a limited shell."
 		$SETCOLOR_NORMAL
 		execshell
 	fi
-fi
-	set_progress
 }
 
 
@@ -666,7 +545,9 @@ createramdisk() {
 initialise    ""
 printwelcome  ""
 createramdisk ""
+findcdroms    ""
 findcloop     ""
 echo "--- Exiting LINUXRC ----------------"
-exec /etc/rc.d/rc.sysinit
+grep -v "^si" /etc/inittab >/inittab;mv /inittab /etc/inittab
+exec /etc/rc.d/rc.sysinit <dev/console >dev/console 2>&1
 exit 0

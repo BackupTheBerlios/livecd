@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.35 2004/10/20 17:05:25 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.36 2004/10/25 05:16:53 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -185,7 +185,9 @@ setupdir_cow() { # mount-directory, [extra options]
 ### setup an arbitrary directory
 setupdir_dir() { # rootdir
 	rootdir=$1
-	rm -rf /$rootdir && ln -s $MNTLIVECD/$rootdir /$rootdir 
+	echo -n "  Linking  /$1: "
+	rm -rf /$rootdir && ln -s $MNTLIVECD/$rootdir /$rootdir
+	printok
 }
 
 
@@ -413,16 +415,16 @@ setuproot() {
 setupinit() {
 
 	# perform hwdetect if not disabled
-	if `/bin/grep -iqv hwdetect=no /proc/cmdline && /bin/grep -iqv nodetect /proc/cmdline`; then
+	if [ `/bin/grep -iqv hwdetect=no /proc/cmdline && /bin/grep -iqv nodetect /proc/cmdline` ]; then
 		OLDPATH=$PATH
 		export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 
 		if [ -e "/initrd/usr/sbin/hwdetect" ]; then
-			echo  "Starting hwdetect ----------------"
+			echo  "  Starting hwdetect ----------------"
 			/initrd/usr/sbin/hwdetect 
-			echo  "Done with hwdetect ---------------"
+			echo  "  Done with hwdetect ---------------"
 		else
-			echo "Skipping hwdetect ---"
+			echo "  Skipping hwdetect ---"
 		fi
 
 		export PATH=$OLDPATH
@@ -457,7 +459,7 @@ setupinit() {
 	fi
 
 	# do we just want to complete the initrd (debug)?
-	if `/bin/grep -iq livecd=initrd /proc/cmdline`; then
+	if [ `/bin/grep -iq livecd=initrd /proc/cmdline` ]; then
 		execshell
 	fi
 
@@ -481,5 +483,5 @@ echo "--- MKLIVECD RC.SYSINIT ------------"
 setuproot ""
 setupinit ""
 echo "--- Exiting MKLIVECD RC.SYSINIT ----"
-exec /etc/rc.d/rc.sysinit
+exec /etc/rc.d/rc.sysinit <dev/console >dev/console 2>&1
 exit 0
