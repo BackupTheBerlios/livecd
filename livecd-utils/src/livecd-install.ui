@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>fMain</class>
 <widget class="QWizard">
     <property name="name">
@@ -22,45 +22,6 @@
         <attribute name="title">
             <string>Step 1 of 6: Welcome</string>
         </attribute>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>pixmapLabel2</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>300</width>
-                    <height>380</height>
-                </rect>
-            </property>
-            <property name="pixmap">
-                <pixmap>image0</pixmap>
-            </property>
-            <property name="scaledContents">
-                <bool>true</bool>
-            </property>
-        </widget>
-        <widget class="QPushButton">
-            <property name="name">
-                <cstring>bDiskPartitioner</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>475</x>
-                    <y>350</y>
-                    <width>225</width>
-                    <height>35</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&amp;Disk Partitioner
-(for advanced users)</string>
-            </property>
-            <property name="accel">
-                <string>Alt+D</string>
-            </property>
-        </widget>
         <widget class="QTextBrowser">
             <property name="name">
                 <cstring>tbWelcome</cstring>
@@ -123,6 +84,45 @@
                     <width>145</width>
                     <height>35</height>
                 </rect>
+            </property>
+        </widget>
+        <widget class="QPushButton">
+            <property name="name">
+                <cstring>bDiskPartitioner</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>475</x>
+                    <y>350</y>
+                    <width>225</width>
+                    <height>35</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&amp;Disk Partitioner
+(for advanced users)</string>
+            </property>
+            <property name="accel">
+                <string>Alt+D</string>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>pixmapLabel2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>300</width>
+                    <height>380</height>
+                </rect>
+            </property>
+            <property name="pixmap">
+                <pixmap>image0</pixmap>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
             </property>
         </widget>
     </widget>
@@ -1051,96 +1051,6 @@
                 <string>Alt+C</string>
             </property>
         </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>lineEditLogin</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>200</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>lineEditReal</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>230</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>lineEditUPW</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>260</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-            <property name="echoMode">
-                <enum>Password</enum>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>lineEditUPW2</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>290</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-            <property name="echoMode">
-                <enum>Password</enum>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>lineEdit1</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>40</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-            <property name="echoMode">
-                <enum>Password</enum>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>lineEdit2</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>70</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-            <property name="echoMode">
-                <enum>Password</enum>
-            </property>
-        </widget>
         <widget class="QLabel">
             <property name="name">
                 <cstring>pixmapLabel7</cstring>
@@ -1394,6 +1304,114 @@
                 <set>AlignVCenter|AlignRight</set>
             </property>
         </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEdit1</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>40</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="maxLength">
+                <number>32</number>
+            </property>
+            <property name="echoMode">
+                <enum>Password</enum>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEditUPW2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>290</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="maxLength">
+                <number>32</number>
+            </property>
+            <property name="echoMode">
+                <enum>Password</enum>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEditUPW</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>260</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="maxLength">
+                <number>32</number>
+            </property>
+            <property name="echoMode">
+                <enum>Password</enum>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEditReal</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>230</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="maxLength">
+                <number>16</number>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEditLogin</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>200</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="maxLength">
+                <number>16</number>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEdit2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>70</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="maxLength">
+                <number>32</number>
+            </property>
+            <property name="echoMode">
+                <enum>Password</enum>
+            </property>
+        </widget>
     </widget>
 </widget>
 <images>
@@ -1427,12 +1445,6 @@
         <slot>writeRootPW()</slot>
     </connection>
     <connection>
-        <sender>bDiskPartitioner</sender>
-        <signal>clicked()</signal>
-        <receiver>fMain</receiver>
-        <slot>diskPartition()</slot>
-    </connection>
-    <connection>
         <sender>bDeleteGuest</sender>
         <signal>clicked()</signal>
         <receiver>fMain</receiver>
@@ -1461,6 +1473,12 @@
         <signal>activated(const QString&amp;)</signal>
         <receiver>fMain</receiver>
         <slot>cbLanguage_act(const QString&amp;)</slot>
+    </connection>
+    <connection>
+        <sender>bDiskPartitioner</sender>
+        <signal>clicked()</signal>
+        <receiver>fMain</receiver>
+        <slot>diskPartition()</slot>
     </connection>
 </connections>
 <tabstops>

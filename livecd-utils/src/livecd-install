@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.64 2004/05/22 18:56:31 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.65 2004/05/23 05:17:39 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -235,7 +235,7 @@ sub getStr {
 }
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Sat May 22 13:22:21 2004
+# Created: Sat May 22 23:03:25 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -264,10 +264,10 @@ use Qt::slots
     cbLanguage_act => ['const QString&'];
 use Qt::attributes qw(
     page
-    pixmapLabel2
-    bDiskPartitioner
     tbWelcome
     cbLanguage
+    bDiskPartitioner
+    pixmapLabel2
     page_2
     pixmapLabel3
     groupBox16
@@ -322,12 +322,6 @@ use Qt::attributes qw(
     bWritePassword
     bDeleteGuest
     bCreateUser
-    lineEditLogin
-    lineEditReal
-    lineEditUPW
-    lineEditUPW2
-    lineEdit1
-    lineEdit2
     pixmapLabel7
     textLabel9
     textLabel9_2
@@ -341,6 +335,12 @@ use Qt::attributes qw(
     textLabel633
     textLabel634
     textLabel635
+    lineEdit1
+    lineEditUPW2
+    lineEditUPW
+    lineEditReal
+    lineEditLogin
+    lineEdit2
 );
 
 
@@ -3391,14 +3391,6 @@ sub NEW
 
     page = Qt::Widget(this, "page");
 
-    pixmapLabel2 = Qt::Label(page, "pixmapLabel2");
-    pixmapLabel2->setGeometry( Qt::Rect(0, 0, 300, 380) );
-    pixmapLabel2->setPixmap( $image0 );
-    pixmapLabel2->setScaledContents( 1 );
-
-    bDiskPartitioner = Qt::PushButton(page, "bDiskPartitioner");
-    bDiskPartitioner->setGeometry( Qt::Rect(475, 350, 225, 35) );
-
     tbWelcome = Qt::TextBrowser(page, "tbWelcome");
     tbWelcome->setGeometry( Qt::Rect(310, 0, 390, 345) );
     tbWelcome->setPaletteBackgroundColor( Qt::Color(230, 231, 230) );
@@ -3406,6 +3398,14 @@ sub NEW
 
     cbLanguage = Qt::ComboBox(0, page, "cbLanguage");
     cbLanguage->setGeometry( Qt::Rect(310, 350, 145, 35) );
+
+    bDiskPartitioner = Qt::PushButton(page, "bDiskPartitioner");
+    bDiskPartitioner->setGeometry( Qt::Rect(475, 350, 225, 35) );
+
+    pixmapLabel2 = Qt::Label(page, "pixmapLabel2");
+    pixmapLabel2->setGeometry( Qt::Rect(0, 0, 300, 380) );
+    pixmapLabel2->setPixmap( $image0 );
+    pixmapLabel2->setScaledContents( 1 );
     addPage( page, "" );
 
     page_2 = Qt::Widget(this, "page_2");
@@ -3595,28 +3595,6 @@ sub NEW
     bCreateUser = Qt::PushButton(page_6, "bCreateUser");
     bCreateUser->setGeometry( Qt::Rect(325, 310, 170, 26) );
 
-    lineEditLogin = Qt::LineEdit(page_6, "lineEditLogin");
-    lineEditLogin->setGeometry( Qt::Rect(505, 200, 200, 24) );
-
-    lineEditReal = Qt::LineEdit(page_6, "lineEditReal");
-    lineEditReal->setGeometry( Qt::Rect(505, 230, 200, 24) );
-
-    lineEditUPW = Qt::LineEdit(page_6, "lineEditUPW");
-    lineEditUPW->setGeometry( Qt::Rect(505, 260, 200, 24) );
-    lineEditUPW->setEchoMode( &Qt::LineEdit::Password() );
-
-    lineEditUPW2 = Qt::LineEdit(page_6, "lineEditUPW2");
-    lineEditUPW2->setGeometry( Qt::Rect(505, 290, 200, 24) );
-    lineEditUPW2->setEchoMode( &Qt::LineEdit::Password() );
-
-    lineEdit1 = Qt::LineEdit(page_6, "lineEdit1");
-    lineEdit1->setGeometry( Qt::Rect(505, 40, 200, 24) );
-    lineEdit1->setEchoMode( &Qt::LineEdit::Password() );
-
-    lineEdit2 = Qt::LineEdit(page_6, "lineEdit2");
-    lineEdit2->setGeometry( Qt::Rect(505, 70, 200, 24) );
-    lineEdit2->setEchoMode( &Qt::LineEdit::Password() );
-
     pixmapLabel7 = Qt::Label(page_6, "pixmapLabel7");
     pixmapLabel7->setGeometry( Qt::Rect(0, 0, 300, 380) );
     pixmapLabel7->setPixmap( $image0 );
@@ -3671,6 +3649,34 @@ sub NEW
     textLabel635->setGeometry( Qt::Rect(330, 290, 170, 20) );
     textLabel635->setScaledContents( 1 );
     textLabel635->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
+
+    lineEdit1 = Qt::LineEdit(page_6, "lineEdit1");
+    lineEdit1->setGeometry( Qt::Rect(505, 40, 200, 24) );
+    lineEdit1->setMaxLength( int(32) );
+    lineEdit1->setEchoMode( &Qt::LineEdit::Password() );
+
+    lineEditUPW2 = Qt::LineEdit(page_6, "lineEditUPW2");
+    lineEditUPW2->setGeometry( Qt::Rect(505, 290, 200, 24) );
+    lineEditUPW2->setMaxLength( int(32) );
+    lineEditUPW2->setEchoMode( &Qt::LineEdit::Password() );
+
+    lineEditUPW = Qt::LineEdit(page_6, "lineEditUPW");
+    lineEditUPW->setGeometry( Qt::Rect(505, 260, 200, 24) );
+    lineEditUPW->setMaxLength( int(32) );
+    lineEditUPW->setEchoMode( &Qt::LineEdit::Password() );
+
+    lineEditReal = Qt::LineEdit(page_6, "lineEditReal");
+    lineEditReal->setGeometry( Qt::Rect(505, 230, 200, 24) );
+    lineEditReal->setMaxLength( int(16) );
+
+    lineEditLogin = Qt::LineEdit(page_6, "lineEditLogin");
+    lineEditLogin->setGeometry( Qt::Rect(505, 200, 200, 24) );
+    lineEditLogin->setMaxLength( int(16) );
+
+    lineEdit2 = Qt::LineEdit(page_6, "lineEdit2");
+    lineEdit2->setGeometry( Qt::Rect(505, 70, 200, 24) );
+    lineEdit2->setMaxLength( int(32) );
+    lineEdit2->setEchoMode( &Qt::LineEdit::Password() );
     addPage( page_6, "" );
     languageChange();
     my $resize = Qt::Size(718, 465);
@@ -3682,12 +3688,12 @@ sub NEW
     Qt::Object::connect(bInstall, SIGNAL "pressed()", this, SLOT "doLoaderInstall()");
     Qt::Object::connect(rbReboot, SIGNAL "toggled(bool)", this, SLOT "toggleReboot(bool)");
     Qt::Object::connect(bWritePassword, SIGNAL "clicked()", this, SLOT "writeRootPW()");
-    Qt::Object::connect(bDiskPartitioner, SIGNAL "clicked()", this, SLOT "diskPartition()");
     Qt::Object::connect(bDeleteGuest, SIGNAL "clicked()", this, SLOT "deleteGuest()");
     Qt::Object::connect(bCreateUser, SIGNAL "clicked()", this, SLOT "createUser()");
     Qt::Object::connect(bLogging_yes, SIGNAL "clicked()", this, SLOT "logging_yes()");
     Qt::Object::connect(bLogging_no, SIGNAL "clicked()", this, SLOT "logging_no()");
     Qt::Object::connect(cbLanguage, SIGNAL "activated(const QString&)", this, SLOT "cbLanguage_act(const QString&)");
+    Qt::Object::connect(bDiskPartitioner, SIGNAL "clicked()", this, SLOT "diskPartition()");
 
     setTabOrder(bDiskPartitioner, cbRoot);
     setTabOrder(cbRoot, cbRootFormat);
@@ -3731,9 +3737,6 @@ sub DESTROY
 sub languageChange
 {
     setCaption(trUtf8("LiveCD Installation") );
-    bDiskPartitioner->setText( trUtf8("&Disk Partitioner\n" .
-    "(for advanced users)") );
-    bDiskPartitioner->setAccel( Qt::KeySequence( trUtf8("Alt+D") ) );
     tbWelcome->setText( trUtf8("<p><b>Welcome</b> to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can stop at any time with the <i>Cancel</i> button.</p><p>This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing important data or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p><p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.") );
     cbLanguage->clear();
     cbLanguage->insertItem( trUtf8("       Language") );
@@ -3741,6 +3744,9 @@ sub languageChange
     cbLanguage->insertItem( trUtf8("English - en") );
     cbLanguage->insertItem( trUtf8("français - fr") );
     cbLanguage->insertItem( trUtf8("italiano - it") );
+    bDiskPartitioner->setText( trUtf8("&Disk Partitioner\n" .
+    "(for advanced users)") );
+    bDiskPartitioner->setAccel( Qt::KeySequence( trUtf8("Alt+D") ) );
     setTitle( page, trUtf8("Step 1 of 6: Welcome") );
     groupBox16->setTitle( trUtf8("Required Partitions") );
     textLabel5->setText( trUtf8("Swap device:") );
@@ -3830,7 +3836,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.64 2004/05/22 18:56:31 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.65 2004/05/23 05:17:39 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -4140,7 +4146,6 @@ sub scanPartitions
 	do_system("/initrd/usr/sbin/hwdetect --prefix $prefix --fdisk >/dev/null");
 	foreach my $line (cat_("$prefix/etc/livecd/hwdetect/mounts.cfg")) {
 	    chomp($line);
-	    print "\nDEBUG - Hwdetect: Line = $line";
 	    my ($dev, $info) = split(/=\|/, $line, 2);
 	    my $devlnk = "/dev/$dev";
 	    %{$devs{$devlnk}} = map {
@@ -4420,13 +4425,13 @@ sub doEvents
 sub doFormat
 {
 	my ($this, $devs) = @_;
-	
+
 	do_system("umount $devs->{$rootpart}{mount}");
 	formatPart($rootpart, $devs) if ($this->cbRootFormat->isChecked());
 	if ($this->cbSwapFormat->isChecked()) {
 		do_system("umount $devs->{$swappart}{mount}");  # Unused with swap - remove?
-		do_system("umount $swappart");			 # Unused with swap - remove?
- 		formatPart($swappart, $devs);
+		do_system("umount $swappart");			# Unused with swap - remove?
+		formatPart($swappart, $devs);
 	}
 	do_system("umount $devs->{$homepart}{mount}") if (defined($homepart));
 	formatPart($homepart, $devs) if (defined($homepart) && ($this->cbHomeFormat->isChecked()));
@@ -4440,6 +4445,7 @@ sub doFormat
 sub formatPart
 {
     my ($dev, $devs) = @_;
+
     if (!$destroy) {
         print getStr('fmt_title')."\n$dev (".$fsnames{$devs->{$dev}{type}}.")\n";
 	$infotext = getStr('fmt_title')."\n$dev (".$fsnames{$devs->{$dev}{type}}.")" unless ($destroy);
@@ -4496,11 +4502,10 @@ sub copyDir
 
 		if (!defined($debug)) {
 			do_system("mkdir -p \"$mnt/$dir\"");
-			do_system("chmod \"--reference=$from/$dir\" $mnt/$dir 2>/dev/null");
-			do_system("chown \"--reference=$from/$dir\" $mnt/$dir 2>/dev/null");
-			do_system("( (cd $from/$dir ; tar --no-recursion --exclude .. -c * .*) | (cd $mnt/$dir ; tar -x) ) 2>/dev/null");
+			do_system("chmod \"--reference=$from/$dir\" \"$mnt/$dir\" 2>/dev/null");
+			do_system("chown \"--reference=$from/$dir\" \"$mnt/$dir\" 2>/dev/null");
+			do_system("( (cd \"$from/$dir\" ; tar --no-recursion --exclude .. -c * .*) | (cd \"$mnt/$dir\" ; tar -x) ) 2>/dev/null");
 		}
-
 		$pb_c_num++;
 		$pb_o_num++;
 	}
@@ -4724,7 +4729,7 @@ sub writeRootPW # SLOT: (  )
 	my $pw1 = lineEdit1->text();
 	my $pw2 = lineEdit2->text();
 
-	# Test - if " ' " found ->reject,  if not same ->reject, if null ->reject, if short ->warn and continue 
+	## Test - if " ' " found ->reject,  if not same ->reject, if null ->reject, if short ->warn and continue
         if (index($pw1, "'") ne '-1') {   # Reject if " ' " found
            Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_no_sq'), getStr('btn_retry'));
            return;
@@ -4793,13 +4798,13 @@ sub createUser # SLOT: ( )
 
 	## Validation - user/pw1/pw2 null->reject, pw1<>pw2->reject, pw short->warn and accept
 
-        if (index($pw1, "'") ne '-1') {   # Reject if " ' " found
-           Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_no_sq'), getStr('btn_retry'));
-           return;
-        }
+	if (index($pw1, "'") ne '-1') {   # Reject if " ' " found
+	   Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_no_sq'), getStr('btn_retry'));
+	   return;
+	}
 	if ( ($username eq "") || ($pw1 eq "") || ($pw2 eq "") ) {
 	   Qt::MessageBox::warning(undef, getStr('caption'), getStr('missing_value'), getStr('btn_retry'));
-           return;
+	   return;
 	}
 	if ($pw1 ne $pw2) {
 	   Qt::MessageBox::warning(undef, getStr('caption') , getStr('pword_not_same'), getStr('btn_retry'));
@@ -4808,39 +4813,49 @@ sub createUser # SLOT: ( )
 	if ($pw1 eq "") {
 	   Qt::MessageBox::warning(undef, getStr('caption'), getStr('pword_null'), getStr('btn_retry'));
 	   return;
-	} 
+	}
 	if (length($pw1)<8) {
 	   Qt::MessageBox::information(undef, getStr('caption'), getStr('pword_short'));
-        }
+	}
+	if (index($username, "'") ne '-1') {   # Reject if " ' " found
+	   Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_no_sq'), getStr('btn_retry'));
+	   return;
+	}
+	if (index($realname, "'") ne '-1') {   # Reject if " ' " found
+	   Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_no_sq'), getStr('btn_retry'));
+	   return;
+	}
 
 	## Data accepted, make the user
 
 	# Add the group
-	$result = do_system2("/bin/echo groupadd $username | chroot $mnt");
+	$result = do_system2("/bin/echo groupadd '"."$username"."' | chroot $mnt");
 	print "\nDEBUG add group result=$result\n";
         if (($result ne "0") && ($result ne "2304")) {
            $message = getStr('function_error')."$result";
            Qt::MessageBox::information (this, getStr('caption'), $message);
+	   return;
         }
 
 	# Add the user
 	if ($realname eq "") {
-	   $comm = "useradd -g $username -d /home/$username -s /bin/bash  -m -k /etc/skel -p foo $username";
+	   $comm = "useradd -g '"."$username"."' -d '"."/home/$username"."' -s /bin/bash  -m -k /etc/skel -p foo '"."$username"."'";
 	} else {
-	   $comm = "useradd -g $username -d /home/$username -s /bin/bash -c $realname -m -k /etc/skel -p foo $username";
+	   $comm = "useradd -g '"."$username"."' -d '"."/home/$username"."' -s /bin/bash -c '"."$realname"."' -m -k /etc/skel -p foo '"."$username"."'";
 	}
 	$result = do_system2("/bin/echo $comm | chroot $mnt");
 	print "\nDEBUG add user result=$result\n";
 	if (($result ne "0") && ($result ne "2304")) {
            $message = getStr('function_error')."$result";
            Qt::MessageBox::information (this, getStr('caption'), $message);
+	   return;
 	}
 	if ($result eq "2304") {
 	   $message = "update";
 	}
 
 	# Change the password
-	$result = do_system2("/bin/echo '"."$pw1"."' | chroot $mnt /usr/bin/passwd --stdin $username");
+	$result = do_system2("/bin/echo '"."$pw1"."' | chroot $mnt /usr/bin/passwd --stdin '"."$username"."'");
 	print "\nDEBUG: change user password result =$result\n";
         if ($result ne "0") {
            $message = getStr('function_error')."$result";
@@ -4891,7 +4906,7 @@ sub cbLanguage_act # SLOT: ( const QString & )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.64 2004/05/22 18:56:31 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.65 2004/05/23 05:17:39 tom_kelly33 Exp $
 #
 
 package main;

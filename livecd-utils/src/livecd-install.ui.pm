@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.32 2004/05/22 18:56:31 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.33 2004/05/23 05:17:39 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -617,13 +617,13 @@ sub doEvents
 sub doFormat
 {
 	my ($this, $devs) = @_;
-	
+
 	do_system("umount $devs->{$rootpart}{mount}");
 	formatPart($rootpart, $devs) if ($this->cbRootFormat->isChecked());
 	if ($this->cbSwapFormat->isChecked()) {
 		do_system("umount $devs->{$swappart}{mount}");  # Unused with swap - remove?
-		do_system("umount $swappart")			# Unused with swap - remove?
- 		formatPart($swappart, $devs);
+		do_system("umount $swappart");			# Unused with swap - remove?
+		formatPart($swappart, $devs);
 	}
 	do_system("umount $devs->{$homepart}{mount}") if (defined($homepart));
 	formatPart($homepart, $devs) if (defined($homepart) && ($this->cbHomeFormat->isChecked()));
@@ -637,6 +637,7 @@ sub doFormat
 sub formatPart
 {
     my ($dev, $devs) = @_;
+
     if (!$destroy) {
         print getStr('fmt_title')."\n$dev (".$fsnames{$devs->{$dev}{type}}.")\n";
 	$infotext = getStr('fmt_title')."\n$dev (".$fsnames{$devs->{$dev}{type}}.")" unless ($destroy);
@@ -693,11 +694,10 @@ sub copyDir
 
 		if (!defined($debug)) {
 			do_system("mkdir -p \"$mnt/$dir\"");
-			do_system("chmod \"--reference=$from/$dir\" $mnt/$dir 2>/dev/null");
-			do_system("chown \"--reference=$from/$dir\" $mnt/$dir 2>/dev/null");
-			do_system("( (cd $from/$dir ; tar --no-recursion --exclude .. -c * .*) | (cd $mnt/$dir ; tar -x) ) 2>/dev/null");
+			do_system("chmod \"--reference=$from/$dir\" \"$mnt/$dir\" 2>/dev/null");
+			do_system("chown \"--reference=$from/$dir\" \"$mnt/$dir\" 2>/dev/null");
+			do_system("( (cd \"$from/$dir\" ; tar --no-recursion --exclude .. -c * .*) | (cd \"$mnt/$dir\" ; tar -x) ) 2>/dev/null");
 		}
-
 		$pb_c_num++;
 		$pb_o_num++;
 	}
@@ -990,13 +990,13 @@ sub createUser # SLOT: ( )
 
 	## Validation - user/pw1/pw2 null->reject, pw1<>pw2->reject, pw short->warn and accept
 
-        if (index($pw1, "'") ne '-1') {   # Reject if " ' " found
-           Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_no_sq'), getStr('btn_retry'));
-           return;
-        }
+	if (index($pw1, "'") ne '-1') {   # Reject if " ' " found
+	   Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_no_sq'), getStr('btn_retry'));
+	   return;
+	}
 	if ( ($username eq "") || ($pw1 eq "") || ($pw2 eq "") ) {
 	   Qt::MessageBox::warning(undef, getStr('caption'), getStr('missing_value'), getStr('btn_retry'));
-           return;
+	   return;
 	}
 	if ($pw1 ne $pw2) {
 	   Qt::MessageBox::warning(undef, getStr('caption') , getStr('pword_not_same'), getStr('btn_retry'));
@@ -1005,39 +1005,49 @@ sub createUser # SLOT: ( )
 	if ($pw1 eq "") {
 	   Qt::MessageBox::warning(undef, getStr('caption'), getStr('pword_null'), getStr('btn_retry'));
 	   return;
-	} 
+	}
 	if (length($pw1)<8) {
 	   Qt::MessageBox::information(undef, getStr('caption'), getStr('pword_short'));
-        }
+	}
+	if (index($username, "'") ne '-1') {   # Reject if " ' " found
+	   Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_no_sq'), getStr('btn_retry'));
+	   return;
+	}
+	if (index($realname, "'") ne '-1') {   # Reject if " ' " found
+	   Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_no_sq'), getStr('btn_retry'));
+	   return;
+	}
 
 	## Data accepted, make the user
 
 	# Add the group
-	$result = do_system2("/bin/echo groupadd $username | chroot $mnt");
+	$result = do_system2("/bin/echo groupadd '"."$username"."' | chroot $mnt");
 	print "\nDEBUG add group result=$result\n";
         if (($result ne "0") && ($result ne "2304")) {
            $message = getStr('function_error')."$result";
            Qt::MessageBox::information (this, getStr('caption'), $message);
+	   return;
         }
 
 	# Add the user
 	if ($realname eq "") {
-	   $comm = "useradd -g $username -d /home/$username -s /bin/bash  -m -k /etc/skel -p foo $username";
+	   $comm = "useradd -g '"."$username"."' -d '"."/home/$username"."' -s /bin/bash  -m -k /etc/skel -p foo '"."$username"."'";
 	} else {
-	   $comm = "useradd -g $username -d /home/$username -s /bin/bash -c $realname -m -k /etc/skel -p foo $username";
+	   $comm = "useradd -g '"."$username"."' -d '"."/home/$username"."' -s /bin/bash -c '"."$realname"."' -m -k /etc/skel -p foo '"."$username"."'";
 	}
 	$result = do_system2("/bin/echo $comm | chroot $mnt");
 	print "\nDEBUG add user result=$result\n";
 	if (($result ne "0") && ($result ne "2304")) {
            $message = getStr('function_error')."$result";
            Qt::MessageBox::information (this, getStr('caption'), $message);
+	   return;
 	}
 	if ($result eq "2304") {
 	   $message = "update";
 	}
 
 	# Change the password
-	$result = do_system2("/bin/echo '"."$pw1"."' | chroot $mnt /usr/bin/passwd --stdin $username");
+	$result = do_system2("/bin/echo '"."$pw1"."' | chroot $mnt /usr/bin/passwd --stdin '"."$username"."'");
 	print "\nDEBUG: change user password result =$result\n";
         if ($result ne "0") {
            $message = getStr('function_error')."$result";
