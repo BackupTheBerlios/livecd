@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2004/01/18 16:51:02 jaco Exp $
+# $Id: Makefile,v 1.3 2004/01/18 17:52:03 jaco Exp $
 
 include Rules.mk
 
@@ -6,8 +6,8 @@ all: $(LIBRARY) test
 
 $(LIBRARY): $(OBJECTS)
 	$(CC) -shared -Wl,-soname -Wl,$(LIBRARY).0.0 -o $(LIBRARY).0.0.0 $(OBJECTS)
-	$(LN) -s $(LIBRARY).0.0.0 $(LIBRARY).0.0
-	$(LN) -s $(LIBRARY).0.0.0 $(LIBRARY)
+	$(LN) -sf $(LIBRARY).0.0.0 $(LIBRARY).0.0
+	$(LN) -sf $(LIBRARY).0.0.0 $(LIBRARY)
 
 test: $(SRCDIR)/test.o $(OBJECTS) $(LUFSOBJS)  
 	$(CXX) -o $@ $< $(OBJECTS) $(LUFSOBJS) 
