@@ -2,9 +2,6 @@
  * daemon.c
  * Copyright (C) 2002 Florin Malita <mali@go.ro>
  *
- * Modified from daemon.c to call mount ourselves
- * Copyright (C) 2004 Jaco Greeff <jaco@linuxminicd.org>
- *
  * This file is part of LUFS, a free userspace filesystem implementation.
  * See http://lufs.sourceforge.net/ for updates.
  *
@@ -21,8 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * $Id: daemon.c,v 1.2 2004/01/30 19:23:15 jaco Exp $
  */
 
 #include <stdlib.h>
@@ -206,20 +201,9 @@ main(int argc, char **argv){
     
     sprintf(nopts, "%s,server_socket=%s,server_pid=%d", nopts, tmp, pid);
 
-    /* perform the mount ourselves */
-    if (mount("none", mountpoint, "lufs", MS_NOSUID | MS_NODEV, nopts) < 0) {
-	ERROR("mount failed: %s\n", strerror(errno));
-	switch(errno) {
-	case ENODEV:
-	    ERROR("you don't have kernel lufs support (check whether the lufs module is available/loaded)\n");
-	    break;
-	}
-	return errno;
-    }
-    
     /* execute lufsmnt and wait for it. */
     
-    /*if((mpid = fork()) < 0){
+    if((mpid = fork()) < 0){
 	ERROR("fork failed!");
 	kill(pid, SIGUSR1);
 	exit(1);
@@ -256,7 +240,7 @@ main(int argc, char **argv){
     if(WIFEXITED(res) && WEXITSTATUS(res) != 0){
 	kill(pid, SIGUSR1);
 	exit(1);
-    }*/
+    }
 
     TRACE("mount succeded");
 

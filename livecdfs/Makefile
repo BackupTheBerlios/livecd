@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.10 2004/01/30 18:22:56 jaco Exp $
+# $Id: Makefile,v 1.11 2004/01/30 19:23:15 jaco Exp $
 
 include Rules.mk
 
@@ -20,9 +20,9 @@ test: $(SRCDIR)/test.o $(OBJECTS) $(LUFSOBJS)
 	$(CXX) -o $@ $< $(OBJECTS) $(LUFSOBJS) 
 
 install: $(LIBRARY)
-	$(MKDIR) -p $(DESTDIR)$(LIBDIR) $(DESTDIR)$(BINDIR)
+	$(MKDIR) -p $(DESTDIR)$(LIBDIR) $(DESTDIR)$(SBINDIR)
 	$(CP) -a $(LIBRARY)* $(DESTDIR)$(LIBDIR)
-	$(INSTALL) -m 755 $(LUFSDLIVECDFS) $(DESTDIR)$(BINDIR)
+	$(INSTALL) -m 755 $(LUFSDLIVECDFS) $(DESTDIR)$(SBINDIR)
 	
 .cpp.o: $(INCLUDES)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

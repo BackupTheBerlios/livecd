@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.20 2004/01/30 18:22:56 jaco Exp $
+# $Id: Rules.mk,v 1.21 2004/01/30 19:23:15 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -39,6 +39,7 @@ TOPDIR=$(shell pwd)
 PREFIX=/usr
 LIBDIR=$(PREFIX)/lib
 BINDIR=$(PREFIX)/bin
+SBINDIR=$(PREFIX)/sbin
 DESTDIR=
 
 # cour commands
