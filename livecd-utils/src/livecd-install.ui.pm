@@ -28,11 +28,12 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.44 2004/10/12 19:57:30 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.45 2004/10/25 05:15:24 tom_kelly33 Exp $
 #
 
 #use LCDLang;
 
+use strict;
 use threads;
 use threads::shared;
 
@@ -54,6 +55,9 @@ my $prefix : shared = "/tmp";
 my $mnt    : shared = "/tmp/livecd.install.$$";
 my $log    : shared = "/tmp/livecd.install.log.$$";
 my $initrd : shared = "/initrd/loopfs";
+
+my $kernel24	: shared = "";
+my $kernel26	: shared = "";
 
 my $page = undef;
 
@@ -257,6 +261,12 @@ sub init
 {
 	select(STDOUT);
  	$| = 1;
+
+	if (index(qx(uname -r), "2.6") eq '-1') {
+		$kernel26 = 1;
+	} else {
+		$kernel24 = 1;
+	}
 
 	# initialise our languages
 	#$lang = getMyLang();
@@ -826,9 +836,14 @@ image=$kernel
 	label=\"$distro\"
 	root=$rootpart
 	initrd=$initrd
-	append=\"devfs=mount splash=silent\"
-	vga=788
-	read-only
+";
+		if ($kernel26) { 
+			print LILO "append=\"devfs=nomount splash=silent\n\"";
+		} else {
+			print LILO "append=\"devfs=mount splash=silent\n\"";
+		}
+		print LILO "vga=788
+read-only
 ";
 		# Add other partitions if installing to MBR
 		if (substr($bootdev, -1) =~ /[a-z]/ ) {
@@ -911,17 +926,17 @@ sub writeFstab {
 		open FSTAB, '>', "$mnt/etc/fstab";
 		print FSTAB "## Livecd-install ".getStr('fstab_info')."\n";
 		print FSTAB "\nnone"."\t"."/proc"."\t"."proc"."\t"."defaults"."\t"."0 0";
-		print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";
 		print FSTAB "\nnone"."\t"."/dev/pts"."\t"."devpts"."\t"."mode=0620"."\t"."0 0";
 
-		if (index(qx(uname -r), "2.4") eq '-1') {   # If NOT 2.4 kernel add these lines...
+		if ($kernel26) {   # If 2.6 kernel add these lines...
 		   print "DEBUG: Added 2.6 kernel to FSTAB\n";
-		   print FSTAB "\nnone"."\t"."/proc/bus/usb"."\t"."usbdevfs"."\t"."defaults"."\t"."0 0";
+		   print FSTAB "\nnone"."\t"."/proc/bus/usb"."\t"."usbfs"."\t"."defaults"."\t"."0 0";
 		   print FSTAB "\nnone"."\t"."/sys"."\t"."sysfs"."\t"."defaults"."\t"."0 0";
 		   print FSTAB "\nnone"."\t"."/tmp"."\t"."tmpfs"."\t"."defaults"."\t"."0 0";
 		}
-                else {
-		   print "DEBUG: 2.4 kernel found. Index:", index(qx(uname -r), "2.6"),"QX:",qx(uname -r),"\n";
+                else { # 2.4 kernel
+                   print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";
+		   print "DEBUG: 2.4 kernel found.\n";
 		}
 
 		print FSTAB "\n";
