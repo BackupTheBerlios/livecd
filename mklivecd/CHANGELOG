@@ -1,5 +1,10 @@
 * Thu, Sep 25, 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.5-cvs
 - Changed README file to include CVS location
+- Changed default blocksize back to 64K in mklivecd (sane default for
+  fastest operation in decompressing the compressed image)
+- Added '--blocksize' option to mklivecd, accepting sizes in K, eg.
+  '--blocksize 224' to use a 224K size for the compressed blocks.
+
 
 * Thu, Sep 25, 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.5
 - Changed input blocksize to compression in mklivecd from 64K to
