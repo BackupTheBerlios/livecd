@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.17 2004/01/31 07:35:37 jaco Exp $
+# $Id: rc.sysinit.in,v 1.18 2004/01/31 11:29:12 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -163,7 +163,7 @@ execshell() {
 
 ### setup an overlay fs
 setuproot_overlay() {
-	FSROOT="/.livecdfs"
+	FSROOT="/tmp/.livecdfs"
 	FSLOG="$FSROOT/trace."
 	
 	docmd   "Creating overlay structure" \
@@ -179,6 +179,7 @@ setuproot_overlay() {
 		"rm -rf /usr  && ln -sf $MNTLIVECD/usr  /usr"
 	set_progress
 	docmd   "Creating root filesystem" \
+		"touch /fastboot" \
 		"$MNTLIVECD/sbin/modprobe lufs" \
 		"cd $MNTLIVECD ; \
 		for d in *; do \
@@ -189,7 +190,7 @@ setuproot_overlay() {
 					*) \
 						rm -rf /\$d ; \
 						mkdir -p /\$d $FSROOT/\$d ; \
-						/initrd/usr/sbin/lufsd.livecdfs none /\$d -o fs=livecdfs,own_fs,uid=0,gid=0,fmask=666,dmask=777,rw_tmp=$FSROOT/\$d,ro_root=$MNTLIVECD/\$d >$FSLOG\$d ; \
+						/initrd/usr/sbin/lufsd.livecdfs /\$d -o own_fs,uid=0,gid=0,fmask=666,dmask=777,rw_tmp=$FSROOT/\$d,ro_root=$MNTLIVECD/\$d >$FSLOG\$d ; \
 						;; \
 				esac ; \
 			fi ; \
@@ -199,14 +200,15 @@ setuproot_overlay() {
 		"mkdir -p /var/lock/subsys" \
 		"mkdir -p /var/log && touch /var/log/wtmp" \
 		"mkdir -p /var/run && touch /var/run/utmp" \
-		"(cd /var && ln -sf ../tmp)"
+		"(cd /var && rm -rf tmp && ln -sf ../tmp)"
 	set_progress
 	docmd   "Creating /etc structure" \
 		"mkdir -p /etc/livecd/hwdetect" \
 		"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
 		"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
-		"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
-		"echo '' >/etc/mtab" \
+		"echo '/dev/rd/3 /     tmpfs defaults 0 0' >>/etc/fstab" \
+		"rm -rf /etc/mtab && touch /etc/mtab" \
+		"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
 		"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
 		"rm -rf /etc/rc.d/rc5.d/S05harddrake"
 	set_progress
@@ -300,7 +302,7 @@ setuproot_normal() {
 		"rm -rf /etc/fstab && touch /etc/fstab" \
 		"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
 		"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
-		"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
+		"echo '/dev/rd/3 /     tmpfs defaults 0 0' >>/etc/fstab" \
 		"rm -rf /etc/mtab && touch /etc/mtab" \
 		"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
 		"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
