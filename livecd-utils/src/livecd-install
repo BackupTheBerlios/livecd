@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.24 2003/11/23 06:42:15 jaco Exp $
+# $Id: livecd-install,v 1.25 2003/11/23 06:44:55 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -199,7 +199,7 @@ sub copy_to {
 	# find all the root dirs on the current root
 	my @dirs = qx(find $initrd -type d | sed -s 's,$initrd,,');
 	$prog = 5;
-	my $inc = 90/scalar(@dirs); # from 5 to 95
+	my $inc = scalar(@dirs) ? 90/scalar(@dirs) : 90; # from 5 to 95
 	foreach my $dir (@dirs) {
 		chomp($dir);
 		$prog = copy_dir($file, $initrd, $dir, $mnt, $prog, $inc);
@@ -364,8 +364,6 @@ MAIN: {
 		my ($los, $ls) = split(/\:/, $ENV{LANGUAGE});
 		$lang = $langs{$ls} || $langs{en};
 	}
-	print "$lang\n";
-	exit(0);
 
 	my $ret = qx(which zenity-qt 2>/dev/null || echo none);
 	if ($ret =~ /none/) {
