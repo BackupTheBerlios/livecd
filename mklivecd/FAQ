@@ -1,4 +1,4 @@
-# $Id: FAQ,v 1.14 2003/10/29 11:35:43 jaco Exp $
+# $Id: FAQ,v 1.15 2003/11/03 10:32:31 jaco Exp $
 
 Q: How do I create a tiny (truly minimal) bootable Mandrake
    LiveCD?
@@ -223,6 +223,13 @@ A: Ahhh, you found the '--bootimg' option. The LSS image
       utility. (Part of the syslinux package.) An example of the
       usage is:
       "ppmtolss16 \#3a3e6e=0 \#d0d0d0=7 <mycd.ppm >mycd.lss" (*)
+
+   Some users on the mklivecd lists have reportedly had success
+   with the gif2lss program, allowing you to skip the extra steps
+   of converting and re-converting. The program can be downloaded
+   from Freshmeat:
+
+   http://freshmeat.net/projects/gif2lss/?topic_id=105%2C139
 
    (*) The command show the use of palette remapping, which might
        be needed, depending on your original BMP image. ISOLinux

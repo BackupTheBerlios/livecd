@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.64 2003/11/02 14:35:56 jaco Exp $
+# $Id: CHANGELOG,v 1.65 2003/11/03 10:32:31 jaco Exp $
 
-* Sat, Nov 01, 2003, 0.5.7-cvs
+* Mon, Nov 03, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [linuxrc]:
       - Fix error on illegal attempt to unmount /initrd/cdrom upon
@@ -11,6 +11,8 @@
         additional files to the root of the LiveCD ISO image
         (ie to see when browsing the CD normally)
   + Jaco Greeff <jaco@linuxminicd.org>:
+    [FAQ]:
+      - Point to the gif2lss program in the boot splash section
     [Rules.mk]:
       - Created list for default normal and SCSI modules
       - Created listing for optional modules
