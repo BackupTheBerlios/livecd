@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.85 2004/01/12 18:35:41 jaco Exp $
+# $Id: hwdetect.in,v 1.86 2004/01/13 07:08:10 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -266,10 +266,12 @@ sub umount {
 
 sub is_loaded {
 	my ($module) = @_;
+	my $umodule = $module;
+	$umodule =~ s/-/_/g;
 	my $loaded = 0;
 	foreach my $modline (cat_('/proc/modules')) {
 		my ($mod, @mode) = split(/ /, $modline);
-		$loaded = 1 if ($mod eq $module);
+		$loaded = 1 if (($mod eq $module) || ($mod eq $umodule));
 	}
 	$loaded;
 }
