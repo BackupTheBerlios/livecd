@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.41 2004/09/12 14:57:04 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.42 2004/09/18 15:24:54 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -39,7 +39,6 @@ use threads::shared;
 use lib qw(/usr/lib/libDrakX);
 
 use fs;
-use swap;
 
 my $debug   : shared = undef;
 my $nocopy  : shared = undef;
@@ -704,9 +703,6 @@ sub formatPart
 		}
 			elsif ($devs->{$dev}{type} =~ /xfs/) {
 			fs::format_xfs($dev, @options);
-		}
-			elsif ($devs->{$dev}{type} =~ /swap/) {
-			swap::make($dev, 1);
 		}
 	}
 
