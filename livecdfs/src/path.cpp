@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.cpp,v 1.12 2004/01/27 11:20:13 jaco Exp $
+ * $Id: path.cpp,v 1.13 2004/01/31 11:31:41 jaco Exp $
  */
 
 #include <errno.h>
@@ -213,7 +213,7 @@ Path::getDir(const string &path)
 	if (!isDir(path)) {
 		dir = string(path, 0, path.rfind("/"));
 	}
-	FUNC_RET("%s", dir.c_str(), dir);
+	FUNC_RET("'%s'", dir.c_str(), dir);
 }
 
 
