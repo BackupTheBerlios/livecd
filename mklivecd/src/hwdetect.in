@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.134 2004/09/22 00:28:47 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.135 2004/10/01 13:44:13 tom_kelly33 Exp $
 #
 
 use strict;
@@ -32,19 +32,18 @@ use Getopt::Long;
 #use standalone;
 $ENV{SHARE_PATH} ||= "/usr/share";
 
-
 use common;
-use modules;
-
+use do_pkgs;
 use fsedit;
 use fs;
-
 use harddrake::sound;
 use keyboard;
+use modules;
 use mouse;
 
 use Xconfig::card;
 use Xconfig::default;
+use Xconfig::main;
 use Xconfig::monitor;
 use Xconfig::parse;
 use Xconfig::resolution_and_depth;
@@ -97,7 +96,6 @@ my $num;
 my $numusb	  = 0;
 my $numwin	  = 'c';
 my $old_X;
-my $progress_on   = 1;
 my $rawkey;
 my $usbfstab	  = 0;
 my $verbose	  = 0;
@@ -649,9 +647,33 @@ sub hwdetect_getmonitors {
 	my $probed_monitors = undef;
 
 	# try to get a monitor via DDC
-	eval { 
-	    $probed_monitors = Xconfig::monitor::configure_auto_install($rawX, {});
-	};
+# 	eval { 
+#	    $probed_monitors = Xconfig::monitor::configure_auto_install($rawX, $old_X);
+#	};
+
+	my $monitors = [ $rawX->get_or_new_monitors(1) ];
+	#mapn {
+	#    my ($monitor, $auto_install_monitor) = @_;
+	#    put_in_hash($monitor, $auto_install_monitor);
+	#} $monitors, $old_X->{monitors} if $old_X->{monitors};
+
+	if (!$monitors->[0]{HorizSync}) {
+           put_in_hash($monitors->[0], Xconfig::monitor::getinfoFromDDC());
+	}
+
+	my $monitors_db = Xconfig::monitor::monitors_db();
+        foreach my $monitor (@$monitors) {
+           if (!configure_automatic($monitor, $monitors_db)) {
+               good_default_monitor() =~ /(.*)\|(.*)/ or internal_error("bad good_default_monitor");
+               put_in_hash($monitor, { VendorName => $1, ModelName => $2 });
+	       Xconfig::monitor::configure_automatic($monitor, $monitors_db) or internal_error("good_default_monitor (" . good_default_monitor()  . ") is unknown in MonitorDB");
+           }
+        }
+															       $rawX->set_monitors(@$monitors);
+
+
+	
+	print "probed mon = $probed_monitors\n";
 	if (int @$probed_monitors > 0) {
 	    print_success();
 	} else {
@@ -669,6 +691,7 @@ sub hwdetect_getxfree {
 	my $def_mouse = hwdetect_getmouse();
 	my $def_card = hwdetect_getvideo();
 	my $rawX = Xconfig::default::configure($def_keyboard, $def_mouse);
+	$old_X = eval{ Xconfig::xfree->read };
 	my $def_monitors = hwdetect_getmonitors($rawX);
 
 	# fix the de(nodeadkeys) keyboard
@@ -723,6 +746,29 @@ sub hwdetect_getxfree {
 		eval { $rawX->write() and print_success(); } or print_failed();
 	}
 	set_progress();
+}
+
+sub hwdetect_getxfree2 {
+	print "\nStarting Getxfree2\n";
+        my $def_keyboard = hwdetect_getkeyb();
+        my $def_mouse = hwdetect_getmouse();
+        my $def_card = hwdetect_getvideo();
+	my $old_X = eval{ Xconfig::xfree->read };
+        my $rawX = Xconfig::default::configure($def_keyboard, $def_mouse);
+	eval {Xconfig::main::configure_everything_auto_install($rawX, do_pkgs_standalone->new, {}, { allowFB => 1 });
+       	    modules::load_category($modules_conf, 'various/agpgart');
+	};
+	if ($@) { print "Warning: xconf problems returning $@\n";
+	} else { print "Returned ok from xconf\n";
+	}
+        unless ($probe) {
+               print getStr('x_write').": ";
+               eval { mouse::write(undef, $def_mouse); };
+               eval { keyboard::write($def_keyboard); };
+	       # eval { $rawX->write() and print_success(); } or print_failed();
+        }
+        set_progress();
+	print "\nDone with xfree2\n";
 }
 
 sub hwdetect_getsound {
@@ -1404,7 +1450,7 @@ sub version () {
 	print "$SCRIPT_NAME $SCRIPT_VER\n";
 }
 
-MAIN: {
+MAIN: {print "\HWDETECT - MAIN\n";
 	GetOptions(
 		'help'	   => sub { help (); exit },
 		'version'  => sub { version(); exit },
@@ -1413,12 +1459,12 @@ MAIN: {
 		'fdisk'    => \$fdisk,
 		'prefix=s' => \$prefix
 	);
-	
+
 	# initialise
 	hwdetect_init();
 	hwdetect_readconf();
 	
-	# probe busses
+	# probe buses
 	unless (defined($fdisk)) {
 		hwdetect_probepci();
 		hwdetect_initusb();
@@ -1430,8 +1476,8 @@ MAIN: {
 		print "\nHWDETECT: Starting probeall\n" if $debug;
 		hwdetect_probeall();
 		hwdetect_all();
-		print "\nHWDETECT: Starting getxfree\n" if $debug;
-		hwdetect_getxfree();
+		print "\nHWDETECT: Starting getxfree2\n" if $debug;
+		hwdetect_getxfree2();
 		print "\nHWDETECT: Starting getsound\n" if $debug;
 		hwdetect_getsound();
 		print "\nHWDETECT: Starting getnetwork\n" if $debug;
@@ -1457,5 +1503,6 @@ MAIN: {
 	# deinit
 	hwdetect_deinitusb() unless ($fdisk);
 	hwdetect_deinit();
+	print "\nHWDETECT - DONE\n";
 }
 
