@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.96 2004/01/06 13:25:10 jaco Exp $
+# $Id: CHANGELOG,v 1.97 2004/01/07 05:54:01 jaco Exp $
 
-* Tue, Jan 06, 2003, 0.5.7-cvs
+* Wed, Jan 07, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
@@ -122,6 +122,8 @@
       - Tweak for creation of 2.6 images
       - Removed /var/run and /var/lock/subsys directories for the
         excluded dirs, added to the excluded files
+      - Make sure depmod is run if running kernel is not the same
+        as the CD kernel (Thanks mark <mark@tapinternet.com>)
     [mklivecd.spec]:
       - Updated URL: http://livecd.berlios.de
       - Synced with MDK contrib spec

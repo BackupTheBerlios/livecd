@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.80 2004/01/06 13:25:10 jaco Exp $
+# $Id: mklivecd.in,v 1.81 2004/01/07 05:54:01 jaco Exp $
 #
 
 use strict;
@@ -616,7 +616,7 @@ sub create_initrd {
 	# generate modules file
 	do_cmd(":>$dir$modfile", ++$pos);
 	my $cfg = defined($kernel26) ? "" : "--config $dir$modfile";
-	do_cmd("depmod -a --basedir $dir ".$cfg." 2>/dev/null", ++$pos);
+	do_cmd("depmod -a --basedir $dir ".$cfg." $o_kernel 2>/dev/null", ++$pos);
 
 	# get sizes
 	my $size = get_exec("du -ks $dir | awk '{print \$1}'");
