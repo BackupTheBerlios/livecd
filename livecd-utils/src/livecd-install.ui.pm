@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.36 2004/06/16 15:04:12 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.37 2004/08/22 19:16:34 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -126,6 +126,7 @@ sub pageSelected # SLOT: ( const QString & )
 		doEvents();
 		#threads->new(\&scanPartitions, this, $page, \%devs);
 		scanPartitions();
+		print "\n Scan Partition results:\n";
 		foreach my $dev (sort keys %devs) {
 			print "$dev, ".$devs{$dev}{media}.", ".$devs{$dev}{type}."\n";
 		}
@@ -343,6 +344,7 @@ sub scanPartitions
 
 	do_system("mkdir -p $prefix/etc/livecd/hwdetect");
 	do_system("/initrd/usr/sbin/hwdetect --prefix $prefix --fdisk >/dev/null");
+	print "\n Scan Partitions\n";
 	foreach my $line (cat_("$prefix/etc/livecd/hwdetect/mounts.cfg")) {
 	    chomp($line);
 	    my ($dev, $info) = split(/=\|/, $line, 2);
@@ -728,14 +730,17 @@ sub showBootloader
 
 	my @drives = ();
 	foreach my $dev (sort keys %devs) {
-		if ($devs{$dev}{media} =~ /hd/) {
-		$dev =~ s/[0-9]//;
+	    if ($devs{$dev}{media} =~ /hd/) {
+		#$dev =~ s/[0-9]//;
+		while ( substr($dev, -1) =~ /[0-9]/) {
+			substr($dev, -1) = "";
+		};
 		my $found = 0;
 		foreach my $in (@drives) {
 			$found = 1 if ($in eq $dev);
 		}
 		push @drives, $dev unless ($found);
-		}
+	    }
 	}
 	this->lbBootloader->insertItem("$_ ".getStr('boot_mbr')) foreach (@drives);
 	this->lbBootloader->setCurrentItem(0);
@@ -761,6 +766,7 @@ sub doLoaderInstall # SLOT: ( )
 		do_system("keytab-lilo.pl $kbdmap $kbdmap >$mnt/boot/livecd.klt");
 		
 		do_system("mkdir -p $mnt/etc");
+		do_system("cp $mnt/etc/lilo.conf $mnt/etc/lilo.conf.old");
 		open LILO, '>', "$mnt/etc/lilo.conf";
 		print LILO "boot=$bootdev
 map=/boot/map
@@ -779,6 +785,59 @@ image=$kernel
 	vga=791
 	read-only
 ";
+		# Add other partitions if installing to MBR
+		if (substr($bootdev, -1) =~ /[a-z]/ ) {
+			print"\nMBR extra Partitions for LILO\n";
+		    foreach my $dev (sort keys %devs) {
+			print "MBR - LILO - checking $dev \n";
+			next if ( $devs{$dev}{media} !~ /hd/ );  # Only hard disks
+			next if ( substr($dev, -1) =~ /[a-z]/);  # Skip MBR hda
+			next if ( $devs{$dev}{type} =~ /swap/ ); # Skip any swap
+			print "\nRootpart = $rootpart\n";
+			next if ( $dev eq $rootpart );		 # Skip self - root
+			next if ( $dev eq $homepart );		 # home
+			next if ( $dev eq $varpart );		 # var
+			next if ( $dev eq $tmppart );		 # tmp
+
+			print "MBR - LILO - adding Partition: $dev\n";
+## test for bootable partition bootflag (from lilo QuickInst) to avoid
+## Fatal: First sector of /dev/hda10 doesn't have a valid boot signature
+my $r = system "[ \"XY\" = \"`(dd of=/dev/null bs=510 count=1; dd bs=2 count=1 |
+          tr -c '\125\252' . | tr '\125\252' XY) <$dev 2>/dev/null`\" ]" ;
+				if ($r == 0) {  # We are ok to use 'other'
+					print LILO "\nother=$dev
+label=\"$devs{$dev}{mount}\"
+";
+				} else {
+				next;
+				}  ## Need to work on following code
+#				print "Non boot-loader partition: $dev \n";
+#				my $base = "$devs{$dev}{mount}"."/boot";
+#				opendir(DIR, "$devs{$dev}{mount}"."/boot") || next; ## kernel hunt
+#				my $filename;
+#				   while ($filename = readdir DIR) {
+#				   next if ($filename !~ 'vmlinuz-');
+#			print "Filename = $filename\n";
+#			my $kversion = substr($filename, 8, 25);  # strip 'vmlinuz-'
+#			print "Kversion = $kversion\n";
+#			#my $base = $filename;
+#			#$base =~ s,.*/,, ; ## basename
+#			print "Base = $base\n";
+#			my $label = "$base"."-"."$kversion";
+#			print "LABEL = $label\n";
+#			#my $linitrd = "$dev"."/boot/initrd-$kversion".".img";
+#			my $linitrd = "$base"."initrd-$kversion".".img";
+#			print "Linitrd = $linitrd\n\n";
+#			print LILO "\nimage=$base/$filename
+#label=\"$label\"
+#read-only
+#initrd=$base/initrd-$kversion.img
+#root=$dev
+#";
+#				}
+#			}
+		    }
+		}
 		close LILO;
 		do_system("mount -t proc none $mnt/proc");
 		do_system("mount -t devfs none $mnt/dev");
@@ -786,14 +845,13 @@ image=$kernel
 		do_system("mkdir -p $mnt/root/tmp");
 		my $with = "";
 		do_system("chroot $mnt /sbin/mkinitrd -v $with $initrd $kernelver");
-		do_system("/sbin/lilo -v -r $mnt");
+		do_system2("/sbin/lilo -v -r $mnt");
 		do_system("umount $mnt/dev");
 		do_system("umount $mnt/proc");
 	}
 	Qt::MessageBox::information (this, getStr('caption'), getStr('bl_written'));
 #	emit this->next(); # Jump to next page
 }
-
 
 sub writeFstab {
 	my ($devs) = @_;
