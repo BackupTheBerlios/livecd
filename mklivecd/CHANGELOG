@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.42 2003/10/05 13:04:42 jaco Exp $
+# $Id: CHANGELOG,v 1.43 2003/10/06 05:21:10 jaco Exp $
 
 * Sat, Oct 04, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -62,6 +62,10 @@
       - Generate proper modules.conf from probed devices
       - Added PCMCIA support and prepared for firewire and other
         types of busses
+      - Added rudamentary persistent partition support. Persisted
+        partition should have a "LIVECD.MNT" file in the root,
+        with entry "mount=<mountpoint>". Only tested for
+        "mount=/home" at present
     [linuxrc]:
       - Only make symlinks to /var/lib/{rpm,urpmi} directories, the
         rest are actual writables
