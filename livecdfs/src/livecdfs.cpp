@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.1 2004/01/18 15:47:52 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.2 2004/01/18 17:54:04 jaco Exp $
  */
 
 #include <dirent.h>
@@ -229,7 +229,7 @@ LiveCDFS::doOpen(char *file,
 	FUNC("file='" << file << "', " <<
 	     "mode="  << mode << " (" <<
 	     "modes=" << modes << ", " <<
-	     "flags= " << flags);
+	     "flags=" << flags);
 	
 	if (path->isWhiteout(file)) {
 		return -1;
@@ -240,13 +240,37 @@ LiveCDFS::doOpen(char *file,
 		return 0;
 	}
 	
-	string rootpath = path->mkroot(file);
-	int fd = open(rootpath.c_str(), flags, modes);
+	string tmppath = path->mktmp(file);
+	string openpath = string("");
+	if (flags & O_CREAT) {
+		// if we are creating a file, do so on the temp space
+		TRACE("Creating empty file='" << file << "' on temp space");
+		openpath = tmppath;
+	}
+	else if ((flags & O_RDWR) || (flags & O_WRONLY)) {
+		struct stat buf;
+		string rootpath = path->mkroot(file);
+		if (path->exists(rootpath.c_str(), S_IFREG) || path->exists(rootpath.c_str(), S_IFLNK)) {
+			if (!path->exists(tmppath.c_str(), 0)) {
+				// doesn't already exist, copy-on-write
+				path->copyTmp(file);
+			}
+		}
+		else {
+			ERROR("File, file='" << file << "', is not a regular file nor symlink, cannot create copy on temp space.");
+			return -1;
+		}
+	}
+	else {
+		// normal read
+		openpath = path->mkpath(file);
+	}
+	
+	int fd = open(openpath.c_str(), flags, modes);
 	if (fd <= 0) {
 		WARN("Unable to open file='" << file << "', flags=" << flags << ", modes=" << modes);
 		return -1;
 	}
-	
 	handles->add(string(file), fd, flags, modes);
 	TRACE(handles->size() << " files currently open.");
 	
@@ -283,14 +307,16 @@ LiveCDFS::doRead(char *file,
 	     "count=" << DEC(count)  << ", " <<
 	     "buf="   << PTR(buf));
 	
-	t_handle *handle = handles->find(file, 3, 0);
+	t_handle *handle = handles->find(file, O_RDWR, 0);
 	if (handle == NULL) {
-		WARN("handle for file='" << file << "' not found");
-		return -1;
+		if ((handle = handles->find(file, O_RDONLY, 0)) == NULL) {
+			WARN("Redable handle for file='" << file << "' not found");
+			return -1;
+		}
 	}
 	
 	if (lseek(handle->fd, offset, SEEK_SET) < 0) {
-		WARN("seek for file='" << file << "', fd=" << handle->fd << " failed");
+		WARN("Seek for file='" << file << "', fd=" << handle->fd << " failed");
 		return -1;
 	}
 
@@ -309,7 +335,20 @@ LiveCDFS::doWrite(char *file,
 	     "count=" << DEC(count)  << ", " <<
 	     "buf="   << PTR(buf));
 	
-	return -1;
+	t_handle *handle = handles->find(file, O_RDWR, 0);
+	if (handle == NULL) {
+		if ((handle = handles->find(file, O_WRONLY, 0)) == NULL) {
+			WARN("Writable handle for file='" << file << "' not found");
+			return -1;
+		}
+	}
+	
+	if (lseek(handle->fd, offset, SEEK_SET) < 0) {
+		WARN("Seek for file='" << file << "', fd=" << handle->fd << " failed");
+		return -1;
+	}
+	
+	return write(handle->fd, buf, count);
 }
 
 
@@ -349,7 +388,15 @@ LiveCDFS::doCreate(char *file,
 	FUNC("file='" << file << "', " <<
 	     "mode=" << mode);
 	
-	return -1;
+	if (path->isWhiteout(file)) {
+		return -1;
+	}
+	
+	int fd = open(path->mktmp(file).c_str(), O_WRONLY | O_CREAT | O_TRUNC, mode);
+	if (fd > 0) {
+		close(fd);
+	}
+	return fd;
 }
 
 
