@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.23 2003/11/23 06:37:54 jaco Exp $
+# $Id: livecd-install,v 1.24 2003/11/23 06:42:15 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -130,6 +130,7 @@ my %langs = (
 );
 my $lang_str  = undef;
 my $lang      = undef;
+my $noinst    = 0;
 
 # allowed devices
 my %devs = ();
@@ -159,10 +160,12 @@ sub copy_dir {
 	my ($file, $root, $dir, $mnt, $prog, $inc) = @_;
 
 	print sprintf("%0.70s ", $dir);
-	qx(mkdir -p "$mnt/$dir" ; chown --reference="$root/$dir" "$mnt/$dir" ; chmod --reference="$root/$dir" "$mnt/$dir");
-	unless (($dir =~ m|^/lib/dev-state|) || ($dir =~ m|^/proc|) || ($dir =~ m|^/dev|)) {
-		qx(cp -dp "$root/$dir/"* "$mnt/$dir" 2>/dev/null);
-		qx(cp -dp "$root/$dir/".* "$mnt/$dir" 2>/dev/null);
+	unless ($noinst) {
+		qx(mkdir -p "$mnt/$dir" ; chown --reference="$root/$dir" "$mnt/$dir" ; chmod --reference="$root/$dir" "$mnt/$dir");
+		unless (($dir =~ m|^/lib/dev-state|) || ($dir =~ m|^/proc|) || ($dir =~ m|^/dev|)) {
+			qx(cp -dp "$root/$dir/"* "$mnt/$dir" 2>/dev/null);
+			qx(cp -dp "$root/$dir/".* "$mnt/$dir" 2>/dev/null);
+		}
 	}
 	print sprintf("\x1B[72G[%6.2f%%]\n", $prog);
 
@@ -186,7 +189,7 @@ sub copy_to {
 	if (scalar(@root)) {
 		my $inc = 5/(scalar(@root)); # from 0 to 5
 		foreach my $r (@root) {
-			qx(rm -rf $mnt/$r) unless ($cancel);
+			qx(rm -rf $mnt/$r) unless ($cancel || $noinst);
 			$prog = $prog + $inc;
 			print $file "$prog\n" or $cancel = 1;
 		}
@@ -194,8 +197,6 @@ sub copy_to {
 	print $file "$prog\n" or $cancel = 1;
 
 	# find all the root dirs on the current root
-	my $du = qx(du $initrd -ks | awk '{ print $1 }');
-	chomp($du);
 	my @dirs = qx(find $initrd -type d | sed -s 's,$initrd,,');
 	$prog = 5;
 	my $inc = 90/scalar(@dirs); # from 5 to 95
@@ -205,15 +206,15 @@ sub copy_to {
 	}
 
 	# make the rest
-	qx(mkdir -p $mnt/dev ; mkdir -p $mnt/proc);
+	qx(mkdir -p $mnt/dev ; mkdir -p $mnt/proc) unless ($noinst);
 	print $file "96\n";
 	qx(mkdir -p $mnt/initrd);
 	print $file "97\n";
-	qx(mkdir -p $mnt/tmp ; chmod 755 $mnt/tmp);
+	qx(mkdir -p $mnt/tmp ; chmod 755 $mnt/tmp) unless ($noinst);
 	print $file "98\n";
-	qx(ln -sf ../tmp $mnt/var/tmp);
+	qx(ln -sf ../tmp $mnt/var/tmp) unless ($noinst);
 	print $file "99\n";
-	qx(mkdir -p $mnt/var/lock/subsys ; mkdir -p $mnt/var/run);
+	qx(mkdir -p $mnt/var/lock/subsys ; mkdir -p $mnt/var/run) unless ($noinst);
 	print $file "100\n";
 	close($file);
 }
@@ -241,28 +242,30 @@ sub make_fstab {
 	my $hdds = {};
 	fs::add2all_hds($hdds, @fstab);
 	fs::write_fstab($hdds, $mnt);
-	open FSTAB, '>', "$mnt/etc/fstab";
-	print FSTAB "\n### entries below this line were automatically added by $PROG_NAME v$PROG_VER\n";
-	print FSTAB "\nnone"."\t"."/proc"."\t"."proc"."\t"."defaults"."\t"."0 0";
-	print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";
-	print FSTAB "\n";
-	foreach my $dev (sort keys %devs) {
-		my $devpnt = $dev;
-		$devpnt =~ s|/dev/||;
-		qx(mkdir -p $mnt/mnt/$devpnt 2>/dev/null);
-		print FSTAB "\n# ".$devs{$dev}->{info};
-		my $entry = "\n";
-		$entry .= $devs{$dev}->{devfs}."\t";
-		$entry .= $devs{$dev}->{mount}."\t";
-		$entry .= $devs{$dev}->{type}."\t";
-		my $opt = "";
-		$opt .= $devs{$dev}->{opt} if ($devs{$dev}->{opt});
-		$opt .= "," if ($devs{$dev}->{opt} && $devs{$dev}->{extopt});
-		$opt .= $devs{$dev}->{extopt} if ($devs{$dev}->{extopt});
-		$entry .= $opt."\t"."0 0\n";
-		print FSTAB $entry;
+	unless ($noinst) {
+		open FSTAB, '>', "$mnt/etc/fstab";
+		print FSTAB "\n### entries below this line were automatically added by $PROG_NAME v$PROG_VER\n";
+		print FSTAB "\nnone"."\t"."/proc"."\t"."proc"."\t"."defaults"."\t"."0 0";
+		print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";
+		print FSTAB "\n";
+		foreach my $dev (sort keys %devs) {
+			my $devpnt = $dev;
+			$devpnt =~ s|/dev/||;
+			qx(mkdir -p $mnt/mnt/$devpnt 2>/dev/null);
+			print FSTAB "\n# ".$devs{$dev}->{info};
+			my $entry = "\n";
+			$entry .= $devs{$dev}->{devfs}."\t";
+			$entry .= $devs{$dev}->{mount}."\t";
+			$entry .= $devs{$dev}->{type}."\t";
+			my $opt = "";
+			$opt .= $devs{$dev}->{opt} if ($devs{$dev}->{opt});
+			$opt .= "," if ($devs{$dev}->{opt} && $devs{$dev}->{extopt});
+			$opt .= $devs{$dev}->{extopt} if ($devs{$dev}->{extopt});
+			$entry .= $opt."\t"."0 0\n";
+			print FSTAB $entry;
+		}
+		close FSTAB;
 	}
-	close FSTAB;
 }
 
 # create the lilo.conf
@@ -288,9 +291,10 @@ sub make_lilo {
 		}
 		elsif (($ret eq $dskstr) || ($ret eq $mbrstr)) {
 			$done = 1;
-			open LILO, '>', "$mnt/etc/lilo.conf";
-			my $bootdev = ($ret eq $dskstr) ? $disk : $mbr;
-			print LILO "boot=$bootdev
+			unless ($noinst) {
+				open LILO, '>', "$mnt/etc/lilo.conf";
+				my $bootdev = ($ret eq $dskstr) ? $disk : $mbr;
+				print LILO "boot=$bootdev
 map=/boot/map
 default=\"$distro\"
 keytable=/boot/us.klt
@@ -306,8 +310,9 @@ image=/boot/$kernel
 	vga=791
 	read-only
 ";
-			close LILO;
-			qx(mount -t devfs none $mnt/dev ; /sbin/lilo -f $mnt ; umount $mnt/dev);
+				close LILO;
+				qx(mount -t devfs none $mnt/dev ; /sbin/lilo -f $mnt ; umount $mnt/dev);
+			}
 		}
 	}
 }
@@ -335,7 +340,7 @@ sub do_install {
 				make_lilo($dev, $mnt);
 				qx(umount $mnt && rm -rf $mnt);
 				$ret = qx($dlg --question --title "$str{'FIN_TIT'}[$lang]" --text "$str{'FIN_STR'}[$lang]" && echo reboot);
-				exec("/sbin/reboot") if ($ret =~ /reboot/);
+				exec("/sbin/reboot") if ($ret =~ /reboot/ && !$noinst);
 				exit(0);
 			}
 		}
@@ -352,6 +357,7 @@ MAIN: {
 	# parse command-line options
 	GetOptions(
 		'lang=s'  => \$lang_str,
+		'noinst'  => \$noinst
 	);
 	$lang = $langs{$lang_str};
 	unless (defined($lang)) {
