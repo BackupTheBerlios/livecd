@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.9 2003/10/01 00:21:32 bgmilne Exp $
+# $Id: mklivecd.in,v 1.10 2003/10/01 13:51:31 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -519,7 +519,6 @@ else
 fi
 
 ### devices
-do_cmd "mknod $INITRDDIR/dev/console c 5 1"
 do_cmd "mknod $INITRDDIR/dev/initrd b 1 250"
 do_cmd "mknod $INITRDDIR/dev/null c 1 3"
 do_cmd "mknod $INITRDDIR/dev/systty c 4 0"
