@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.4 2003/11/30 16:35:24 jaco Exp $
+# $Id: Makefile,v 1.5 2003/12/01 06:52:27 jaco Exp $
 
 include Rules.mk
 
@@ -30,6 +30,7 @@ clean:
 	$(RM) -rf $(UTILSDIST)
 	$(RM) -rf $(DISTDIR)
 	$(RM) -rf $(SRCDIR)/*.pl.in
+	$(RM) -rf $(SRCDIR)/*~
 
 dist: spec
 	$(MKDIR) -p $(UTILSDIST)/$(SRCDIR)
