@@ -1,5 +1,7 @@
-# $Id: CHANGELOG,v 1.137 2005/02/07 19:54:08 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.138 2005/02/12 18:45:52 tom_kelly33 Exp $
 
+* 2005-02-12
+	[rc.sysinit.in] - unionfs - fix /var/tmp, thanks to Ikerek
 * 2005-02-07
 	[rc.sysinit.in] - updates to unionfs functionality
 	[linuxrc.in] - chmod 1777 on /tmp

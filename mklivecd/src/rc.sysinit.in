@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.44 2005/02/08 17:01:15 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.45 2005/02/12 18:45:52 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -480,8 +480,11 @@ do_union () {
 
    echo "Setting up UNIONFS"
    UNIONMOD=unionfs.ko
-   cp `find /initrd/loopfs/lib/modules/$KERNELVER/kernel -name $UNIONMOD* ` / 
-   gunzip /$UNIONMOD.gz
+   cp `find /initrd/loopfs/lib/modules/$KERNELVER/kernel -name $UNIONMOD* ` /
+   # unzip if zipped
+   if [ -e /$UNIONMOD.gz ]; then
+	gunzip /$UNIONMOD.gz
+   fi
    insmod /$UNIONMOD
    if [ $? != "0" ]; then 
 	echo "Failed to load unionfs module."
@@ -495,7 +498,7 @@ do_union () {
    export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
    echo "6" > /proc/sys/kernel/printk # enable kernel messages
 
-   ## now make the directories writeable
+   ## Make the directories writeable
    for d in $MNTLIVECD/*; do
 	d=${d#$MNTLIVECD/}
 	if [ -d $MNTLIVECD/$d ]; then
@@ -507,9 +510,12 @@ do_union () {
 		;;
 		esac
 	else
-	   ln -s /union/$d /$d  # link the files
+	   ln -s /union/$d /$d  ## link the files
 	fi
    done
+
+   ## fix /var/tmp
+   rm -f /var/tmp; ln -s /tmp /var/tmp
 
 ## Testing section - can be deleted
 echo "Starting a shell for testing purposes."
