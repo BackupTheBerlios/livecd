@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.46 2003/12/07 11:24:55 jaco Exp $
+# $Id: linuxrc.in,v 1.47 2003/12/07 16:13:47 jaco Exp $
 #
 
 ### global variables
@@ -227,12 +227,14 @@ findcloop() {
 	set_progress
 
 	# probe the SCSI devices
-	echo -n "Probing SCSI devices: "
-	SCSI_FOUND=
-	for i in $SCSI_MODULES; do
-		loadmod $i && SCSI_FOUND=1
-	done
-	[ -n "$SCSI_FOUND" ] && printloaded || printok
+	if `grep -iq noscsi /proc/cmdline || echo 1`; then
+		echo -n "Probing SCSI devices: "
+		SCSI_FOUND=
+		for i in $SCSI_MODULES; do
+			loadmod $i && SCSI_FOUND=1
+		done
+		[ -n "$SCSI_FOUND" ] && printloaded || printok
+	fi
 	set_progress
 
 	# do the loop
