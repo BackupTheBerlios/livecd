@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.30 2004/01/05 12:23:40 jaco Exp $
+# $Id: Makefile,v 1.31 2004/01/06 12:51:21 jaco Exp $
 
 include Rules.mk
 include Modules.mk
@@ -33,12 +33,14 @@ mklivecd:
 		$(SED) -e 's,@DEF_SCSI_MODULES_24@,$(DEF_SCSI_MODULES_24),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_OPT_24@,$(DEF_SCSI_MODULES_OPT_24),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_24@,$(DEF_SCSI_MODULES_DEP_24),g' | \
+		$(SED) -e 's,@DEF_USB_24@,$(DEF_USB_24),g' | \
 		$(SED) -e 's,@DEF_MODULES_26@,$(DEF_MODULES_26),g' | \
 		$(SED) -e 's,@DEF_MODULES_OPT_26@,$(DEF_MODULES_OPT_26),g' | \
 		$(SED) -e 's,@DEF_MODULES_DEP_26@,$(DEF_MODULES_DEP_26),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_26@,$(DEF_SCSI_MODULES_26),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_OPT_26@,$(DEF_SCSI_MODULES_OPT_26),g' | \
-		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_26@,$(DEF_SCSI_MODULES_DEP_26),g' \
+		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_26@,$(DEF_SCSI_MODULES_DEP_26),g' | \
+		$(SED) -e 's,@DEF_USB_26@,$(DEF_USB_26),g' | \
 			>$(DISTDIR)/linuxrc
 	$(CP) $(SRCDIR)/halt.local.in $(DISTDIR)/halt.local
 	$(CAT) $(SRCDIR)/rc.sysinit.in | \
@@ -60,12 +62,14 @@ mklivecd:
 		$(SED) -e 's,@DEF_SCSI_MODULES_PATH_24@,$(DEF_SCSI_MODULES_PATH_24),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_OPT_PATH_24@,$(DEF_SCSI_MODULES_OPT_PATH_24),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_PATH_24@,$(DEF_SCSI_MODULES_DEP_PATH_24),g' | \
+		$(SED) -e 's,@DEF_USB_PATH_24@,$(DEF_USB_PATH_24),g' | \
 		$(SED) -e 's,@DEF_MODULES_PATH_26@,$(DEF_MODULES_PATH_26),g' | \
 		$(SED) -e 's,@DEF_MODULES_OPT_PATH_26@,$(DEF_MODULES_OPT_PATH_26),g' | \
 		$(SED) -e 's,@DEF_MODULES_DEP_PATH_26@,$(DEF_MODULES_DEP_PATH_26),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_PATH_26@,$(DEF_SCSI_MODULES_PATH_26),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_OPT_PATH_26@,$(DEF_SCSI_MODULES_OPT_PATH_26),g' | \
-		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_PATH_26@,$(DEF_SCSI_MODULES_DEP_PATH_26),g' \
+		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_PATH_26@,$(DEF_SCSI_MODULES_DEP_PATH_26),g' | \
+		$(SED) -e 's,@DEF_USB_PATH_26@,$(DEF_USB_PATH_26),g' \
 			>$(DISTDIR)/$(PKGNAME)
 
 install:
