@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.14 2003/10/02 11:45:12 jaco Exp $
+# $Id: mklivecd.in,v 1.15 2003/10/02 12:15:13 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -51,7 +51,8 @@ blocksize=64
 
 # boot options
 keyboard=""
-bootmsg=""
+isobootmsg=""
+isoimage=""
 
 usage () {
 	echo "Usage:" >&2
@@ -88,7 +89,8 @@ usage () {
 	echo "       (unintended) side-effects." >&2
 	echo "" >&2
 	echo "Boot options:" >&2
-	echo "    --bootmsg=<boot.msg>       Use boot.msg as the isolinux message display" >&2
+	echo "    --iso-bootmsg=<boot.msg>   Use 'boot.msg' as the isolinux message display" >&2
+	echo "    --iso-bgimage=<image.lss>  Use 'image.lss' as the isolinux display image" >&2
 	echo "    --keyboard=<language>      Specify a different keyboard layout (default: @DEF_KEYBOARD@)" >&2
 	echo "" >&2
 	echo "Examples:" >&2
@@ -259,8 +261,14 @@ create_isolinux() {
 	do_cp /usr/lib/syslinux/isolinux.bin $ISOLINUXDIR/isolinux.bin
 	do_cmd "cat /usr/share/mklivecd/isolinux.cfg | sed -e 's/\@BOOT_KEYB\@/$keyboard/g' >$ISOLINUXDIR/isolinux.cfg"
 	do_cp ${rootdir}/boot/vmlinuz-$kernel $ISOLINUXDIR/vmlinuz
-	if [ -n "$bootmsg" ]; then
-		do_cp $bootmsg $ISOLINUXDIR/boot.msg
+	if [ -n "$isobootmsg" ]; then
+		do_cp $isobootmsg $ISOLINUXDIR/livecd.msg
+	else
+		echo -n "" >$ISOLINUXDIR/livecd.msg
+	fi
+	if [ -n "$isoimage" ]; then
+		do_cmd "echo -e '\\030livecd.lss' >>$ISOLINUXDIR/livecd.msg"
+		do_cp $isoimage $ISOLINUXDIR/livecd.lss
 	fi
 	do_cmd "dd if=/dev/zero of=$ISOLINUXDIR/boot.cat bs=1k count=2 2> /dev/null"
 }
@@ -392,15 +400,28 @@ while [ $# -gt 0 ]; do
 			keyboard="keyb=$language"
 			;;
 
-		--bootmsg*)
+		--iso-bootmsg*)
 			if echo $1 | grep '=' >/dev/null ; then
-				bootmsg=`echo $1 | sed 's/^--bootmsg=//'`
+				isobootmsg=`echo $1 | sed 's/^--iso-bootmsg=//'`
 			else
-				bootmsg=$2
+				isobootmsg=$2
 				shift
 			fi
-			if [ ! -f "$bootmsg" ]; then
-				echo "ERROR: The specified boot message, '$bootmsg' could not be found." >&2
+			if [ ! -f "$isobootmsg" ]; then
+				echo "ERROR: The specified boot message, '$isobootmsg' could not be found." >&2
+				exit 1
+			fi
+			;;
+
+		--iso-bgimage*)
+			if echo $1 | grep '=' >/dev/null ; then
+				isoimage=`echo $1 | sed 's/^--iso-bgimage=//'`
+			else
+				isoimage=$2
+				shift
+			fi
+			if [ ! -f "$isoimage" ]; then
+				echo "ERROR: The specified boot graphic, '$isoimage' could not be found." >&2
 				exit 1
 			fi
 			;;

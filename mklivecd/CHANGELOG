@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.25 2003/10/02 11:48:09 jaco Exp $
+# $Id: CHANGELOG,v 1.26 2003/10/02 12:15:13 jaco Exp $
 
 * Thu, Oct 02, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -64,8 +64,11 @@
         scripts on the initrd image, saving some space
       - Added '--keyboard=<language>' option to override the
         default keyboard layout
-      - Added '--bootmsg=<boot.msg>' option to provide a message
-        for the isolinux message display
+      - Added '--iso-bootmsg=<boot.msg>' option to provide a
+        message for the isolinux message display
+      - Added '--iso-bgimage=<image.lss>' option to provide the
+        lss image to be displayed as a background on the isolinux
+        prompt
     [mklivecd.spec]:
       - Synced with contrib spec
       - Ability to auto-generate version info for changelog
