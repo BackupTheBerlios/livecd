@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: debug.h,v 1.11 2004/01/25 17:09:59 jaco Exp $
+ * $Id: debug.h,v 1.12 2004/01/25 17:16:34 jaco Exp $
  */
  
 #ifndef _DEBUG_dot_H_
@@ -40,13 +40,13 @@ extern int _debug;
 #define HDR(x)			printf("%5s:%17s(%3u): ", x, __FILE__, __LINE__); SPACE()
 #define HDR_F(x)		HDR(x); printf("%s", __func__)
 
-#define TRACE(x...) 		HDR_F("INFO"); printf(": "); printf(x); printf("\n")
+#define TRACE(x...) 		HDR("INFO"); printf("INFO: "); printf(x); printf("\n")
 #define FUNC_START(x...)	HDR_F("FUNC"); printf("("); printf(x); printf(") {\n"); _debug++
 #define FUNC_END()		_debug--; HDR("FUNC"); printf("}\n"); return
 #define FUNC_RET(x,y,z)		_debug--; HDR("FUNC"); printf("} = "); printf(x,y); printf("\n"); return z
 
-#define WARN(x...)		HDR_F("WARN"); printf(": "); printf(x); printf("\n")
-#define ERROR(x...)		HDR_F("ERROR"); printf(": "); printf(x); printf("\n")
+#define WARN(x...)		HDR("WARN"); printf("WARN: "); printf(x); printf("\n")
+#define ERROR(x...)		HDR("ERROR"); printf("ERROR: "); printf(x); printf("\n")
 
 #else
 
