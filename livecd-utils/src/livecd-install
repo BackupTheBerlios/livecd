@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.2 2003/11/21 14:14:38 jaco Exp $
+# $Id: livecd-install,v 1.3 2003/11/21 18:26:05 jaco Exp $
 #
 
 # our distro
@@ -60,12 +60,19 @@ my %str = (
 	'INSTPART_TYPE'    => [ "Type",
 				"Tipe" ],
 	'INSTPART_WARN'    => [ "You are about to install $distro LiveCD to:",
-				"Jy sal nou $distro LiveCD installeer na:" ]
+				"Jy sal nou $distro LiveCD installeer na:" ],
+
+	# progress dlg
+	'INSTPROG_TIT'     => [ "Installing",
+				"Installasie" ],
+	'INSTPROG_STR'     => [ "Installing $distro LiveCD to",
+				"Installasie van $distro LiveCD na" ]
 );
 
 # languages for %str (numbers represent positions)
 my $LANG_EN   = 0;
 my $LANG_AF   = 1;
+# add any extra language here
 my $lang      = $LANG_EN;
 
 # allowed devices
@@ -91,14 +98,59 @@ sub read_parts {
 	}
 }
 
+sub install_dir {
+	my ($file, $root, $dir, $mnt, $prog, $inc) = @_;
+
+	my $tmp = $prog;
+	qx(mkdir -p "$mnt/$dir" ; chown --reference="$root/$dir" "$mnt/$dir" ; chmod --reference="$root/$dir" "$mnt/$dir") unless ($dir eq "/");
+	qx(cp -dp "$root/$dir/" "$mnt/$dir" 2>/dev/null);
+
+	my @roots = qx(find "$root/$dir" -type d -maxdepth 1 | grep -v "^$root/$dir\$" | sed -e \'s,^$root/,,\' | grep -v ^/dev | grep -v ^/proc);
+	if (scalar(@roots)) {
+		my $i = $inc/scalar(@roots);
+		foreach my $r (@roots) {
+			chomp($r);
+			install_dir($file, $root, $r, $mnt, $prog, $i);
+			$prog = $prog + $i;
+		}
+	}
+	$prog = $tmp + $inc;
+	print $file "$prog\n";
+}
+
 sub install_to {
-	my ($dev, $type) = $@;
-	qx(mkdir -p /tmp/livecd.inst);
+	my ($dev) = @_;
+	my $initrd = "/mnt/livecd";
+	my $mnt = "/tmp/livecd.inst.$$";
 	my $type = $fstypes{$devs{$dev}{'id'}};
-	$mnt = "mount -t $type $dev /tmp/livecd.inst";
-	print "[$mnt]\n";
-	exit(0);
-	qx(mount -t $type $dev /tmp/livecd.inst);
+	my $file = undef;
+	my $prog = 0;
+	my $cancel = 0;
+
+	open($file, "|$dlg --progress --width 450 --title \"".$str{'INSTPROG_TIT'}[$lang]."\" --text \"".$str{'INSTPROG_STR'}[$lang]." $dev\" --percentage 0 --auto-close");
+	qx(mkdir -p $mnt ; umount $dev ; mount -t $type $dev $mnt);
+
+	# whack everything on new root
+	my @root = qx(ls -a1 $mnt | grep -v lost+found | grep -v ^./ | grep -v ^../);
+	if (scalar(@root)) {
+		my $inc = 10/(scalar(@root)); # from 0->10
+		foreach my $r (@root) {
+			qx(rm -rf $mnt/$r) unless ($cancel);
+			$prog = $prog + $inc;
+			print $file "$prog\n" or $cancel = 1;
+		}
+	}
+	print $file "$prog\n" or $cancel = 1;
+
+	# find all the root dirs on the current root
+	install_dir($file, $initrd, "/", $mnt, 10, 80); # from 10->90
+
+	# make the rest
+
+	qx(umount $mnt);
+	print $file "100\n";
+	close($file);
+
 	exit(0);
 }
 
@@ -111,7 +163,7 @@ sub do_install {
 		my $dev = qx($dlg --list --radiolist --width 500 --height 300 --title "$str{'INSTPART_TIT'}[$lang]" --column "" --column "$str{'INSTPART_PART'}[$lang]" --column "$str{'INSTPART_SIZE'}[$lang]" --column "$str{'INSTPART_TYPE'}[$lang]" $list || echo cancel);
 		chomp($dev);
 		unless ($dev =~ /cancel/ || $dev eq "") {
-			my $ret = qx($dlg --warning --text "$str{'INSTPART_WARN'}[$lang]\n$dev ($fstypes{$devs{$dev}{'type'}}, $fstypes{$devs{$dev}{'id'}})" || echo cancel);
+			my $ret = qx($dlg --warning --text "$str{'INSTPART_WARN'}[$lang]\n$dev ($fstypes{$devs{$dev}{'id'}})" || echo cancel);
 			install_to($dev) unless ($ret =~ /cancel/);
 		}
 		else {
