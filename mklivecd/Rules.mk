@@ -1,10 +1,10 @@
-# $Id: Rules.mk,v 1.8 2003/10/04 16:10:43 jaco Exp $
+# $Id: Rules.mk,v 1.9 2003/10/04 17:28:02 jaco Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
 DEF_KEYBOARD=us
 
-# these two parameters problably needs to match up
+# these two parameters need to match up to allow splash to work
 DEF_RESOLUTION=800x600
 DEF_VGAMODE=788
 
