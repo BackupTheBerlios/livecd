@@ -1,4 +1,4 @@
-# $Id: livecdfs.spec.in,v 1.11 2004/01/30 20:25:56 jaco Exp $
+# $Id: livecdfs.spec.in,v 1.12 2004/01/31 07:45:42 jaco Exp $
 
 %define name	livecdfs
 %define version	@LIVECDFSVER@
@@ -8,6 +8,7 @@
 
 %define build_debug		0
 %{expand: %{?_with_debug: 	%%global build_debug 1}}
+%{expand: %{?_without_debug: 	%%global build_debug 0}}
 
 Summary:	%{summary}
 Name:		%{name}
@@ -30,12 +31,11 @@ to mimic writing to a non-writable medium.
 %setup -q -n %{name}-@ARCHIVEVER@
 
 %build
-EXTRA_CFLAGS=
-EXTRA_CXXFLAGS=
 %if %{build_debug}
-	EXTRA_CXXFLAGS="$EXTRA_CXXFLAGS -DDEBUG"
+	%make debug
+%else
+	%make
 %endif
-%make EXTRA_CFLAGS="$EXTRA_CFLAGS" EXTRA_CXXFLAGS="$EXTRA_CXXFLAGS"
 
 %install
 rm -rf %buildroot

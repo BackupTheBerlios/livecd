@@ -1,8 +1,11 @@
-# $Id: Makefile,v 1.11 2004/01/30 19:23:15 jaco Exp $
+# $Id: Makefile,v 1.12 2004/01/31 07:45:42 jaco Exp $
 
 include Rules.mk
 
 all: $(LIBRARY) $(LUFSDLIVECDFS)
+
+debug:
+	$(MAKE) EXTRA_CXXFLAGS=-DDEBUG
 
 $(LIBRARY): $(OBJECTS) 
 	$(CC) -shared -Wl,-soname \
@@ -19,7 +22,7 @@ $(LUFSDLIVECDFS): $(OBJECTS) $(LUFSDOBJS)
 test: $(SRCDIR)/test.o $(OBJECTS) $(LUFSOBJS)  
 	$(CXX) -o $@ $< $(OBJECTS) $(LUFSOBJS) 
 
-install: $(LIBRARY)
+install: $(LIBRARY) $(LUFSDLIVECDFS)
 	$(MKDIR) -p $(DESTDIR)$(LIBDIR) $(DESTDIR)$(SBINDIR)
 	$(CP) -a $(LIBRARY)* $(DESTDIR)$(LIBDIR)
 	$(INSTALL) -m 755 $(LUFSDLIVECDFS) $(DESTDIR)$(SBINDIR)
