@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.45 2004/10/25 05:15:24 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.46 2004/10/29 04:43:54 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -605,6 +605,9 @@ sub showInstall
 	$infotext = getStr('inst_fstab');
 	print "$infotext\n";
 	writeFstab($devs) unless ($destroy);
+
+	# re-establish original inittab
+	do_system("cp -cf /initrd/etc/inittab $mnt/etc/");
 
 	$infotext = getStr('inst_done');
 	print "$infotext\n";
