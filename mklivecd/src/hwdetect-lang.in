@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect-lang.in,v 1.6 2005/01/15 00:31:10 tom_kelly33 Exp $
+# $Id: hwdetect-lang.in,v 1.7 2005/02/05 07:57:09 tom_kelly33 Exp $
 #
 
 sub getLanguages() {
@@ -78,6 +78,7 @@ sub getStrings() {
 
 	'mod_read'         => [ "Reading modules configuration", undef ],
 	'mod_write'        => [ "Writing modules configuration", undef ],
+	'mod_loaded'	   => [ "Module loaded", undef ],
 
 	'disk_probe'       => [ "Detecting disk drives/partitions", undef ],
 	'disk_persist'     => [ "Finding persistent partitions", undef ],

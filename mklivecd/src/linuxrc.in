@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.89 2005/01/16 00:08:48 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.90 2005/02/05 07:57:09 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -218,7 +218,6 @@ initialise() {
 	fi	
 	# debugging?
 	DEBUG=`grep -iq debug /proc/cmdline && echo 1`
-
 	set_progress
 }
 

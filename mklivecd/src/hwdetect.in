@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.148 2005/01/20 21:40:20 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.149 2005/02/05 07:57:09 tom_kelly33 Exp $
 #
 
 use strict;
@@ -550,19 +550,22 @@ sub hwdetect_probeall() {
 sub hwdetect_getsata() {
 	my $sata;
 	my $total = 0;
+	my $res = "";
+
 	my @satalist = qw(libata sd_mod ata_piix scsi_mod sr_mod sg a100u2w 
 		advansys aha152x aha1542 aic7xxx BusLogic fdomain gdth 
 		megaraid sata_promise sata_sil sata_svw sata_via sata_vsc);
-	
+
+	print getStr('mod_loaded') . ": ";	
 	foreach $sata (@satalist) {
-		my $num = modprobe("", $sata);
-		#hwdetect_loadmod($sata, undef, undef, undef);
-		if ($num eq 0) {
-			print "\n Module $sata loaded\n";
+		$res = modprobe("", $sata);
+		if ($res eq 0) {
+			print "$sata "; 
 			$total+=1;
 		}
 	}
-	print "Total SATA modules loaded = $total\n";
+	print "\nTotal SATA modules loaded = $total";
+	print_success();
 }
 
 sub hwdetect_getkeyb() {
@@ -1361,7 +1364,7 @@ sub version () {
 	print "$SCRIPT_NAME $SCRIPT_VER\n";
 }
 
-MAIN: { print "\n$COLOR_YELLOW HWDETECT - MAIN\n $COLOR_NORMAL";
+MAIN: { print "\n$COLOR_YELLOW"."HWDETECT - MAIN ---------------$COLOR_NORMAL\n";
 	GetOptions(
 		'help'	   => sub { help(); exit() },
 		'version'  => sub { version(); exit() },
@@ -1384,20 +1387,20 @@ MAIN: { print "\n$COLOR_YELLOW HWDETECT - MAIN\n $COLOR_NORMAL";
 	
 	# get all devices
 	unless (defined($fdisk)) {
-		print "\n$COLOR_YELLOW HWDETECT: Starting probeall $COLOR_NORMAL\n";
+		print "\n$COLOR_YELLOW"."HWDETECT: Starting probeall $COLOR_NORMAL\n";
 		hwdetect_probeall();
 		hwdetect_printall();
-		print "\n$COLOR_YELLOW HWDETECT: Starting getsata $COLOR_NORMAL\n";
+		print "\n$COLOR_YELLOW"."HWDETECT: Starting getsata $COLOR_NORMAL\n";
 		hwdetect_getsata();
-		print "\n$COLOR_YELLOW HWDETECT: Starting getxfree $COLOR_NORMAL\n";
+		print "\n$COLOR_YELLOW"."HWDETECT: Starting getxfree $COLOR_NORMAL\n";
 		hwdetect_getxfree();
-		print "\n$COLOR_YELLOW HWDETECT: Starting getsound $COLOR_NORMAL\n";
+		print "\n$COLOR_YELLOW"."HWDETECT: Starting getsound $COLOR_NORMAL\n";
 		hwdetect_getsound();
-		print "\n$COLOR_YELLOW HWDETECT: Starting getnetwork $COLOR_NORMAL\n";
+		print "\n$COLOR_YELLOW"."HWDETECT: Starting getnetwork $COLOR_NORMAL\n";
 		hwdetect_getnetwork();
 
 		#hwdetect_getprinters();
-		print "\n$COLOR_YELLOW HWDETECT: Starting getusb $COLOR_NORMAL\n";
+		print "\n$COLOR_YELLOW"."HWDETECT: Starting getusb $COLOR_NORMAL\n";
 		hwdetect_getusb();
 
 		#hwdetect_getserial();
@@ -1405,7 +1408,7 @@ MAIN: { print "\n$COLOR_YELLOW HWDETECT - MAIN\n $COLOR_NORMAL";
 	}
 	
 	# get disks
-	print "\n$COLOR_YELLOW HWDETECT: Starting getdisks\n$COLOR_NORMAL";
+	print "\n$COLOR_YELLOW"."HWDETECT: Starting getdisks\n$COLOR_NORMAL";
 	hwdetect_getdisks();
 	hwdetect_writedisks();
 	if (defined($fdisk)) {
@@ -1416,6 +1419,6 @@ MAIN: { print "\n$COLOR_YELLOW HWDETECT - MAIN\n $COLOR_NORMAL";
 	# deinit
 	hwdetect_deinitusb() unless ($fdisk);
 	hwdetect_deinit();
-	print "\n$COLOR_YELLOW HWDETECT - DONE$COLOR_NORMAL\n";
+	print "\n$COLOR_YELLOW"."HWDETECT - DONE ---------------$COLOR_NORMAL\n";
 }
 

@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.41 2005/01/25 06:12:38 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.42 2005/02/05 07:57:09 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -354,7 +354,7 @@ setupdir_var() {
 ### Setup the root fs
 setuproot() {
 	# check for overlay support
-	COW=
+	COW="" 
 	if [ -e /initrd/usr/sbin/lufsd.livecdfs ]; then
 		if `/bin/grep -iqv nocow /proc/cmdline`; then
 			COW=1
@@ -475,8 +475,51 @@ setupinit() {
 	export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
 	# moved to end /etc/rc.d/rc.sysinit
 }
+
+do_union () {
+
+   echo "Setting up UNIONFS"
+   UNIONFS=/initrd/loopfs/lib/modules/$KERNELVER/kernel/fs/unionfs.ko
+   cp $UNIONFS /  # easy access for testing
+   insmod /$UNIONFS
+   mkdir /union
+   mkdir /changes
+   mount -t unionfs -o dirs=/changes=rw:/initrd/loopfs=ro unionfs /union
+
+   export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
+
+   echo "6" > /proc/sys/kernel/printk # enable kernel messages
+
+   # now make the directories writeable
+   for d in $MNTLIVECD/*; do
+	d=${d#$MNTLIVECD/}
+	if [ -d $MNTLIVECD/$d ]; then
+		case $d in
+		dev|proc|sys|mnt|tmp|udev|initrd)  	# Remain in RAM
+		;;
+		*)					# Any extra/custom dirs
+		rm -rf $d && /initrd/bin/busybox ln -s /union/$d /$d
+		;;
+		esac
+	else
+	   # copy the files
+	   cp $MNTLIVECD/$d /
+	fi
+   done
+echo "Starting a shell for testing purposes. Enter 'exit' to continue booting."
+execshell
+}
+
 echo "--- MKLIVECD RC.SYSINIT ------------"
-setuproot ""
+echo " cmdline = `grep -iq cow /proc/cmdline`"
+
+OPTION=`getbootoption union`
+if [ $OPTION ]; then
+	echo "Union option = $OPTION"
+        do_union ""
+else 
+	setuproot ""
+fi
 setupinit ""
 echo "--- Exiting MKLIVECD RC.SYSINIT ----"
 grep -v "^si" /etc/inittab >/inittab;mv /inittab /etc/inittab

@@ -1,4 +1,8 @@
-# $Id: CHANGELOG,v 1.135 2005/01/27 21:56:25 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.136 2005/02/05 07:57:09 tom_kelly33 Exp $
+
+* 2005-02-05
+	[mklivecd] - fix keyboard links
+	[rc.sysinit.in] - add unionfs option
 
 * 2005-01-27
 	[mklivecd] - ln -fs NOT sf [alaa]

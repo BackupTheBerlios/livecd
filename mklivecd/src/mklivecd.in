@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.138 2005/01/27 21:56:25 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.139 2005/02/05 07:57:09 tom_kelly33 Exp $
 #
 
 use strict;
@@ -64,6 +64,8 @@ my $nodirs         = '^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tm
 my $nofiles        = '^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*[.]rpmnew$ .*[.]rpmsave$ /[.]bash_history$ /[.]fonts[.]cache-[0-9]$ /[.]xauth.* /[.]xsession-errors$ ^/var/run/ ^/var/lock/subsys/';
 my $loopmod        = undef;
 my $loopcmp        = undef;
+my $cow		   = undef;
+my $cowmod	   = "3rdparty/cowloop/cowloop";
 my $blocksize      = 32;
 my $finaliso       = "livecd.iso";
 my $md5sum	   = undef;
@@ -150,7 +152,7 @@ Image generation:
    --kernel <kernel>               Kernel to use as default for the LiveCD
                                    image. (Output of uname -r)
                                    (default: $o_kernel)
-   --experimental                  Enable experimental LiveCD feautures. 
+   --cow			   Enable experimental cow filesystem. 
                                    Currently this option enables overlay 
                                    filesystem support.
 
@@ -393,7 +395,7 @@ sub parse_options {
 		'sort=s',
 		'kernel=s',
 		'lowmem',
-		'experimental',
+		'cow',
 		'looptype=s',
 		'blocksize=i',
 		'bootopt=s@',
@@ -606,6 +608,7 @@ sub create_initrd {
 	# get our modules
 	my @allmods = split(/ /, $modules);
 	push @allmods, $loopmod if (defined($loopmod));
+	push @allmods, $cowmod if (defined($cow));
 	my @allmods_opt = split(/ /, $modules_opt);
 
 	# start progress bar
@@ -645,7 +648,13 @@ sub create_initrd {
 	do_copy($o_root."lib/libc.so.6",            0, "$dir/lib",                     ++$pos);
 #	do_copy($o_root."lib/libm.so.6",	    0, "$dir/lib",		       ++$pos);
 	do_copy($o_root."lib/ld-linux.so.2",        0, "$dir/lib",                     ++$pos);
-	do_copy("/usr/sbin/lufsd.livecdfs",       755, "$dir/usr/sbin/lufsd.livecdfs", ++$pos) if (defined($opts{experimental}));
+#	do_copy("/usr/sbin/lufsd.livecdfs",       755, "$dir/usr/sbin/lufsd.livecdfs", ++$pos) if (defined($opts{cow}));
+	if (defined($opts{cow})) {
+		print "Cow opts \n";
+		do_cmd("mknod $dir/dev/cowloop b 241 0", ++$pos);
+		do_cmd("mkdir $dir/cow", ++$pos);
+	
+	}
 	if ($kernel26 == 1) {
 		# Copy but hide the udev binaries
 		do_cmd("mkdir $dir/sbin/tmp",			++$pos);
@@ -1008,8 +1017,8 @@ MAIN: {
 #		keyboard::write(keyboard::lang2keyboard($o_keyboard));
 #	}
 
-	eval {`ln -fs /var/lib/xkb /usr/X11R6/lib/X11/xkb/compiled`};
-	eval {`ln -fs /var/lib/xdm /usr/X11R6/lib/X11/xdm/authdir`};
+	do_cmd("ln -sf $o_root/var/lib/xkb $o_root/usr/X11R6/lib/X11/xkb/compiled");
+	do_cmd("ln -sf $o_root/var/lib/xdm $o_root/usr/X11R6/lib/X11/xdm/authdir");
 
 	create_compressed();
 	create_isolinux();
