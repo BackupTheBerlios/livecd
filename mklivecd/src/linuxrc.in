@@ -1,0 +1,365 @@
+#!/bin/busybox ash
+#
+# LiveCD startup (linuxrc) script
+# Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
+#
+
+### global variables
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
+umask 022
+FOUND_MDKISO=""
+FOUND_SCSI=""
+BASEIMG="livecd.iso"      # name of the base cloop image, with a .clp (cloop) or .bzlp (bzloop)
+                          # extension, this is the compressed loop image
+LOOPBEXT=".bzlp"          # extension for the above
+LOOPCEXT=".clp"           # extension for the above
+LOOPTYPE="$LOOPCEXT"
+DEVICES=""                # list of all ide/scsi cd-type devices
+FOUNDMEM=200000           # total memory found on box
+TOTALMEM=200000           # total usable memory on box
+MINSIZE=2000              # Minimum size of additional ram partitions
+MINLEFT=16000             # At least this much memory minus 30% should remain when home and var are full.
+MAXSIZE=1000000           # maximum ramdisk size
+RAMSIZE=1000000           # default ramdisk size
+MINRAMSIZE=15000          # the minimum ramdisk size
+KERNELVER="@KERNELVER"    # this is setup via uname -r in the initialise section
+MKLIVECDVER="@MKLIVECDVER"
+NAME_VERSION_STR="@NAME_VERSION_STR"
+CLOOPVER="@CLOOPVER"
+MNTCDROM=/cdrom
+MNTLIVECD=/loopfs
+MNTRAMDISK=/ramfs
+
+### screen colors
+RES_COL=65
+MOVE_TO_COL="echo -en \\033[${RES_COL}G\\033[K"
+SETCOLOR_OK="echo -en \\033[1;32m"
+SETCOLOR_FAIL="echo -en \\033[1;31m"
+SETCOLOR_WARN="echo -en \\033[1;33m"
+SETCOLOR_NORMAL="echo -en \\033[0;39m"
+SETCOLOR_CLEAR="echo -en \\033c"
+SETCOLOR_CEOL="echo -en \\033[0G\\033[K"
+
+
+### print a success msg
+printok() {
+	$MOVE_TO_COL
+	echo -n "[  "
+	$SETCOLOR_OK
+	echo -n "OK"
+	$SETCOLOR_NORMAL
+	echo "  ]"
+	return 0
+}
+
+
+### print a warning msg
+printwarn() {
+	$MOVE_TO_COL
+	echo -n "[ "
+	$SETCOLOR_WARN
+	echo -n "WARN"
+	$SETCOLOR_NORMAL
+	echo " ]"
+	return 0
+}
+
+
+### print a fialure msg
+printfail() {
+	$MOVE_TO_COL
+	echo -n "["
+	$SETCOLOR_FAIL
+	echo -n "FAILED"
+	$SETCOLOR_NORMAL
+	echo "]"
+	return 0
+}
+
+
+### execute a command/commands printing the sucess or failure msg on completion
+docmd() {
+	echo -n "$1: "
+	shift
+	CMD="($1)"
+	shift
+	while [ $# -gt 0 ]; do
+		CMD="$CMD && ($1)"
+		shift
+	done
+	(eval "$CMD") 2>&1 >/dev/null && printok || printfail
+}
+
+
+### load a module
+loadmod() {
+	MODULE="/lib/modules/$KERNELVER/kernel/$1"
+	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
+	insmod $MODULE $2 2>&1 >/dev/null && return 0 || return 1
+}
+
+
+### initialise
+initialise() {
+	busybox mount -t proc none /proc
+	busybox --install
+	docmd "Setting up kernel parameters" \
+              "echo '0' >/proc/sys/kernel/printk" \
+              "echo '/sbin/modprobe' >/proc/sys/kernel/modprobe" \
+              "exec >/dev/console </dev/console 2>&1"
+	KERNELVER=`uname -r`
+# removed for now, this was part of the original MiniCD script -
+# not deleted to enable us to add a bootsplash at a later point
+#	if [ -e /proc/splash ]; then
+#		echo -n "Setting framebuffer splash: "
+#		for i in 0 1 2 3 4 5; do
+#			/initrd/bin/bootsplash -s -u $i /initrd/etc/bootsplash/bootbg-800x600.cfg 2>&1 >/dev/null
+#		done
+#		printok
+#	fi
+}
+
+
+### show the welcome message
+printwelcome() {
+	### now print the welcome screen
+#	$SETCOLOR_WARN
+#	echo ""
+#	echo "Welcome to $NAME_VERSION_STR, $KERNELVER"
+#	echo ""
+	$SETCOLOR_NORMAL
+}
+
+
+### this is if we are to execute a limited shell
+execshell() {
+	export HOSTNAME="localhost.localdomain"
+	export PS1="$ "
+	export PS2="> "
+	export PS4="+ "
+	echo "6" >/proc/sys/kernel/printk
+
+	# find the best shell available to us at this point
+	if [ -e /bin/bash ]; then
+		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
+		SHELL="/bin/bash"
+	elif [ -e /initrd/bin/ash ]; then
+		export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
+		SHELL="/initrd/bin/ash"
+	else
+		export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+		if [ -e /bin/ash ]; then
+			SHELL="/bin/ash"
+		else
+			SHELL="/bin/busybox ash"
+		fi
+	fi
+	exec $SHELL
+}
+
+
+### find the cloop device
+findcloop() {
+	# all devices changed to take advantage of devfs
+	# cdrom devices (IDE only)
+	DEVICES="/dev/cdroms/cdrom?"
+	# hard disk and usb should fit in here
+	#DEVICES="$DEVICES /dev/ide/hd/*p?"
+
+	# load basic modules
+	echo -n "Loading basic cdrom modules: "
+	ALL_LOADED=1
+	for i in isofs.o cdrom.o ide-cd.o; do
+		loadmod $i || ALL_LOADED=0
+	done
+	[ $ALL_LOADED -gt 0 ] && printok || printfail
+
+	# do the loop
+	echo -n "Finding compressed loop image: "
+	for i in $DEVICES; do
+		CDDEV="$i"
+		$MOVE_TO_COL
+		$SETCOLOR_WARN
+		echo -n "$i"
+		$SETCOLOR_NORMAL
+		if `mount -r -t iso9660 $CDDEV $MNTCDROM 2>&1 >/dev/null`; then
+			# try to find either the .clp or .bzlp compressed image
+			LOOPTYPE=""
+			if [ -f $MNTCDROM/$BASEIMG$LOOPBEXT ]; then
+				LOOPTYPE="$LOOPBEXT"
+				LOOPMOD="bzloop"
+			elif [ -f $MNTCDROM/$BASEIMG$LOOPCEXT ]; then
+				LOOPTYPE="$LOOPCEXT"
+				LOOPMOD="cloop"
+			fi
+
+			# if it exists, load the correct module and mount
+			if [ -n "$LOOPTYPE" ] && [ -f $MNTCDROM/$BASEIMG$LOOPTYPE ]; then
+				FOUND_MDKISO="$i"
+				printok
+
+				echo -n "Loading compressed loop kernel module: "
+				loadmod $LOOPMOD.o file=$MNTCDROM/$BASEIMG$LOOPTYPE && printok || printfail
+
+				# mount the image, also catering for devfs
+				CLOOPDEVS="/dev/$LOOPMOD"
+				if [ -e "$CLOOPDEVS" ]; then
+					echo -n "Mounting uncompressed image on $MNTLIVECD"
+					CLOOPDEVS="$CLOOPDEVS/?"
+					for d in $CLOOPDEVS; do
+						CLOOPDEV="$d"
+						mount -o ro -t iso9660 $CLOOPDEV $MNTLIVECD && CLOOPMNT=1
+						[ -n $CLOOPMNT ] && break
+					done
+				fi
+
+				# did we get it?
+				if [ -z "$CLOOPMNT" ]; then
+					printfail
+					$SETCOLOR_FAIL
+					echo ""
+					echo "ERROR: Unable to mount filesystem uncompressed,"
+					echo "       dropping you to a limited shell."
+					$SETCOLOR_NORMAL
+					execshell
+				else
+					printok
+					break
+				fi
+			fi
+			`umount $MNTCDROM 2>&1 >/dev/null`
+		fi
+	done
+	if [ -z "$FOUND_MDKISO" ]; then
+		printfail
+		$SETCOLOR_FAIL
+		echo ""
+		echo "ERROR: Unable to find the compressed CD filesystem,"
+		echo "       dropping you to a limited shell."
+		$SETCOLOR_NORMAL
+		execshell
+	fi
+}
+
+
+### find our home partition
+findhome() {
+	# ide hdd partitions only at present
+	PARTITIONS="/dev/ide/hd/*p?"
+}
+
+
+### create /initrd/ramfs
+createramdisk() {
+	# how much memory do we have?
+	echo -n "Calculating usable memory"
+	FOUNDMEM="$(awk '/MemTotal/{print $2}' /proc/meminfo)"
+	TOTALMEM="$(awk 'BEGIN{m=0};/MemFree|Cached/{m+=$2};END{print m}' /proc/meminfo)"
+	MAXSIZE="$(expr $TOTALMEM - $MINLEFT)"
+	RAMSIZE="$(expr $TOTALMEM / 5)"
+	[ -z "$RAMSIZE" ] && RAMSIZE=$MINRAMSIZE
+	[ $RAMSIZE -lt $MINRAMSIZE ] && RAMSIZE=$MINRAMSIZE
+	#RAMSIZE=$(expr $RAMSIZE \* 4) # tmpfs/varsize version, can use swap
+	echo -n " (${RAMSIZE}/${TOTALMEM}/${FOUNDMEM}kB)"
+	printok
+
+	# Check for sufficient memory to mount extra ramdisk for /etc, /home, /root, /var
+	if test -n "$TOTALMEM" -a "$TOTALMEM" -gt "$MINLEFT"; then
+		docmd "Creating $MNTRAMDISK (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
+                      "mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
+                      "mkdir -p $MNTRAMDISK/dev $MNTRAMDISK/initrd $MNTRAMDISK/proc" \
+                      "echo '0x0100' >/proc/sys/kernel/real-root-dev" \
+                      "pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
+                      "cd /" \
+                      "touch fastboot" \
+                      "ln -sf /initrd$MNTLIVECD/bin" \
+                      "ln -sf /initrd$MNTLIVECD/boot" \
+                      "ln -sf /initrd$MNTLIVECD/lib" \
+                      "ln -sf /initrd$MNTLIVECD/opt" \
+                      "ln -sf /initrd$MNTLIVECD/sbin" \
+                      "ln -sf /initrd$MNTLIVECD/usr" \
+                      "mount -n --move /initrd/dev  /dev" \
+                      "mount -n --move /initrd/proc /proc" \
+                      "mkdir -p /mnt && ln -sf /initrd$MNTCDROM /mnt/cdrom" \
+                      "mkdir -p /tmp" \
+                      "chmod 777 /tmp" \
+                      "mkdir -p /var" \
+                      "cd /initrd$MNTLIVECD/var ; for d in *; do [ -d /initrd$MNTLIVECD/var/\$d ] && ln -sf /initrd$MNTLIVECD/var/\$d /var/\$d || true; done" \
+                      "rm -rf /var/lib && mkdir -p /var/lib" \
+                      "cd /initrd$MNTLIVECD/var/lib ; for d in *; do [ -d /initrd$MNTLIVECD/var/lib/\$d ] && ln -sf /initrd$MNTLIVECD/var/lib/\$d /var/lib/\$d || true; done" \
+                      "rm -rf /var/log && mkdir -p /var/log" \
+                      "cd /initrd$MNTLIVECD/var/log ; for d in *; do [ -d /initrd$MNTLIVECD/var/log/\$d ] && mkdir -p /var/log/\$d || true; done" \
+                      "touch /var/log/wtmp" \
+                      "rm -rf /var/lock && mkdir -p /var/lock/subsys" \
+                      "rm -rf /var/run && mkdir -p /var/run" \
+                      "touch /var/run/utmp" \
+                      "rm -rf /var/tmp && ln -s ../tmp /var/tmp"
+		docmd "Creating /etc structure" \
+                      "cp -a /initrd$MNTLIVECD/etc /" \
+                      "chmod a+rw /etc" \
+                      "rm -rf /etc/mtab" \
+                      "ln -sf /proc/mounts /etc/mtab" \
+                      "rm -rf /etc/fstab" \
+                      "echo 'none       /proc        proc     defaults  0 0' >/etc/fstab" \
+                      "echo 'none       /dev         devfs    defaults  0 0' >>/etc/fstab" \
+                      "echo '/dev/rd/3  /            ext2     defaults  0 0' >>/etc/fstab" \
+                      "echo '' >/etc/modules.conf" \
+                      "cp /initrd/etc/init.d/hwdetect /etc/init.d" \
+                      "chmod 755 /etc/init.d/hwdetect" \
+                      "ln -s ../init.d/hwdetect /etc/rc.d/rc3.d/S00hwdetect" \
+                      "ln -s ../init.d/hwdetect /etc/rc.d/rc5.d/S00hwdetect" \
+                      "rm -rf /etc/rc.d/rc3.d/S05harddrake" \
+                      "rm -rf /etc/rc.d/rc5.d/S05harddrake"
+		docmd "Creating user directories" \
+                      "cp -a /initrd$MNTLIVECD/root /" \
+                      "cp -a /initrd$MNTLIVECD/home /"
+	else
+		$SETCOLOR_FAIL
+		echo ""
+		echo "ERROR: Insufficient memory to create ramdisk,"
+		echo "       dropping you to a limited shell."
+		$SETCOLOR_NORMAL
+		execshell
+	fi
+}
+
+
+### setup for init of the actual mdk image
+setupinit() {
+	# do we just want to complete the initrd (debug)?
+	if `grep -iq livecd=initrd /proc/cmdline`; then
+		execshell
+	else
+		# clean up
+		docmd "Unmounting /proc filesystem" \
+                      "umount /proc"
+
+		### go to mdk init
+		echo "Starting Mandrake Linux init sequence ..."
+		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
+	fi
+}
+
+
+### main script entry point
+initialise    ""
+printwelcome  ""
+findcloop     ""
+createramdisk ""
+setupinit     ""

@@ -1,0 +1,24 @@
+Q: How do I create a tiny (truly minimal) bootable Mandrake LiveCD?
+A: Here is a step by step process of creating your own Mandrake installation
+   and creating a LiveCD image from it. (You can customise the process by
+   adding additional packages, but the underlying concepts should stay the same)
+
+   1. Login as root, using "su -c" and entering your root password
+   2. Create a base directory that is to hold the minimal installation:
+      "mkdir -p /root/tmp/minimal"
+   3. Install the Mandrake base system,
+      "urpmi basesystem devfsd harddrake --root /root/tmp/minimal"
+   4. Issue a chroot to enter the installation image:
+      "chroot /root/tmp/minimal"
+   5. Enable shadow passwords by issuing "pwconv"
+   6. Set your root password with "passwd" and follow the prompts
+   7. Exit the chroot image with the "exit" command
+   8. Create a LiveCD image from the minimal installation:
+      "mklivecd --rootdir /root/tmp/minimal minimal.iso"
+   9. Burn the 52MB minimal.iso to CD-R and enjoy :)
+
+   
+Q: How much does the compression algorithm compress the actual LiveCD root?
+A: Exact figures differ from installation to installation, but as a thumb-suck,
+   you can work on a compression ratio of 40%, i.e. a 1GB initial filesystem
+   _should_ compress to 400MB.

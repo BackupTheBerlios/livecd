@@ -1,0 +1,19 @@
+The latest version of the package can alway be found at the following URL:
+
+    http://www.linuxminicd.org/mklivecd/
+
+The package naming tries to follow the Linux kernel approach to versioning, i.e.
+versions are in the format "major.minor.patch" where an uneven minor version
+number indicates an unstable and/or testing release.
+
+There is a mailing list available for discussion of the mklivecd scripts and
+associated programs. More information on this list, including subscription
+details can be found at:
+
+     http://lists.berlios.de/mailman/listinfo/minicd-scripts
+
+Patches, suggestions, flames and general comments are always welcome at the
+above adress. Good luck!
+
+    - Jaco Greeff <jaco@linuxminicd.org>,
+      Thu, Sep 25, 2003

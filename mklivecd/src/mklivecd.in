@@ -1,0 +1,495 @@
+#!/bin/bash
+#
+# LiveCD iso build script
+# Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
+#
+
+PATH=/sbin:/usr/sbin:$PATH
+export PATH
+VERSION="@MKLIVECDVER"
+
+rootdir=/
+target=""
+kernel=""
+verbose="yes"
+MODULES=""
+img_vers=""
+builtins=""
+modulefile=/etc/modules.conf
+tmpdir=""
+rc=0
+kernel26=""
+modules="cdrom ide-cd ext3 isofs jbd nls_iso8859-13 nls_iso8859-14 nls_iso8859-15 nls_iso8859-1 nls_iso8859-2 nls_iso8859-3 nls_iso8859-4 nls_iso8859-5 nls_iso8859-6 nls_iso8859-7 nls_iso8859-8 nls_iso8859-9 nls_utf8"
+excludedirs="^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/lock/subsys$ ^/var/run$ ^/var/tmp$"
+excludefiles="^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*[.]rpmnew$ .*[.]rpmsave$ /[.]bash_history$ /[.]fonts[.]cache-[0-9]$ /[.]xauth.* /[.]xsession-errors$"
+cloopimg=""
+LIVECDISOCLP="livecd.iso.clp"
+loopcmp="create_compressed_fs"
+loopmod="cloop"
+blocksize=229376 # 224K*1024
+
+usage () {
+	echo "Usage:" >&2
+	echo "    `basename $0` [options] <livecd-image>" >&2
+	echo "" >&2
+	echo "Options:" >&2
+	echo "    --help                     Display this message" >&2
+	echo "    --version                  Display script version information" >&2
+	echo "    --verbose                  Be verbose in output" >&2
+	echo "    --exclude-dir=<excludes>   Excludes directories from the final image (1)" >&2
+	echo "    --exclude-file=<excludes>  Excludes files from the final image (1)" >&2
+	echo "    --tmpdir=<tmpdir>          Temp directory for images" >&2
+	echo "    --rootdir=<rootdir>        Root directory of the live filesystem" >&2
+	echo "    --cloop=<image>            Name of the saved compressed image (2)" >&2
+	echo "    --kernel=<kernel>          Kernel to use as boot image" >&2
+	echo "    --looptype=<cloop|bzloop>  Create a cloop (default) or bzloop image (3)" >&2
+	echo "" >&2
+	echo "Notes for options:" >&2
+	echo "    1. Patterns passed to these options is to be valid in a grep(1) search, " >&2
+	echo "       and space delimited, e.g. --exclude-dir=\"^/home/jaco ^/root/\.mozilla\"" >&2
+	echo "       will exclude both the /home/jaco and /root/.mozilla directories" >&2
+	echo "    2. This option can have unexpected side-effects. When an image by this name " >&2
+	echo "       is found, it will not be re-created/overwritten, rather the existing image" >&2
+	echo "       will be re-used, i.e. the compressed image is not re-built." >&2
+	echo "    3. The bzloop option is currently utilising the experimental bzloop kernel" >&2
+	echo "       module. It should not be considdered as stable and might have adverse" >&2
+	echo "       (unintended) side-effects." >&2
+	echo "" >&2
+	echo "Examples:" >&2
+	echo "    `basename $0` --exclude-dir=\"^/usr/src/RPM ^/root/tmp\" livecd.iso" >&2
+	echo "" >&2
+	exit 1
+}
+
+### do a shell command
+do_cmd() {
+	[ -n "$verbose" ] && echo "+ $*"
+	if [ -n "$verbose" ]; then
+		eval "$*" || exit
+	else
+		(eval "$*") 2>&1 >/dev/null || exit
+	fi
+}
+
+do_cp() {
+	do_cmd "cp $1 $2"
+}
+
+find_module() {
+	fmPath=`(cd /lib/modules/$kernel; find -type f -name $modName.o.gz | grep -v build)`
+	if [ -z "$fmPath" ]; then
+		fmPath=`(cd /lib/modules/$kernel; find -type f -name $modName.o | grep -v build)`
+	fi
+}
+
+check_kernel_26() {
+	local -i major minor
+
+	major=$(expr "$1" : '\([^.]\+\)\..*')
+	minor=$(expr "$1" : '[^.]\+\.\([^.]\+\)\..*')
+
+	if [ $major -ge 3 -o $major -eq 2 -a $minor -ge 5 ]; then
+		kernel26=yes
+		modulefile=/etc/modprobe.conf
+		splash=""
+	fi
+}
+
+is_good_fs() {
+	local parttype= tmpname=
+	local dir=$1
+	[[ -d $dir ]] || return 1
+	[[ -w $dir ]] || return 1
+	[[ $dir == */ ]] && dir=${dir%/}
+	parttype=$(awk "{if (\$2 == \""$dir"\") print \$3 }" /proc/mounts)
+
+	while tmpname=${dir%/*} && [[ -z $parttype ]];do
+		[[ -z $tmpname ]] && tmpname=/
+		parttype=$(awk "{if (\$2 == \""$tmpname"\") print \$3 }" /proc/mounts)
+		dir=$tmpname
+	done
+
+	case $parttype in
+		nfs|tmpfs) return 1;;
+		*) return 0;
+	esac
+}
+
+is_dietlibc_arch() {
+	if [ -n "`uname -m | grep '\(i.86\|x86_64\)'`" ]; then return 0; fi
+	return 1
+}
+
+### generate actual initrd image
+create_initrdimg() {
+	### Locale bug (fixed in 0.5.4)
+	#IMAGESIZE=`du -kc $INITRDDIR | grep total | sed 's/\t[^ ]*$//'`
+	IMAGESIZE=`du -ks $INITRDDIR | awk '{print $1}'`
+	INODES=250
+	for i in `find $INITRDDIR`; do
+		INODES=$[INODES + 1];
+	done
+	for i in `find /dev`; do
+		INODES=$[INODES + 1];
+	done
+	IMAGESIZE=$[IMAGESIZE + INODES / 10]  # 10 inodes needs 1k
+	### removed in 0.5.3, initrd size is big enough
+	#IMAGESIZE=$[IMAGESIZE + 250]          # extra 250K to play with
+	[ -n "$verbose" ] && echo "+ Creating filesystem with size ${IMAGESIZE}KB and $INODES inodes"
+	do_cmd "dd if=/dev/zero of=$INITRD bs=1k count=$IMAGESIZE 2> /dev/null"
+	do_cmd "mke2fs -q -m 0 -F -N $INODES -s 1 $INITRD"
+	do_cmd "mount -o loop -t ext2 $INITRD $INITRDMNT"
+	do_cmd "rm -rf $INITRDMNT/lost+found"
+	do_cmd "(cd $INITRDDIR; tar cf - .) | (cd $INITRDMNT; tar xf -)"
+	do_cmd "umount $INITRDMNT"
+	do_cmd  "(cd $ISOLINUXDIR ; gzip -9 initrd)"
+}
+
+### create the compressed iso image
+create_cloop() {
+	if [ -f "$cloopimg" ]; then
+		do_cmd "ln $cloopimg $LIVECDCLOOPDIR/$LIVECDISOCLP"
+	else
+		# handle excluded dirs
+		do_cmd ":> $EXCLUDELIST"
+		if [ ! -z "$excludedirs" ]; then
+			PATTERNS=""
+			for e in $excludedirs; do
+				if [ -z "$PATTERNS" ]; then
+					PATTERNS="$e"
+				else
+					PATTERNS="$PATTERNS
+$e"
+				fi
+			done
+			do_cmd "(cd $rootdir ; find * -type d -printf '/%p\n' 2>/dev/null | grep '$PATTERNS' | sed 's,^/,$rootdir,' >>$EXCLUDELIST)"
+		fi
+
+		# handle excluded files
+		if [ ! -z "$excludefiles" ]; then
+			PATTERNS=""
+			for e in $excludefiles; do
+				if [ -z "$PATTERNS" ]; then
+					PATTERNS="$e"
+				else
+					PATTERNS="$PATTERNS
+$e"
+				fi
+			done
+			do_cmd "(cd $rootdir ; find * -type f -printf '/%p\n' 2>/dev/null | grep '$PATTERNS' | sed 's,^/,$rootdir,' >>$EXCLUDELIST)"
+		fi
+
+		# create the cloop image
+		if [ -z `which $loopcmp` ]; then
+			echo "ERROR: '$loopcmp' does not exist on your machine. You need to install an updated version of the cloop-utils package." >&2
+			exit 1
+		fi
+		if [ -z `which mkisofs` ]; then
+			echo "ERROR: 'mkisofs' does not exist on your machine. You need to install the mkisofs package." >&2
+			exit 1
+		fi
+		do_cmd "nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST \
+			-hide-rr-moved -cache-inodes -no-bak -pad -v -v -gui $rootdir \
+			| $loopcmp - $blocksize >$LIVECDCLOOPDIR/$LIVECDISOCLP 2>/dev/null"
+		[ -n "$cloopimg" ] && do_cmd "ln $LIVECDCLOOPDIR/$LIVECDISOCLP $cloopimg"
+	fi
+}
+
+### install isolinux
+create_isolinux() {
+	do_cp /usr/lib/syslinux/isolinux.bin $ISOLINUXDIR/isolinux.bin
+	do_cp /usr/share/mklivecd/isolinux.cfg $ISOLINUXDIR/isolinux.cfg
+	do_cp /boot/vmlinuz-$kernel $ISOLINUXDIR/vmlinuz
+	do_cmd "dd if=/dev/zero of=$ISOLINUXDIR/boot.cat bs=1k count=2 2> /dev/null"
+}
+
+### create the final iso image
+create_liveiso() {
+	DISTRO=`gawk -F' ' '{ print $1 " " $2 }' $rootdir/etc/mandrake-release`
+	VERSION=`gawk -F' ' '{ print $4 " " $5 }' $rootdir/etc/mandrake-release`
+	VERSION_DATE=`date --utc`
+	do_cmd "nice -n 19 mkisofs -pad -l -r -J -v \
+                -V '$DISTRO LiveCD' -A '$VERSION $VERSION_DATE' \
+                -b isolinux/isolinux.bin -c isolinux/boot.cat \
+                -hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table \
+                -o $target $LIVECDDIR"
+}
+
+while [ $# -gt 0 ]; do
+	case $1 in
+		--cloop*)
+			if echo $1 | grep '=' >/dev/null ; then
+				cloopimg=`echo $1 | sed 's/^--cloop=//'`
+			else
+				cloopimg=$2
+				shift
+			fi
+			;;
+
+		--exclude-dir*)
+			if echo $1 | grep '=' >/dev/null ; then
+				excludes=`echo $1 | sed 's/^--exclude-dir=//'`
+			else
+				excludes=$2
+				shift
+			fi
+			for e in $excludes; do
+				excludedirs="$excludedirs $e"
+			done
+			;;
+
+		--exclude-file*)
+			if echo $1 | grep '=' >/dev/null ; then
+				excludes=`echo $1 | sed 's/^--exclude-file=//'`
+			else
+				excludes=$2
+				shift
+			fi
+			for e in $excludes; do
+				excludefiles="$excludefiles $e"
+			done
+			;;
+
+		--kernel*)
+			if echo $1 | grep '=' >/dev/null ; then
+				kernel=`echo $1 | sed 's/^--kernel=//'`
+			else
+				kernel=$2
+				shift
+			fi
+			;;
+
+		--tmpdir*)
+			if echo $1 | grep '=' >/dev/null ; then
+				tmpdir=`echo $1 | sed 's/^--tmpdir=//'`
+			else
+				tmpdir=$2
+				shift
+			fi
+			;;
+
+		--rootdir*)
+			if echo $1 | grep '=' >/dev/null ; then
+				rootdir=`echo $1 | sed 's/^--rootdir=//'`
+			else
+				rootdir=$2
+				shift
+			fi
+			;;
+
+		--looptype*)
+			if echo $1 | grep '=' >/dev/null ; then
+				loopmod=`echo $1 | sed 's/^--looptype=//'`
+			else
+				loopmod=$2
+				shift
+			fi
+			if [ "$loopmod" == "cloop" ]; then
+				LIVECDISOCLP="livecd.iso.clp"
+				loopcmp="create_compressed_fs"
+				loopmod="cloop"
+			else
+				if [ "$loopmod" == "bzloop" ]; then
+					LIVECDISOCLP="livecd.iso.bzlp"
+					loopcmp="create_bzfs"
+					loopmod="bzloop"
+				else
+					echo "ERROR: You need to specify either bzloop or cloop with the '--looptype' option" >&2
+					exit 1
+				fi
+			fi
+			;;
+
+		--version)
+			echo "mklivecd, version $VERSION, http://www.linuxminicd.org/mklivecd/" >&2
+			echo "Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>" >&2
+			echo "" >&2
+			echo "This program is free software; you can redistribute it and/or modify" >&2
+			echo "it under the terms of the GNU General Public License as published by" >&2
+			echo "the Free Software Foundation; either version 2, or (at your option)" >&2
+			echo "any later version." >&2
+			echo "" >&2
+			echo "This program is distributed in the hope that it will be useful," >&2
+			echo "but WITHOUT ANY WARRANTY; without even the implied warranty of" >&2
+			echo "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the" >&2
+			echo "GNU General Public License for more details." >&2
+			echo "" >&2
+			echo "You should have received a copy of the GNU General Public License" >&2
+			echo "along with this program; if not, write to the Free Software" >&2
+			echo "Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA." >&2
+			echo "" >&2
+			exit 0
+			;;
+
+		-h)
+			usage
+			;;
+
+		-?)
+			usage
+			;;
+
+		--help)
+			usage
+			;;
+
+		--verbose)
+			verbose=-v
+			;;
+
+		-*)
+			echo "ERROR: Unknown command-line option '$1'. Try '`basename $0` --help' for valid options." >&2
+			exit 1
+			;;
+
+		*)
+			if [ -z "$target" ]; then
+				target=$1
+			else
+				usage
+			fi
+			;;
+	esac
+	shift
+done
+
+### do we have target?
+[ -z "$target" ] && usage
+
+### are we root?
+if [ `id -u` != "0" ]; then
+	echo "ERROR: You need to be root to execute this program." >&2
+	exit
+fi
+
+### check our passed parameters
+[ -z "$kernel" ] && kernel=`uname -r`
+[ -n "$verbose" ] && echo "+ Using $kernel as boot kernel"
+check_kernel_26 "$kernel"
+[[ -n $tmpdir ]] && { is_good_fs $tmpdir || tmpdir= ;} #command-line
+if [[ -z $tmpdir ]]; then
+	if is_good_fs /tmp; then
+		tmpdir=/tmp
+	elif is_good_fs $TMPDIR; then
+		tmpdir=$TMPDIR
+	elif is_good_fs /var/tmp; then
+		tmpdir=/var/tmp
+	elif is_good_fs /root/tmp; then
+		tmpdir=/root/tmp
+	else
+		echo "Cannot find a suitable tmp directory" >&2
+		exit 1
+	fi
+fi
+
+# fix the root directory to be uniform in "/-before" and "/-after"
+rootdir=`echo $rootdir | sed 's,/$,,'`
+rootdir="$rootdir/"
+[ -n "$verbose" ] && echo "+ Using $rootdir as root directory."
+
+[ -n "$verbose" ] && echo "+ Using $tmpdir as temporary directory."
+if [ -z "$target" ]; then
+	usage
+fi
+
+### create the temporary directories for us to use
+do_cmd "rm -rf $tmpdir/mklivecd.*"
+CLOOPDIR=`mktemp -d ${tmpdir}/mklivecd.cloop.XXXXXX`
+LIVECDDIR=`mktemp -d ${tmpdir}/mklivecd.livecd.XXXXXX`
+INITRDDIR=`mktemp -d ${tmpdir}/mklivecd.initrd.XXXXXX`
+INITRDMNT=`mktemp -d ${tmpdir}/mklivecd.initrd.mnt.XXXXXX`
+EXCLUDELIST=`mktemp ${tmpdir}/mklivecd.excludes.XXXXXX`
+MODULESDIR=/lib/modules/$kernel
+ISOLINUXDIR=$LIVECDDIR/isolinux
+INITRD=$ISOLINUXDIR/initrd
+RCFILE=$INITRDDIR/linuxrc
+LIVECDCLOOPDIR=$LIVECDDIR
+
+### cleanup on exit, hangup, interrupt, quit, termination
+trap 'rm -rf $CLOOPDIR $LIVECDDIR $INITRDDIR $INITRDMNT $EXCLUDELIST' 0 1 2 3 15
+
+### create directories
+if [ -z "$LIVECDDIR" -o -z "$INITRDDIR" -o -z "$INITRDMNT" -o -z "$CLOOPDIR" ]; then
+    echo "ERROR: Unable to create temporary files and/or directories." >&2
+    exit 1
+fi
+do_cmd "mkdir -p $INITRDDIR/{bin,dev,etc/init.d,lib/modules,proc,sbin,usr/{bin,sbin}}"
+do_cmd "mkdir -p $INITRDDIR/{cdrom,loopfs,ramfs}"
+do_cmd "mkdir -p $LIVECDDIR"
+do_cmd "mkdir -p $ISOLINUXDIR"
+do_cmd "mkdir -p $LIVECDCLOOPDIR"
+do_cmd "mkdir -p $CLOOPDIR"
+
+### create initrd
+if is_dietlibc_arch; then
+	if [[ -n "$kernel26" ]]; then
+		do_cp /sbin/insmod-25-DIET $INITRDDIR/sbin/insmod
+	else
+		do_cp /sbin/insmod-DIET $INITRDDIR/sbin/insmod
+	fi
+	else
+	if [[ -n "$kernel26" ]]; then
+		do_cp /sbin/insmod.static-25 $INITRDDIR/sbin/insmod
+	else
+		do_cp /sbin/insmod.static $INITRDDIR/sbin/insmod
+	fi
+fi
+do_cp /usr/bin/busybox $INITRDDIR/bin/busybox
+do_cp /usr/share/mklivecd/linuxrc $INITRDDIR/linuxrc
+do_cmd "chmod 755 $INITRDDIR/linuxrc"
+do_cp /usr/share/mklivecd/init.d/hwdetect $INITRDDIR/etc/init.d
+do_cp /usr/sbin/hwdetect $INITRDDIR/usr/sbin
+do_cmd "chmod 755 $INITRDDIR/usr/sbin/hwdetect"
+
+### modules
+do_cmd "mkdir -p $INITRDDIR$MODULESDIR/kernel"
+modules="$loopmod $modules"
+for m in $modules; do
+	modpath=`(cd /lib/modules/$kernel; find -type f -name $m.o.gz | grep -v build)`
+	if [ -n "$modpath" ]; then
+		do_cmd "gzip -dc /lib/modules/$kernel/$modpath >$INITRDDIR$MODULESDIR/kernel/$m.o"
+	else
+		modpath=`(cd /lib/modules/$kernel; find -type f -name $m.o | grep -v build)`
+		if [ -z "$modpath" ]; then
+			echo "ERROR: unable to find kernel module $m.o" >&2
+			exit 1
+		fi
+		do_cp /lib/modules/$kernel/$modpath $INITRDDIR/$MODULESDIR/kernel/$m.o
+	fi
+done
+do_cmd ":> $INITRDDIR$modulefile"
+if [ `uname -r` == "$kernel" ]; then
+	do_cmd "depmod -a --basedir $INITRDDIR --config $INITRDDIR$modulefile"
+else
+	do_cp /lib/modules/$kernel/modules.* $INITRDDIR/$MODULESDIR/
+fi
+
+### devices
+do_cmd "mknod $INITRDDIR/dev/console c 5 1"
+do_cmd "mknod $INITRDDIR/dev/initrd b 1 250"
+do_cmd "mknod $INITRDDIR/dev/null c 1 3"
+do_cmd "mknod $INITRDDIR/dev/systty c 4 0"
+for i in 1 2 3 4; do
+	do_cmd "mknod $INITRDDIR/dev/tty$i c 4 $i"
+done
+
+create_initrdimg
+create_cloop
+create_isolinux
+create_liveiso

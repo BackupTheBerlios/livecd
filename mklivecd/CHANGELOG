@@ -1,0 +1,82 @@
+* Thu, Sep 25, 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.5
+- Changed input blocksize to compression in mklivecd from 64K to 224K. This
+  still allows for overflow blocks (i.e. block with no compression) to be
+  smaller than the maximum size of 256K, whilst allowing for a smaller final
+  iso size (It can be made larger, but 224K is safe and should work for all
+  types of blocks)
+- Added support for bzloop images (experimental) in both mklivecd and
+  the linuxrc scripts (--looptype=<cloop|bzloop> option to mklivecd). This
+  (--looptype=bzloop) requires an updated cloop-utils providing both the bzloop
+  and {create,extract}_bzfs executables (http://www.linuxminicd.org/bzloop/)
+- Test for both the mkisofs and create_{compressed_,bz}fs executables before
+  using them in mklivecd
+- Test that the user indeed has root privledges in mklivecd before trying
+  to execure
+- Display the "short GPL" in "mklivecd --version"
+- If an unknown option is specified (-*) in klivecd, complain
+- If a target iso is not specified in mklivecd, display the usage info
+- Redirect all error messages in mklivecd to stderr
+- Only cater for devfs in linuxrc, manually created device should be done
+  in mklivecd, not "on-the-fly"
+- Chmod /tmp 777 in linuxrc to allow all users write access to it
+- Updated the README to contain the mailing list information
+- Changes mkisofs -r to -R to preserve user settings in mklivecd
+- Moved hwdetect initscript out of /etc/init.d into /usr/share/mklivecd/init.d
+- Allow hwdetect to be executed from either /usr/sbin (if installed) or
+  from the always available /initrd/usr/sbin in /etc/init.d/hwdetect
+
+
+* Tue, Sep 23, 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.4
+- Added mkisofs to RPM spec (Reported by Tibor Pittich)
+- Sync with RPM spec as imported into Mandrake contrib
+- Removed locale dependency from initrd size calculation in mklivecd
+  (Reported by Tibor Pittich, fix suggested by Buchan Milne)
+- Renamed "--root" option to "--rootdir"
+- --rootdir option now works as expected (inclusive of --exclude-{file,dir}
+  options)
+- If the selected kernel doesn't match the running kernel in mklivecd, don't
+  try to generate the module dependencies, rather just copy the existing files
+  to the correct initrd location
+- Added a FAQ entry for creating a very minimal Mandrake LiveCD
+
+
+* Mon, Sep 22, 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.3
+- hwdetect once again creates a workable (non-optimal) XF86Config file
+  allowing X to be started
+- Added explicit --kernel option to mklivecd, if not specified it defaults to
+  the current running kernel (uname -r)
+- Added --exclude-file option to mklivecd
+- Exclude the following file patterns by default in the LiveCD image creation
+  of mklivecd:
+    - core.* (/core[.][0-9][0-9]*$)
+    - *.rpmnew (.*[.]rpmnew$)
+    - *.rpmsave (.*[.]rpmsave$)
+    - /.* (^/[.].*)
+    - .bash_history (/[.]bash_history$)
+    - .fonts.cache-* (/[.]fonts[.]cache-[0-9]$)
+    - .xauth* (/[.]xauth.*)
+    - .xsession-errors (/[.]xsession-errors$)
+- Changed exclude directory pattern to not assume a full path. i.e. ^ is to be
+  added to denote a full path
+- Do exact matches on the default excluded directories (leading ^, trailing $)
+  to shrink the size of the excluded list, making scanning faster
+- Decreased initrd size by removing the extraoneous 250K (not needed anymore)
+- Cleaned usage information displayed in mklivecd --help
+- If --cloop is not specified on command-line, don't create link in mklivecd
+- Try /tmp first before $TMPDIR for a decent tmp directory (/tmp is always
+  excluded from the final LiveCD, $TMPDIR might not be)
+- linuxrc now creates /var/log/wtmp and /var/run/utmp
+- Split project version into major, minor & patch in Makefile
+- Fixed uname -r bug in Makefile, allowing for correct execution via shell
+
+
+* Mon, Sep 15, 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.2
+- Revamped linuxrc and mklivecd to cater for pivot_root, allowing better access
+  to actual mounted filesystems
+
+
+* Mon, Sep 01, 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.1
+- Initial release under the mklivecd name (preparing for a wider release to the
+  MDK community) after being adapted from the MiniCD build, init and hwdetect
+  scripts
+- Added spec file for RPM build

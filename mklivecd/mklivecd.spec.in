@@ -1,0 +1,60 @@
+%define name		mklivecd
+%define version		@MKLIVECDVER
+%define release		1mdk
+
+%define summary		Builds a LiveCD from an existing Mandrake Linux installation
+
+Summary:		%{summary}
+Name:			%{name}
+Version:		%{version}
+Release:		%{release}
+License:		GPL
+Group:			System/Configuration/Boot and Init
+URL:			http://www.linuxminicd.org/mklivecd/
+Source0:		%{name}-%{version}.tar.bz2
+Requires:		busybox, cloop-utils, mkisofs
+BuildRoot:		%{_tmppath}/%{name}-root
+Buildarch:		noarch
+
+%description
+%{summary}
+
+%prep
+%setup -q
+
+%build
+%make
+
+%install
+rm -rf %buildroot
+%makeinstall DESTDIR=%buildroot
+
+%clean
+rm -rf %buildroot
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS COPYING CHANGELOG FAQ README TODO
+%{_sbindir}/mklivecd
+%{_sbindir}/hwdetect
+%{_datadir}/mklivecd/isolinux.cfg
+%{_datadir}/mklivecd/linuxrc
+%{_datadir}/mklivecd/init.d/hwdetect
+
+%changelog
+* Thu Sep 25 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.5-1mdk
+- version 0.5.5
+
+* Wed Sep 24 2003 Tibor Pittich <Tibor.Pittich@phuture.sk> 0.5.4-2mdk
+- spec fixes
+
+* Tue Sep 23 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.4-1mdk
+- version 0.5.4
+- removed patch0, fixed upstream
+
+* Mon Sep 22 2003 Tibor Pittich <Tibor.Pittich@phuture.sk> 0.5.3-1mdk
+- initial import into contrib, based on spec file from Jaco Greeff
+- fixed requires (mkisofs)
+- temporary locale fix to correct calculate initrd size
+- correct mdk group name
+- some macroszification
