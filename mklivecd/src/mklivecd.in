@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.16 2003/10/02 14:21:18 jaco Exp $
+# $Id: mklivecd.in,v 1.17 2003/10/03 05:09:24 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -195,10 +195,10 @@ create_initrdimg() {
 	do_cmd "(cd $INITRDDIR; tar cf - .) | (cd $INITRDMNT; tar xf -)"
 	do_cmd "umount $INITRDMNT"
 	do_cmd  "(cd $ISOLINUXDIR ; gzip -9 initrd)"
-	if [ -x ${rootdir}/usr/share/bootsplash/scripts/make-boot-splash ]
-	then
-		do_cmd "(mv -f $ISOLINUXDIR/initrd.gz ${rootdir}/tmp/; chroot ${rootdir} /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz 1024; mv -f ${rootdir}/tmp/initrd.gz $ISOLINUXDIR)"
-	fi
+	[ -x ${rootdir}usr/share/bootsplash/scripts/make-boot-splash ] && \
+		do_cmd "(mv -f $ISOLINUXDIR/initrd.gz ${rootdir}tmp/; \
+		         chroot ${rootdir} /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz 1024; \
+			 mv -f ${rootdir}tmp/initrd.gz $ISOLINUXDIR)"
 }
 
 ### create the compressed iso image
@@ -259,19 +259,24 @@ $e"
 
 ### install isolinux
 create_isolinux() {
-	if [ -n "$isographic" ]; then
-		do_cp /usr/lib/syslinux/isolinux-graphic.bin $ISOLINUXDIR/isolinux.bin
+	isolinuxbin="/usr/lib/syslinux/isolinux.bin"
+	[ -n "$isographic" ] && isolinuxbin="/usr/lib/syslinux/isolinux-graphic.bin"
+	if [ ! -f $isolinuxbin ]; then
+		echo "ERROR: '$isolinuxbin' does not exist on your machine. You need to install the syslinux package." >&2
+		exit 1
 	else
-		do_cp /usr/lib/syslinux/isolinux.bin $ISOLINUXDIR/isolinux.bin
+		do_cp $isolinuxbin $ISOLINUXDIR/isolinux.bin
 	fi
 	do_cmd "cat /usr/share/mklivecd/isolinux.cfg | sed -e 's/\@BOOT_KEYB\@/$keyboard/g' >$ISOLINUXDIR/isolinux.cfg"
-	do_cp ${rootdir}/boot/vmlinuz-$kernel $ISOLINUXDIR/vmlinuz
-	if [ -n "$isobootmsg" ]; then
-		do_cp $isobootmsg $ISOLINUXDIR/livecd.msg
+	if [ ! -f ${rootdir}boot/vmlinuz-$kernel ]; then
+		echo "ERROR: The kernel '${rootdir}boot/vmlinuz-$kernel' does not exist on your machine." >&2
+		exit 1
 	else
-		echo -n "" >$ISOLINUXDIR/livecd.msg
+		do_cp ${rootdir}boot/vmlinuz-$kernel $ISOLINUXDIR/vmlinuz
 	fi
+	[ -n "$isobootmsg" ] && do_cp $isobootmsg $ISOLINUXDIR/livecd.msg
 	if [ -n "$isoimage" ]; then
+		[ ! -f $ISOLINUXDIR/livecd.msg ] && echo -n "" >$ISOLINUXDIR/livecd.msg
 		do_cmd "echo -e '\\030livecd.lss' >>$ISOLINUXDIR/livecd.msg"
 		do_cp $isoimage $ISOLINUXDIR/livecd.lss
 	fi
@@ -585,23 +590,23 @@ do_cmd "chmod 755 $INITRDDIR/usr/sbin/hwdetect"
 do_cmd "mkdir -p $INITRDDIR$MODULESDIR/kernel"
 modules="$loopmod $modules"
 for m in $modules; do
-	modpath=`(cd ${rootdir}/lib/modules/$kernel; find -type f -name $m.o.gz | grep -v build)`
+	modpath=`(cd ${rootdir}lib/modules/$kernel; find -type f -name $m.o.gz | grep -v build)`
 	if [ -n "$modpath" ]; then
-		do_cmd "gzip -dc ${rootdir}/lib/modules/$kernel/$modpath >$INITRDDIR$MODULESDIR/kernel/$m.o"
+		do_cmd "gzip -dc ${rootdir}lib/modules/$kernel/$modpath >$INITRDDIR$MODULESDIR/kernel/$m.o"
 	else
-		modpath=`(cd ${rootdir}/lib/modules/$kernel; find -type f -name $m.o | grep -v build)`
+		modpath=`(cd ${rootdir}lib/modules/$kernel; find -type f -name $m.o | grep -v build)`
 		if [ -z "$modpath" ]; then
 			echo "ERROR: unable to find kernel module $m.o" >&2
 			exit 1
 		fi
-		do_cp ${rootdir}/lib/modules/$kernel/$modpath $INITRDDIR/$MODULESDIR/kernel/$m.o
+		do_cp ${rootdir}lib/modules/$kernel/$modpath $INITRDDIR/$MODULESDIR/kernel/$m.o
 	fi
 done
 do_cmd ":> $INITRDDIR$modulefile"
 if [ `uname -r` == "$kernel" ]; then
 	do_cmd "depmod -a --basedir $INITRDDIR --config $INITRDDIR$modulefile"
 else
-	do_cp ${rootdir}/lib/modules/$kernel/modules.* $INITRDDIR/$MODULESDIR/
+	do_cp ${rootdir}lib/modules/$kernel/modules.* $INITRDDIR/$MODULESDIR/
 fi
 
 ### devices
