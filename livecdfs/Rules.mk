@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.17 2004/01/28 06:23:50 jaco Exp $
+# $Id: Rules.mk,v 1.18 2004/01/28 06:37:20 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -25,9 +25,9 @@ LIVECDFSDIST=$(PKGNAME)-$(ARCHIVEVER)
 
 # our flags
 EXTRA_CXXFLAGS=-DDEBUG
-CXXFLAGS+=-Wall -fno-rtti -fno-exceptions $(EXTRA_CXXFLAGS) -I$(LUFSDIR)/include
+CXXFLAGS+=-O2 -g -Wall -fno-rtti -fno-exceptions -fPIC $(EXTRA_CXXFLAGS) -I$(LUFSDIR)/include
 EXTRA_CFLAGS=
-CFLAGS+=-Wall $(EXTRA_CFLAGS) -I$(LUFSDIR)/include
+CFLAGS+=-O2 -g -Wall -fPIC $(EXTRA_CFLAGS) -I$(LUFSDIR)/include
 
 # internal directories
 DISTDIR=dist
