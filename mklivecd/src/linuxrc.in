@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.28 2003/11/03 07:15:35 jaco Exp $
+# $Id: linuxrc.in,v 1.29 2003/11/03 07:40:56 jaco Exp $
 #
 
 ### global variables
@@ -53,7 +53,7 @@ MNTRAMDISK=/ramfs
 
 ### progress indicator
 progress_num=0
-progress_full=10
+progress_full=26 # our 10, +16 for hwdetect
 progress_on=
 
 ### screen colors
@@ -427,7 +427,7 @@ createramdisk() {
 						lib/rpm*|lib/urpmi*) \
 							[ ! -e /var/\$d ] && ln -sf /initrd$MNTLIVECD/var/\$d /var/\$d || true; \
 							;; \
-						cache*|db*|lib*|local*|lock*|log*|mail*|nis*|opt*|preserve*|run*|spool*|yp*) \
+						cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|yp*) \
 							mkdir -p /var/\$d || true ; \
 							chown --reference=/initrd$MNTLIVECD/var/\$d /var/\$d;\
 							chmod --reference=/initrd$MNTLIVECD/var/\$d /var/\$d;\
