@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.27 2003/10/02 12:54:23 jaco Exp $
+# $Id: CHANGELOG,v 1.28 2003/10/02 14:21:18 jaco Exp $
 
 * Thu, Oct 02, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -17,8 +17,9 @@
         '--looptype' options)
       - Added an entry for the "keyb=<language>' isolinux boot
         option
-      - Added an Q/A for the creation of LSS images as used by
+      - Added an QA for the creation of LSS images as used by
         the 'mklivecd --iso-bgimage' command
+      - Added an QA for the Mandrake isolinux graphics extension
     [Makefile]:
       - Combined piped sed commands into one
       - Removed non-existing busybox and cloop version
@@ -71,6 +72,8 @@
       - Added '--iso-bgimage=<image.lss>' option to provide the
         lss image to be displayed as a background on the isolinux
         prompt
+      - Added '--iso-graphic' option to cater for the Mandrake
+        isolinux graphic extension
     [mklivecd.spec]:
       - Synced with contrib spec
       - Ability to auto-generate version info for changelog

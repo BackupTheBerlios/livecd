@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.15 2003/10/02 12:15:13 jaco Exp $
+# $Id: mklivecd.in,v 1.16 2003/10/02 14:21:18 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -90,6 +90,7 @@ usage () {
 	echo "" >&2
 	echo "Boot options:" >&2
 	echo "    --iso-bootmsg=<boot.msg>   Use 'boot.msg' as the isolinux message display" >&2
+	echo "    --iso-graphic              Use the Madrake boot image extension" >&2
 	echo "    --iso-bgimage=<image.lss>  Use 'image.lss' as the isolinux display image" >&2
 	echo "    --keyboard=<language>      Specify a different keyboard layout (default: @DEF_KEYBOARD@)" >&2
 	echo "" >&2
@@ -258,7 +259,11 @@ $e"
 
 ### install isolinux
 create_isolinux() {
-	do_cp /usr/lib/syslinux/isolinux.bin $ISOLINUXDIR/isolinux.bin
+	if [ -n "$isographic" ]; then
+		do_cp /usr/lib/syslinux/isolinux-graphic.bin $ISOLINUXDIR/isolinux.bin
+	else
+		do_cp /usr/lib/syslinux/isolinux.bin $ISOLINUXDIR/isolinux.bin
+	fi
 	do_cmd "cat /usr/share/mklivecd/isolinux.cfg | sed -e 's/\@BOOT_KEYB\@/$keyboard/g' >$ISOLINUXDIR/isolinux.cfg"
 	do_cp ${rootdir}/boot/vmlinuz-$kernel $ISOLINUXDIR/vmlinuz
 	if [ -n "$isobootmsg" ]; then
@@ -413,6 +418,10 @@ while [ $# -gt 0 ]; do
 			fi
 			;;
 
+		--iso-graphic)
+			isographic=1
+			;;
+
 		--iso-bgimage*)
 			if echo $1 | grep '=' >/dev/null ; then
 				isoimage=`echo $1 | sed 's/^--iso-bgimage=//'`
@@ -470,6 +479,18 @@ while [ $# -gt 0 ]; do
 	esac
 	shift
 done
+
+### do we have the correct iso options?
+if [ -n "$isographic" ]; then
+	if [ -n "$isoimage" ]; then
+		echo "ERROR: You cannot specify the '--iso-graphic' and '--iso-bgimage' options together." >&2
+		exit 1
+	fi
+	if [ -z "$isobootmsg" ]; then
+		echo "ERROR: You should specify the '--iso-bootmsg' option in conjunction with the '--iso-graphic' option/" >&2
+		exit 1
+	fi
+fi
 
 ### do we have target?
 [ -z "$target" ] && usage
