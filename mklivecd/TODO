@@ -1,4 +1,4 @@
-# $Id: TODO,v 1.6 2003/10/01 13:24:31 jaco Exp $
+# $Id: TODO,v 1.7 2003/10/02 09:21:50 jaco Exp $
 
 - Add command-line options (at isolinux bootup) to select the
   screen size and bitdepth for the X configuration
@@ -19,3 +19,4 @@
   option)
 - Localisation support
 - Support for splash images on the isolinux screen
+- Add a mklivecd option to override the default keyboard setting
