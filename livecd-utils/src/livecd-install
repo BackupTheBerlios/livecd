@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.73 2004/09/12 14:57:04 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.74 2004/09/12 19:05:27 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -238,7 +238,7 @@ sub getStr {
 }
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Sun Sep 12 09:59:01 2004
+# Created: Sun Sep 12 13:49:22 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -3833,7 +3833,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.73 2004/09/12 14:57:04 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.74 2004/09/12 19:05:27 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -5005,7 +5005,7 @@ sub cbLanguage_act # SLOT: ( const QString & )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.73 2004/09/12 14:57:04 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.74 2004/09/12 19:05:27 tom_kelly33 Exp $
 #
 
 package main;
