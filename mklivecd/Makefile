@@ -1,4 +1,4 @@
-### $Id: Makefile,v 1.7 2003/10/01 07:52:37 jaco Exp $
+### $Id: Makefile,v 1.8 2003/10/01 08:04:32 jaco Exp $
 
 ### our version identifiers
 MAJORVER=0
@@ -44,6 +44,7 @@ MD5SUM=/usr/bin/md5sum
 MKDIR=/bin/mkdir
 LN=/bin/ln
 RM=/bin/rm
+RPMBUILD=/usr/bin/rpmbuild
 SED=/bin/sed
 TAR=/bin/tar
 TOUCH=/bin/touch
@@ -100,3 +101,6 @@ dist: clean spec
 		$(BZIP2) >$(MKLIVECDDIST).tar.bz2
 	$(MD5SUM) $(MKLIVECDDIST).tar.bz2 >$(MKLIVECDDIST).tar.bz2.md5
 	$(RM) -rf $(MKLIVECDDIST)
+
+rpm: dist
+	$(RPMBUILD) -ta $(MKLIVECDDIST).tar.bz2
