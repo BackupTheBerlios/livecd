@@ -1,20 +1,30 @@
-- Allow for actual probed monitors to be selected instead of going for the
-  "good_default_monitor" in hwdetect. This is to be done in conjunction with
-  the next TODO
-- Add command-line options (at isolinux bootup) to select the screen size and
-  bitdepth for the X configuration (once previous TODO is working)
+# $Id: TODO,v 1.2 2003/09/26 11:51:36 jaco Exp $
+
+- Allow for actual probed monitors to be selected instead of
+  going for the "good_default_monitor" in hwdetect. This is to be
+  done in conjunction with the next TODO
+- Add command-line options (at isolinux bootup) to select the
+  screen size and bitdepth for the X configuration (once previous
+  TODO is working)
 - Persistent home
-- Install to HDD. This is possible now that the LiveCD is a direct copy of a
-  MDK image insted of a hacked-up version to fit on a MiniCD
-- Add profiles to allow for build of various types of CD's, eg. minicd
-- Cleanup of mklivecd script (some functions exists, creation of initrd is a
-  good canidate)
+- Install to HDD. This is possible now that the LiveCD is a direct
+  copy of a MDK image insted of a hacked-up version to fit on a
+  MiniCD
+- Add profiles to allow for build of various types of CD's, eg.
+  minicd
+- Cleanup of mklivecd script (some functions exists, creation of
+  initrd is a good canidate)
 - There is no boot.msg or help.msg to display in isolinux boot
-- We don't have a splash page, possbily modify the default 9.2 background
-  or the normal lilo screen (Rather detect and use the configs in
-  /etc/bootsplash)
-- memtest option in isolinux.cfg does not exist (we need to copy the correct
-  image to provide this option)
-- We should detect swap partitions and add them to fstab to allow them to be
-  swapon'ed in the bootup sequence (This implies HDD detection code which should
-  be re-used in the persistent home option)
+- We don't have a splash page, possbily modify the default 9.2
+  background or the normal lilo screen (Rather detect and use the
+  configs in /etc/bootsplash, either way we need bootsplash
+  support)
+- memtest option in isolinux.cfg does not exist (we need to copy
+  the correct image to provide this option)
+- We should detect swap partitions and add them to fstab to allow
+  them to be swapon'ed in the bootup sequence (This implies HDD
+  detection code which should be re-used in the persistent home
+  option)
+- Localisation support
+- Support for different keyboards via a option to the isolinux
+  bootup prompt
