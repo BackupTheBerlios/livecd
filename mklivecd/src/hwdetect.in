@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.118 2004/01/26 14:06:11 jaco Exp $
+# $Id: hwdetect.in,v 1.119 2004/01/26 19:30:12 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -999,6 +999,7 @@ sub hwdetect_getpersistent {
 	my $loopmnt = "/tmp/hwdetect.img";
 	my $loopimg = "$mymnt/livecd.img";
 	system("mkdir -p $mymnt $loopmnt 2>/dev/null");
+	my $homeopt = $cmdline{'home'};
 	foreach my $dev (keys %devs) {
 		if ((-e $mymnt) && $devs{$dev}->{persist}) {
 			if (mount(undef, "", $devs{$dev}->{type}, $devs{$dev}->{devfs}, $mymnt)) {
@@ -1026,24 +1027,35 @@ sub hwdetect_getpersistent {
 						$devs{$dev}->{persisted} = 1;
 					}
 				}
-				elsif (!$fdisk && $cmdline{'home'} =~ /usb/ && $devs{$dev}->{usb}) {
-					my $totsize = qx(df -m $mymnt | awk '/tmp/{ print \$3 }');
-					chomp($totsize);
-					my $size = int($totsize/2); # 50% of available size
-					$size = 32 if (($size < 32) && ($totsize > 32)); # try to get 32MB
-					system("(dd if=/dev/zero of=$loopimg bs=1M count=$size) 2>&1 >/dev/null");
-					system("(mke2fs -F -m0 $loopimg) 2>&1 >/dev/null");
-					system("(mount -o loop -t ext2 $loopimg $loopmnt) 2>&1 >/dev/null");
-					system("(cp -au /home/* $loopmnt) 2>&1 >/dev/null");
-					system("(cd $loopmnt ; ln -sf ".$devs{$dev}->{mount}." USB) 2>&1 >/dev/null");
-					umount(undef, $loopmnt);
-
-					system("echo 'loop=/home' >$persist");
-					system("echo 'link=USB' >>$persist");
-
-					$devs{$dev}->{loop} = "/home";
-					$devs{$dev}->{opt} = $fsopt_fullrw;
-					$devs{$dev}->{persisted} = 1;
+				elsif (!$fdisk &&  defined($homeopt) && $devs{$dev}->{usb}) {
+					if ($homeopt =~ /usb/) {
+						if ($devs{$dev}->{type} =~ /vfat/) {
+							my $totsize = qx(df -m $mymnt | awk '/tmp/{ print \$3 }');
+							chomp($totsize);
+							my $size = int($totsize/2); # 50% of available size
+							$size = 32 if (($size < 32) && ($totsize > 32)); # try to get 32MB
+							system("(dd if=/dev/zero of=$loopimg bs=1M count=$size) 2>&1 >/dev/null");
+							system("(mke2fs -F -m0 $loopimg) 2>&1 >/dev/null");
+							system("(mount -o loop -t ext2 $loopimg $loopmnt) 2>&1 >/dev/null");
+							system("(cp -au /home/* $loopmnt) 2>&1 >/dev/null");
+							system("(cd $loopmnt ; ln -sf ".$devs{$dev}->{mount}." USB) 2>&1 >/dev/null");
+							umount(undef, $loopmnt);
+		
+							system("echo 'loop=/home' >$persist");
+							system("echo 'link=USB' >>$persist");
+		
+							$devs{$dev}->{loop} = "/home";
+							$devs{$dev}->{opt} = $fsopt_fullrw;
+							$devs{$dev}->{persisted} = 1;
+						}
+						elsif ($devs{$dev}->{type} =~ /ext2/) {
+							system("echo 'mount=/home' >$persist");
+		
+							$devs{$dev}->{mount} = "/home";
+							$devs{$dev}->{opt} = $fsopt_fullrw;
+							$devs{$dev}->{persisted} = 1;
+						}
+					}
 				}
 				umount(undef, $mymnt);
 			}
