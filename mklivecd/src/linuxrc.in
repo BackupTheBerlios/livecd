@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.16 2003/10/07 06:28:07 jaco Exp $
+# $Id: linuxrc.in,v 1.17 2003/10/07 06:34:13 jaco Exp $
 #
 
 ### global variables
@@ -172,10 +172,8 @@ execshell() {
 ### find the cloop device
 findcloop() {
 	# all devices changed to take advantage of devfs
-	# cdrom devices (IDE only)
+	# cdrom devices
 	DEVICES="/dev/cdroms/cdrom?"
-	# hard disk and usb should fit in here
-	#DEVICES="$DEVICES /dev/ide/hd/*p?"
 
 	# load basic modules
 	echo -n "Loading basic cdrom modules: "
