@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.48 2003/10/13 20:37:57 bgmilne Exp $
+# $Id: mklivecd.in,v 1.49 2003/10/15 07:31:40 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -103,7 +103,8 @@ Image generation:
    --experimental              Enable experimental LiveCD feautures. Currently
                                this option enables kernel translucency support
                                (default: off)
-   --isoextrafiles=<path>      Add the files in 'path' at the root the ISO image
+   --isoextrafiles=<path>      Add the files in 'path' to the root of the LiveCD
+                               ISO image
 
 Compression options:
    --blocksize=<size>          Compression blocksize in K (default: 64)
