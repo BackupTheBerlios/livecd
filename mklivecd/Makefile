@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.27 2003/12/07 17:25:08 jaco Exp $
+# $Id: Makefile,v 1.28 2003/12/13 18:13:05 jaco Exp $
 
 include Rules.mk
 include Modules.mk
@@ -21,6 +21,7 @@ mklivecd:
 		$(SED) -e 's,@DEF_MODULES_OPT@,$(DEF_MODULES_OPT),g' | \
 		$(SED) -e 's,@DEF_MODULES_DEP@,$(DEF_MODULES_DEP),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES@,$(DEF_SCSI_MODULES),g' | \
+		$(SED) -e 's,@DEF_SCSI_MODULES_OPT@,$(DEF_SCSI_MODULES_OPT),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_DEP@,$(DEF_SCSI_MODULES_DEP),g' \
 			>$(DISTDIR)/linuxrc
 	$(CP) $(SRCDIR)/halt.local.in $(DISTDIR)/halt.local
@@ -35,6 +36,7 @@ mklivecd:
 		$(SED) -e 's,@DEF_MODULES_OPT_PATH@,$(DEF_MODULES_OPT_PATH),g' | \
 		$(SED) -e 's,@DEF_MODULES_DEP_PATH@,$(DEF_MODULES_DEP_PATH),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_PATH@,$(DEF_SCSI_MODULES_PATH),g' | \
+		$(SED) -e 's,@DEF_SCSI_MODULES_OPT_PATH@,$(DEF_SCSI_MODULES_OPT_PATH),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_PATH@,$(DEF_SCSI_MODULES_DEP_PATH),g' \
 			>$(DISTDIR)/$(PKGNAME)
 

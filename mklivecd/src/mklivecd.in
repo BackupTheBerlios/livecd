@@ -20,7 +20,7 @@
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.66 2003/12/12 15:35:46 jaco Exp $
+# $Id: mklivecd.in,v 1.67 2003/12/13 18:13:05 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -41,8 +41,8 @@ tmpdir=""
 rc=0
 kernel26=""
 kernel=`uname -r`
-modules_opt="@DEF_MODULES_OPT_PATH@"
-modules="@DEF_MODULES_PATH@ @DEF_MODULES_DEP_PATH@ @DEF_SCSI_MODULES_PATH@ @DEF_SCSI_MODULES_DEP_PATH@"
+modules_opt="@DEF_MODULES_OPT_PATH@ @DEF_SCSI_MODULES_OPT_PATH@"
+modules="@DEF_MODULES_PATH@ @DEF_MODULES_DEP_PATH@ @DEF_SCSI_MODULES_PATH@ @DEF_SCSI_MODULES_OPT_PATH@ @DEF_SCSI_MODULES_DEP_PATH@"
 
 excludedirs="^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/lock/subsys$ ^/var/run$ ^/var/tmp$"
 excludefiles="^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*[.]rpmnew$ .*[.]rpmsave$ /[.]bash_history$ /[.]fonts[.]cache-[0-9]$ /[.]xauth.* /[.]xsession-errors$"
@@ -432,10 +432,6 @@ $e"
 			do_cmd "$CMD"
 		fi
 		[ -n "$cloopimg" ] && do_cmd "ln $LIVECDCLOOPDIR/$LIVECDISOCLP $cloopimg"
-
-		# create MD5 of the cloop image
-		MD5FILE=$LIVECDISOCLP.md5
-		do_cmd "cd $LIVECDCLOOPDIR && md5sum $LIVECDISOCLP >$MD5FILE"
 	fi
 }
 
@@ -508,6 +504,11 @@ create_liveiso() {
 	[ -z "$isoappid" ] && isoappid="$VERSION $VERSION_DATE"
 	[ -z "$isovolid" ] && isovolid="$DISTRO LiveCD"
 
+	# create MD5 of the cloop image
+	MD5FILE="livecd.md5"
+	MD5FILES="isolinux/initrd.gz isolinux/isolinux.cfg isolinux/vmlinuz $LIVECDISOCLP"
+	do_cmd "cd $LIVECDCLOOPDIR && md5sum $MD5FILES >$MD5FILE"
+
 	# create a sort-file
 	:> $SORTLIST
 	echo "$ISOLINUXDIR/isolinux.bin 500" >>$SORTLIST
@@ -515,6 +516,7 @@ create_liveiso() {
 	echo "$ISOLINUXDIR/vmlinuz 498" >>$SORTLIST
 	echo "$ISOLINUXDIR/initrd.gz 497" >>$SORTLIST
 	echo "$ISOLINUXDIR/* 450" >>$SORTLIST
+	echo "$LIVECDCLOOPDIR/$MD5FILE 420"  >>$SORTLIST
 	echo "$LIVECDCLOOPDIR/$LIVECDISOCLP 400"  >>$SORTLIST
 
 	# create actual iso

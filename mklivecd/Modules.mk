@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.2 2003/11/16 06:42:20 jaco Exp $
+# $Id: Modules.mk,v 1.3 2003/12/13 18:13:05 jaco Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -21,7 +21,7 @@ DEF_MODULES_PATH=\
 
 # these are the dependancies for the above
 DEF_MODULES_OPT_PATH=\
-	zlib_inflate.o
+	lib/zlib_inflate/zlib_inflate.o
 
 DEF_MODULES_DEP_PATH= \
 	fs/isofs/isofs.o \
@@ -60,8 +60,12 @@ DEF_SCSI_MODULES_PATH= \
 	drivers/scsi/ultrastor.o \
 	drivers/scsi/wd7000.o \
 	drivers/scsi/a100u2w.o \
-	drivers/scsi/3w-xxxx.o \
-	drivers/scsi/sym53c8xx_2/sym53c8xx.o
+	drivers/scsi/3w-xxxx.o
+
+# depending on kernel version, these have different names
+DEF_SCSI_MODULES_OPT_PATH= \
+	drivers/scsi/sym53c8xx_2/sym53c8xx.o \
+	drivers/scsi/sym53c8xx_2/sym53c8xx_2.o
 
 # these are dependancies for the above modules
 DEF_SCSI_MODULES_DEP_PATH=\
@@ -74,4 +78,5 @@ DEF_MODULES=$(shell for m in $(DEF_MODULES_PATH); do basename $$m; done)
 DEF_MODULES_DEP=$(shell for m in $(DEF_MODULES_DEP_PATH); do basename $$m; done)
 DEF_MODULES_OPT=$(shell for m in $(DEF_MODULES_OPT_PATH); do basename $$m; done)
 DEF_SCSI_MODULES=$(shell for m in $(DEF_SCSI_MODULES_PATH); do basename $$m; done)
+DEF_SCSI_MODULES_OPT=$(shell for m in $(DEF_SCSI_MODULES_OPT_PATH); do basename $$m; done)
 DEF_SCSI_MODULES_DEP=$(shell for m in $(DEF_SCSI_MODULES_DEP_PATH); do basename $$m; done)

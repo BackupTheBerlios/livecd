@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.88 2003/12/12 15:48:41 jaco Exp $
+# $Id: CHANGELOG,v 1.89 2003/12/13 18:13:05 jaco Exp $
 
-* Sun, Dec 07, 2003, 0.5.7-cvs
+* Sat, Dec 13, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
@@ -23,6 +23,10 @@
     [Modules.mk]:
       - Remove AIC7xxx_old module (hangs Adaptec cards with
         AIC7xxx loaded already)
+      - Cooker kernels >= 2.4.23-0.rc5.2mdk (9.2+) renamed SCSI
+        module: sym53c8xx.o -> sym53c8xx_2.o (Handle both)
+      - Fix path of zlib_inflate.o module to work with kernels
+        actually providing it
     [Rules.mk]:
       - Created list for default normal and SCSI modules
       - Created listing for optional modules
@@ -69,6 +73,7 @@
         (SCSI doesn't print "FAILED" on no SCSI devices)
       - Use losetup to mount cloop images
       - 'noscsi' boot option disables SCSI probing
+      - 'md5' boot option checks cloop MD5 sum
     [mklivecd]:
       - Be verbose in depmod command
       - Copy SCSI and optinal modules in addition to normal
@@ -100,6 +105,7 @@
       - Updated description to be more descriptive
     [rc.sysinit]:
       - Added (Split commands from linuxrc)
+      - Adapted for use with busybox pre4 (Cooker version)
 
 
 * Mon, Oct 06, 2003, 0.5.6

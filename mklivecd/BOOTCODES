@@ -1,4 +1,4 @@
-# $Id: BOOTCODES,v 1.1 2003/12/07 17:11:11 jaco Exp $
+# $Id: BOOTCODES,v 1.2 2003/12/13 18:13:05 jaco Exp $
 
 LiveCD bootcodes: These codes allow you to override the LiveCD
 defaults to modify the boot process for your specific needs. The
@@ -13,7 +13,7 @@ The latest list will always be available from the LiveCD website
 
 http://livecd.berlios.de
 
-The following codes are available as of 07 December 2003:
+The following codes are available as of 13 December 2003:
 
 initrd                  Only boot the initrd, not the actual CD.
 			This option is (mostly) only useful to
@@ -133,6 +133,10 @@ livecd keyb=<mapping>   Use a different keyboard layout mapping
 			uz              Uzbek (cyrillic)
 			vn              Vietnamese "numeric row" QWERTY
 			yu              Yugoslavian (latin)
+
+livecd md5sum           Checks the MD5 sum of the compressed
+			image and other files, verifying the
+			integrity of the downloaded iso.
 
 livecd noeject          Disable the ejection of the CD on
 			shutdown (power-down) or reboot.

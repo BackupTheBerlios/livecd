@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/initrd/bin/ash
 #
 # LiveCD init (rc.sysinit) script
 # Copyright (C) 2003, Jaco Greeff <jaco@linuxminicd.org>
@@ -19,14 +19,13 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.2 2003/12/07 13:18:20 jaco Exp $
+# $Id: rc.sysinit.in,v 1.3 2003/12/13 18:13:05 jaco Exp $
 #
 
-export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
+export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 
-MNTCDROM=/cdrom
-MNTLIVECD=/loopfs
-MNTRAMDISK=/ramfs
+MNTCDROM=/initrd/cdrom
+MNTLIVECD=/initrd/loopfs
 KERNELVER=`uname -r`
 
 ### screen colors
@@ -104,6 +103,7 @@ docmd() {
 		CMD="$CMD && ($1)"
 		shift
 	done
+	#(eval "$CMD") && printok || printfail
 	(eval "$CMD") 2>&1 >/dev/null && printok || printfail
 }
 
@@ -130,8 +130,8 @@ set_progress() {
 ### function to get the value of an option from the kernel command line
 getbootoption() {
 	option="$1"
-	val=`sed -r -e "s/(.*)${option}=([[:alnum:]-]*)(.*)/\2/i" /proc/cmdline`
-	if [ -n "$val" -a "$val" != "`cat /proc/cmdline`" ]; then
+	val=`$MNTLIVECD/bin/sed -r -e "s/(.*)${option}=([[:alnum:]-]*)(.*)/\2/i" /proc/cmdline`
+	if [ -n "$val" -a "$val" != "`$MNTLIVECD/bin/cat /proc/cmdline`" ]; then
 		echo $val
 		return 0
 	else
@@ -154,13 +154,6 @@ execshell() {
 	elif [ -e /initrd/bin/ash ]; then
 		export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
 		SHELL="/initrd/bin/ash"
-	else
-		export PATH=/bin:/sbin:/usr/bin:/usr/sbin
-		if [ -e /bin/ash ]; then
-			SHELL="/bin/ash"
-		else
-			SHELL="/bin/busybox ash"
-		fi
 	fi
 	exec $SHELL
 }
@@ -175,7 +168,7 @@ setuproot() {
 	if [ -f $transmod ]; then
 		kmin=`echo $KERNELVER | awk -F'.' '{ print $2 }'`
 		[ $kmin -gt 4 ] && kmin=5
-		/loopfs/sbin/insmod-2$kmin $transmod 2>&1 >/dev/null
+		$MNTLIVECD/sbin/insmod-2$kmin $transmod 2>&1 >/dev/null
 	fi
 	set_progress
 
@@ -184,29 +177,29 @@ setuproot() {
 		docmd   "Building root filesystem" \
 			"cd /" \
 			"touch fastboot" \
-			"cd /initrd$MNTLIVECD ; \
+			"cd $MNTLIVECD ; \
 			for d in *; do \
-				if [ -d /initrd$MNTLIVECD/\$d ]; then \
+				if [ -d $MNTLIVECD/\$d ]; then \
 					case \$d in \
 						dev|proc|mnt|tmp) \
 							;;
 						*) \
-							ln -sf /initrd$MNTLIVECD/\$d /\$d || true; \
+							ln -sf $MNTLIVECD/\$d /\$d || true; \
 							;; \
 					esac \
 				fi \
 			done" \
-			"mkdir -p /mnt/cdrom && mount -n -o bind /initrd$MNTCDROM /mnt/cdrom" \
+			"mkdir -p /mnt/cdrom && mount -n -o bind $MNTCDROM /mnt/cdrom" \
 			"mkdir -p /tmp && chmod 777 /tmp"
 		set_pogress
 		docmd   "Creating filesystem overlay" \
 			"for t in etc home lib root usr var; do mkdir -p $ltmp/\$t ; done" \
-			"echo '/initrd$MNTLIVECD/etc -> $ltmp/etc' >/proc/sys/translucency/0" \
-			"echo '/initrd$MNTLIVECD/home -> $ltmp/home' >/proc/sys/translucency/1" \
-			"echo '/initrd$MNTLIVECD/lib -> $ltmp/lib' >/proc/sys/translucency/2" \
-			"echo '/initrd$MNTLIVECD/root -> $ltmp/root' >/proc/sys/translucency/3" \
-			"echo '/initrd$MNTLIVECD/usr -> $ltmp/usr' >/proc/sys/translucency/4" \
-			"echo '/initrd$MNTLIVECD/var -> $ltmp/var' >/proc/sys/translucency/5"
+			"echo '$MNTLIVECD/etc -> $ltmp/etc' >/proc/sys/translucency/0" \
+			"echo '$MNTLIVECD/home -> $ltmp/home' >/proc/sys/translucency/1" \
+			"echo '$MNTLIVECD/lib -> $ltmp/lib' >/proc/sys/translucency/2" \
+			"echo '$MNTLIVECD/root -> $ltmp/root' >/proc/sys/translucency/3" \
+			"echo '$MNTLIVECD/usr -> $ltmp/usr' >/proc/sys/translucency/4" \
+			"echo '$MNTLIVECD/var -> $ltmp/var' >/proc/sys/translucency/5"
 		set_progress
 		docmd   "Creating /var structure" \
 			"mkdir -p /var/lock/subsys" \
@@ -229,7 +222,7 @@ setuproot() {
 			"cd /" \
 			"touch fastboot" \
 			"rm -rf /lib && mkdir -p /lib" \
-			"cd /initrd$MNTLIVECD/lib ; \
+			"cd $MNTLIVECD/lib ; \
 			for f in *; do \
 				case \$f in \
 					dev-state) \
@@ -241,54 +234,54 @@ setuproot() {
 							if \`echo \$k | grep -q \$f/$KERNELVER\`; then \
 								mkdir -p /lib/\$k ; \
 								for s in \$k/*; do \
-									if [ -f /initrd$MNTLIVECD/lib/\$s ]; then \
-										cp /initrd$MNTLIVECD/lib/\$s /lib/\$s ; \
+									if [ -f $MNTLIVECD/lib/\$s ]; then \
+										cp $MNTLIVECD/lib/\$s /lib/\$s ; \
 										chmod 644 /lib/\$s ; \
 									else \
 										mkdir -p /lib/\$s ; \
 										for d in \`find \$s -type d\`; do \
 											mkdir -p /lib/\$d || true; \
 											for m in \$d/*; do \
-												[ -f /initrd$MNTLIVECD/lib/\$m ] && ln -sf /initrd$MNTLIVECD/lib/\$m /lib/\$m || true; \
+												[ -f $MNTLIVECD/lib/\$m ] && ln -sf $MNTLIVECD/lib/\$m /lib/\$m || true; \
 											done \
 										done \
 									fi \
 								done \
 							else \
-								ln -sf /initrd$MNTLIVECD/lib/\$k /lib/\$k || true; \
+								ln -sf $MNTLIVECD/lib/\$k /lib/\$k || true; \
 							fi \
 						done \
 						;; \
 					*) \
-						ln -sf /initrd$MNTLIVECD/lib/\$f /lib/\$f || true; \
+						ln -sf $MNTLIVECD/lib/\$f /lib/\$f || true; \
 						;; \
 				esac \
 			done" \
-			"rm -rf /bin && ln -sf /initrd$MNTLIVECD/bin" \
-			"rm -rf /boot && ln -sf /initrd$MNTLIVECD/boot" \
-			"rm -rf /opt && ln -sf /initrd$MNTLIVECD/opt" \
-			"rm -rf /sbin && ln -sf /initrd$MNTLIVECD/sbin" \
-			"rm -rf /usr && ln -sf /initrd$MNTLIVECD/usr" \
-			"mkdir -p /mnt && ln -sf /initrd$MNTCDROM /mnt/cdrom" \
+			"rm -rf /bin && ln -sf $MNTLIVECD/bin" \
+			"rm -rf /boot && ln -sf $MNTLIVECD/boot" \
+			"rm -rf /opt && ln -sf $MNTLIVECD/opt" \
+			"rm -rf /sbin && ln -sf $MNTLIVECD/sbin" \
+			"rm -rf /usr && ln -sf $MNTLIVECD/usr" \
+			"mkdir -p /mnt && ln -sf $MNTCDROM /mnt/cdrom" \
 			"mkdir -p /tmp && chmod 777 /tmp"
 		set_progress
 		docmd   "Creating /var structure" \
 			"rm -rf /var && mkdir -p /var" \
-			"for d in \`find /initrd$MNTLIVECD/var/ -type d\`; do \
-				d=\${d#/initrd$MNTLIVECD/var/} ; \
+			"for d in \`find $MNTLIVECD/var/ -type d\`; do \
+				d=\${d#$MNTLIVECD/var/} ; \
 				case \$d in \
 					lib/rpm*|lib/urpmi*|lib/samba*|lib/mysql*) \
-						[ ! -e /var/\$d ] && ln -sf /initrd$MNTLIVECD/var/\$d /var/\$d || true; \
+						[ ! -e /var/\$d ] && ln -sf $MNTLIVECD/var/\$d /var/\$d || true; \
 						;; \
 					cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|yp*) \
 						mkdir -p /var/\$d || true ; \
-						chown --reference=/initrd$MNTLIVECD/var/\$d /var/\$d ; \
-						chmod --reference=/initrd$MNTLIVECD/var/\$d /var/\$d ; \
+						$MNTLIVECD/bin/chown --reference=$MNTLIVECD/var/\$d /var/\$d ; \
+						$MNTLIVECD/bin/chmod --reference=$MNTLIVECD/var/\$d /var/\$d ; \
 						;; \
 					tmp*) \
 						;; \
 					*) \
-						[ ! -e /var/\$d ] && ln -sf /initrd$MNTLIVECD/var/\$d /var/\$d || true; \
+						[ ! -e /var/\$d ] && ln -sf $MNTLIVECD/var/\$d /var/\$d || true; \
 						;; \
 				esac \
 			done" \
@@ -298,7 +291,7 @@ setuproot() {
 			"ln -sf /tmp /var/tmp"
 		set_progress
 		docmd   "Creating /etc structure" \
-			"rm -rf /etc && cp -a /initrd$MNTLIVECD/etc /" \
+			"rm -rf /etc && cp -a $MNTLIVECD/etc /" \
 			"mkdir -p /etc/livecd/hwdetect" \
 			"chmod a+rw /etc" \
 			"rm -rf /etc/fstab && touch /etc/fstab" \
@@ -311,37 +304,34 @@ setuproot() {
 			"rm -rf /etc/rc.d/rc5.d/S05harddrake"
 		set_progress
 		docmd   "Creating user directories" \
-			"cp -a /initrd$MNTLIVECD/root /" \
-			"cp -a /initrd$MNTLIVECD/home /"
+			"cp -a $MNTLIVECD/root /" \
+			"cp -a $MNTLIVECD/home /"
 		set_progress
 	fi
 }
 
 ### setup for init of the actual mdk image
 setupinit() {
-	# setup the full path as now available
-	export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
-
 	# perform hwdetect if not disabled
-	if `grep -iqv hwdetect=no /proc/cmdline`; then
+	if `/bin/grep -iqv hwdetect=no /proc/cmdline`; then
 		/initrd/usr/sbin/hwdetect
 	fi
 
-	#Don't run depmod (must be run before imaging system)
-	sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
+	# Don't run depmod (must be run before imaging system)
+	/bin/sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
 
 	# Do various other configuration tasks (now that /etc is available)
 	if hostname=`getbootoption hostname`
 	then
-		sed -i.livecd -e "s/\(\S*HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network
-		sed -i.livecd -e "s/\(\S*DHCP_HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network-scripts/ifcfg-eth*
+		/bin/sed -i.livecd -e "s/\(\S*HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network
+		/bin/sed -i.livecd -e "s/\(\S*DHCP_HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network-scripts/ifcfg-eth*
 	fi
 
 	#clean up the shutdown sequence:
-	sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/initrd\\\/\.\*\/\3,;s,/sbin/halt.local,/initrd/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /initrd/sbin/halt.local,   exec /initrd/sbin/halt.local \$command,g' /etc/rc.d/init.d/halt
+	/bin/sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/initrd\\\/\.\*\/\3,;s,/sbin/halt.local,/initrd/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /initrd/sbin/halt.local,   exec /initrd/sbin/halt.local \$command,g' /etc/rc.d/init.d/halt
 
 	# restart the splash before MDK init (this is very hacky)
-	silent=`grep -i splash=silent /proc/cmdline`
+	silent=`/bin/grep -i splash=silent /proc/cmdline`
 	if [ $progress_max -eq 65534 ] && [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
 		echo 0 > /proc/splash
 		. /etc/sysconfig/bootsplash
@@ -351,7 +341,7 @@ setupinit() {
 	fi
 
 	# do we just want to complete the initrd (debug)?
-	if `grep -iq livecd=initrd /proc/cmdline`; then
+	if `/bin/grep -iq livecd=initrd /proc/cmdline`; then
 		# exit, allowing us to debug
 		execshell
 	else
@@ -359,10 +349,13 @@ setupinit() {
 		docmd   "Unmounting /proc filesystem" \
 			"umount /proc"
 
-		# go to init
-		distro=`cat /etc/redhat-release | awk '{ print $1 }'`
+		# display some info
+		distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
 		echo "Starting $distro Linux init sequence ..."
-		/etc/rc.d/rc.sysinit
+
+		# setup the full path as now available and start distro boot
+		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
+		exec /etc/rc.d/rc.sysinit
 	fi
 }
 

@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.48 2003/12/07 17:53:53 jaco Exp $
+# $Id: linuxrc.in,v 1.49 2003/12/13 18:13:05 jaco Exp $
 #
 
 ### global variables
@@ -29,13 +29,14 @@ umask 022
 FOUND_MDKISO=""
 OPT_MODULES="@DEF_MODULES_OPT@"
 DEP_MODULES="@DEF_MODULES_DEP@ @DEF_SCSI_MODULES_DEP@"
-SCSI_MODULES="@DEF_SCSI_MODULES@" # these are for the SCSI drivers
+SCSI_MODULES="@DEF_SCSI_MODULES@ @DEF_SCSI_MODULES_OPT@" # these are for the SCSI drivers
 FOUND_SCSI=""
 BASEIMG="livecd.iso"      # name of the base cloop image, with a .clp (cloop) or .bzlp (bzloop)
                           # extension, this is the compressed loop image
 LOOPBEXT=".bzlp"          # extension for the above
 LOOPCEXT=".clp"           # extension for the above
 LOOPTYPE="$LOOPCEXT"
+MD5FILE="livecd.md5"
 DEVICES=""                # list of all ide/scsi cd-type devices
 FOUNDMEM=200000           # total memory found on box
 TOTALMEM=200000           # total usable memory on box
@@ -136,6 +137,8 @@ loadmod() {
 	MODULE="/lib/modules/$KERNELVER/kernel/$1"
 	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
 	[ ! -f $MODULE ] && return 1
+	#echo -n "$MODULE "
+	#insmod $MODULE $2 && return 0 || return 1
 	insmod $MODULE $2 2>&1 >/dev/null && return 0 || return 1
 }
 
@@ -206,6 +209,30 @@ execshell() {
 }
 
 
+### check the MD5 sum of the cloop iso image
+checkmd5() {
+	if [ -f $MNTCDROM/$MD5FILE ]; then
+		domd5=`grep -iq md5sum /proc/cmdline && echo 1`
+		if [ -n "$domd5" ]; then
+			md5ok=
+			echo -n "Verifying MD5 checksum of iso image: "
+			(eval "cd $MNTCDROM && md5sum -c $MD5FILE") 2>&1 >/dev/null && md5ok=1
+			if [ -z "$md5ok" ]; then
+				printfail
+				$SETCOLOR_FAIL
+				echo ""
+				echo "ERROR: Unable to verify the iso image MD5 checksum,"
+				echo "       dropping you to a limited shell."
+				$SETCOLOR_NORMAL
+				execshell
+			else
+				printok
+			fi
+		fi
+	fi
+}
+
+
 ### find the cloop device
 findcloop() {
 	# all devices changed to take advantage of devfs
@@ -261,6 +288,8 @@ findcloop() {
 			if [ -n "$LOOPTYPE" ] && [ -f $MNTCDROM/$BASEIMG$LOOPTYPE ]; then
 				FOUND_MDKISO="$i"
 				printok
+
+				checkmd5 ""
 
 				echo -n "Loading compressed loop kernel module: "
 				loadmod $LOOPMOD.o && printloaded || printfail
@@ -321,12 +350,13 @@ createramdisk() {
 	# Check for sufficient memory to mount extra ramdisk for /etc, /home, /root, /var
 	if test -n "$TOTALMEM" -a "$TOTALMEM" -gt "$MINLEFT"; then
 		docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
+			"mkdir -p $MNTRAMDISK" \
 			"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
 			"mkdir -p $MNTRAMDISK/initrd" \
 			"echo '0x0100' >/proc/sys/kernel/real-root-dev" \
 			"pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
 			"mkdir -p /proc && mount -n -t proc none /proc" \
-			"mkdir -p /dev && mount -n -o bind /initrd/dev /dev" \
+			"mkdir -p /dev && mount -n -t devfs none /dev" \
 			"cd /" \
 			"ln -s /initrd/bin" \
 			"ln -s /initrd/etc" \
