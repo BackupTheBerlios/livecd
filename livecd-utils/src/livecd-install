@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.11 2003/11/22 17:28:38 jaco Exp $
+# $Id: livecd-install,v 1.12 2003/11/22 17:34:41 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -207,6 +207,14 @@ my %fsopts = (
 	'xfs'      => 'defaults'
 );
 
+my %fsnames = (
+	'ext2'     => 'Linux native',
+	'reiserfs' => 'Journalised FS: ReiserFS',
+	'xfs'      => 'Journalised FS: XFS',
+	'jfs'      => 'Journalised FS: JFS',
+	'ext3'     => 'Journalised FS: ext3'
+);
+
 sub make_fstab {
 	my ($dev, $mnt) = @_;
 	my @fstab = fs::read_fstab("", "/etc/fstab");
@@ -245,12 +253,12 @@ sub do_install {
 	while (!$quit) {
 		my $list = "";
 		foreach (sort keys %devs) {
-			$list .= " \"\" \"$_\" ".int((512*$devs{$_}{size})/(1024*1024))."MB \"".$devs{$_}{type}."\"" if ($devs{$_}{type} =~ /ext2/ || $devs{$_}{type} =~ /ext3/ || $devs{$_}{type} =~ /reiserfs/ || $devs{$_}{type} =~ /xfs/ || $devs{$_}{type} =~ /jfs/);
+			$list .= " \"\" \"$_\" ".int((512*$devs{$_}{size})/(1024*1024))."MB \"".$fsnames{$devs{$_}{type}}." (".$devs{$_}{type}.")\"" if ($devs{$_}{type} =~ /ext2/ || $devs{$_}{type} =~ /ext3/ || $devs{$_}{type} =~ /reiserfs/ || $devs{$_}{type} =~ /xfs/ || $devs{$_}{type} =~ /jfs/);
 		}
 		my $dev = qx($dlg --list --radiolist --width 500 --height 300 --title "$str{'INSTPART_TIT'}[$lang]" --column "" --column "$str{'INSTPART_PART'}[$lang]" --column "$str{'INSTPART_SIZE'}[$lang]" --column "$str{'INSTPART_TYPE'}[$lang]" $list || echo cancel);
 		chomp($dev);
 		unless ($dev =~ /cancel/ || $dev eq "") {
-			my $ret = qx($dlg --warning --title "$str{'WARN_ERROR_TIT'}[$lang]" --text "$str{'INSTPART_WARN'}[$lang]\n$dev ($devs{$dev}{type})" || echo cancel);
+			my $ret = qx($dlg --warning --title "$str{'WARN_ERROR_TIT'}[$lang]" --text "$str{'INSTPART_WARN'}[$lang]\n$dev ($fsnames{$devs{$dev}{type}})" || echo cancel);
 			unless ($ret =~ /cancel/) {
 				my $mnt = "/tmp/livecd.inst.$$";
 				my $type = $devs{$dev}{type};
