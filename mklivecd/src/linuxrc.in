@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.14 2003/10/06 08:39:04 jaco Exp $
+# $Id: linuxrc.in,v 1.15 2003/10/06 10:36:02 jaco Exp $
 #
 
 ### global variables
@@ -248,13 +248,6 @@ findcloop() {
 		$SETCOLOR_NORMAL
 		execshell
 	fi
-}
-
-
-### find our home partition
-findhome() {
-	# ide hdd partitions only at present
-	PARTITIONS="/dev/ide/hd/*p?"
 }
 
 
