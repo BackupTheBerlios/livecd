@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.12 2003/10/06 14:59:20 jaco Exp $
+# $Id: Rules.mk,v 1.13 2003/10/07 06:28:07 jaco Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -7,6 +7,27 @@ DEF_KEYBOARD=us
 # these two parameters need to match up to allow splash to work
 DEF_RESOLUTION=1024x768
 DEF_VGAMODE=791
+
+# these are base modules to be used for the fs types, IDE and
+# their dependancies
+DEF_MODULES=ext3 jbd nls_iso8859-13 nls_iso8859-14 \
+nls_iso8859-15 nls_iso8859-1 nls_iso8859-2 nls_iso8859-3 nls_iso8859-4 \
+nls_iso8859-5 nls_iso8859-6 nls_iso8859-7 nls_iso8859-8 nls_iso8859-9 \
+nls_utf8
+
+# these are the dependancies for the above
+DEF_MODULES_DEP=isofs cdrom ide-cd
+
+# these modules are for all the SCSI types out there
+# not available: ncr53c8xx
+DEF_SCSI_MODULES=aic7xxx aic7xxx_old BusLogic NCR53c406a \
+initio advansys aha1740 aha1542 aha152x atp870u dtc eata fdomain \
+gdth megaraid pas16 pci2220i pci2000 psi240i qlogicfas qlogicfc \
+qlogicisp seagate t128 tmscsim u14-34f ultrastor wd7000 \
+a100u2w 3w-xxxx sym53c8xx
+
+# these are dependancies for the above modules
+DEF_SCSI_MODULES_DEP=scsi_mod sr_mod sd_mod
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release

@@ -1,6 +1,10 @@
-# $Id: CHANGELOG,v 1.47 2003/10/06 14:59:20 jaco Exp $
+# $Id: CHANGELOG,v 1.48 2003/10/07 06:28:07 jaco Exp $
 
-* Mon, Oct 06, 2003, 0.5.7-cvs
+* Tue, Oct 07, 2003, 0.5.7-cvs
+  + Jaco Greeff <jaco@linuxminicd.org>:
+    [Rules.mk]:
+      - Create list for default normal and SCSI modules
+
 
 * Mon, Oct 06, 2003, 0.5.6
   + Buchan Milne <bgmilne@cae.co.za>:

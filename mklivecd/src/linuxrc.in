@@ -19,13 +19,15 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.15 2003/10/06 10:36:02 jaco Exp $
+# $Id: linuxrc.in,v 1.16 2003/10/07 06:28:07 jaco Exp $
 #
 
 ### global variables
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
 umask 022
 FOUND_MDKISO=""
+DEP_MODULES="@DEF_MODULES_DEP@ @DEF_SCSI_MODULES_DEP@"
+SCSI_MODULES="@DEF_SCSI_MODULES@" # these are for the SCSI drivers
 FOUND_SCSI=""
 BASEIMG="livecd.iso"      # name of the base cloop image, with a .clp (cloop) or .bzlp (bzloop)
                           # extension, this is the compressed loop image
@@ -111,7 +113,7 @@ docmd() {
 
 ### load a module
 loadmod() {
-	MODULE="/lib/modules/$KERNELVER/kernel/$1"
+	MODULE="/lib/modules/$KERNELVER/kernel/$1.o"
 	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
 	insmod $MODULE $2 2>&1 >/dev/null && return 0 || return 1
 }
@@ -178,10 +180,18 @@ findcloop() {
 	# load basic modules
 	echo -n "Loading basic cdrom modules: "
 	ALL_LOADED=1
-	for i in isofs.o cdrom.o ide-cd.o; do
+	for i in $DEP_MODULES; do
 		loadmod $i || ALL_LOADED=0
 	done
 	[ $ALL_LOADED -gt 0 ] && printok || printfail
+
+	# probe the SCSI devices
+	echo -n "Finding SCSI devices: "
+	SCSI_FOUND=
+	for i in $SCSI_MODULES; do
+		loadmod $i && SCSI_FOUND=1
+	done
+	[ $SCSI_FOUND -gt 0 ] && printok || printfail
 
 	# do the loop
 	echo -n "Finding compressed loop image: "
@@ -208,7 +218,7 @@ findcloop() {
 				printok
 
 				echo -n "Loading compressed loop kernel module: "
-				loadmod $LOOPMOD.o file=$MNTCDROM/$BASEIMG$LOOPTYPE && printok || printfail
+				loadmod $LOOPMOD file=$MNTCDROM/$BASEIMG$LOOPTYPE && printok || printfail
 
 				# mount the image, also catering for devfs
 				CLOOPDEVS="/dev/$LOOPMOD"

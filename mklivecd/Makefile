@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.21 2003/10/04 16:10:43 jaco Exp $
+# $Id: Makefile,v 1.22 2003/10/07 06:28:07 jaco Exp $
 
 include Rules.mk
 
@@ -15,14 +15,22 @@ mklivecd:
 			>$(DISTDIR)/hwdetect
 	$(CAT) $(SRCDIR)/linuxrc.in | \
 		$(SED) -e 's/@MKLIVECDVER@/$(ARCHIVEVER)/g' | \
-		$(SED) -e 's/@KERNELVER@/$(KERNELVER)/g' \
+		$(SED) -e 's/@KERNELVER@/$(KERNELVER)/g' | \
+		$(SED) -e 's/@DEF_MODULES@/$(DEF_MODULES)/g' | \
+		$(SED) -e 's/@DEF_MODULES_DEP@/$(DEF_MODULES_DEP)/g' | \
+		$(SED) -e 's/@DEF_SCSI_MODULES@/$(DEF_SCSI_MODULES)/g' | \
+		$(SED) -e 's/@DEF_SCSI_MODULES_DEP@/$(DEF_SCSI_MODULES_DEP)/g' \
 			>$(DISTDIR)/linuxrc
 	$(CAT) $(SRCDIR)/$(PKGNAME).in | \
 		$(SED) -e 's/@PKGNAME@/$(PKGNAME)/g' | \
 		$(SED) -e 's/@MKLIVECDVER@/$(ARCHIVEVER)/g' | \
 		$(SED) -e 's/@DEF_KEYBOARD@/$(DEF_KEYBOARD)/g' | \
 		$(SED) -e 's/@DEF_RESOLUTION@/$(DEF_RESOLUTION)/g' | \
-		$(SED) -e 's/@DEF_VGAMODE@/$(DEF_VGAMODE)/g' \
+		$(SED) -e 's/@DEF_VGAMODE@/$(DEF_VGAMODE)/g' | \
+		$(SED) -e 's/@DEF_MODULES@/$(DEF_MODULES)/g' | \
+		$(SED) -e 's/@DEF_MODULES_DEP@/$(DEF_MODULES_DEP)/g' | \
+		$(SED) -e 's/@DEF_SCSI_MODULES@/$(DEF_SCSI_MODULES)/g' | \
+		$(SED) -e 's/@DEF_SCSI_MODULES_DEP@/$(DEF_SCSI_MODULES_DEP)/g' \
 			>$(DISTDIR)/$(PKGNAME)
 
 install:
