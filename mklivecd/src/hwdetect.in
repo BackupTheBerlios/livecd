@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.145 2005/01/15 00:31:10 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.146 2005/01/16 00:52:06 tom_kelly33 Exp $
 #
 
 use strict;
@@ -1117,6 +1117,7 @@ sub hwdetect_getdisks() {
 	}
 
 	### do all the cd, floppy stuff
+	my $cdsymlinks = "/etc/udev/scripts/cdsymlinks.sh";
 	my $numfloppy = ""; # floppy, floppy1
 	my $numcd = ""; # cdrom, cdrom1
 	foreach my $disk (@{$all_hdds->{raw_hds}}) {
@@ -1157,6 +1158,11 @@ sub hwdetect_getdisks() {
 				$all_devs{$dev}{supermount} = 0;
 			}
 		}
+	}
+
+	### update cdsymlinks
+	if ( -e "$cdsymlinks" ) {
+		eval { "$cdsymlinks" }
 	}
 
 	### do the hard disks

@@ -1,6 +1,7 @@
-# $Id: CHANGELOG,v 1.131 2005/01/16 00:08:48 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.132 2005/01/16 00:52:05 tom_kelly33 Exp $
 
 * 2005-01-15
+	[hwdetect] - run /etc/udev/cdsymlinks.sh
 	[rcsysinit] - added etjr change for nxserver
 	- added Ross's patch for /var/log/messages
 	[linuxrc.in] - added Emre's patch for dos-swap option
