@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.21 2004/01/27 11:20:13 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.22 2004/01/28 06:29:05 jaco Exp $
  */
 
 #include <dirent.h>
@@ -213,7 +213,7 @@ LiveCDFS::doReaddir(const char *name,
 		FUNC_RET("%d", -1, -1);
 	}
 	
-	DIR *rdir, *tdir;
+	DIR *rdir = NULL, *tdir = NULL;
 	struct lufs_fattr attr;
 	struct dirent *ent;
 	vector<string> entries;
