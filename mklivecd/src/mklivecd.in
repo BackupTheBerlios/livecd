@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.43 2003/10/09 11:16:28 jaco Exp $
+# $Id: mklivecd.in,v 1.44 2003/10/10 04:52:17 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -38,8 +38,8 @@ modulefile=/etc/modules.conf
 tmpdir=""
 rc=0
 kernel26=""
-modules_opt="@DEF_MODULES_OPT@"
-modules="@DEF_MODULES@ @DEF_MODULES_DEP@ @DEF_SCSI_MODULES@ @DEF_SCSI_MODULES_DEP@"
+modules_opt="@DEF_MODULES_OPT_PATH@"
+modules="@DEF_MODULES_PATH@ @DEF_MODULES_DEP_PATH@ @DEF_SCSI_MODULES_PATH@ @DEF_SCSI_MODULES_DEP_PATH@"
 
 excludedirs="^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/lock/subsys$ ^/var/run$ ^/var/tmp$"
 excludefiles="^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*[.]rpmnew$ .*[.]rpmsave$ /[.]bash_history$ /[.]fonts[.]cache-[0-9]$ /[.]xauth.* /[.]xsession-errors$"
@@ -48,7 +48,8 @@ LIVECDISOCLP="livecd.iso.clp"
 
 # compression options
 loopcmp="create_compressed_fs"
-loopmod="cloop"
+loopmod="drivers/block/cloop.o"
+transmod="fs/translucency.o"
 blocksize=64
 
 # boot options
@@ -136,13 +137,6 @@ do_cp_strip() {
 	fi
 }
 
-find_module() {
-	fmPath=`(cd /lib/modules/$kernel; find -type f -name $modName.o.gz | grep -v build)`
-	if [ -z "$fmPath" ]; then
-		fmPath=`(cd /lib/modules/$kernel; find -type f -name $modName.o | grep -v build)`
-	fi
-}
-
 check_kernel_26() {
 	local -i major minor
 
@@ -209,24 +203,25 @@ create_initrdimg() {
 	### modules
 	echo "* Copying initrd kernel modules..." >&2
 	do_cmd "mkdir -p $INITRDDIR$MODULESDIR/kernel"
-	modules="$loopmod $modules_opt $modules"
+	modules="$loopmod $transmod $modules_opt $modules"
 	for m in $modules; do
-		modpath=`(cd ${rootdir}lib/modules/$kernel; find -type f -name $m.o.gz | grep -v build)`
-		if [ -n "$modpath" ]; then
-			do_cmd "gzip -dc ${rootdir}lib/modules/$kernel/$modpath >$INITRDDIR$MODULESDIR/kernel/$m.o"
+		mod=`basename $m`
+		modpath=${rootdir}lib/modules/$kernel/kernel/$m
+		if [ -f $modpath ]; then
+			do_cp ${modpath} $INITRDDIR/$MODULESDIR/kernel/$mod
 		else
-			modpath=`(cd ${rootdir}lib/modules/$kernel; find -type f -name $m.o | grep -v build)`
-			if [ -z "$modpath" ]; then
+			modpath=${modpath}.gz
+			if [ ! -f $modpath ]; then
 				modopt=
 				for o in $modules_opt; do
 					[ "$o" == "$m" ] && modopt=1
 				done
 				if [ -z "$modopt" ]; then
-					echo "ERROR: unable to find kernel module $m.o" >&2
+					echo "ERROR: unable to find kernel module $m" >&2
 					exit 1
 				fi
 			else
-				do_cp ${rootdir}lib/modules/$kernel/$modpath $INITRDDIR/$MODULESDIR/kernel/$m.o
+				do_cmd "gzip -dc ${modpath} >$INITRDDIR$MODULESDIR/kernel/$mod"
 			fi
 		fi
 	done
@@ -529,12 +524,12 @@ while [ $# -gt 0 ]; do
 			if [ "$loopmod" == "cloop" ]; then
 				LIVECDISOCLP="livecd.iso.clp"
 				loopcmp="create_compressed_fs"
-				loopmod="cloop"
+				loopmod="drivers/block/cloop.o"
 			else
 				if [ "$loopmod" == "bzloop" ]; then
 					LIVECDISOCLP="livecd.iso.bzlp"
 					loopcmp="create_bzfs"
-					loopmod="bzloop"
+					loopmod="drivers/block/bzloop.o"
 				else
 					echo "ERROR: You need to specify either bzloop or cloop with the '--looptype' option" >&2
 					exit 1

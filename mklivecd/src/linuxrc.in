@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.19 2003/10/09 11:24:00 jaco Exp $
+# $Id: linuxrc.in,v 1.20 2003/10/10 04:52:17 jaco Exp $
 #
 
 ### global variables
@@ -114,7 +114,7 @@ docmd() {
 
 ### load a module
 loadmod() {
-	MODULE="/lib/modules/$KERNELVER/kernel/$1.o"
+	MODULE="/lib/modules/$KERNELVER/kernel/$1"
 	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
 	[ ! -f $MODULE ] && return 1
 	insmod $MODULE $2 2>&1 >/dev/null && return 0 || return 1
@@ -221,16 +221,16 @@ findcloop() {
 				printok
 
 				echo -n "Loading compressed loop kernel module: "
-				loadmod $LOOPMOD file=$MNTCDROM/$BASEIMG$LOOPTYPE && printok || printfail
+				loadmod $LOOPMOD.o file=$MNTCDROM/$BASEIMG$LOOPTYPE && printok || printfail
 
 				# mount the image, also catering for devfs
+				echo -n "Mounting uncompressed image on $MNTLIVECD"
 				CLOOPDEVS="/dev/$LOOPMOD"
 				if [ -e "$CLOOPDEVS" ]; then
-					echo -n "Mounting uncompressed image on $MNTLIVECD"
 					CLOOPDEVS="$CLOOPDEVS/?"
 					for d in $CLOOPDEVS; do
 						CLOOPDEV="$d"
-						mount -o ro -t iso9660 $CLOOPDEV $MNTLIVECD && CLOOPMNT=1
+						mount -r -t iso9660 $CLOOPDEV $MNTLIVECD && CLOOPMNT=1
 						[ -n $CLOOPMNT ] && break
 					done
 				fi
@@ -280,6 +280,14 @@ createramdisk() {
 
 	# Check for sufficient memory to mount extra ramdisk for /etc, /home, /root, /var
 	if test -n "$TOTALMEM" -a "$TOTALMEM" -gt "$MINLEFT"; then
+
+		# setup translucency (if available)
+		# Note: for some obscure reason the static insmod cannot
+		#       insert the module, the dynamic version can
+		kmin=`echo $KERNELVER | awk -F'.' '{ print $2 }'`
+		[ $kmin -gt 4 ] && kmin=5
+		/loopfs/sbin/insmod-2$kmin /lib/modules/$KERNELVER/kernel/translucency.o 2>&1 >/dev/null
+
 		if [ -d /proc/sys/translucency ]; then
 			docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
 				"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
@@ -290,7 +298,7 @@ createramdisk() {
 				"touch fastboot" \
 				"cd /initrd$MNTLIVECD ; \
 				for d in *; do \
-					if [ -d /initrd$MNTLIVECD/var/\$d ]; then \
+					if [ -d /initrd$MNTLIVECD/\$d ]; then \
 						case \$d in \
 							dev|proc|mnt|tmp) \
 								mkdir -p /\$d || true ; \
@@ -301,23 +309,29 @@ createramdisk() {
 						esac \
 					fi \
 				done" \
-				"mount -n --move /initrd/dev /dev" \
-				"mount -n --move /initrd/proc /proc" \
-				"mkdir -p /tmp/livecd && echo '/ -> /tmp/livecd' >/proc/sys/translucency/0" \
-				"ln -sf /initrd$MNTCDROM /mnt/cdrom" \
-				"chmod 777 /tmp" \
+				"mkdir -p /dev && mount -n --move /initrd/dev /dev" \
+				"mkdir -p /proc && mount -n --move /initrd/proc /proc" \
+				"mkdir -p /mnt && ln -sf /initrd$MNTCDROM /mnt/cdrom" \
+				"mkdir -p /tmp && chmod 777 /tmp" \
+				"for t in 0 1 2 3 4 5 6 7; do mkdir -p /tmp/livecd/\$t ; done" \
+				"echo '/initrd/loopfs/etc -> /tmp/livecd/0' >/proc/sys/translucency/0" \
+				"echo '/initrd/loopfs/lib -> /tmp/livecd/1' >/proc/sys/translucency/1" \
+				"echo '/initrd/loopfs/home -> /tmp/livecd/2' >/proc/sys/translucency/2" \
+				"echo '/initrd/loopfs/root -> /tmp/livecd/3' >/proc/sys/translucency/3" \
+				"echo '/initrd/loopfs/usr -> /tmp/livecd/4' >/proc/sys/translucency/4" \
+				"echo '/initrd/loopfs/var -> /tmp/livecd/5' >/proc/sys/translucency/5" \
 				"mkdir -p /var/lock/subsys" \
 				"mkdir -p /var/log && touch /var/log/wtmp" \
 				"mkdir -p /var/run && touch /var/run/utmp" \
+				"mkdir -p /var/tmp" \
 				"mkdir -p /etc/livecd/hwdetect" \
-				"rm -rf /etc/fstab && touch /etc/fstab" \
 				"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
 				"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
 				"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
-				"rm -rf /etc/mtab && touch /etc/mtab" \
-				"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
-				"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
-				"rm -rf /etc/rc.d/rc5.d/S05harddrake"
+				"echo '' >/etc/mtab" \
+				"echo '' >/etc/modules.conf" \
+				"echo '#!/bin/sh' >/etc/rc.d/init.d/harddrake" \
+				"echo 'exit 0' >>/etc/rc.d/init.d/harddarke"
 		else
 			docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
 				"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
