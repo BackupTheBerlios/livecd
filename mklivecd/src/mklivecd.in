@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.95 2004/01/10 08:49:45 jaco Exp $
+# $Id: mklivecd.in,v 1.96 2004/01/10 17:56:41 jaco Exp $
 #
 
 use strict;
@@ -702,6 +702,15 @@ sub create_compressed {
 		if (defined($opts{nodir})) {
 			my $ex = join("\n", @{$opts{nodir}});
 			do_cmd("(find $o_root -type d 2>/dev/null | sed -e 's,^$o_root,/,g' | grep '$ex' | sed 's,^/,$o_root,' >>$workdir/excludes.list)", ++$pos);
+			#my @dirs = ();
+			#foreach my $tmp (cat_("$workdir/excludes.tmp.list")) {
+			#	my $found = 0;
+			#	foreach my $dir (@dirs) {
+			#		$found = 1 if ($tmp =~ m/^$dir/);
+			#	}
+			#	push @dirs, $tmp unless ($found);
+			#}
+			#do_cmd("echo \"$_\" >> $workdir/excludes.list") foreach (@dirs);
 		}
 		if (defined($opts{nofile})) {
 			my $ex = join("\n", @{$opts{nofile}});
@@ -720,7 +729,7 @@ sub create_compressed {
 			my $total = scalar(@files);
 			start_progress("Creating compressed image", $total+2);
 			my $ex = "";
-			foreach(cat_("$workdir/excludes.list")) {
+			foreach (cat_("$workdir/excludes.list")) {
 				chomp;
 				$ex .= " $_";
 			}
