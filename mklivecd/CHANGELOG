@@ -1,5 +1,7 @@
-# $Id: CHANGELOG,v 1.132 2005/01/16 00:52:05 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.133 2005/01/20 21:41:24 tom_kelly33 Exp $
 
+* 2005-01-20
+	[hwdetect] - fix errors in sata loader
 * 2005-01-15
 	[hwdetect] - run /etc/udev/cdsymlinks.sh
 	[rcsysinit] - added etjr change for nxserver
