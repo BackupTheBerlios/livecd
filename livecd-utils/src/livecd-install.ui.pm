@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.46 2004/10/29 04:43:54 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.47 2004/10/30 19:15:51 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -607,7 +607,7 @@ sub showInstall
 	writeFstab($devs) unless ($destroy);
 
 	# re-establish original inittab
-	do_system("cp -cf /initrd/etc/inittab $mnt/etc/");
+	do_system("cp -a /initrd/etc/inittab $mnt/etc/");
 
 	$infotext = getStr('inst_done');
 	print "$infotext\n";
@@ -841,9 +841,9 @@ image=$kernel
 	initrd=$initrd
 ";
 		if ($kernel26) { 
-			print LILO "append=\"devfs=nomount splash=silent\n\"";
+			print LILO "append=\"devfs=nomount splash=silent\"\n";
 		} else {
-			print LILO "append=\"devfs=mount splash=silent\n\"";
+			print LILO "append=\"devfs=mount splash=silent\"\n";
 		}
 		print LILO "vga=788
 read-only
@@ -904,7 +904,11 @@ label=\"$label\"
 		}
 		close LILO;
 		do_system("mount -t proc none $mnt/proc");
-		do_system("mount -t devfs none $mnt/dev");
+		if ($kernel26) {
+			do_system("cp -a /dev $mnt");
+		} else {
+			do_system("mount -t devfs none $mnt/dev");
+		}
 		do_system("rm -rf $mnt/$initrd");
 		do_system("mkdir -p $mnt/root/tmp");
 		my $with = "";
