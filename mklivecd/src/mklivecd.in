@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.56 2003/11/03 11:28:08 jaco Exp $
+# $Id: mklivecd.in,v 1.57 2003/11/03 14:13:40 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -326,6 +326,7 @@ create_initrdimg() {
 		INODES=$[INODES + 1];
 	done
 	IMAGESIZE=$[IMAGESIZE + INODES / 10]  # 10 inodes needs 1k
+	IMAGESIZE=$[IMAGESIZE+250]            # we run out of space on some installations, make room
 	[ -n "$verbose" ] && echo "+ Creating filesystem with size ${IMAGESIZE}KB and $INODES inodes"
 	do_cmd "dd if=/dev/zero of=$INITRD bs=1k count=$IMAGESIZE 2> /dev/null"
 	do_cmd "mke2fs -q -m 0 -F -N $INODES -s 1 $INITRD"
