@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.118 2004/01/26 05:25:31 jaco Exp $
+# $Id: CHANGELOG,v 1.119 2004/01/31 08:18:17 jaco Exp $
 
-* Wed, Jan 21, 2003, 0.5.7-cvs
+* Sat, Jan 31, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@obsidian.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
@@ -155,6 +155,7 @@
       - Added "normal" option to --resolution
       - Copy modules.dep if it cannot be created
       - Removed bzloop option (only 2.4, no benefit over squashfs)
+      - --experminetal option supports LiveCDFS
     [mklivecd.spec]:
       - Updated URL: http://livecd.berlios.de
       - Synced with MDK contrib spec
@@ -167,6 +168,7 @@
       - Adapted for use with busybox pre4 (Cooker version)
       - Always run ash when booting to initrd
       - Also make us skip hwdetect if "nodetect" is specified
+      - Allow experimental overlay support with LiveCDFS
 
 
 * Mon, Oct 06, 2003, 0.5.6
