@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.27 2003/11/03 07:02:42 jaco Exp $
+# $Id: linuxrc.in,v 1.28 2003/11/03 07:15:35 jaco Exp $
 #
 
 ### global variables
@@ -132,7 +132,7 @@ set_progress() {
 	if [ -e /proc/splash ] && [ -n "$silent" ]; then
 		progress_num=$(($progress_num+1));
 		progress=$((65534*($progress_num+1)/$progress_full));
-		[ -n "$progress_on" ] && echo $progress >/proc/splash
+		[ -n "$progress_on" ] && echo "show $progress" >/proc/splash
 	fi
 }
 

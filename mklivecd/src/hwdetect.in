@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.39 2003/11/03 05:39:52 jaco Exp $
+# $Id: hwdetect.in,v 1.40 2003/11/03 07:15:35 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -164,7 +164,7 @@ sub set_progress {
 	    -e '/proc/splash'  &&
 	    $cmdline{'splash'} =~ /silent/) {
 		my $pos = (65534*(++$progress_now+1))/$progress_full;
-		system("echo $pos >/proc/splash");
+		system("echo 'show $pos' >/proc/splash");
 	}
 }
 
