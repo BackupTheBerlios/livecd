@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.38 2003/11/02 10:32:17 jaco Exp $
+# $Id: hwdetect.in,v 1.39 2003/11/03 05:39:52 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -64,16 +64,18 @@ my $COLOR_YELLOW   = $ESC."1;33m";
 my $COLOR_NORMAL   = $ESC."0;39m";
 
 ### global varibles
-my $debug       = 0;
-my $probe       = 0;
-my @all_devices = ();
+my $debug         = 0;
+my $probe         = 0;
+my @all_devices   = ();
 my %cmdline;
-my $owndevfsd   = 1;
-my $ownprocusb  = 1;
-my $haveswap    = 0;
-my $haveusb     = 0;
-my $havepcmcia  = 0;
-my $kernel_ver  = qx(uname -r);
+my $owndevfsd     = 1;
+my $ownprocusb    = 1;
+my $haveswap      = 0;
+my $haveusb       = 0;
+my $havepcmcia    = 0;
+my $progress_now  = 0;
+my $progress_full = 16;
+my $kernel_ver    = qx(uname -r);
 chomp($kernel_ver);
 
 sub rmws {
@@ -157,7 +159,17 @@ sub print_device {
 	print $desc;
 }
 
+sub set_progress {
+	if ($debug &&
+	    -e '/proc/splash'  &&
+	    $cmdline{'splash'} =~ /silent/) {
+		my $pos = (65534*(++$progress_now+1))/$progress_full;
+		system("echo $pos >/proc/splash");
+	}
+}
+
 sub hwdetect_init {
+	#system("echo 0 >/proc/splash") if (-e '/proc/splash' && $cmdline{'splash'} =~ /silent/);
 	select(STDOUT);
 	$| = 1;
 	open STDERR, '>', "/dev/null";
@@ -177,6 +189,7 @@ sub hwdetect_init {
 	}
 
 	print_success();
+	set_progress();
 }
 
 sub hwdetect_deinit {
@@ -187,6 +200,7 @@ sub hwdetect_deinit {
 		system("kill -TERM ".$devfspid[0]." 2>/dev/null");
 	}
 	#print "Completing detection routines: ";
+	set_progress();
 }
 
 sub is_mounted {
@@ -313,6 +327,7 @@ sub hwdetect_getmachine {
 		hwdetect_loadmod('unknown', "Available Swap", rmws($probed_mem->{SwapFree})." of ".rmws($probed_mem->{SwapTotal})) if ($haveswap > 0);
 		print_hash($probed_mem) if ($debug);
 	}
+	set_progress();
 }
 
 sub hwdetect_probepci() {
@@ -355,46 +370,55 @@ sub hwdetect_probepci() {
 	# determine the type of busses we need to initialise now
 	$havepcmcia = 1 if (is_loaded('pcmcia_core'));
 	$haveusb = 1 if (is_loaded('usbcore'));
+	set_progress();
 }
 
 sub hwdetect_initpcmcia() {
-	print "Initialising PCMCIA controllers: ";
-	print_success();
-	print "    Loading base PCMCIA modules: ";
-	my $res = 0;
-	my @modules = ('ds');
-	$res += modprobe("-q", $_) foreach (@modules);
-	$res ? $probe ? print_warning() : print_failed() : print_loaded();
-}
-
-sub hwdetect_initusb() {
-	print "Initialising USB controllers: ";
-	if (-e '/proc/bus/usb') {
+	if ($havepcmcia > 0) {
+		print "Initialising PCMCIA controllers: ";
 		print_success();
-		if (is_mounted('/proc/bus/usb')) {
-			$ownprocusb = 0;
-		}
-		else {
-			mount("    Mounting USB filesystem: ", "-n", "usbdevfs", "none", "/proc/bus/usb");
-		}
-
-		### load the usb modules that are not loaded automatically
-		# "printer" should be in as well? (does cups stuff :(
-		print "    Loading base USB modules: ";
+		print "    Loading base PCMCIA modules: ";
 		my $res = 0;
-		my @modules = ('mousedev', 'keybdev', 'usb-storage', 'visor');
+		my @modules = ('ds');
 		$res += modprobe("-q", $_) foreach (@modules);
 		$res ? $probe ? print_warning() : print_failed() : print_loaded();
 	}
-	else {
-		print_failure();
+	set_progress();
+}
+
+sub hwdetect_initusb() {
+	if ($haveusb > 0) {
+		print "Initialising USB controllers: ";
+		if (-e '/proc/bus/usb') {
+			print_success();
+			if (is_mounted('/proc/bus/usb')) {
+				$ownprocusb = 0;
+			}
+			else {
+				mount("    Mounting USB filesystem: ", "-n", "usbdevfs", "none", "/proc/bus/usb");
+			}
+
+			### load the usb modules that are not loaded automatically
+			# "printer" should be in as well? (does cups stuff :(
+			print "    Loading base USB modules: ";
+			my $res = 0;
+			my @modules = ('mousedev', 'keybdev', 'usb-storage', 'visor');
+			$res += modprobe("-q", $_) foreach (@modules);
+			$res ? $probe ? print_warning() : print_failed() : print_loaded();
+		}
+		else {
+			print_failure();
+		}
 	}
+	set_progress();
 }
 
 sub hwdetect_deinitusb() {
-	if (-e '/proc/bus/usb') {
+	if (($haveusb > 0) &&
+	    -e '/proc/bus/usb') {
 		umount("Unmounting USB filesystem", "/proc/bus/usb") if ($ownprocusb > 0);
 	}
+	set_progress();
 }
 
 sub hwdetect_probeall {
@@ -403,6 +427,7 @@ sub hwdetect_probeall {
 	eval { detect_devices::probeSerialDevices(); };
 	eval { @all_devices = detect_devices::probeall(); };
 	scalar @all_devices ? print_success() : print_failed();
+	set_progress();
 }
 
 sub hwdetect_getkeyb {
@@ -529,6 +554,7 @@ sub hwdetect_getxfree {
 		print "Writing X configuration: ";
     		eval { $rawX->write() and print_success(); } or print_failed();
 	}
+	set_progress();
 }
 
 sub hwdetect_getsound {
@@ -546,6 +572,7 @@ sub hwdetect_getsound {
 		hwdetect_loadmod($card->{driver}, $probed_vendor, $probed_desc);
 		print_hash($card) if ($debug);
 	}
+	set_progress();
 }
 
 sub hwdetect_getnetwork {
@@ -563,6 +590,7 @@ sub hwdetect_getnetwork {
 		hwdetect_loadmod($card->{driver}, $probed_vendor, $probed_desc);
 		print_hash($card) if ($debug);
 	}
+	set_progress();
 }
 
 sub hwdetect_getserial {
@@ -571,43 +599,53 @@ sub hwdetect_getserial {
 	print scalar(@probed_devices)." found";
 	print " (not implemented)";
 	print_warning();
+	set_progress();
 }
 
 sub hwdetect_getusb {
-	print "Detecting USB devices: ";
-	my @probed_devices = ();
-	eval { @probed_devices = hwdetect_get_bustype('USB'); };
-	my @usable_devices = ();
-	foreach my $device (@probed_devices) {
-		unless (($device->{media_type} =~ /^Hub/) ||
-			($device->{media_type} =~ /Mouse/ ||
-			($device->{description} =~ /Hub/))) {
-			push(@usable_devices, $device);
+	if (-e '/proc/bus/usb/devices') {
+		print "Detecting USB devices: ";
+		my @probed_devices = ();
+		eval { @probed_devices = hwdetect_get_bustype('USB'); };
+		my @usable_devices = ();
+		foreach my $device (@probed_devices) {
+			unless (($device->{media_type} =~ /^Hub/) ||
+				($device->{media_type} =~ /Mouse/ ||
+				($device->{description} =~ /Hub/))) {
+				push(@usable_devices, $device);
+			}
+		}
+		print scalar(@usable_devices) . " found";
+		scalar @probed_devices ? print_success() : print_failed();
+		foreach my $device (@usable_devices) {
+			my ($probed_vendor, $probed_desc) = split(/\|/, $device->{description});
+			hwdetect_loadmod($device->{driver}, $probed_vendor, $probed_desc);
+			print_hash($device) if ($debug);
 		}
 	}
-	print scalar(@usable_devices) . " found";
-	scalar @probed_devices ? print_success() : print_failed();
-	foreach my $device (@usable_devices) {
-		my ($probed_vendor, $probed_desc) = split(/\|/, $device->{description});
-		hwdetect_loadmod($device->{driver}, $probed_vendor, $probed_desc);
-		print_hash($device) if ($debug);
-	}
+	set_progress();
 }
 
 sub hwdetect_all {
-	print_hash($_) foreach (@all_devices);
+	if ($debug) {
+		print_hash($_) foreach (@all_devices);
+	}
 }
 
 sub hwdetect_readconf {
 	print "Reading modules configuration: ";
 	modules::mergein_conf('/etc/modules.conf') if -r '/etc/modules.conf';
 	print_success();
+	set_progress();
 }
 
 sub hwdetect_writeconf {
-	print "Writing modules configuration: ";
-	modules::write_conf("");
-	print_success();
+	unless ($probe) {
+		print "Writing modules configuration: ";
+		modules::write_conf("");
+		print_success();
+	}
+	set_progress();
 }
 
 # descriptive name, type (or auto), mount defaults
@@ -1023,13 +1061,17 @@ sub hwdetect_getdisks {
 			print_success();
 		}
 	}
+	set_progress();
 }
 
 
 # start all swap partitions
 sub hwdetect_swapon {
-	print "Activating swap partitions: ";
-	system("swapon -a -e") ? print_failure() : print_success();
+	if ($haveswap > 0) {
+		print "Activating swap partitions: ";
+		system("swapon -a -e") ? print_failure() : print_success();
+	}
+	set_progress();
 }
 
 
@@ -1042,18 +1084,18 @@ foreach (@ARGV) {
 hwdetect_init();
 hwdetect_readconf();
 hwdetect_probepci();
-hwdetect_initusb() if ($haveusb > 0);
-hwdetect_initpcmcia() if ($havepcmcia > 0);
+hwdetect_initusb();
+hwdetect_initpcmcia();
 hwdetect_probeall();
-hwdetect_all() if ($debug);
+hwdetect_all();
 hwdetect_getxfree();
 hwdetect_getsound();
 hwdetect_getnetwork();
 #hwdetect_getserial();
-hwdetect_getusb() if -e '/proc/bus/usb/devices';
+hwdetect_getusb();
 hwdetect_getdisks();
-hwdetect_swapon() if ($haveswap > 0);
+hwdetect_swapon();
 hwdetect_getmachine();
-hwdetect_writeconf() unless ($probe);
-hwdetect_deinitusb() if ($haveusb > 0);
+hwdetect_writeconf();
+hwdetect_deinitusb();
 hwdetect_deinit();
