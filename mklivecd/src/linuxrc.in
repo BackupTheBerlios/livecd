@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.45 2003/12/05 19:53:21 jaco Exp $
+# $Id: linuxrc.in,v 1.46 2003/12/07 11:24:55 jaco Exp $
 #
 
 ### global variables
@@ -54,7 +54,7 @@ MNTRAMDISK=/ramfs
 
 ### progress indicator
 progress_num=0
-progress_full=27 # our 10, +17 for hwdetect
+progress_full=27 # our 5, +5 for rc.sysinit, +17 for hwdetect
 progress_on=1
 progress_max=65534 # normal: 65534
 
@@ -155,6 +155,10 @@ set_progress() {
 initialise() {
 	busybox mount -n -t proc none /proc
 	busybox --install
+
+	rm -rf /sbin/init
+	mv /sbin/init.dynamic /sbin/init
+
 	docmd   "Setting up kernel parameters" \
 		"echo '0' >/proc/sys/kernel/printk" \
 		"echo '/sbin/modprobe' >/proc/sys/kernel/modprobe" \
@@ -313,166 +317,20 @@ createramdisk() {
 
 	# Check for sufficient memory to mount extra ramdisk for /etc, /home, /root, /var
 	if test -n "$TOTALMEM" -a "$TOTALMEM" -gt "$MINLEFT"; then
-
-		# setup translucency (if available)
-		# Note: for some obscure reason the static insmod cannot
-		#       insert the module, the dynamic version can
-		transmod="/lib/modules/$KERNELVER/kernel/translucency.o"
-		if [ -f $transmod ]; then
-			kmin=`echo $KERNELVER | awk -F'.' '{ print $2 }'`
-			[ $kmin -gt 4 ] && kmin=5
-			/loopfs/sbin/insmod-2$kmin $transmod 2>&1 >/dev/null
-		fi
+		docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
+			"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
+			"mkdir -p $MNTRAMDISK/initrd" \
+			"echo '0x0100' >/proc/sys/kernel/real-root-dev" \
+			"pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
+			"mkdir -p /proc && mount -n -t proc none /proc" \
+			"mkdir -p /dev && mount -n -o bind /initrd/dev /dev" \
+			"cd /" \
+			"ln -s /initrd/bin" \
+			"ln -s /initrd/etc" \
+			"ln -s /initrd/lib" \
+			"ln -s /initrd/sbin" \
+			"ln -s /initrd/usr"
 		set_progress
-
-		if [ -d /proc/sys/translucency ]; then
-			ltmp="/tmp/livecd"
-			docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
-				"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
-				"mkdir -p $MNTRAMDISK/initrd" \
-				"echo '0x0100' >/proc/sys/kernel/real-root-dev" \
-				"pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
-				"mkdir -p /proc && mount -n -t proc none /proc" \
-				"mkdir -p /dev && mount -n -o bind /initrd/dev /dev" \
-				"cd /" \
-				"touch fastboot" \
-				"cd /initrd$MNTLIVECD ; \
-				for d in *; do \
-					if [ -d /initrd$MNTLIVECD/\$d ]; then \
-						case \$d in \
-							dev|proc|mnt|tmp) \
-								;;
-							*) \
-								ln -s /initrd$MNTLIVECD/\$d /\$d || true; \
-								;; \
-						esac \
-					fi \
-				done" \
-				"mkdir -p /mnt/cdrom && mount -n -o bind /initrd$MNTCDROM /mnt/cdrom" \
-				"mkdir -p /tmp && chmod 777 /tmp"
-			set_pogress
-			docmd   "Creating filesystem overlay" \
-				"for t in etc home lib root usr var; do mkdir -p $ltmp/\$t ; done" \
-				"echo '/initrd$MNTLIVECD/etc -> $ltmp/etc' >/proc/sys/translucency/0" \
-				"echo '/initrd$MNTLIVECD/home -> $ltmp/home' >/proc/sys/translucency/1" \
-				"echo '/initrd$MNTLIVECD/lib -> $ltmp/lib' >/proc/sys/translucency/2" \
-				"echo '/initrd$MNTLIVECD/root -> $ltmp/root' >/proc/sys/translucency/3" \
-				"echo '/initrd$MNTLIVECD/usr -> $ltmp/usr' >/proc/sys/translucency/4" \
-				"echo '/initrd$MNTLIVECD/var -> $ltmp/var' >/proc/sys/translucency/5"
-			set_progress
-			docmd   "Creating /var structure" \
-				"mkdir -p /var/lock/subsys" \
-				"mkdir -p /var/log && touch /var/log/wtmp" \
-				"mkdir -p /var/run && touch /var/run/utmp" \
-				"mkdir -p /var/tmp"
-			set_progress
-			docmd   "Creating /etc structure" \
-				"mkdir -p /etc/livecd/hwdetect" \
-				"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
-				"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
-				"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
-				"rm -rf /etc/mtab && touch /etc/mtab" \
-				"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
-				"echo '#!/bin/bash' >/usr/share/harddrake/service_harddrake" \
-				"echo 'exit 0' >>/usr/share/harddrake/service_harddrake"
-			set_progress
-		else
-			docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
-				"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
-				"mkdir -p $MNTRAMDISK/initrd" \
-				"echo '0x0100' >/proc/sys/kernel/real-root-dev" \
-				"pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
-				"cd /" \
-				"touch fastboot" \
-				"mkdir -p /lib" \
-				"cd /initrd$MNTLIVECD/lib ; \
-				for f in *; do \
-					case \$f in \
-						dev-state) \
-							mkdir -p /lib/\$f ; \
-							;; \
-						modules) \
-							mkdir -p /lib/\$f ; \
-							for k in \$f/*; do \
-								if \`echo \$k | grep -q \$f/$KERNELVER\`; then \
-									mkdir -p /lib/\$k ; \
-									for s in \$k/*; do \
-										if [ -f /initrd$MNTLIVECD/lib/\$s ]; then \
-											cp /initrd$MNTLIVECD/lib/\$s /lib/\$s ; \
-											chmod 644 /lib/\$s ; \
-										else \
-											mkdir -p /lib/\$s ; \
-											for d in \`find \$s -type d\`; do \
-												mkdir -p /lib/\$d || true; \
-												for m in \$d/*; do \
-													[ -f /initrd$MNTLIVECD/lib/\$m ] && ln -sf /initrd$MNTLIVECD/lib/\$m /lib/\$m || true; \
-												done \
-											done \
-										fi \
-									done \
-								else \
-									ln -sf /initrd$MNTLIVECD/lib/\$k /lib/\$k || true; \
-								fi \
-							done \
-							;; \
-						*) \
-							ln -sf /initrd$MNTLIVECD/lib/\$f /lib/\$f || true; \
-							;; \
-					esac \
-				done" \
-				"ln -sf /initrd$MNTLIVECD/bin" \
-				"ln -sf /initrd$MNTLIVECD/boot" \
-				"ln -sf /initrd$MNTLIVECD/opt" \
-				"ln -sf /initrd$MNTLIVECD/sbin" \
-				"ln -sf /initrd$MNTLIVECD/usr" \
-				"mkdir -p /dev && mount -n --move /initrd/dev /dev" \
-				"mkdir -p /proc && mount -n --move /initrd/proc /proc" \
-				"mkdir -p /mnt && ln -sf /initrd$MNTCDROM /mnt/cdrom" \
-				"mkdir -p /tmp && chmod 777 /tmp"
-			set_progress
-			docmd   "Creating /var structure" \
-				"mkdir -p /var" \
-				"for d in \`find /initrd$MNTLIVECD/var/ -type d\`; do \
-					d=\${d#/initrd$MNTLIVECD/var/} ; \
-					case \$d in \
-						lib/rpm*|lib/urpmi*|lib/samba*|lib/mysql*) \
-							[ ! -e /var/\$d ] && ln -sf /initrd$MNTLIVECD/var/\$d /var/\$d || true; \
-							;; \
-						cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|yp*) \
-							mkdir -p /var/\$d || true ; \
-							chown --reference=/initrd$MNTLIVECD/var/\$d /var/\$d ; \
-							chmod --reference=/initrd$MNTLIVECD/var/\$d /var/\$d ; \
-							;; \
-						tmp*) \
-							;; \
-						*) \
-							[ ! -e /var/\$d ] && ln -sf /initrd$MNTLIVECD/var/\$d /var/\$d || true; \
-							;; \
-					esac \
-				done" \
-				"mkdir -p /var/lock/subsys" \
-				"mkdir -p /var/log && touch /var/log/wtmp" \
-				"mkdir -p /var/run/netreport && touch /var/run/utmp" \
-				"ln -s /tmp /var/tmp"
-			set_progress
-			docmd   "Creating /etc structure" \
-				"cp -a /initrd$MNTLIVECD/etc /" \
-				"mkdir -p /etc/livecd/hwdetect" \
-				"chmod a+rw /etc" \
-				"rm -rf /etc/fstab && touch /etc/fstab" \
-				"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
-				"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
-				"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
-				"rm -rf /etc/mtab && touch /etc/mtab" \
-				"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
-				"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
-				"rm -rf /etc/rc.d/rc5.d/S05harddrake"
-			set_progress
-			docmd   "Creating user directories" \
-				"cp -a /initrd$MNTLIVECD/root /" \
-				"cp -a /initrd$MNTLIVECD/home /"
-			set_progress
-		fi
 	else
 		$SETCOLOR_FAIL
 		echo ""
@@ -483,73 +341,9 @@ createramdisk() {
 	fi
 }
 
-
-### function to get the value of an option from the kernel command line
-getbootoption() {
-option="$1"
-val=`sed -r -e "s/(.*)${option}=([[:alnum:]-]*)(.*)/\2/i" /proc/cmdline`
-if [ -n "$val" -a "$val" != "`cat /proc/cmdline`" ]
-then
-	echo $val
-	return 0
-else
-	return 1
-fi
-}
-
-### setup for init of the actual mdk image
-setupinit() {
-	# setup the full path as now available
-	export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
-
-	# perform hwdetect if not disabled
-	if `grep -iqv hwdetect=no /proc/cmdline`; then
-		/initrd/usr/sbin/hwdetect
-	fi
-
-	#Don't run depmod (must be run before imaging system)
-	sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
-
-	# Do various other configuration tasks (now that /etc is available)
-	if hostname=`getbootoption hostname`
-	then
-		sed -i.livecd -e "s/\(\S*HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network
-		sed -i.livecd -e "s/\(\S*DHCP_HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network-scripts/ifcfg-eth*
-	fi
-
-	#clean up the shutdown sequence:
-	sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/initrd\\\/\.\*\/\3,;s,/sbin/halt.local,/initrd/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g' /etc/rc.d/init.d/halt
-
-	# restart the splash before MDK init (this is very hacky)
-	silent=`grep -i splash=silent /proc/cmdline`
-	if [ $progress_max -eq 65534 ] && [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
-		echo 0 > /proc/splash
-		. /etc/sysconfig/bootsplash
-		res=`/bin/fbresolution`
-		[ -f /etc/bootsplash/themes/$THEME/config/bootsplash-$res.cfg ] && /sbin/splash -s -u 0 /etc/bootsplash/themes/$THEME/config/bootsplash-$res.cfg
-		echo "silent" >/proc/splash
-	fi
-
-	# do we just want to complete the initrd (debug)?
-	if `grep -iq livecd=initrd /proc/cmdline`; then
-		# exit, allowing us to debug
-		execshell
-	else
-		# clean up /proc (init mounts it via rc.sysinit)
-		docmd   "Unmounting /proc filesystem" \
-			"umount /proc"
-
-		# go to init
-		distro=`cat /etc/redhat-release | awk '{ print $1 }'`
-		echo "Starting $distro Linux init sequence ..."
-		exit 0
-	fi
-}
-
-
 ### main script entry point
 initialise    ""
 printwelcome  ""
 findcloop     ""
 createramdisk ""
-setupinit     ""
+exit 0

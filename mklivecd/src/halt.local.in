@@ -28,64 +28,60 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: halt.local.in,v 1.7 2003/12/05 19:53:21 jaco Exp $
+# $Id: halt.local.in,v 1.8 2003/12/07 11:24:55 jaco Exp $
 #
 
 # Variables
 MNTCDROM="/cdrom"
 MNTLIVECD="/loopfs"
 
-#grep -q noeject /proc/cmdline && exit 0 ||:
-grep -q eject /proc/cmdline || exit 0
+# should we eject the CD?
+EJECT=1
+grep -q noeject /proc/cmdline && EJECT=
 
 # We probably want to be able to localise this:
 MSG="Remove the CD, and press [Enter] to power the computer off"
 
 # Copy the binaries we need
 cp -f /sbin/halt /initrd/sbin
-cp -f /usr/bin/eject /initrd/usr/bin
 
 # Find which device we want to eject:
-#DEVICE=`awk "/initrd\\$MNTCDROM/ {print \$1}" /proc/mounts`
-
-# these are valid, but invalid for ash :( (FIXME)
-#DEVICE=`grep "$MNTCDROM" /proc/mounts`
-#DEVICE=${DEVICE// *}
+#DEVICE=`cat /proc/mounts | grep /initrd$MNTCDROM | awk '{ print \$1 }'`
 
 # move our /proc and /dev mounts and pivot (setting correct paths)
+echo "Performing initrd pivot"
 mount -n --move /dev /initrd/dev
 mount -n --move /proc /initrd/proc
 mkdir -p /initrd/ramfs
 /initrd/sbin/pivot_root /initrd /initrd/ramfs
 
-# Unmount the filesystems
-# We can unmount proc now
-#echo "Unmounting /proc"
-#umount /proc 2>/dev/null
-
 echo "Unmounting $MNTLIVECD"
-umount $MNTLIVECD #2>/dev/null
+umount $MNTLIVECD 2>/dev/null
 
 # Unload the cloop module before trying to umount/eject CD
-losetup -d /dev/cloop/0
-rmmod cloop
+echo "Removing cloop module"
+losetup -d /dev/cloop/0 2>/dev/null
+rmmod cloop 2>/dev/null
+
+# Turn on autoeject of CD-Rom
+# (Stolen from the knoppix-reboot script)
+for dev in /proc/sys/dev/cdrom*/lock; do
+	[ -f "$dev" ] && echo 0 > "$dev";
+done
+if [ -n "$EJECT" ]; then
+	for dev in /proc/sys/dev/cdrom*/autoeject; do
+		[ -f "$dev" ] && echo 1 > "$dev";
+	done
+fi
 
 echo "Unmounting $MNTCDROM"
-umount $MNTCDROM #2>/dev/null
-
-# Hopefully we are unmounted now, try eject
-echo "Ejecting $DEVICE"
-
-eject $DEVICE #2>/dev/null
-
-ash < /dev/console 1>/dev/console
-
-echo "$MSG"
-read key </dev/console
+umount $MNTCDROM 2>/dev/null
 
 # We can unmount proc now
 echo "Unmounting /proc"
-umount /proc #2>/dev/null
+umount /proc 2>/dev/null
 
-#Hope this works ;-)
-halt -i -d -p >/dev/null #2>/dev/null
+# Hope this works ;-)
+# (We need to cater for reboots as well, currently we
+# shutdown/power-off everything...)
+halt -i -d -p >/dev/null 2>/dev/null

@@ -20,7 +20,7 @@
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.64 2003/12/06 17:33:16 jaco Exp $
+# $Id: mklivecd.in,v 1.65 2003/12/07 11:24:55 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -261,7 +261,7 @@ is_dietlibc_arch() {
 create_initrdimg() {
 	### create initrd
 	echo "* Creating initrd structure..." >&2
-	do_cmd "mkdir -p $INITRDDIR/{bin,dev,etc/livecd/hwdetect,lib/modules,proc,sbin,usr/{bin,sbin}}"
+	do_cmd "mkdir -p $INITRDDIR/{bin,dev,etc/livecd/hwdetect,etc/rc.d/,lib/modules,proc,sbin,usr/{bin,sbin}}"
 	do_cmd "mkdir -p $INITRDDIR/{cdrom,loopfs,ramfs}"
 	if is_dietlibc_arch; then
 		if [[ -n "$kernel26" ]]; then
@@ -276,13 +276,23 @@ create_initrdimg() {
 			do_cp /sbin/insmod.static $INITRDDIR/sbin/insmod
 		fi
 	fi
+
+	# copy all needed files to the initrd
 	do_cp /usr/bin/busybox $INITRDDIR/bin/busybox
 	do_cp_strip /usr/share/mklivecd/linuxrc $INITRDDIR/linuxrc
 	do_cmd "chmod 755 $INITRDDIR/linuxrc"
+	do_cp_strip /usr/share/mklivecd/rc.sysinit $INITRDDIR/etc/rc.d/rc.sysinit
+	do_cmd "chmod 755 $INITRDDIR/etc/rc.d/rc.sysinit"
 	do_cp_strip /usr/sbin/hwdetect $INITRDDIR/usr/sbin/hwdetect
 	do_cmd "chmod 755 $INITRDDIR/usr/sbin/hwdetect"
 	do_cp_strip /usr/share/mklivecd/halt.local $INITRDDIR/sbin/halt.local
 	do_cmd "chmod 755 $INITRDDIR/sbin/halt.local"
+
+	# copy the dynamic init and it's libs
+	do_cp ${rootdir}etc/inittab $INITRDDIR/etc/inittab
+	do_cp ${rootdir}sbin/init $INITRDDIR/sbin/init.dynamic
+	do_cmd "cp -aL ${rootdir}lib/libc.so.6 $INITRDDIR/lib"
+	do_cmd "cp -aL ${rootdir}lib/ld-linux.so.2 $INITRDDIR/lib"
 
 	### modules
 	echo "* Copying initrd kernel modules..." >&2
