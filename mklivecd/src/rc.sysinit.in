@@ -2,7 +2,7 @@
 #
 # LiveCD init (rc.sysinit) script
 #
-# Copyright (C) 2003, Jaco Greeff <jaco@linuxminicd.org>
+# Copyright (C) 2003-2004, Jaco Greeff <jaco@linuxminicd.org>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.6 2004/01/05 09:30:36 jaco Exp $
+# $Id: rc.sysinit.in,v 1.7 2004/01/05 09:31:30 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin

@@ -2,7 +2,7 @@
 #
 # LiveCD startup (linuxrc) script
 #
-# Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>
+# Copyright (C) 2002-2004, Jaco Greeff <jaco@linuxminicd.org>
 # Copyright (C) 2003, Buchan Milne <bgmilne@cae.co.za>
 #
 #    This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.54 2004/01/05 09:30:36 jaco Exp $
+# $Id: linuxrc.in,v 1.55 2004/01/05 09:31:30 jaco Exp $
 #
 
 ### global variables
