@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.62 2004/01/10 09:12:39 jaco Exp $
+# $Id: linuxrc.in,v 1.63 2004/01/11 13:24:53 jaco Exp $
 #
 
 ### global variables
@@ -160,7 +160,7 @@ loadmod() {
 	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
 	[ ! -f $MODULE ] && return 1
 	if [ -n "$DEBUG" ]; then
-		echo -n "$MODULE "
+		echo -n "$MODULE: "
 		insmod $MODULE $2 && return 0 || return 1
 	else
 		(insmod $MODULE $2 2>&1)>/dev/null && return 0 || return 1
