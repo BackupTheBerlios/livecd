@@ -1,4 +1,4 @@
-# $Id: BOOTCODES,v 1.9 2004/01/22 05:09:14 jaco Exp $
+# $Id: BOOTCODES,v 1.10 2004/01/23 08:43:58 jaco Exp $
 
 LiveCD bootcodes: These codes allow you to override the LiveCD
 defaults to modify the boot process for your specific needs. The
@@ -151,6 +151,12 @@ livecd nodetect         Don't run the hardware detection script,
 			booting with the default hardware
 			configuration as stored on the LiveCD.
 
+livecd nonetwork        Don't probe/detect network cards
+
+livecd nopcmcia         Don't probe/detect PCMCIA devices
+
+livecd nosound          Don't probe/detect sound cards
+
 livecd noscsi           Disable the probing of SCSI devices at boot.
 			Do not use this option when booting from a
 			SCSI device since the boot will fail.
@@ -158,8 +164,6 @@ livecd noscsi           Disable the probing of SCSI devices at boot.
 livecd nousb            Disable the probing of USB devices at boot.
 			Do not use this option when booting from a
 			USB device since the boot will fail.
-			
-livecd nopcmcia         Disable the probing of PCMCIA devices at boot.
 
 livecd safex		Don't allow our specified xbpp, xres result in
 			an invalid configuration. If the user-specified

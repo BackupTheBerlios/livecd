@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.102 2004/01/23 05:13:25 jaco Exp $
+# $Id: hwdetect.in,v 1.103 2004/01/23 08:43:58 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -433,7 +433,7 @@ sub hwdetect_probepci() {
 }
 
 sub hwdetect_initpcmcia() {
-	if ($havepcmcia > 0) {
+	if (($havepcmcia > 0) && !defined($cmdline{'nopcmcia'})) {
 		print "Initialising PCMCIA controllers: ";
 		print_success();
 		print "    Loading base PCMCIA modules: ";
@@ -449,7 +449,7 @@ sub hwdetect_initpcmcia() {
 }
 
 sub hwdetect_initusb() {
-	if ($haveusb > 0) {
+	if (($haveusb > 0) && !defined($cmdline{'nousb'})) {
 		print "Initialising USB controllers: ";
 		if (-e '/proc/bus/usb') {
 			print_success();
@@ -478,7 +478,7 @@ sub hwdetect_initusb() {
 
 sub hwdetect_deinitusb() {
 	if (($haveusb > 0) &&
-	    -e '/proc/bus/usb') {
+	    -e '/proc/bus/usb' && !defined($cmdline{'nousb'})) {
 		umount("Unmounting USB filesystem", "/proc/bus/usb") if ($ownprocusb > 0);
 	}
 	set_progress();
@@ -679,60 +679,64 @@ sub hwdetect_getxfree {
 }
 
 sub hwdetect_getsound {
-	print "Detecting sound cards: ";
 	my @probed_cards = ();
-	eval { @probed_cards = hwdetect_get_mediatype('MULTIMEDIA_AUDIO'); };
-	print scalar(@probed_cards)." found";
-	scalar @probed_cards ? print_success() : print_failed();
-	system("rm -rf /etc/rc.d/rc?.d/*alsa /etc/rc.d/rc?.d/sound") unless (scalar(@probed_cards) || $probe);
-	my $num = 0;
-	foreach my $card (@probed_cards) {
-		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
-		my $driver = $card->{driver};
-		$driver = $cmdline{'sound'} if (defined($cmdline) && defined($cmdline{'sound'}));
-		$driver = $cmdline{sound$num} if (defined($cmdline) && defined($cmdline{sound$num}));
-		modules::add_alias("sound-slot-$num", $driver);
-		print "modules::add_alias('sound-slot-$num', '$driver')\n" if ($debug);
-		if ($card->{options} && ($driver eq $card->{driver})) {
-			modules::set_options($driver, $card->{options}); 
-			print "modules::set_options($driver, ".$card->{options}.")\n" if ($debug);
+	unless (defined($cmdline{'nosound'})) {
+		print "Detecting sound cards: ";
+		eval { @probed_cards = hwdetect_get_mediatype('MULTIMEDIA_AUDIO'); };
+		print scalar(@probed_cards)." found";
+		scalar @probed_cards ? print_success() : print_failed();
+		system("rm -rf /etc/rc.d/rc?.d/*alsa /etc/rc.d/rc?.d/sound") unless (scalar(@probed_cards) || $probe);
+		my $num = 0;
+		foreach my $card (@probed_cards) {
+			my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
+			my $driver = $card->{driver};
+			$driver = $cmdline{'sound'} if (defined($cmdline) && defined($cmdline{'sound'}));
+			$driver = $cmdline{sound$num} if (defined($cmdline) && defined($cmdline{sound$num}));
+			modules::add_alias("sound-slot-$num", $driver);
+			print "modules::add_alias('sound-slot-$num', '$driver')\n" if ($debug);
+			if ($card->{options} && ($driver eq $card->{driver})) {
+				modules::set_options($driver, $card->{options}); 
+				print "modules::set_options($driver, ".$card->{options}.")\n" if ($debug);
+			}
+			
+			# sound card specifics not defaulted in MDK
+			modules::set_options('snd-via82xx', 'index=0 dxs_support=2') if ($driver =~ /via82xx/);
+			modules::set_options('snd-card-intel8x0', 'snd_ac97_clock=41194') if ($driver =~ /intel8x0/);
+			
+			$num++;
+			# hwdetect_loadmod($card->{driver}, ...) makes alsa break since the init scripts
+			# want to load the correct module.
+			hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
+			print_hash($card) if ($debug);
 		}
-		
-		# sound card specifics not defaulted in MDK
-		modules::set_options('snd-via82xx', 'index=0 dxs_support=2') if ($driver =~ /via82xx/);
-		modules::set_options('snd-card-intel8x0', 'snd_ac97_clock=41194') if ($driver =~ /intel8x0/);
-		
-		$num++;
-		# hwdetect_loadmod($card->{driver}, ...) makes alsa break since the init scripts
-		# want to load the correct module.
-		hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
-		print_hash($card) if ($debug);
 	}
 	set_progress();
 }
 
 sub hwdetect_getnetwork {
-	print "Detecting network cards: ";
 	my @probed_cards = ();
-	eval { @probed_cards = hwdetect_get_mediatype('NETWORK_ETHERNET|NETWORK_OTHER'); };
-	print scalar(@probed_cards)." found";
-	scalar @probed_cards ? print_success() : print_failed();
-	system("rm -rf /etc/rc.d/rc?.d/*network") unless (scalar(@probed_cards) || $probe);
-	my $num = 0;
-	foreach my $card (@probed_cards) {
-		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
-		my $driver = $card->{driver};
-		$driver = $cmdline{'eth'} if (defined($cmdline) && defined($cmdline{'eth'}));
-		$driver = $cmdline{eth$num} if (defined($cmdline) && defined($cmdline{eth$num}));
-		
-		modules::add_alias("eth$num", $driver) unless ($probe);
-		print "modules::add_alias('eth$num', '$driver')\n" if ($debug);
-		
-		$num++;
-		# don't loaded driver, only add to /etc/modules.conf (as with sound)
-		hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
-		print_hash($card) if ($debug);
+	unless (defined($cmdline{'nonetwork'})) {
+		print "Detecting network cards: ";
+		eval { @probed_cards = hwdetect_get_mediatype('NETWORK_ETHERNET|NETWORK_OTHER'); };
+		print scalar(@probed_cards)." found";
+		scalar @probed_cards ? print_success() : print_failed();
+		my $num = 0;
+		foreach my $card (@probed_cards) {
+			my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
+			my $driver = $card->{driver};
+			$driver = $cmdline{'eth'} if (defined($cmdline) && defined($cmdline{'eth'}));
+			$driver = $cmdline{eth$num} if (defined($cmdline) && defined($cmdline{eth$num}));
+			
+			modules::add_alias("eth$num", $driver) unless ($probe);
+			print "modules::add_alias('eth$num', '$driver')\n" if ($debug);
+			
+			$num++;
+			# don't loaded driver, only add to /etc/modules.conf (as with sound)
+			hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
+			print_hash($card) if ($debug);
+		}
 	}
+	system("rm -rf /etc/rc.d/rc?.d/*network") unless (scalar(@probed_cards) || $probe);
 	set_progress();
 }
 
@@ -759,7 +763,7 @@ sub hwdetect_getserial {
 }
 
 sub hwdetect_getusb {
-	if (-e '/proc/bus/usb/devices') {
+	if (-e '/proc/bus/usb/devices' && !defined($cmdline{'nousb'})) {
 		print "Detecting USB devices: ";
 		my @probed_devices = ();
 		eval { @probed_devices = hwdetect_get_bustype('USB'); };

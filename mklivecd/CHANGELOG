@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.111 2004/01/22 05:09:14 jaco Exp $
+# $Id: CHANGELOG,v 1.112 2004/01/23 08:43:58 jaco Exp $
 
 * Wed, Jan 21, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@obsidian.co.za>:
@@ -84,6 +84,8 @@
         is specified
       - Allow specification of the sound module with the sound{x} option
       - Allow specification of the network module with the eth{x} option
+      - Don't detect network cards when 'nonetwork' is specified
+      - Don't detect sound cards when 'nosound' is specified
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
