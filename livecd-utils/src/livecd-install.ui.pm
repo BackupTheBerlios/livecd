@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.38 2004/09/06 19:27:54 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.39 2004/09/07 01:44:26 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -807,7 +807,7 @@ image=$kernel
 	root=$rootpart
 	initrd=$initrd
 	append=\"devfs=mount splash=silent\"
-	vga=791
+	vga=788
 	read-only
 ";
 		# Add other partitions if installing to MBR
