@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.77 2004/09/30 01:35:14 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.78 2004/10/13 04:12:54 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -69,8 +69,8 @@ MKLIVECDVER="@MKLIVECDVER@"
 NAME_VERSION_STR="@NAME_VERSION_STR@"
 CLOOPVER="@CLOOPVER@"
 
-MNTCDROM=/cdrom
-MNTLIVECD=/loopfs
+MNTCDROM=initrd/cdrom
+MNTLIVECD=initrd/loopfs
 MNTRAMDISK=/ramfs
 KERNEL26=
 MODEXT=".o"
@@ -140,7 +140,7 @@ printfail() {
 }
 
 
-### execute a command/commands printing the sucess or failure msg on completion
+### execute a command/commands printing the success or failure msg on completion
 docmd() {
 	echo -n "$1: "
 	shift
@@ -187,10 +187,14 @@ initialise() {
 	busybox mount -n -t proc none /proc
 	busybox --install
 
+	echo "--- MKLIVECD LINUXRC ---------------"
 	rm -rf /sbin/init
 	mv /sbin/init.dynamic /sbin/init
+	# Unhide the udev files
+	docmd "  Restoring udev files" \
+	      "mv /sbin/tmp/* /sbin"
 
-	docmd   "Setting up kernel parameters" \
+	docmd   "  Setting up kernel parameters" \
 		"echo '0' >/proc/sys/kernel/printk" \
 		"echo '/sbin/modprobe' >/proc/sys/kernel/modprobe" \
 		"exec >/dev/console </dev/console 2>&1"
@@ -237,16 +241,20 @@ execshell() {
 
 	# find the best shell available to us at this point
 	if [ -e /bin/bash ]; then
+		echo "  Loading /bin/bash"
 		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
 		SHELL="/bin/bash"
 	elif [ -e /initrd/bin/ash ]; then
+		echo "  Loading /initrd/bin/ash"
 		export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
 		SHELL="/initrd/bin/ash"
 	else
 		export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 		if [ -e /bin/ash ]; then
+			echo "  Loading /bin/ash"
 			SHELL="/bin/ash"
 		else
+			echo "  Loading /bin/busybox ash"
 			SHELL="/bin/busybox ash"
 		fi
 	fi
@@ -259,7 +267,7 @@ checkmd5() {
 	if [ -f $MNTCDROM/$MEDIACHECK ]; then
 		domd5=`grep -iq md5sum /proc/cmdline && echo 1`
 		if [ -n "$domd5" ]; then
-			echo -n "Verifying MD5 checksum of iso image: "
+			echo -n "  Verifying MD5 checksum of iso image: "
 			$MNTCDROM/$MEDIACHECK $CDDEV && printok || printfail
 		fi
 	fi
@@ -268,12 +276,185 @@ checkmd5() {
 
 ### find the cloop device
 findcloop() {
-	# all devices changed to take advantage of devfs
+if [ $KERNEL26 ]; then
+
+#1. Search for cdrom devices and add them to CDROM_LIST
+CDROM_LIST=""
+
+# Search in proc tree for ide cdrom devices. There used to be a section for devfs, but this was
+# edited for udev. Actually we should probably not use /proc anymore, but use sysfs instead...
+# Perhaps in the future;)
+        # a) Load basic modules.
+        echo -n "  Loading basic cdrom modules for Kernel 2.6"
+        for i in $OPT_MODULES; do
+                loadmod $i
+        done
+        set_progress
+
+        ALL_LOADED=1
+        for i in $DEP_MODULES; do
+                loadmod $i || ALL_LOADED=
+        done
+        sleep 2
+        [ -n "$ALL_LOADED" ] && printloaded || printfail
+        set_progress
+
+        # b) Probe the USB devices.
+        dousb=`grep -iq nousb /proc/cmdline || echo 1`
+        if [ -n "$dousb" ]; then
+                echo -n "  Probing USB devices: "
+                USB_FOUND=1
+                for i in $USB_MODULES; do
+                        loadmod $i || USB_FOUND=
+                done
+                sleep 1
+                for i in $USB_MODULES_DRV; do
+                        loadmod $i
+                done
+                sleep 1
+                [ -n "$USB_FOUND" ] && printloaded || printok
+        fi
+        set_progress
+
+        # c) Probe the SCSI devices.
+        doscsi=`grep -iq noscsi /proc/cmdline || echo 1`
+        if [ -n "$doscsi" ]; then
+                echo -n "  Probing SCSI devices: "
+                SCSI_FOUND=
+                for i in $SCSI_MODULES; do
+                        loadmod $i && SCSI_FOUND=1
+                done
+                sleep 1
+                [ -n "$SCSI_FOUND" ] && printloaded || printok
+        fi
+        set_progress
+
+  # Check for ide channels.
+  for ide_channel in /proc/ide/ide[0-9]
+  do
+
+    # If there are no ide channels found, then skip this
+    if [ ! -d "$ide_channel" ]; then
+	echo "  No ide channels found"
+     break
+    fi
+
+    # Try each ide device to see if we can find the cd-rom drive
+    for ide_device in hda hdb hdc hdd  #hde hdf hdg hdh hdi hdj hdk hdl hdm hdn
+    do
+      device_media_file="$ide_channel/$ide_device/media"
+      if [ -e "$device_media_file" ]; then
+        grep -i "cdrom" $device_media_file > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            CDROM_LIST="$CDROM_LIST /dev/$ide_device"
+        fi
+      fi
+    done
+  done
+
+  # Check for scsi cds
+  for scsi_cdrom in /dev/scd[0-99]
+  do
+    if [ -e "$scsi_cdrom" ]; then
+      CDROM_LIST="$CDROM_LIST $scsi_cdrom"
+    fi
+  done
+
+  echo -n "  CDROMs found: $CDROM_LIST"
+  printok
+
+#2. Now try to find the boot CD (we use ID as identification)
+   echo -n "  Finding loop image: "
+        for i in $CDROM_LIST; do
+                CDDEV="$i"
+                $MOVE_TO_COL
+                $SETCOLOR_WARN
+                echo "$i"
+                $SETCOLOR_NORMAL
+                ISOTYPE="iso9660"
+		#echo "mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null"
+                if `mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null`; then
+			echo -n "  CDROM mounted"
+                        # try to find either the .iso, .clp, .bzlp or .sqfs loop image
+                        LOOPTYPE=""
+                        if [ -f $MNTCDROM/$BASEIMG$LOOPBEXT ]; then
+                                LOOPTYPE="$LOOPBEXT"
+                                DEVLOOP="/dev/bzloop/0"
+                                LOOPMOD="bzloop"
+                        elif [ -f $MNTCDROM/$BASEIMG$LOOPCEXT ]; then
+                                LOOPTYPE="$LOOPCEXT"
+                                DEVLOOP="/dev/cloop/0"
+                                LOOPMOD="cloop"
+                        elif [ -f $MNTCDROM/$BASEIMG$LOOPSEXT ]; then
+                                LOOPTYPE="$LOOPSEXT"
+                                DEVLOOP="/dev/loop/0"
+                                LOOPMOD="squashfs"
+                                ISOTYPE="squashfs"
+                        elif [ -f $MNTCDROM/$BASEIMG$LOOPIEXT ]; then
+                                LOOPTYPE="$LOOPIEXT"
+                                DEVLOOP="/dev/loop/0"
+                                LOOPMOD=
+			else echo "$BASEIMG$LOOPTYPE NOT FOUND on $i"
+                        fi
+
+                        # if it exists, load the correct module and mount
+                        if [ -n "$LOOPTYPE" ]; then
+                                FOUND_ISO="$i"
+                                printok
+
+                                checkmd5 ""
+
+                                if [ -n "$LOOPMOD" ]; then  # -n (not null string)
+                                        echo -n "  Loading compressed loop module: "
+                                        loadmod $LOOPMOD && printloaded || printfail
+                                fi
+
+                                echo -n "  Mounting loop image on /$MNTLIVECD: "
+                                if [ -e "$DEVLOOP" ]; then
+					#echo "  Detaching loop device: losetup -d $DEVLOOP"
+					#losetup -d $DEVLOOP
+					#echo "  losetup $DEVLOOP $MNTCDROM/$BASEIMG$LOOPTYPE"
+                                        losetup $DEVLOOP $MNTCDROM/$BASEIMG$LOOPTYPE 
+					#echo "  mount -r -t $ISOTYPE $DEVLOOP $MNTLIVECD" 
+                                        mount -r -t $ISOTYPE $DEVLOOP $MNTLIVECD && LOOPMNT=1
+                                fi
+
+                                # did we get it?
+				#if [ 1 ]; then   # force shell ZZ
+                                if [ -z "$LOOPMNT" ]; then
+                                        printfail
+                                        $SETCOLOR_FAIL
+                                        echo ""
+                                        echo "ERROR: Unable to mount loop filesystem,"
+                                        echo "       Dropping you to a limited shell."
+                                        $SETCOLOR_NORMAL
+                                        execshell
+                                else
+                                        printok
+                                        break
+                                fi
+                        fi
+                        `umount $MNTCDROM 2>&1 >/dev/null`
+                fi
+        done
+
+	if [ -z "$LOOPMNT" ]; then
+		printfail
+		$SETCOLOR_FAIL
+		echo ""
+		echo "ERROR: Unable to mount loop filesystem,"
+		echo "       Dropping you to a limited shell."
+		$SETCOLOR_NORMAL
+		execshell
+	fi
+
+else
+	# KERNEL 2.4 - all devices changed to take advantage of devfs
 	# cdrom devices
 	DEVICES="/dev/cdroms/cdrom?"
 
 	# load basic modules
-	echo -n "Loading basic cdrom modules: "
+	echo -n "  Loading basic cdrom modules for kernel 2.4"
 	for i in $OPT_MODULES; do
 		loadmod $i
 	done
@@ -290,7 +471,7 @@ findcloop() {
 	# probe the USB devices
 	dousb=`grep -iq nousb /proc/cmdline || echo 1`
 	if [ -n "$dousb" ]; then
-		echo -n "Probing USB devices: "
+		echo -n "  Probing USB devices: "
 		USB_FOUND=1
 		for i in $USB_MODULES; do
 			loadmod $i || USB_FOUND=
@@ -307,7 +488,7 @@ findcloop() {
 	# probe the SCSI devices
 	doscsi=`grep -iq noscsi /proc/cmdline || echo 1`
 	if [ -n "$doscsi" ]; then
-		echo -n "Probing SCSI devices: "
+		echo -n "  Probing SCSI devices: "
 		SCSI_FOUND=
 		for i in $SCSI_MODULES; do
 			loadmod $i && SCSI_FOUND=1
@@ -318,7 +499,7 @@ findcloop() {
 	set_progress
 
 	# do the loop
-	echo -n "Finding loop image: "
+	echo -n "  Finding loop image: "
 	for i in $DEVICES; do
 		CDDEV="$i"
 		$MOVE_TO_COL
@@ -356,11 +537,11 @@ findcloop() {
 				checkmd5 ""
 
 				if [ -n "$LOOPMOD" ]; then
-					echo -n "Loading compressed loop module: "
+					echo -n "  Loading compressed loop module: "
 					loadmod $LOOPMOD && printloaded || printfail
 				fi
 
-				echo -n "Mounting loop image on $MNTLIVECD: "
+				echo -n "  Mounting loop image on $MNTLIVECD: "
 				if [ -e "$DEVLOOP" ]; then
 					losetup $DEVLOOP $MNTCDROM/$BASEIMG$LOOPTYPE && \
 					mount -r -t $ISOTYPE $DEVLOOP $MNTLIVECD && LOOPMNT=1
@@ -372,7 +553,7 @@ findcloop() {
 					$SETCOLOR_FAIL
 					echo ""
 					echo "ERROR: Unable to mount loop filesystem,"
-					echo "       dropping you to a limited shell."
+					echo "       Dropping you to a limited shell."
 					$SETCOLOR_NORMAL
 					execshell
 				else
@@ -388,10 +569,11 @@ findcloop() {
 		$SETCOLOR_FAIL
 		echo ""
 		echo "ERROR: Unable to find the compressed CD filesystem,"
-		echo "       dropping you to a limited shell."
+		echo "       Dropping you to a limited shell."
 		$SETCOLOR_NORMAL
 		execshell
 	fi
+fi
 	set_progress
 }
 
@@ -399,7 +581,7 @@ findcloop() {
 ### create /initrd/ramfs
 createramdisk() {
 	# how much memory do we have?
-	echo -n "Calculating usable memory"
+	echo -n "  Creating ramdisk -  usable memory"
 	FOUNDMEM="$(awk '/MemTotal/{print $2}' /proc/meminfo)"
 	TOTALMEM="$(awk 'BEGIN{m=0};/MemFree|Cached/{m+=$2};END{print m}' /proc/meminfo)"
 	MAXSIZE="$(expr $TOTALMEM - $MINLEFT)"
@@ -412,29 +594,63 @@ createramdisk() {
 
 	# Check for sufficient memory to mount extra ramdisk for /etc, /home, /root, /var
 	if test -n "$TOTALMEM" -a "$TOTALMEM" -gt "$MINLEFT"; then
-		docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
+	   if [ $KERNEL26 ]; then 
+		docmd   "  Creating 2.6 root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
 			"mkdir -p $MNTRAMDISK" \
 			"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
 			"mkdir -p $MNTRAMDISK/initrd" \
 			"echo '0x0100' >/proc/sys/kernel/real-root-dev" \
 			"pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
 			"mkdir -p /proc && mount -n -t proc none /proc" \
-			"mkdir -p /dev && mount -n -t devfs none /dev" \
-			"mkdir -p /sys /udev" \
+			"mkdir -p /sys && mount -n -t sysfs none /sys" \
 			"mkdir -p /tmp && chmod 777 /tmp" \
+			"mkdir -p /dev && mount -n -t tmpfs none /dev" \
 			"cd /" \
 			"ln -s /initrd/bin" \
 			"ln -s /initrd/boot" \
 			"ln -s /initrd/etc" \
 			"ln -s /initrd/opt" \
 			"ln -s /initrd/lib" \
-			"ln -s /initrd/sbin"
+			"ln -s /initrd/sbin" 
+
+		docmd	"  Making extra nodes" \
+			"ln -s /proc/self/fd /dev/fd" \
+			"ln -s /proc/self/fd/0 /dev/stdin" \
+			"ln -s /proc/self/fd/1 /dev/stdout" \
+			"ln -s /proc/self/fd/2 /dev/stderr" \
+			"ln -s /proc/kcore /dev/core" 
+
+			if [ ! -x /sbin/hotplug ]; then
+				echo /sbin/udev > /proc/sys/kernel/hotplug
+			fi
+		docmd	"  Starting udevstart" \
+			"/sbin/udevstart 2>&1"   # remove 2>&1  and ()? to see messages
+
+	    else # 2.4 kernel
+                docmd   "  Creating 2.4 root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
+                        "mkdir -p $MNTRAMDISK" \
+                        "mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
+                        "mkdir -p $MNTRAMDISK/initrd" \
+                        "echo '0x0100' >/proc/sys/kernel/real-root-dev" \
+                        "pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
+                        "mkdir -p /proc && mount -n -t proc none /proc" \
+                        "mkdir -p /dev && mount -n -t devfs none /dev" \
+                        "mkdir -p /sys /udev" \
+                        "mkdir -p /tmp && chmod 777 /tmp" \
+                        "cd /" \
+                        "ln -s /initrd/bin" \
+                        "ln -s /initrd/boot" \
+                        "ln -s /initrd/etc" \
+                        "ln -s /initrd/opt" \
+                        "ln -s /initrd/lib" \
+                        "ln -s /initrd/sbin"
+	    fi 
 		set_progress
 	else
 		$SETCOLOR_FAIL
 		echo ""
 		echo "ERROR: Insufficient memory to create ramdisk,"
-		echo "       dropping you to a limited shell."
+		echo "       Dropping you to a limited shell."
 		$SETCOLOR_NORMAL
 		execshell
 	fi
@@ -443,6 +659,7 @@ createramdisk() {
 ### main script entry point
 initialise    ""
 printwelcome  ""
-findcloop     ""
 createramdisk ""
+findcloop     ""
+/initrd/etc/rc.d/rc.sysinit
 exit 0

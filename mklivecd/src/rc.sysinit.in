@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.31 2004/10/07 18:35:36 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.32 2004/10/13 04:12:54 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -45,6 +45,13 @@ progress_num=@VAL_SPLASH_LINUXRC@
 progress_full=@VAL_SPLASH_FULL@
 progress_max=@MAX_SPLASH@
 progress_on=1
+
+### some kernel specifics
+KVMAJOR=`expr "$KERNELVER" : "\([^.]\+\)\..*"`
+KVMINOR=`expr "$KERNELVER" : "[^.]\+\.\([^.]\+\)\..*"`
+if [ $KVMAJOR -eq 2 ] && [ $KVMINOR -lt 5 ]; then
+	KERNEL24=1
+fi
 
 ### print a success msg
 printok() {
@@ -184,7 +191,7 @@ setupdir_dir() { # rootdir
 
 ### setup an /etc structure
 setupdir_etc() {
-	echo -n "Building /etc structure: "
+	echo -n "  Building /etc structure: "
 	
 	if [ -n "$COW" ]; then
 		setupdir_cow "etc" "dmask=755"
@@ -192,15 +199,23 @@ setupdir_etc() {
 		rm -rf /etc && cp -a $MNTLIVECD/etc /
 		chmod a+rw /etc
 	fi
-	
+
 	mkdir -p /etc/livecd/hwdetect
 	rm -rf /etc/fstab && touch /etc/fstab
-        echo '### rc.sysinit.in' >/etc/fstab
-	echo 'none      /proc    proc   defaults  0 0' >>/etc/fstab
-	echo 'none      /dev     devfs  defaults  0 0' >>/etc/fstab
-	echo 'none      /sys     sysfs  defaults  0 0' >>/etc/fstab
-	echo 'none      /dev/pts devpts mode=0620 0 0' >>/etc/fstab
-	echo '/dev/rd/3 /        tmpfs  defaults  0 0' >>/etc/fstab
+
+        echo '### LIVECD rc.sysinit ###' >/etc/fstab
+	if [ "$KERNEL24" = "1" ]; then
+		echo 'none      /proc    proc   defaults  0 0' >>/etc/fstab
+		echo 'none      /dev     devfs  defaults  0 0' >>/etc/fstab
+		echo 'none      /dev/pts devpts mode=0620 0 0' >>/etc/fstab
+		echo '/dev/rd/3 /        tmpfs  defaults  0 0' >>/etc/fstab
+	else
+		echo 'none      /proc    proc   defaults  0 0' >>/etc/fstab
+		echo 'none      /sys     sysfs  defaults  0 0' >>/etc/fstab
+		echo 'none      /dev/pts devpts mode=0620 0 0' >>/etc/fstab
+		echo '/dev/rd/3 /        tmpfs  defaults  0 0' >>/etc/fstab
+	fi
+
 	rm -rf /etc/mtab && ln -s /proc/mounts /etc/mtab
 	rm -rf /etc/modules.conf && touch /etc/modules.conf
 	rm -rf /etc/rc.d/rc3.d/S05harddrake
@@ -213,7 +228,7 @@ setupdir_etc() {
 
 ### setup the /home structure
 setupdir_home() {
-	echo -n "Building /home structure: "
+	echo -n "  Building /home structure: "
 	
 	if [ -n "$COW" ]; then
 		setupdir_cow "home" "fmask=666,dmask=777"
@@ -228,7 +243,7 @@ setupdir_home() {
 
 ### setup the /lib structure
 setupdir_lib() {
-	echo -n "Building /lib structure: "
+	echo -n "  Building /lib structure: "
 		
 	if [ -n "$COW" ]; then
 		setupdir_cow "lib" "dmask=755"
@@ -279,14 +294,13 @@ setupdir_lib() {
 
 ### setup the /root structure
 setupdir_root() {
-	echo -n "Building /root structure: "
+	echo -n "  Building /root structure: "
 	
 	if [ -n "$COW" ]; then
 		setupdir_cow "root"
 	else
-		# ln -s $MNTLIVECD/root/ /root # link these because of 
-		cp -a  $MNTLIVECD/root /   # problem copying .img files in /root/drakx
-		# if this cp hangs, remove /root/drakx/*.img files
+		#execshell
+		cp -a $MNTLIVECD/root / 
 	fi
 	
 	printok
@@ -296,7 +310,7 @@ setupdir_root() {
 
 ### setup a /var structure
 setupdir_var() {
-	echo -n "Building /var structure: "
+	echo -n "  Building /var structure: "
 	if [ -n "$COW" ]; then
 		setupdir_cow "var" "dmask=777,fmask=666"
 	else
@@ -347,7 +361,7 @@ setuproot() {
 			COW=1
 			FSROOT="/tmp/.livecdfs"
 			FSLOG="$FSROOT/trace."
-			docmd   "Initialising overlay filesystem" \
+			docmd   "  Initialising overlay filesystem" \
 				"mkdir -p $FSROOT" \
 				"cp -a $MNTLIVECD/etc/alternatives /etc" \
 				"rm -rf /lib  && ln -sf $MNTLIVECD/lib  /lib"  \
@@ -362,7 +376,7 @@ setuproot() {
 		d=${d#$MNTLIVECD/}
 		if [ -d $MNTLIVECD/$d ]; then
 			case $d in
-				dev|proc|sys|mnt|tmp|udev|initrd)
+				dev|proc|sys|mnt|tmp|udev|initrd)	# Remain in RAM
 					;;
 				etc)
 					setupdir_etc
@@ -379,7 +393,7 @@ setuproot() {
 				var)
 					setupdir_var
 					;;
-				*)
+				*)					# Any extra/custom
 					setupdir_dir $d
 					;;
 			esac
@@ -387,7 +401,7 @@ setuproot() {
 			cp $MNTLIVECD/$d /
 		fi
 	done
-	
+
 	touch /fastboot
 	mkdir -p /mnt && ln -sf $MNTCDROM /mnt/cdrom
 	
@@ -397,13 +411,20 @@ setuproot() {
 
 ### setup for init of the actual mdk image
 setupinit() {
+
 	# perform hwdetect if not disabled
 	if `/bin/grep -iqv hwdetect=no /proc/cmdline && /bin/grep -iqv nodetect /proc/cmdline`; then
 		OLDPATH=$PATH
 		export PATH=/sbin:/usr/sbin:/bin:/usr/bin
-		echo  "rc.sysinit - setupinit() -Starting hwdetect"
-		/initrd/usr/sbin/hwdetect 
-		echo  "rc.sysinnit - Done with hwdetect"
+
+		if [ -e "/initrd/usr/sbin/hwdetect" ]; then
+			echo  "Starting hwdetect ----------------"
+			/initrd/usr/sbin/hwdetect 
+			echo  "Done with hwdetect ---------------"
+		else
+			echo "Skipping hwdetect ---"
+		fi
+
 		export PATH=$OLDPATH
 	fi
 
@@ -441,19 +462,20 @@ setupinit() {
 	fi
 	
 	# clean up /proc (init mounts it via rc.sysinit)
-	docmd   "Unmounting /proc filesystem" \
+	docmd   "  Unmounting /proc filesystem" \
 		"umount /proc"
 
 	# display some info
 	distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
-	echo "Starting $distro Linux init sequence ..."
+	echo "  Starting $distro Linux init sequence ..."
 
 	# setup the full path as now available and start distro boot
 	export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
 	/etc/rc.d/rc.sysinit
 }
-echo "-------------- rcsysinit --------------"
+echo "--- MKLIVECD RC.SYSINIT ------------"
 setuproot ""
 setupinit ""
-sleep 5
+echo "--- Exiting MKLIVECD RC.SYSINIT ----"
+sleep 2
 exit 0

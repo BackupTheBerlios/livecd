@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.120 2004/10/07 18:35:36 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.121 2004/10/13 04:12:54 tom_kelly33 Exp $
 #
 
 use strict;
@@ -33,7 +33,7 @@ use Getopt::Long;
 use threads;
 use threads::shared;
 
-### usefull functions
+### useful functions
 sub get_exec { my $r = qx($_[0]); chomp($r); $r; };
 sub cat_ { local *F; open F, $_[0] or return; my @l = <F>; wantarray() ? @l : join('', @l); };
 
@@ -497,7 +497,6 @@ sub check_kernel {
 		$modext = ".ko";
 		$modules = $modules_26;
 		$modules_opt = $modules_opt_26;
-		#print STDERR "\nWARNING: Using a 2.6.x kernel for the LiveCD is currently not recommended";
 	}
 	else {
 		$depmod = "/sbin/depmod";
@@ -624,15 +623,35 @@ sub create_initrd {
 	do_copy($o_root."lib/libc.so.6",            0, "$dir/lib",                     ++$pos);
 	do_copy($o_root."lib/ld-linux.so.2",        0, "$dir/lib",                     ++$pos);
 	do_copy("/usr/sbin/lufsd.livecdfs",       755, "$dir/usr/sbin/lufsd.livecdfs", ++$pos) if (defined($opts{experimental}));
+	if ($kernel26 == 1) {
+		# Copy but hide the udev binaries
+		do_cmd("mkdir $dir/sbin/tmp",			++$pos);
+		do_copy($o_root."/sbin/udev*",	  755, "$dir/sbin/tmp",			++$pos);
 
-	# create devices
-	do_cmd("mknod $dir/dev/initrd b 1 250", ++$pos);
-	do_cmd("mknod $dir/dev/console c 5 1",  ++$pos);
-	do_cmd("mknod $dir/dev/null c 1 3",     ++$pos);
-	do_cmd("mknod $dir/dev/systty c 4 0",   ++$pos);
-	do_cmd("mknod $dir/dev/ram b 1 1",      ++$pos);
-	do_cmd("mknod $dir/dev/tty$_ c 4 $_",   ++$pos) foreach((1,2,3,4));
-	do_cmd("mknod $dir/dev/lvm b 109 0",    ++$pos);
+		do_cmd("cp -a $o_root/etc/udev $dir/etc",	++$pos); 
+		do_cmd("cp -a $o_root/etc/dev.d $dir/etc",	++$pos);
+		do_cmd("cp -a $o_root/etc/hotplug $dir/etc",	++$pos);
+		do_cmd("cp -a $o_root/etc/hotplug.d $dir/etc",	++$pos);
+		do_cmd("cp -a $o_root/etc/sysconfig $dir/etc",	++$pos);
+
+		do_cmd("mknod $dir/dev/initrd b 1 250", ++$pos);
+		do_cmd("mknod $dir/dev/console c 5 1",  ++$pos);
+		do_cmd("mknod $dir/dev/null c 1 3",     ++$pos);
+		do_cmd("mknod $dir/dev/systty c 4 0",   ++$pos);
+		do_cmd("mknod $dir/dev/ram b 1 1",      ++$pos);
+		do_cmd("mknod $dir/dev/tty$_ c 4 $_",   ++$pos) foreach((1,2,3,4));
+		do_cmd("mknod $dir/dev/lvm b 109 0",    ++$pos);
+
+	} else {
+		# create devices
+		do_cmd("mknod $dir/dev/initrd b 1 250", ++$pos);
+		do_cmd("mknod $dir/dev/console c 5 1",  ++$pos);
+		do_cmd("mknod $dir/dev/null c 1 3",     ++$pos);
+		do_cmd("mknod $dir/dev/systty c 4 0",   ++$pos);
+		do_cmd("mknod $dir/dev/ram b 1 1",      ++$pos);
+		do_cmd("mknod $dir/dev/tty$_ c 4 $_",   ++$pos) foreach((1,2,3,4));
+		do_cmd("mknod $dir/dev/lvm b 109 0",    ++$pos);
+	}
 
 	# copy modules
 	foreach my $mod (@allmods) {
@@ -690,9 +709,11 @@ sub create_initrd {
 	do_cmd("(cd $workdir/livecd/isolinux ; gzip -9 initrd)",            ++$pos);
 
 	# make splash
+	if ($o_splash =~ m/yes/) {
 	do_cmd("mv -f $initrd.gz $o_root/tmp ; \
 		chroot $o_root /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz $o_resolution; \
-		mv -f $o_root/tmp/initrd.gz $workdir/livecd/isolinux", ++$pos) if ($o_splash =~ m/yes/);
+		mv -f $o_root/tmp/initrd.gz $workdir/livecd/isolinux", ++$pos);
+	}
 	# we are done
 	end_progress();
 }
@@ -807,11 +828,11 @@ sub create_isolinux {
 
 	# write config
 	my $appopt;
-	#if (defined($opts{udev})) {
-	#	$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=nomount vga=$o_vgamode keyb=$o_keyboard";
-	#} else {
+	if ($kernel26 == 1) {
+		$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=nomount acpi=ht vga=$o_vgamode keyb=$o_keyboard";
+	} else {
 		$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=mount vga=$o_vgamode keyb=$o_keyboard";
-	#}	
+	}	
 	$appopt = "$appopt fastboot=yes automatic=method:cdrom ramdisk_size=32000" if (!defined($kernel26));
 	$appopt = "$appopt fstab=".$opts{fstab} if (defined($opts{fstab}));
 	$appopt = "$appopt home=usb" if (defined($opts{usbhome}));
