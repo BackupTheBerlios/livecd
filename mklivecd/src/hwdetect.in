@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.74 2004/01/07 08:55:47 jaco Exp $
+# $Id: hwdetect.in,v 1.75 2004/01/07 09:15:06 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -1134,7 +1134,7 @@ sub hwdetect_writedisks {
 		open FSTAB, '>>', "$prefix/etc/fstab";
 		print FSTAB "\n### entries below this line were automatically added by $SCRIPT_NAME v$SCRIPT_VER\n";
 		open INFO, '>', "$prefix/etc/livecd/hwdetect/mounts.cfg";
-		print FSTAB "\n# USB\nnone /proc/bus/usb usbdevfs defaults 0 0\n" if ($usbfstab);
+		print FSTAB "\n# USB\nnone\t/proc/bus/usb\tusbdevfs\tdefaults\t0 0\n" if ($usbfstab);
 		foreach my $dev (sort keys %all_devs) {
 			print FSTAB "\n# ".$all_devs{$dev}->{info};
 			if ($all_devs{$dev}->{supermount}) {
