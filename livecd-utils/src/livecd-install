@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.7 2003/11/22 10:53:36 jaco Exp $
+# $Id: livecd-install,v 1.8 2003/11/22 10:55:30 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -229,28 +229,25 @@ sub do_install {
 
 # main entry point
 MAIN: {
+	my $ret = qx(which zenity-qt 2>/dev/null || echo none);
+	if ($ret =~ /none/) {
+		$ret = qx(which zenity 2>/dev/null || echo none);
+		die($str{'INITERR_ZEN'}[$lang]) if ($ret =~ /none/);
+	}
+	chomp($ret);
+	$dlg = $ret;
+
 	unless (-e "/initrd/usr/sbin/hwdetect") {
 		qx($dlg --error --title "$str{'FATAL_ERROR_TIT'}[$lang]" --text "$str{'INITERR_LIVECD'}[$lang]");
 		exit(1);
 	}
 
-	my $ret = qx(id -u);
+	$ret = qx(id -u);
 	chomp($ret);
 	if ($ret ne "0") {
 		qx($dlg --error --title "$str{'FATAL_ERROR_TIT'}[$lang]" --text "$str{'INITERR_ROOT'}[$lang]");
 		exit(1);
 	}
-
-	$ret = qx(which zenity-qt 2>/dev/null || echo none);
-	if ($ret =~ /none/) {
-		$ret = qx(which zenity 2>/dev/null || echo none);
-		if ($ret =~ /none/) {
-			qx($dlg --error --title "$str{'FATAL_ERROR_TIT'}[$lang]" --text "$str{'INITERR_ZEN'}[$lang]");
-			exit(1);
-		}
-	}
-	chomp($ret);
-	$dlg = $ret;
 
 	qx($dlg --info --title "$str{'WELCOME_TIT'}[$lang]" --text "$str{'WELCOME_STR'}[$lang]");
 	$ret = qx($dlg --warning --title "$str{'WARN_ERROR_TIT'}[$lang]" --text "$str{'WARNCORR_STR'}[$lang]" || echo cancel);
