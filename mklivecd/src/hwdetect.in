@@ -22,14 +22,16 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.132 2004/09/15 14:28:10 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.133 2004/09/19 16:58:43 tom_kelly33 Exp $
 #
 
+use strict;
 use lib qw(/usr/lib/libDrakX);
 
 use Getopt::Long;
+#use standalone;
+$ENV{SHARE_PATH} ||= "/usr/share";
 
-use standalone;
 
 use common;
 use modules;
@@ -66,31 +68,44 @@ my $COLOR_RED      = $ESC."1;31m";
 my $COLOR_YELLOW   = $ESC."1;33m";
 my $COLOR_NORMAL   = $ESC."0;39m";
 
-### global varibles
-my $lang          = 0;
+### global variables
+my @all_devices  = ();
+
+my %all_devs = ();
+my %cmdline;
 my %languages;
 my %strings;
+
+my $card;
 my $debug         = 0;
+my $disk	  = undef;
 my $probe         = 0;
 my $fdisk         = undef;
 my $prefix        = "";
-my @all_devices   = ();
-my %cmdline;
-my %modules_conf;
+my $cmdline;
 my $owndevfsd     = 1;
 my $ownprocusb    = 1;
 my $haveswap      = 0;
 my $haveusb       = 0;
-my $usbfstab      = 0;
 my $havepcmcia    = 0;
 my $kernel26      = 0;
 my $kernel_ver    = "x.x.x";
+my $lang 	  = 0;
+my $module;
+my $modules_conf; 
+my $num;
+my $numusb	  = 0;
+my $numwin	  = 'c';
+my $old_X;
+my $progress_on   = 1;
+my $rawkey;
+my $usbfstab	  = 0;
+my $verbose	  = 0;
 
 ### progress stuff
 my $progress_now  = @VAL_SPLASH_LINUXRC@+@VAL_SPLASH_SYSINIT@;
 my $progress_full = @VAL_SPLASH_FULL@;
 my $progress_max  = @MAX_SPLASH@;
-my $progress_on   = 1;
 
 sub get_exec { 
 	my $ret = qx($_[0]); 
@@ -228,7 +243,7 @@ sub hwdetect_init {
 	
 	# start now
 	print getStr('script_start')." ($SCRIPT_NAME v$SCRIPT_VER): ";
-	
+
 	# get kernel version
 	$kernel_ver = get_exec("uname -r");
 	my $major = get_exec("expr \"$kernel_ver\" : \"\\([^.]\\+\\)\\..*\"");
@@ -656,12 +671,14 @@ sub hwdetect_getxfree {
 	my $def_monitors = hwdetect_getmonitors($rawX);
 
 	# fix the de(nodeadkeys) keyboard
-	my $xkb = $rawX->get_keyboard();
-	if ($xkb->{XkbLayout} =~ /de\(nodeadkeys\)/) {
-		$xkb->{XkbLayout} = 'de';
-		$xkb->{XkbVariant} = 'nodeadkeys';
-		$rawX->set_keyboard($xkb);
-	}
+	#my $xkb = $rawX->get_keyboard();
+
+	#if ($xkb->{XkbLayout} =~ /de\(nodeadkeys\)/) {
+	#	$xkb->{XkbLayout} = 'de';
+	#	$xkb->{XkbVariant} = 'nodeadkeys';
+	#	$rawX->set_keyboard($xkb);
+	#}
+
 
 	# config card and screen
 	Xconfig::card::to_raw_X($def_card, $rawX);
@@ -852,10 +869,6 @@ sub hwdetect_writeconf {
 # descriptive name, type (or auto), mount defaults
 my %fstypes = (
 	0x0   => ['Empty'                                   ,''        ],
-	0x183 => ['Journalised FS: ReiserFS'                ,'reiserfs'],
-	0x283 => ['Journalised FS: XFS'                     ,'xfs'     ],
-	0x383 => ['Journalised FS: JFS'                     ,'jfs'     ],
-	0x483 => ['Journalised FS: ext3'                    ,'ext3'    ],
 	0x1   => ['DOS 12-bit FAT'                          ,'ufs'     ],
 	0x2   => ['XENIX root'                              ,'ufs'     ],
 	0x3   => ['XENIX /usr'                              ,''        ],
@@ -1068,8 +1081,70 @@ sub hwdetect_getpersistent {
 	print_success();
 }
 
-my %all_devs = ();
-my $numusb = 0;
+sub	hwdetect_raw_to_fs_description
+{
+    my	($raw) = @_;
+    my	$pt_type = $raw->{pt_type};
+    if ($pt_type == 0x83) {
+	my $fs_type = $raw->{fs_type};
+	if ($fs_type eq 'reiserfs') {
+	    return 'Journalised FS: ReiserFS';
+	} elsif ($fs_type eq 'xfs') {
+	    return 'Journalised FS: XFS';
+	} elsif ($fs_type eq 'jfs') {
+	    return 'Journalised FS: JFS';
+	} elsif ($fs_type eq 'ext3') {
+	    return 'Journalised FS: ext3';
+	}
+    }
+    return $fstypes{$pt_type}[0];
+}
+
+sub	hwdetect_getdisks_add_hdd
+{
+    my	($raw, $fsopt_set, $comment) = @_;
+    if ($raw->{size} != 0) {
+	my $fsType = $raw->{fs_type};
+	if ($fsopts{$fsType}) {
+	    my @opts = @{$fsopts{$fsType}};
+	    my $dev = $raw->{device};
+	    my $info = "/dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{pt_type} . ": "
+		. hwdetect_raw_to_fs_description($raw);
+	    if ($comment) {
+		$info .= ' (' . $comment . ')';
+	    }
+	    $all_devs{$dev}->{info}    	= $info;
+	    $all_devs{$dev}->{dev}	= "/dev/" . $raw->{device};
+	    $all_devs{$dev}->{devfs}	= "/dev/" . $raw->{devfs_device};
+	    $all_devs{$dev}->{size}    	= $raw->{size};
+	    $all_devs{$dev}->{media}	= "hd";
+	    if ($fsType eq 'swap') {
+		$haveswap = 1;
+		$all_devs{$dev}->{mount} = "swap";
+	    } else {
+		$all_devs{$dev}->{mount} = "/mnt/" . $raw->{device};
+		if (($disk->{usb_media_type} =~ /^Mass Storage/) || ($disk->{info} =~ /Flash/)) {
+		    $all_devs{$dev}->{opt} = $fsopt_auto . "," . $fsopt_fullrw;
+		    $all_devs{$dev}->{usb} = 1;
+		    $all_devs{$dev}->{mount} = "/mnt/usb" . $numusb;
+	    	    $numusb++;
+		} elsif (defined($opts[2])) {
+		    $all_devs{$dev}->{opt} = ($cmdline{'fstab'} =~ /noauto/)
+			? $fsopt_fullro . "," . $fsopt_noauto
+			: $fsopt_fullro . ",". $fsopt_auto;
+		} else {
+		    $all_devs{$dev}->{opt} = $fsopt_set;
+		}
+		if ($fsType =~ /ntfs|vfat/) {
+		    $all_devs{$dev}->{mount} = "/mnt/win_" . $numwin++;
+		}
+	    }
+	    $all_devs{$dev}->{type} 	= $fsType;
+	    $all_devs{$dev}->{extopt}  	= $opts[1];
+	    $all_devs{$dev}->{persist}	= $opts[0];
+	}
+    }
+}
 
 sub hwdetect_getdisks {
 	print getStr('disk_probe').": ";
@@ -1080,6 +1155,7 @@ sub hwdetect_getdisks {
 	fs::get_raw_hds('', $all_hdds);
 	
 	if ($debug) {
+		print "\n hwdetect_getdisks \n";
 		foreach my $key (keys %$all_hdds) {
 			print $key . " ->\n";
 			my @disks = @{$all_hdds->{$key}};
@@ -1093,7 +1169,6 @@ sub hwdetect_getdisks {
 	### do all the cd, floppy stuff
 	my $numfloppy = ""; # floppy, floppy1
 	my $numcd = ""; # cdrom, cdrom1
-	my $numwin = 'c';
 	foreach my $disk (@{$all_hdds->{raw_hds}}) {
 		if ($debug) {
 			print "removable: " . $disk->{info} . "\n";
@@ -1160,48 +1235,7 @@ sub hwdetect_getdisks {
 					print "\t\t\t" . $rawkey . " -> " . $raw->{$rawkey} . "\n";
 				}
 			}
-			unless ($raw->{size} =~ /^0/) {
-				### the topmost extention might be set, which means
-				### we are missing it (only do this if we cannot find it,
-				### see it as a try 2)
-				$raw->{pt_type} = $raw->{pt_type} & 0xFF unless ($fstypes{$raw->{pt_type}});
-				my @opts = @{$fsopts{$fstypes{$raw->{pt_type}}[1]}};
-				if ($raw->{devfs_device} && $fstypes{$raw->{pt_type}}[1] && @opts) {
-					my $dev = $raw->{device};
-					$all_devs{$dev}->{info}    = "/dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{pt_type} . ": " . $fstypes{$raw->{pt_type}}[0] . " (primary)";
-					$all_devs{$dev}->{dev}     = "/dev/" . $raw->{device};
-					$all_devs{$dev}->{devfs}   = "/dev/".$raw->{devfs_device};
-					$all_devs{$dev}->{size}    = $raw->{size};
-					$all_devs{$dev}->{media}   = "hd";
-					my $type = $fstypes{$raw->{pt_type}}[1];
-					if ($raw->{pt_type} =~ /^130/) {
-						$haveswap = 1;
-						$all_devs{$dev}->{mount} = "swap";
-					}
-					else {
-						$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
-						if (($disk->{usb_media_type} =~ /^Mass Storage/) || ($disk->{info} =~ /Flash/)) {
-							$all_devs{$dev}->{opt} = $fsopt_auto.",".$fsopt_fullrw;
-							$all_devs{$dev}->{usb} = 1;
-							$all_devs{$dev}->{mount} = "/mnt/usb".$numusb;
-							$numusb++;
-						}
-						elsif (defined($opts[2])) {
-							$all_devs{$dev}->{opt} = ($cmdline{'fstab'} =~ /noauto/) ? $fsopt_fullro.",".$fsopt_noauto : $fsopt_fullro.",".$fsopt_auto;
-						}
-						else {
-							$all_devs{$dev}->{opt} = $fsopt_set;
-						}
-						if ($type =~ /ntfs|vfat/) {
-							$all_devs{$dev}->{mount} = "/mnt/win_".$numwin;
-							$numwin++;
-						}
-					}
-					$all_devs{$dev}->{type}    = $type;
-					$all_devs{$dev}->{extopt}  = $opts[1];
-					$all_devs{$dev}->{persist} = $opts[0];
-				}
-			}
+			hwdetect_getdisks_add_hdd($raw, $fsopt_set, 'primary');
 		}
 		foreach my $ext (@{$disk->{extended}}) {
 			if ($debug) {
@@ -1227,42 +1261,7 @@ sub hwdetect_getdisks {
 						print "\t\t\t" . $rawkey . " -> " . $raw->{$rawkey} . "\n";
 					}
 				}
-				unless ($raw->{size} =~ /^0/) {
-					### the topmost extention might be set, which means
-					### we are missing it (only do this if we cannot find it,
-					### see it as a try 2)
-					$raw->{pt_type} = $raw->{pt_type} & 0xFF unless ($fstypes{$raw->{pt_type}});
-					my @opts = @{$fsopts{$fstypes{$raw->{pt_type}}[1]}};
-					if ($raw->{devfs_device} && $fstypes{$raw->{pt_type}}[1] && @opts) {
-						my $dev = $raw->{device};
-						$all_devs{$dev}->{info}    = "/dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{pt_type} . ": " . $fstypes{$raw->{pt_type}}[0] . " (extended)";
-						$all_devs{$dev}->{dev}     = "/dev/" . $raw->{device};
-						$all_devs{$dev}->{devfs}   = "/dev/".$raw->{devfs_device};
-						$all_devs{$dev}->{size}    = $raw->{size};
-						$all_devs{$dev}->{media}   = "hd";
-						my $type = $fstypes{$raw->{pt_type}}[1];
-						if ($raw->{pt_type} =~ /^130/) {
-							$haveswap = 1;
-							$all_devs{$dev}->{mount} = "swap";
-						}
-						else {
-							$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
-							if (defined($opts[2])) {
-								$all_devs{$dev}->{opt} = ($cmdline{'fstab'} =~ /noauto/) ? $fsopt_fullro.",".$fsopt_noauto : $fsopt_fullro.",".$fsopt_auto;
-							}
-							else {
-								$all_devs{$dev}->{opt}   = $fsopt_set;
-							}
-						}
-						if ($type =~ /ntfs|vfat/) {
-							$all_devs{$dev}->{mount} = "/mnt/win_".$numwin;
-							$numwin++;
-						}
-						$all_devs{$dev}->{type}    = $type;
-						$all_devs{$dev}->{extopt}  = $opts[1];
-						$all_devs{$dev}->{persist} = $opts[0];
-					}
-				}
+				hwdetect_getdisks_add_hdd($raw, $fsopt_set, 'extended');
 			}
 		}
 	}
@@ -1272,36 +1271,7 @@ sub hwdetect_getdisks {
 		my $name = $vol->{VG_name};
 		foreach my $disk ($vol->{primary}->{normal}) {
 			foreach my $lvm (@{$disk}) {
-				my $type = defined($fstypes{$lvm->{pt_type}}) ? $fstypes{$lvm->{pt_type}}[1] : "ext2";
-				my @opts = @{$fsopts{$pt_type}};
-				if ($lvm->{device} && @opts) {
-					my $dev = $lvm->{device};
-					$all_devs{$dev}->{info}    = "/dev/" . $lvm->{device} . ", size=" . $lvm->{size} . ", type=" . $lvm->{pt_type} . ": " . $type . " (lvm, $name)";
-					$all_devs{$dev}->{dev}     = "/dev/" . $lvm->{device};
-					$all_devs{$dev}->{devfs}   = "/dev/" . $lvm->{device};
-					$all_devs{$dev}->{size}    = $lvm->{size};
-					$all_devs{$dev}->{media}   = "lvm";
-					if ($lvm->{pt_type} =~ /^130/) {
-						$haveswap = 1;
-						$all_devs{$dev}->{mount} = "swap";
-					}
-					else {
-						$all_devs{$dev}->{mount} = "/mnt/".$lvm->{device};
-						if (defined($opts[2])) {
-							$all_devs{$dev}->{opt} = ($cmdline{'fstab'} =~ /noauto/) ? $fsopt_fullro.",".$fsopt_noauto : $fsopt_fullro.",".$fsopt_auto;
-						}
-						else {
-							$all_devs{$dev}->{opt} = $fsopt_set;
-						}
-						if ($type =~ /ntfs|vfat/) {
-							$all_devs{$dev}->{mount} = "/mnt/win_".$numwin;
-							$numwin++;
-						}
-					}
-					$all_devs{$dev}->{type}    = $type;
-					$all_devs{$dev}->{extopt}  = $opts[1];
-					$all_devs{$dev}->{persist} = $opts[0];
-				}
+				hwdetect_getdisks_add_hdd($lvm, $fsopt_set, $name);
 			}
 		}
 	}
@@ -1316,6 +1286,7 @@ sub hwdetect_getdisks {
 
 # write the disk stuff
 sub hwdetect_writedisks {
+	print "\n hwdetect_writedisks \n";
 	unless ($probe) {
 		print getStr('disk_write').":\n";
 		# get persistent partitions and set their mountpoints,
@@ -1416,14 +1387,31 @@ sub hwdetect_swapon {
 	set_progress();
 }
 
+sub help {
+	print <<EOF;
+Help for $SCRIPT_NAME Version $SCRIPT_VER
+Hardware detection / configuration program.
+Options are --help	Prints this message
+--version 		Prints program name and version
+--debug			Debug mode
+--probe			Probe mode
+--fdisk			Disk mode
+--prefix		Specify a prefix
+EOF
+}
+
+sub version () {
+	print "$SCRIPT_NAME $SCRIPT_VER\n";
+}
 
 MAIN: {
-	# parse command-line options
 	GetOptions(
+		'help'	   => sub { help (); exit },
+		'version'  => sub { version(); exit },
 		'debug'    => \$debug,
 		'probe'    => \$probe,
 		'fdisk'    => \$fdisk,
-		'prefix=s' => \$prefix
+		'prefix=s' => \$prefix,
 	);
 	
 	# initialise
@@ -1439,18 +1427,26 @@ MAIN: {
 	
 	# get all devices
 	unless (defined($fdisk)) {
+		print "\nHWDETECT: Starting probeall\n" if $debug;
 		hwdetect_probeall();
 		hwdetect_all();
+		print "\nHWDETECT: Starting getxfree\n" if $debug;
 		hwdetect_getxfree();
+		print "\nHWDETECT: Starting getsound\n" if $debug;
 		hwdetect_getsound();
+		print "\nHWDETECT: Starting getnetwork\n" if $debug;
 		hwdetect_getnetwork();
+
 		#hwdetect_getprinters();
+		print "\nHWDETECT: Starting getusb\n" if $debug;
 		hwdetect_getusb();
+
 		#hwdetect_getserial();
 		hwdetect_writeconf();
 	}
 	
 	# get disks
+	print "\nHWDETECT: Starting getdisks\n" if $debug;
 	hwdetect_getdisks();
 	hwdetect_writedisks();
 	if (defined($fdisk)) {
