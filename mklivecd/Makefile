@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.18 2003/10/03 09:19:59 jaco Exp $
+# $Id: Makefile,v 1.19 2003/10/03 09:35:44 jaco Exp $
 
 include Rules.mk
 
@@ -9,7 +9,6 @@ version:
 
 mklivecd:
 	$(MKDIR) -p $(DISTDIR)/init.d
-	$(CP) $(SRCDIR)/isolinux.cfg $(DISTDIR)
 	$(CP) $(SRCDIR)/init.d/hwdetect $(DISTDIR)/init.d
 	$(CAT) $(SRCDIR)/hwdetect.in | \
 		$(SED) -e 's/@MKLIVECDVER@/$(ARCHIVEVER)/g;s/@DEF_KEYBOARD@/$(DEF_KEYBOARD)/g' \
