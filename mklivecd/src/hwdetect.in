@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.12 2003/10/02 05:29:48 jaco Exp $
+# $Id: hwdetect.in,v 1.13 2003/10/02 07:39:11 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -57,9 +57,10 @@ my $COLOR_YELLOW   = $ESC."1;33m";
 my $COLOR_NORMAL   = $ESC."0;39m";
 
 ### global varibles
-my $printdebug       = 0;
-my $probeonly        = 0;
-my @detected_devices = ();
+my $debug       = 0;
+my $probe       = 0;
+my @all_devices = ();
+my %cmdline;
 
 sub rmws {
 	my ($str) = @_;
@@ -75,50 +76,50 @@ sub rmws {
 
 sub move_up_lines {
 	my ($lines) = @_;
-	print $ESC.$lines."A" if (!$printdebug);
+	print $ESC.$lines."A" if (!$debug);
 }
 
 sub move_down_lines {
 	my ($lines) = @_;
 	while ($lines) {
-		print "\n" if (!$printdebug);
+		print "\n" if (!$debug);
 		$lines--;
 	}
 }
 
 sub print_success {
-	print $MOVE_TO_COL if (!$printdebug);
+	print $MOVE_TO_COL if (!$debug);
 	print "[  ";
-	print $COLOR_GREEN if (!$printdebug);
+	print $COLOR_GREEN if (!$debug);
 	print "OK";
-	print $COLOR_NORMAL if (!$printdebug);
+	print $COLOR_NORMAL if (!$debug);
 	print "  ]\n";
 }
 
 sub print_loaded {
-	print $MOVE_TO_COL if (!$printdebug);
+	print $MOVE_TO_COL if (!$debug);
 	print "[";
-	print $COLOR_GREEN if (!$printdebug);
+	print $COLOR_GREEN if (!$debug);
 	print "LOADED";
-	print $COLOR_NORMAL if (!$printdebug);
+	print $COLOR_NORMAL if (!$debug);
 	print "]\n";
 }
 
 sub print_warning {
-	print $MOVE_TO_COL if (!$printdebug);
+	print $MOVE_TO_COL if (!$debug);
 	print "[ ";
-	print $COLOR_YELLOW if (!$printdebug);
+	print $COLOR_YELLOW if (!$debug);
 	print "WARN";
-	print $COLOR_NORMAL if (!$printdebug);
+	print $COLOR_NORMAL if (!$debug);
 	print " ]\n";
 }
 
 sub print_failed {
-	print $MOVE_TO_COL if (!$printdebug);
+	print $MOVE_TO_COL if (!$debug);
 	print "[";
-	print $COLOR_RED if (!$printdebug);
+	print $COLOR_RED if (!$debug);
 	print "FAILED";
-	print $COLOR_NORMAL if (!$printdebug);
+	print $COLOR_NORMAL if (!$debug);
 	print "]\n";
 }
 
@@ -146,6 +147,14 @@ sub hwdetect_init {
 	select(STDOUT);
 	$| = 1;
 	open STDERR, '>', "/dev/null";
+
+	open CMDLINE, "</proc/cmdline";
+	%cmdline = map {
+		my ($name, $value) = split(/=/);
+		$name => $value || 1;
+	} split(/ /, <CMDLINE>);
+	close CMDLINE;
+
 	print "($SCRIPT_NAME $SCRIPT_VER)";
 	print_success();
 }
@@ -173,33 +182,15 @@ sub mount {
 sub modprobe {
 	my ($opt, $module) = @_;
 	my $res = 1;
-	$res = system("(/sbin/modprobe $opt $module) 2>/dev/null >/dev/null") unless ($probeonly);
+	$res = system("(/sbin/modprobe $opt $module) 2>/dev/null >/dev/null") unless ($probe);
 	$res;
-}
-
-sub hwdetect_get_cmdline {
-	my ($param) = @_;
-	my $ret = undef;
-	if (defined($param)) {
-		open CMDLINE, "</proc/cmdline";
-		my @cmds = split(/ /, <CMDLINE>);
-		close CMDLINE;
-		foreach my $cmd (@cmds) {
-			my ($name, $val) = split(/=/, $cmd);
-			$val = 1 unless (defined($val));
-			$ret = $val if ($name eq $param);
-		}
-	}
-	$ret;
 }
 
 sub hwdetect_get_mediatype {
 	my ($media_type) = @_;
 	my @rets = ();
-	foreach my $device (@detected_devices) {
-		if ($device->{media_type} =~ /$media_type/) {
-			push(@rets, $device);
-		}
+	foreach my $device (@all_devices) {
+		push(@rets, $device) if ($device->{media_type} =~ /$media_type/);
 	}
 	@rets;
 }
@@ -207,10 +198,8 @@ sub hwdetect_get_mediatype {
 sub hwdetect_get_bustype {
 	my ($bus_type) = @_;
 	my @rets = ();
-	foreach my $device (@detected_devices) {
-		if ($device->{bus} =~ /$bus_type/) {
-			push(@rets, $device);
-		}
+	foreach my $device (@all_devices) {
+		push(@rets, $device) if ($device->{bus} =~ /$bus_type/);
 	}
 	@rets;
 }
@@ -221,7 +210,7 @@ sub hwdetect_loadmod {
 	print_device($module, $vendor, $desc);
 	unless ($module =~ /unknown/) {
 		my $res = modprobe("", $module);
-		$res ? $probeonly ? print_warning : print_failed() : print_loaded();
+		$res ? $probe ? print_warning : print_failed() : print_loaded();
 		$done++;
 	}
 	print "\n" unless($done);
@@ -262,12 +251,12 @@ sub hwdetect_getmachine {
 	scalar @probed_cpus && $probed_mem ? print_success() : print_failed();
 	foreach my $cpu (@probed_cpus) {
 		hwdetect_loadmod('unknown', $cpu->{vendor_id}, $cpu->{'model name'}." ".$cpu->{'cpu MHz'}."MHz ".$cpu->{'cache size'});
-		print_hash($cpu) if ($printdebug);
+		print_hash($cpu) if ($debug);
 	}
 	if ($probed_mem) {
 		hwdetect_loadmod('unknown', "Available Memory", rmws($probed_mem->{MemFree})." of ".rmws($probed_mem->{MemTotal}));
 		hwdetect_loadmod('unknown', "Available Swap", rmws($probed_mem->{SwapFree})." of ".rmws($probed_mem->{SwapTotal}));
-		print_hash($probed_mem) if ($printdebug);
+		print_hash($probed_mem) if ($debug);
 	}
 }
 
@@ -279,7 +268,7 @@ sub hwdetect_probeusb() {
 	foreach my $module (@modules) {
 		unless (modprobe("-q", $module)) {
 			open MOD, ">>/etc/modules.conf";
-			print MOD "probeall usb-interface $module\n" unless ($probeonly);
+			print MOD "probeall usb-interface $module\n" unless ($probe);
 			close MOD;
 		}
 	}
@@ -304,22 +293,21 @@ sub hwdetect_probeusb() {
 
 sub hwdetect_probeall {
 	print "Probing devices: ";
-	@detected_devices = ();
+	@all_devices = ();
 	eval { detect_devices::probeSerialDevices(); };
-	eval { @detected_devices = detect_devices::probeall(); };
-	scalar @detected_devices ? print_success() : print_failed();
+	eval { @all_devices = detect_devices::probeall(); };
+	scalar @all_devices ? print_success() : print_failed();
 }
 
 sub hwdetect_getkeyb {
 	print "Selecting keyboard: ";
 	my $probed_keyb = undef;
 	my $probed_desc = "";
-	my $req_keyb = hwdetect_get_cmdline("keyb");
-	$req_keyb = $DEF_KEYBOARD unless (defined($req_keyb));
+	my $req_keyb = $cmdline{'keyb'} || $DEF_KEYBOARD;
 	eval { $probed_keyb = keyboard::lang2keyboard($req_keyb) and print_success(); } or print_failed();
 	$probed_desc = keyboard::keyboard2text($probed_keyb);
 	hwdetect_loadmod('unknown', "", $probed_desc);
-	print_hash($probed_keyb) if ($printdebug);
+	print_hash($probed_keyb) if ($debug);
 	$probed_keyb;
 }
 
@@ -338,7 +326,7 @@ sub hwdetect_getmouse {
 		}
 	}
 	hwdetect_loadmod('unknown', $probed_vendor, $probed_mouse->{type}." ".$probed_mouse->{name}." ".$probed_desc);
-	print_hash($probed_mouse) if ($printdebug);
+	print_hash($probed_mouse) if ($debug);
 	$probed_mouse;
 }
 
@@ -353,7 +341,7 @@ sub hwdetect_getvideo {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
 		hwdetect_loadmod('unknown', $probed_vendor, $card->{card_name});
 		$probed_card = $card unless ($probed_card); # one card only :(
-		print_hash($card) if ($printdebug);
+		print_hash($card) if ($debug);
 	}
 	$probed_card;
 }
@@ -375,7 +363,7 @@ sub hwdetect_getmonitor {
 	}
 	eval { $rawX->set_monitors($probed_monitor) and print_success(); } or print_failure();
 	hwdetect_loadmod('unknown', $probed_monitor->{VendorName}, $probed_monitor->{ModelName}, 0);
-	print_hash($probed_monitor) if ($printdebug);
+	print_hash($probed_monitor) if ($debug);
 	$probed_monitor;
 }
 
@@ -390,7 +378,7 @@ sub hwdetect_getxfree {
 	Xconfig::screen::configure($rawX, $def_card);
 	Xconfig::resolution_and_depth::configure(undef, $rawX, $def_card, $def_monitor, 1);
 
-	unless ($probeonly) {
+	unless ($probe) {
 		print "Writing X configuration: ";
     		eval { $rawX->write() and print_success(); } or print_failed();
 	}
@@ -405,7 +393,7 @@ sub hwdetect_getsound {
 	foreach my $card (@probed_cards) {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
 		hwdetect_loadmod($card->{driver}, $probed_vendor, $probed_desc);
-		print_hash($card) if ($printdebug);
+		print_hash($card) if ($debug);
 	}
 }
 
@@ -418,7 +406,7 @@ sub hwdetect_getnetwork {
 	foreach my $card (@probed_cards) {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
 		hwdetect_loadmod($card->{driver}, $probed_vendor, $probed_desc);
-		print_hash($card) if ($printdebug);
+		print_hash($card) if ($debug);
 	}
 }
 
@@ -447,13 +435,13 @@ sub hwdetect_getusb {
 	foreach my $device (@usable_devices) {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $device->{description});
 		hwdetect_loadmod($device->{driver}, $probed_vendor, $probed_desc);
-		print_hash($device) if ($printdebug);
+		print_hash($device) if ($debug);
 	}
 }
 
 sub hwdetect_all {
-	foreach my $device (@detected_devices) {
-		print_hash($device) if ($printdebug);
+	foreach my $device (@all_devices) {
+		print_hash($device) if ($debug);
 	}
 }
 
@@ -464,9 +452,9 @@ sub hwdetect_readconf {
 }
 
 foreach (@ARGV) {
-	if   (/^--debug/)       { $printdebug = 1; }
-	elsif (/^--probe-only/) { $probeonly = 1;  }
-	else { die "ERROR: Unknown option '$_'";   }
+	if    (/^--debug/) { $debug = 1; }
+	elsif (/^--probe/) { $probe = 1; }
+	else  { die "ERROR: Unknown option '$_'"; }
 }
 
 hwdetect_init();
@@ -474,7 +462,7 @@ hwdetect_getmachine();
 hwdetect_readconf();
 hwdetect_probeusb();
 hwdetect_probeall();
-hwdetect_all() if ($printdebug);
+hwdetect_all() if ($debug);
 hwdetect_getxfree();
 hwdetect_getsound();
 hwdetect_getnetwork();
