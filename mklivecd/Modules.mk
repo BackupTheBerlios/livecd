@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.18 2004/08/20 16:18:48 tom_kelly33 Exp $
+# $Id: Modules.mk,v 1.19 2004/08/20 18:24:44 tom_kelly33 Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -88,7 +88,8 @@ DEF_SCSI_MODULES_PATH_24=\
 	drivers/scsi/ultrastor \
 	drivers/scsi/wd7000 \
 	drivers/scsi/a100u2w \
-	drivers/scsi/3w-xxxx
+	drivers/scsi/3w-xxxx \
+	drivers/message/fusion/mptscsih
 
 # insmod module segfaults (no chip): 
 #	drivers/scsi/a100u2w
@@ -130,7 +131,8 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/tmscsim \
 	drivers/scsi/u14-34f \
 	drivers/scsi/ultrastor \
-	drivers/scsi/wd7000
+	drivers/scsi/wd7000 \
+	drivers/message/fusion/mptscsih
 
 # depending on kernel version, these have different names
 DEF_SCSI_MODULES_OPT_PATH_24=\
@@ -145,12 +147,14 @@ DEF_SCSI_MODULES_OPT_PATH_26=\
 DEF_SCSI_MODULES_DEP_PATH_24=\
 	drivers/scsi/scsi_mod \
 	drivers/scsi/sr_mod \
-	drivers/scsi/sd_mod
+	drivers/scsi/sd_mod \
+	drivers/message/fusion/mptbase
 
 DEF_SCSI_MODULES_DEP_PATH_26=\
 	drivers/scsi/scsi_mod \
 	drivers/scsi/sr_mod \
-	drivers/scsi/sd_mod
+	drivers/scsi/sd_mod \
+	drivers/message/fusion/mptbase
 
 DEF_USB_MODULES_PATH_24=\
 	drivers/usb/usbcore
