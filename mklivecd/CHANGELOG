@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.52 2003/10/10 09:42:54 jaco Exp $
+# $Id: CHANGELOG,v 1.53 2003/10/10 09:44:58 jaco Exp $
 
 * Thu, Oct 09, 2003, 0.5.7-cvs
   + Jaco Greeff <jaco@linuxminicd.org>:
@@ -16,6 +16,8 @@
       - Copy SCSI and optinal modules in addition to normal
         (required) ones to initrd
       - Reworked command-line parameters to be more consistent
+      - Added '--experimental' option for testing non-mainstream
+        options and additions
 
 
 * Mon, Oct 06, 2003, 0.5.6
