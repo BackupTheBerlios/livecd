@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.7 2003/09/30 07:24:37 jaco Exp $
+# $Id: mklivecd.in,v 1.8 2003/09/30 09:44:24 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -63,6 +63,7 @@ usage () {
 	echo "    --kernel=<kernel>          Kernel to use as boot image" >&2
 	echo "    --looptype=<cloop|bzloop>  Create a cloop (default) or bzloop image (3)" >&2
 	echo "    --lowmem                   Use disk as temporary storage for iso images" >&2
+	echo "    --final                    Strip extra lines from the scripts on the initrd" >&2
 	echo "" >&2
 	echo "Notes for options:" >&2
 	echo "    1. Patterns passed to these options is to be valid in a grep(1) search, " >&2
@@ -84,7 +85,8 @@ usage () {
 
 ### do a shell command
 do_cmd() {
-	[ -n "$verbose" ] && echo "+ $*"
+	stripped=`echo $* | tr -d "\t"`
+	[ -n "$verbose" ] && echo "+ $stripped"
 	if [ -n "$verbose" ]; then
 		eval "$*" || exit
 	else
@@ -94,6 +96,17 @@ do_cmd() {
 
 do_cp() {
 	do_cmd "cp $1 $2"
+}
+
+do_cp_strip() {
+	if [ -n "$final" ]; then
+		do_cmd "cat $1 | \
+			sed -e 's/^#[^!].*//;s/[^$]#.*//;s/^#$//;s/^[ ].*//' | \
+			tr -d \"\t\" | \
+			grep -v ^$ >$2"
+	else
+		do_cp $@
+	fi
 }
 
 find_module() {
@@ -165,7 +178,7 @@ create_initrdimg() {
 	do_cmd "umount $INITRDMNT"
 	do_cmd  "(cd $ISOLINUXDIR ; gzip -9 initrd)"
 	if [ -x /usr/share/bootsplash/scripts/make-boot-splash -a "$rootdir" -ne "/" ]
-	then 
+	then
 		do_cmd "(cd $ISOLINUXDIR; /usr/share/bootsplash/scripts/make-boot-splash initrd.gz)"
 	fi
 }
@@ -213,7 +226,7 @@ $e"
 			echo "ERROR: 'mkisofs' does not exist on your machine. You need to install the mkisofs package." >&2
 			exit 1
 		fi
-		REALSIZE=`echo $blocksize | awk '{ size = $1*1024; print size; }'`
+		REALSIZE=$[$blocksize*1024]
 		MKISOCMD="nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST -hide-rr-moved -cache-inodes -no-bak -pad -v -v -gui $rootdir"
 		if [ -n "$lowmem" ]; then
 			do_cmd "$MKISOCMD >$TMPISO"
@@ -240,10 +253,10 @@ create_liveiso() {
 	VERSION=`gawk -F' ' '{ print $4 " " $5 }' $rootdir/etc/mandrake-release`
 	VERSION_DATE=`date --utc`
 	do_cmd "nice -n 19 mkisofs -pad -l -R -J -v \
-                -V '$DISTRO LiveCD' -A '$VERSION $VERSION_DATE' \
-                -b isolinux/isolinux.bin -c isolinux/boot.cat \
-                -hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table \
-                -o $target $LIVECDDIR"
+		-V '$DISTRO LiveCD' -A '$VERSION $VERSION_DATE' \
+		-b isolinux/isolinux.bin -c isolinux/boot.cat \
+		-hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table \
+		-o $target $LIVECDDIR"
 }
 
 while [ $# -gt 0 ]; do
@@ -342,6 +355,10 @@ while [ $# -gt 0 ]; do
 
 		--lowmem)
 			lowmem=1
+			;;
+
+		--final)
+			final=1
 			;;
 
 		--version)
@@ -472,10 +489,10 @@ if is_dietlibc_arch; then
 	fi
 fi
 do_cp /usr/bin/busybox $INITRDDIR/bin/busybox
-do_cp /usr/share/mklivecd/linuxrc $INITRDDIR/linuxrc
+do_cp_strip /usr/share/mklivecd/linuxrc $INITRDDIR/linuxrc
 do_cmd "chmod 755 $INITRDDIR/linuxrc"
-do_cp /usr/share/mklivecd/init.d/hwdetect $INITRDDIR/etc/init.d
-do_cp /usr/sbin/hwdetect $INITRDDIR/usr/sbin
+do_cp_strip /usr/share/mklivecd/init.d/hwdetect $INITRDDIR/etc/init.d/hwdetect
+do_cp_strip /usr/sbin/hwdetect $INITRDDIR/usr/sbin/hwdetect
 do_cmd "chmod 755 $INITRDDIR/usr/sbin/hwdetect"
 
 ### modules
