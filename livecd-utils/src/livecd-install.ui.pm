@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.14 2004/01/13 05:43:31 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.15 2004/01/13 06:26:08 jaco Exp $
 #
 
 use threads;
@@ -741,9 +741,16 @@ sub writeFstab {
 			}
 
 			my $entry = "\n# ".$devs->{$dev}{info}."\n";
-			$entry .= $devs->{$dev}{dev}."\t";
-			$entry .= $mount."\t";
-			$entry .= $devs->{$dev}{type}."\t";
+			unless ($devs->{$dev}{supermount}) {
+				$entry .= $devs->{$dev}{dev}."\t";
+				$entry .= $mount."\t";
+				$entry .= $devs->{$dev}{type}."\t";
+			}
+			else {
+				$entry .= "none\t";
+				$entry .= $mount."\t";
+				$entry .= "supermount\t";
+			}
 			$opt = "" unless ($opt);
 			$opt .= "," if ($devs->{$dev}{opt} && $devs->{$dev}{extopt});
 			$opt .= $devs->{$dev}{extopt} if ($devs->{$dev}{extopt});
