@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.132 2005/01/02 01:11:14 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.133 2005/01/09 22:14:09 tom_kelly33 Exp $
 #
 
 use strict;
@@ -66,6 +66,7 @@ my $loopmod        = undef;
 my $loopcmp        = undef;
 my $blocksize      = 32;
 my $finaliso       = "livecd.iso";
+my $md5sum	   = undef;
 my $mkisofs_opts   = "";	# Fix for concat of undef in iso looptype
 
 ### command-line options
@@ -199,6 +200,7 @@ ISO Image options:
                                    option to mkisofs.
    --publisher <pub>               Use the specified publisher ID, as a '-P'
                                    option to mkisofs.
+   --md5sum			   Compute and implant the md5sum to verify media.
 
 Behaviour:
    --usbhome                       Use USB memory stick devices as a persistent
@@ -410,6 +412,7 @@ sub parse_options {
 		'volumeid=s',
 		'preparer=s',
 		'publisher=s',
+		'md5sum',
 		'usbhome'
 	);
 
@@ -1008,8 +1011,7 @@ MAIN: {
 	create_compressed();
 	create_isolinux();
 	create_finaliso();
-#	create_md5();
-
+	create_md5() if (defined($opts{md5sum}));;
 	cleanup();
 
 	my $finalsize = get_exec("ls -al $finaliso | awk '{print \$5 }'");
