@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.63 2004/05/20 03:03:07 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.64 2004/05/22 18:56:31 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -235,7 +235,7 @@ sub getStr {
 }
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Wed May 19 17:44:09 2004
+# Created: Sat May 22 13:22:21 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -3830,7 +3830,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.63 2004/05/20 03:03:07 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.64 2004/05/22 18:56:31 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -4140,6 +4140,7 @@ sub scanPartitions
 	do_system("/initrd/usr/sbin/hwdetect --prefix $prefix --fdisk >/dev/null");
 	foreach my $line (cat_("$prefix/etc/livecd/hwdetect/mounts.cfg")) {
 	    chomp($line);
+	    print "\nDEBUG - Hwdetect: Line = $line";
 	    my ($dev, $info) = split(/=\|/, $line, 2);
 	    my $devlnk = "/dev/$dev";
 	    %{$devs{$devlnk}} = map {
@@ -4419,18 +4420,19 @@ sub doEvents
 sub doFormat
 {
 	my ($this, $devs) = @_;
-
-	do_system("umount $rootpart");
+	
+	do_system("umount $devs->{$rootpart}{mount}");
 	formatPart($rootpart, $devs) if ($this->cbRootFormat->isChecked());
 	if ($this->cbSwapFormat->isChecked()) {
-		do_system("umount $swappart");
-		formatPart($swappart, $devs);
+		do_system("umount $devs->{$swappart}{mount}");  # Unused with swap - remove?
+		do_system("umount $swappart");			 # Unused with swap - remove?
+ 		formatPart($swappart, $devs);
 	}
-	do_system("umount $homepart") if (defined($homepart));
+	do_system("umount $devs->{$homepart}{mount}") if (defined($homepart));
 	formatPart($homepart, $devs) if (defined($homepart) && ($this->cbHomeFormat->isChecked()));
-	do_system("umount $varpart") if (defined($varpart));
+	do_system("umount $devs->{$varpart}{mount}") if (defined($varpart));
 	formatPart($varpart, $devs) if (defined($varpart) && ($this->cbVarFormat->isChecked()));
-	do_system("umount $tmppart") if (defined($tmppart));
+	do_system("umount $devs->{$tmppart}{mount}") if (defined($tmppart));
 	formatPart($tmppart, $devs) if (defined($tmppart) && ($this->cbTmpFormat->isChecked()));
 }
 
@@ -4438,7 +4440,6 @@ sub doFormat
 sub formatPart
 {
     my ($dev, $devs) = @_;
-
     if (!$destroy) {
         print getStr('fmt_title')."\n$dev (".$fsnames{$devs->{$dev}{type}}.")\n";
 	$infotext = getStr('fmt_title')."\n$dev (".$fsnames{$devs->{$dev}{type}}.")" unless ($destroy);
@@ -4738,7 +4739,6 @@ sub writeRootPW # SLOT: (  )
         }
 	if (length($pw1)<8) {
 	   Qt::MessageBox::information(this, getStr('caption'), getStr('pword_short'));
-	print "\nDEBUG: Password length = ". length($pw1). "\n";
 	}
 
 	# Passwords ok - now write to disk
@@ -4811,7 +4811,6 @@ sub createUser # SLOT: ( )
 	} 
 	if (length($pw1)<8) {
 	   Qt::MessageBox::information(undef, getStr('caption'), getStr('pword_short'));
-	   print "\nDEBUG: Password length = ". length($pw1). "\n";
         }
 
 	## Data accepted, make the user
@@ -4892,7 +4891,7 @@ sub cbLanguage_act # SLOT: ( const QString & )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.63 2004/05/20 03:03:07 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.64 2004/05/22 18:56:31 tom_kelly33 Exp $
 #
 
 package main;

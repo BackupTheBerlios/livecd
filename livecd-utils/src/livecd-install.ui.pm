@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.31 2004/05/20 03:03:07 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.32 2004/05/22 18:56:31 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -617,18 +617,19 @@ sub doEvents
 sub doFormat
 {
 	my ($this, $devs) = @_;
-
-	do_system("umount $rootpart");
+	
+	do_system("umount $devs->{$rootpart}{mount}");
 	formatPart($rootpart, $devs) if ($this->cbRootFormat->isChecked());
 	if ($this->cbSwapFormat->isChecked()) {
-		do_system("umount $swappart");
-		formatPart($swappart, $devs);
+		do_system("umount $devs->{$swappart}{mount}");  # Unused with swap - remove?
+		do_system("umount $swappart")			# Unused with swap - remove?
+ 		formatPart($swappart, $devs);
 	}
-	do_system("umount $homepart") if (defined($homepart));
+	do_system("umount $devs->{$homepart}{mount}") if (defined($homepart));
 	formatPart($homepart, $devs) if (defined($homepart) && ($this->cbHomeFormat->isChecked()));
-	do_system("umount $varpart") if (defined($varpart));
+	do_system("umount $devs->{$varpart}{mount}") if (defined($varpart));
 	formatPart($varpart, $devs) if (defined($varpart) && ($this->cbVarFormat->isChecked()));
-	do_system("umount $tmppart") if (defined($tmppart));
+	do_system("umount $devs->{$tmppart}{mount}") if (defined($tmppart));
 	formatPart($tmppart, $devs) if (defined($tmppart) && ($this->cbTmpFormat->isChecked()));
 }
 
@@ -636,7 +637,6 @@ sub doFormat
 sub formatPart
 {
     my ($dev, $devs) = @_;
-
     if (!$destroy) {
         print getStr('fmt_title')."\n$dev (".$fsnames{$devs->{$dev}{type}}.")\n";
 	$infotext = getStr('fmt_title')."\n$dev (".$fsnames{$devs->{$dev}{type}}.")" unless ($destroy);
@@ -921,7 +921,7 @@ sub writeRootPW # SLOT: (  )
 	my $pw1 = lineEdit1->text();
 	my $pw2 = lineEdit2->text();
 
-	# Test - if " ' " found ->reject,  if not same ->reject, if null ->reject, if short ->warn and continue 
+	## Test - if " ' " found ->reject,  if not same ->reject, if null ->reject, if short ->warn and continue
         if (index($pw1, "'") ne '-1') {   # Reject if " ' " found
            Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_no_sq'), getStr('btn_retry'));
            return;
