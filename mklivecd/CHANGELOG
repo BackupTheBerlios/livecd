@@ -1,7 +1,7 @@
-# $Id: CHANGELOG,v 1.108 2004/01/21 06:33:13 jaco Exp $
+# $Id: CHANGELOG,v 1.109 2004/01/21 08:36:23 jaco Exp $
 
 * Wed, Jan 21, 2003, 0.5.7-cvs
-  + Buchan Milne <bgmilne@cae.co.za>:
+  + Buchan Milne <bgmilne@obsidian.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
         CD eject ('noeject' boot option disables CD eject)
@@ -156,7 +156,7 @@
 
 
 * Mon, Oct 06, 2003, 0.5.6
-  + Buchan Milne <bgmilne@cae.co.za>:
+  + Buchan Milne <bgmilne@obsidian.co.za>:
     [mklivecd]:
       - Fix rootdir to use the kernel/modules from the chroot
       - Add basic bootsplash support if bootsplash is installed

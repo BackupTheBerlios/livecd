@@ -10,7 +10,7 @@
 #      where /sbin was a link to the cloop image (no longer accessible) so we
 #      either need to have our own halt or pivot_root
 #
-# Copyright (C) 2003, Buchan Milne <bgmilne@cae.co.za>
+# Copyright (C) 2003, Buchan Milne <bgmilne@obsidian.co.za>
 # Copyright (C) 2003-2004, Jaco Greeff <jaco@linuxminicd.org>
 #
 #    This program is free software; you can redistribute it and/or modify
@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: halt.local.in,v 1.13 2004/01/20 17:41:00 jaco Exp $
+# $Id: halt.local.in,v 1.14 2004/01/21 08:36:23 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/usr/bin:/initrd/sbin:/initrd/usr/sbin:/bin:/usr/bin:/sbin:/usr/sbin

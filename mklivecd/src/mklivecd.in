@@ -2,7 +2,7 @@
 #
 # LiveCD iso build script
 # Copyright (C) 2002-2004, Jaco Greeff <jaco@linuxminicd.org>
-# Copyright (C) 2003, Buchan Milne <bgmilne@cae.co.za>
+# Copyright (C) 2003, Buchan Milne <bgmilne@obsidian.co.za>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.102 2004/01/20 13:36:24 jaco Exp $
+# $Id: mklivecd.in,v 1.103 2004/01/21 08:36:23 jaco Exp $
 #
 
 use strict;
