@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.90 2004/01/14 20:21:56 jaco Exp $
+# $Id: hwdetect.in,v 1.91 2004/01/16 05:14:26 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -528,6 +528,7 @@ sub hwdetect_getvideo {
 				$probed_card->{Driver} = $probed_card->{Driver2};
 				$probed_card->{DRI_GLX_SPECIAL} = 1;
 				$module = $probed_card->{Driver2};
+				modules::add_alias("/dev/nvidia*", $module);
 			}
 			if ($probed_card->{Driver2} eq 'fglrx' &&
 			    -e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
