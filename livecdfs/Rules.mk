@@ -1,10 +1,11 @@
-# $Id: Rules.mk,v 1.6 2004/01/22 15:23:07 jaco Exp $
+# $Id: Rules.mk,v 1.7 2004/01/22 15:24:57 jaco Exp $
 
 TOPDIR=$(shell pwd)
 SRCDIR=src
 LUFSDIR=$(TOPDIR)/lufs
 PREFIX=/usr
 LIBDIR=$(PREFIX)/lib
+DESTDIR=
 
 CXXFLAGS=-Wall -DDEBUG -I$(LUFSDIR)/include
 CFLAGS=-Wall -I$(LUFSDIR)/include
