@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.43 2003/11/22 10:41:04 jaco Exp $
+# $Id: linuxrc.in,v 1.44 2003/11/27 11:08:52 jaco Exp $
 #
 
 ### global variables
@@ -455,7 +455,7 @@ createramdisk() {
 				done" \
 				"mkdir -p /var/lock/subsys" \
 				"mkdir -p /var/log && touch /var/log/wtmp" \
-				"mkdir -p /var/run && touch /var/run/utmp" \
+				"mkdir -p /var/run/netreport && touch /var/run/utmp" \
 				"ln -s /tmp /var/tmp"
 			set_progress
 			docmd   "Creating /etc structure" \
