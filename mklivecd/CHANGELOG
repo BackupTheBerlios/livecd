@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.85 2003/12/07 17:26:27 jaco Exp $
+# $Id: CHANGELOG,v 1.86 2003/12/08 09:30:05 jaco Exp $
 
 * Sun, Dec 07, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -53,6 +53,8 @@
       - Default to 16 bpp X depth
       - Fallback to 1024x768, 16bpp if either xres|xbpp parameters
         result in invalid res for card or detected size <= 800x600
+      - Attempt a fix at the X "de(nodeadkeys)" keyboard by breaking
+        it up into XkbLayout and XkbVariant sections
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules

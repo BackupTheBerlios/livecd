@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.68 2003/12/07 16:05:43 jaco Exp $
+# $Id: hwdetect.in,v 1.69 2003/12/08 09:30:05 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -556,6 +556,14 @@ sub hwdetect_getxfree {
 	my $def_card = hwdetect_getvideo();
 	my $rawX = Xconfig::default::configure($def_keyboard, $def_mouse);
 	my $def_monitor = hwdetect_getmonitor($rawX);
+
+	# fix the de(nodeadkeys) keyboard
+	my $xkb = $rawX->get_keyboard();
+	if ($xkb->{XkbLayout} =~ /de\(nodeadkeys\)/) {
+		$xkb->{XkbLayout} = 'de';
+		$xkb->{XkbVariant} = 'nodeadkeys';
+		$rawX->set_keyboard($xkb);
+	}
 
 	# config card and screen
 	Xconfig::card::to_raw_X($def_card, $rawX);
