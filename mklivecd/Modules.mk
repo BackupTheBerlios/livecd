@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.17 2004/06/12 14:50:49 tom_kelly33 Exp $
+# $Id: Modules.mk,v 1.18 2004/08/20 16:18:48 tom_kelly33 Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -25,7 +25,7 @@ DEF_MODULES_PATH_24=\
 DEF_MODULES_PATH_26=\
 	fs/nls/nls_iso8859-13 \
 	fs/nls/nls_iso8859-14 \
-#	fs/nls/nls_iso8859-15 \
+	fs/nls/nls_iso8859-15 \
 	fs/nls/nls_iso8859-1 \
 	fs/nls/nls_iso8859-2 \
 	fs/nls/nls_iso8859-3 \
@@ -111,7 +111,7 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/aha1542 \
 	drivers/scsi/aic7xxx/aic7xxx \
 	drivers/scsi/BusLogic \
-	drivers/scsi/cpqfc \
+#	drivers/scsi/cpqfc \
 	drivers/scsi/dmx3191d \
 	drivers/scsi/dtc \
 	drivers/scsi/eata \
