@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.78 2003/12/05 15:04:57 jaco Exp $
+# $Id: CHANGELOG,v 1.79 2003/12/05 19:53:21 jaco Exp $
 
 * Fri, Dec 05, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -62,7 +62,8 @@
       - Get Distro name (for starting init sequence.) from
         /etc/redhat-release
       - Print "LOADED" after loading modules, "OK" otherwise
-        (SCSI doen't print "FAILED" on no SCSI devices)
+        (SCSI doesn't print "FAILED" on no SCSI devices)
+      - Use losetup to mount cloop images
     [mklivecd]:
       - Be verbose in depmod command
       - Copy SCSI and optinal modules in addition to normal

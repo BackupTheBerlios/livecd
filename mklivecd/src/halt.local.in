@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: halt.local.in,v 1.6 2003/12/04 10:39:15 jaco Exp $
+# $Id: halt.local.in,v 1.7 2003/12/05 19:53:21 jaco Exp $
 #
 
 # Variables
@@ -38,52 +38,54 @@ MNTLIVECD="/loopfs"
 #grep -q noeject /proc/cmdline && exit 0 ||:
 grep -q eject /proc/cmdline || exit 0
 
-# make sure we are the last process to execute
-# (replace current running process)
-if [ ! -f /tmp/.halt.local ]; then
-	echo "" >/tmp/.halt.local
-	exec /initrd/sbin/halt.local
-fi
-
 # We probably want to be able to localise this:
 MSG="Remove the CD, and press [Enter] to power the computer off"
 
 # Copy the binaries we need
-cp -f /sbin/halt /usr/bin/eject /initrd/sbin
+cp -f /sbin/halt /initrd/sbin
+cp -f /usr/bin/eject /initrd/usr/bin
 
 # Find which device we want to eject:
 #DEVICE=`awk "/initrd\\$MNTCDROM/ {print \$1}" /proc/mounts`
-DEVICE=`grep "$MNTCDROM" /proc/mounts`
-DEVICE=${DEVICE// *}
+
+# these are valid, but invalid for ash :( (FIXME)
+#DEVICE=`grep "$MNTCDROM" /proc/mounts`
+#DEVICE=${DEVICE// *}
+
+# move our /proc and /dev mounts and pivot (setting correct paths)
+mount -n --move /dev /initrd/dev
+mount -n --move /proc /initrd/proc
+mkdir -p /initrd/ramfs
+/initrd/sbin/pivot_root /initrd /initrd/ramfs
 
 # Unmount the filesystems
 # We can unmount proc now
 #echo "Unmounting /proc"
-#/initrd/bin/umount /proc 2>/dev/null
+#umount /proc 2>/dev/null
 
-echo "Unmounting /initrd$MNTLIVECD"
-/initrd/bin/umount /initrd$MNTLIVECD #2>/dev/null
+echo "Unmounting $MNTLIVECD"
+umount $MNTLIVECD #2>/dev/null
 
 # Unload the cloop module before trying to umount/eject CD
-/initrd/sbin/rmmod -a
-/initrd/sbin/rmmod cloop
+losetup -d /dev/cloop/0
+rmmod cloop
 
-echo "Unmounting /initrd$MNTCDROM"
-/initrd/bin/umount /initrd$MNTCDROM #2>/dev/null
+echo "Unmounting $MNTCDROM"
+umount $MNTCDROM #2>/dev/null
 
 # Hopefully we are unmounted now, try eject
 echo "Ejecting $DEVICE"
 
-/initrd/sbin/eject $DEVICE #2>/dev/null
+eject $DEVICE #2>/dev/null
 
-/initrd/bin/ash < /dev/console 1>/dev/console
+ash < /dev/console 1>/dev/console
 
 echo "$MSG"
 read key </dev/console
 
 # We can unmount proc now
 echo "Unmounting /proc"
-/initrd/bin/umount /proc #2>/dev/null
+umount /proc #2>/dev/null
 
 #Hope this works ;-)
-/initrd/sbin/halt -i -d -p >/dev/null #2>/dev/null
+halt -i -d -p >/dev/null #2>/dev/null

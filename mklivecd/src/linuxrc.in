@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.44 2003/11/27 11:08:52 jaco Exp $
+# $Id: linuxrc.in,v 1.45 2003/12/05 19:53:21 jaco Exp $
 #
 
 ### global variables
@@ -256,18 +256,15 @@ findcloop() {
 				printok
 
 				echo -n "Loading compressed loop kernel module: "
-				loadmod $LOOPMOD.o file=$MNTCDROM/$BASEIMG$LOOPTYPE && printloaded || printfail
+				loadmod $LOOPMOD.o && printloaded || printfail
+				#loadmod $LOOPMOD.o file=$MNTCDROM/$BASEIMG$LOOPTYPE && printloaded || printfail
 
 				# mount the image, also catering for devfs
 				echo -n "Mounting uncompressed image on $MNTLIVECD"
-				CLOOPDEVS="/dev/$LOOPMOD"
-				if [ -e "$CLOOPDEVS" ]; then
-					CLOOPDEVS="$CLOOPDEVS/?"
-					for d in $CLOOPDEVS; do
-						CLOOPDEV="$d"
-						mount -r -t iso9660 $CLOOPDEV $MNTLIVECD && CLOOPMNT=1
-						[ -n $CLOOPMNT ] && break
-					done
+				CLOOPDEV="/dev/$LOOPMOD/0"
+				if [ -e "$CLOOPDEV" ]; then
+					losetup $CLOOPDEV $MNTCDROM/$BASEIMG$LOOPTYPE && \
+					mount -r -t iso9660 $CLOOPDEV $MNTLIVECD && CLOOPMNT=1
 				fi
 
 				# did we get it?
