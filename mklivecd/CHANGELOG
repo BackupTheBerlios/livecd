@@ -1,5 +1,7 @@
-# $Id: CHANGELOG,v 1.140 2005/02/14 07:01:05 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.141 2005/02/17 15:07:25 tom_kelly33 Exp $
 
+* 2005-02-17
+	[hwdetect & livecd-install] add sata_nv, thanks to Ocilent
 * 2005-02-13
 	[linuxrc.in] added usb devices to search list
 	[hwdetect] if 'noscsi' => no SATA check
