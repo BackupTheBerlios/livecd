@@ -1,4 +1,4 @@
-# $Id: mklivecd.spec.in,v 1.28 2004/01/12 06:06:43 jaco Exp $
+# $Id: mklivecd.spec.in,v 1.29 2004/01/25 17:45:31 jaco Exp $
 
 %define name	mklivecd
 %define version	@MKLIVECDVER@
@@ -46,7 +46,7 @@ rm -rf %buildroot
 
 %files
 %defattr(-,root,root)
-%doc AUTHORS BOOTCODES COPYING CHANGELOG FAQ README TODO
+%doc AUTHORS COPYING CHANGELOG FAQ README README.BOOTCODES README.USB TODO
 %{_sbindir}/mklivecd
 %{_sbindir}/hwdetect
 %dir %{_datadir}/mklivecd
