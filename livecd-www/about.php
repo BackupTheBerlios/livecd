@@ -57,6 +57,9 @@
 					</td></tr>
 				</table>
 			</td></tr>
+			<tr><td height="10"></td></tr>
+			<tr><td align="right"><a href="http://developer.berlios.de">
+<img src="http://developer.berlios.de/bslogo.php?group_id=1149&type=1" width="124" height="32" border="0" alt="BerliOS Logo"></a></td></tr>
 		</table>
 	</td></tr>
 </table>
