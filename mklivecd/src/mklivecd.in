@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.38 2003/10/06 05:29:22 jaco Exp $
+# $Id: mklivecd.in,v 1.39 2003/10/06 05:31:50 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -370,7 +370,7 @@ create_isolinux() {
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo 'label livecd' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '    append initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    append livecd=livecd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	if [ -z "$final" ]; then
 		do_cmd "echo 'label initrd' >>$ISOLINUXDIR/isolinux.cfg"
