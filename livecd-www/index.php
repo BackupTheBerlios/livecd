@@ -50,7 +50,7 @@
 							<tr><td colspan=2 bgcolor=#d0d0d0>
 								<b>M k L i v e C D &nbsp; 0 . 5 . 7 &nbsp; p r e v i e w &nbsp; 1</b><br>
 								MkLiveCD 0.5.7 is nicely taking shape with numerous improvements, additions and bugfixes over the 0.5.6 series. As such I've put up a stable CVS snapshot for those stalwards not yet running the latest and greatest. This snapshot serves as 0.5.7-preview-1 giving a taste of what will be in the actual 0.5.7 version. Everybody in encouraged to give this version a go, at the very least it is much better than the 0.5.6 version.<p>
-								You can download the release from the <a href="http://developer.berlios.de/project/showfiles.php?group_id=1149">BerliOS file download page</a>, or via <a href="ftp://ftp.berlios.de/pub/livecd/">BerliOS anonymous FTP</a>. Good luck!
+								You can download the release from the <a href="http://developer.berlios.de/project/showfiles.php?group_id=1149">BerliOS file download page</a>. Good luck!
 							</td></tr>
 						</table>
 					</td></tr>
