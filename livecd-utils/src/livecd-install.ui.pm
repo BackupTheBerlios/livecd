@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.13 2004/01/13 05:34:59 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.14 2004/01/13 05:43:31 jaco Exp $
 #
 
 use threads;
@@ -651,6 +651,7 @@ sub doLoaderInstall # SLOT: ( )
 		my ($bdev, $text) = split(/ /, $bootstr);
 		$bootdev = $bdev;
 
+		do_system("mkdir -p $mnt/etc");
 		open LILO, '>', "$mnt/etc/lilo.conf";
 		print LILO "boot=$bootdev
 map=/boot/map
