@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.15 2004/01/27 07:18:17 jaco Exp $
+# $Id: Rules.mk,v 1.16 2004/01/27 12:29:20 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -83,7 +83,8 @@ DOCDIST=\
 	CHANGELOG \
 	COPYING \
 	CREDITS \
-	README
+	README \
+	README.USAGE
 	
 BUILDDIST=\
 	Makefile \
