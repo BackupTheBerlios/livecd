@@ -1,4 +1,4 @@
-# $Id: mklivecd.spec.in,v 1.23 2003/12/12 15:48:41 jaco Exp $
+# $Id: mklivecd.spec.in,v 1.24 2003/12/12 15:50:26 jaco Exp $
 
 %define name	mklivecd
 %define version	@MKLIVECDVER@
@@ -22,7 +22,7 @@ Buildarch:	noarch
 The mklivecd tools are dedicated to providing you with the capability to
 create your own LiveCD from a currently installed Mandrake Linux distribution.
 It can be used to create your own travelling Mandrake-based LiveCD, specialised
-LiveCD feautring custom-developed applications or to put together a demo disk
+LiveCD featuring custom-developed applications or to put together a demo disk
 to show off the power of our favourite OS. The possibilities are endless!
 
 Created CD's features automatic hardware detection and setup. In addition, it
