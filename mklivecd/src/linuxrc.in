@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.42 2003/11/20 18:27:07 jaco Exp $
+# $Id: linuxrc.in,v 1.43 2003/11/22 10:41:04 jaco Exp $
 #
 
 ### global variables
@@ -54,7 +54,7 @@ MNTRAMDISK=/ramfs
 
 ### progress indicator
 progress_num=0
-progress_full=26 # our 10, +16 for hwdetect
+progress_full=27 # our 10, +17 for hwdetect
 progress_on=1
 progress_max=65534 # normal: 65534
 

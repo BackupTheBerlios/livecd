@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.57 2003/11/21 06:10:03 jaco Exp $
+# $Id: hwdetect.in,v 1.58 2003/11/22 10:41:04 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -79,7 +79,7 @@ chomp($kernel_ver);
 
 ### progress stuff
 my $progress_now  = 10; # 10 from linuxrc
-my $progress_full = 26; # our 16, +10 from linuxrc
+my $progress_full = 27; # our 17, +10 from linuxrc
 my $progress_on   = 1;
 my $progress_max  = 65534; # normal: 65534
 
@@ -1049,63 +1049,69 @@ sub hwdetect_getdisks {
 	$num++ foreach (keys %all_devs);
 	print "$num found";
 	print_success();
-	if ($num) {
-		unless ($probe) {
-			# get persistent partitions and set their mountpoints,
-			# and relevant options
-			hwdetect_getpersistent(%all_devs);
-
-			# create mountpoints
-			print "    Creating device mountpoints: ";
-			my $cmd;
-			foreach my $dev (keys %all_devs) {
-				my $mount = $all_devs{$dev}->{mount};
-				system("mkdir -p $mount 2>/dev/null");
-			}
-			print_success();
-
-			# write /etc/fstab
-			print "    Writing /etc/fstab: ";
-			open FSTAB, '>>', '/etc/fstab';
-			print FSTAB "\n### entries below this line were automatically added by $SCRIPT_NAME v$SCRIPT_VER\n";
-			open INFO, '>', '/etc/livecd/hwdetect/mounts.cfg';
-			foreach my $dev (sort keys %all_devs) {
-				print FSTAB "\n# ".$all_devs{$dev}->{info};
-				my $entry = "\n";
-				$entry .= $all_devs{$dev}->{devfs}."\t";
-				$entry .= $all_devs{$dev}->{mount}."\t";
-				$entry .= $all_devs{$dev}->{type}."\t";
-				my $opt = "";
-				$opt .= $all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
-				$opt .= "," if ($all_devs{$dev}->{opt} && $all_devs{$dev}->{extopt});
-				$opt .= $all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
-				$entry .= $opt."\t"."0 0\n";
-				print FSTAB $entry;
-
-				print INFO "$dev=";
-				print INFO "|info=".$all_devs{$dev}->{info};
-				print INFO "|dev=".$all_devs{$dev}->{dev};
-				print INFO "|devfs=".$all_devs{$dev}->{devfs};
-				print INFO "|mount=".$all_devs{$dev}->{mount};
-				print INFO "|media=".$all_devs{$dev}->{media};
-				print INFO "|size=".$all_devs{$dev}->{size} if ($all_devs{$dev}->{size});
-				print INFO "|type=".$all_devs{$dev}->{type};
-				print INFO "|persist=".$all_devs{$dev}->{persist} if ($all_devs{$dev}->{persist});
-				print INFO "|persisted=".$all_devs{$dev}->{persisted} if ($all_devs{$dev}->{persisted});
-				print INFO "|opt=".$all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
-				print INFO "|extopt=".$all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
-				print INFO "|usb=".$all_devs{$dev}->{usb} if ($all_devs{$dev}->{usb});
-				print INFO "\n";
-			}
-			print FSTAB "\n";
-			close FSTAB;
-			close INFO;
-			print_success();
-		}
-	}
 	set_progress();
 }
 
+
+# write the disk stuff
+sub hwdetect_writedisks {
+	my ($prefix) = @_;
+	unless ($probe) {
+		print "Writing partition configuration: ";
+		# get persistent partitions and set their mountpoints,
+		# and relevant options
+		hwdetect_getpersistent(%all_devs);
+
+		# create mountpoints
+		print "    Creating device mountpoints: ";
+		my $cmd;
+		foreach my $dev (keys %all_devs) {
+			my $mount = $all_devs{$dev}->{mount};
+			system("mkdir -p $mount 2>/dev/null");
+		}
+		print_success();
+
+		# write /etc/fstab
+		print "    Writing $prefix/etc/fstab: ";
+		open FSTAB, '>>', "$prefix/etc/fstab";
+		print FSTAB "\n### entries below this line were automatically added by $SCRIPT_NAME v$SCRIPT_VER\n";
+		qx(mkdir -p $prefix/etc/livecd/hwdetect/mounts.cfg);
+		open INFO, '>', "$prefix/etc/livecd/hwdetect/mounts.cfg";
+		foreach my $dev (sort keys %all_devs) {
+			print FSTAB "\n# ".$all_devs{$dev}->{info};
+			my $entry = "\n";
+			$entry .= $all_devs{$dev}->{devfs}."\t";
+			$entry .= $all_devs{$dev}->{mount}."\t";
+			$entry .= $all_devs{$dev}->{type}."\t";
+			my $opt = "";
+			$opt .= $all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
+			$opt .= "," if ($all_devs{$dev}->{opt} && $all_devs{$dev}->{extopt});
+			$opt .= $all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
+			$entry .= $opt."\t"."0 0\n";
+			print FSTAB $entry;
+
+			print INFO "$dev=";
+			print INFO "|info=".$all_devs{$dev}->{info};
+			print INFO "|dev=".$all_devs{$dev}->{dev};
+			print INFO "|devfs=".$all_devs{$dev}->{devfs};
+			print INFO "|mount=".$all_devs{$dev}->{mount};
+			print INFO "|media=".$all_devs{$dev}->{media};
+			print INFO "|size=".$all_devs{$dev}->{size} if ($all_devs{$dev}->{size});
+			print INFO "|type=".$all_devs{$dev}->{type};
+			print INFO "|persist=".$all_devs{$dev}->{persist} if ($all_devs{$dev}->{persist});
+			print INFO "|persisted=".$all_devs{$dev}->{persisted} if ($all_devs{$dev}->{persisted});
+			print INFO "|opt=".$all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
+			print INFO "|extopt=".$all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
+			print INFO "|usb=".$all_devs{$dev}->{usb} if ($all_devs{$dev}->{usb});
+			print INFO "\n";
+		}
+		print FSTAB "\n";
+		close FSTAB;
+		close INFO;
+		print_success();
+	}
+	set_progress();
+}
 
 # start all swap partitions
 sub hwdetect_swapon {
@@ -1136,6 +1142,7 @@ hwdetect_getnetwork();
 #hwdetect_getserial();
 hwdetect_getusb();
 hwdetect_getdisks();
+hwdetect_writedisks("");
 hwdetect_swapon();
 hwdetect_getmachine();
 hwdetect_writeconf();
