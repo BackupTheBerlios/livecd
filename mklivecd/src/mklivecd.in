@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.109 2004/02/17 06:08:11 jaco Exp $
+# $Id: mklivecd.in,v 1.110 2004/02/25 06:49:00 jaco Exp $
 #
 
 use strict;
@@ -591,7 +591,7 @@ sub create_initrd {
 
 	# create directories
 	my $dir = $workdir."/initrd.dir";
-	system("mkdir -p $dir/{bin,dev,etc/livecd/hwdetect,etc/rc.d/,lib/modules/$o_kernel/kernel,proc,sbin,usr/{bin,sbin},cdrom,loopfs,ramfs}") and die_("\nFATAL: Unable to create initrd directory, '$dir'\n");
+	system("mkdir -p $dir/{bin,dev,etc/livecd/hwdetect,etc/rc.d/,lib/modules/$o_kernel/kernel,proc,ramfs,sbin,usr/{bin,sbin},cdrom,loopfs,ramfs}") and die_("\nFATAL: Unable to create initrd directory, '$dir'\n");
 	set_progress(++$pos, "mkdir -p $dir/...");
 
 	# find our insmod

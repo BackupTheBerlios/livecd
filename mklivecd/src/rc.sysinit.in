@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.22 2004/02/16 05:43:46 jaco Exp $
+# $Id: rc.sysinit.in,v 1.23 2004/02/25 06:49:00 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -308,7 +308,7 @@ setupdir_var() {
 					lib/rpm*|lib/urpmi*|lib/samba*|lib/mysql*)
 						[ ! -e "/var/$d" ] && ln -sf "$MNTLIVECD/var/$d" "/var/$d" || true
 						;;
-					cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|yp*)
+					cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|xkb*|yp*)
 						mkdir -p "/var/$d" || true
 						$MNTLIVECD/bin/chown --reference="$MNTLIVECD/var/$d" "/var/$d"
 						$MNTLIVECD/bin/chmod --reference="$MNTLIVECD/var/$d" "/var/$d"
@@ -411,9 +411,12 @@ setupinit() {
 		done
 	fi
 
-	#clean up the shutdown sequence:
+	# clean up the shutdown sequence:
 	/bin/sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/initrd\\\/\.\*\/\3,;s,/sbin/halt.local,/initrd/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /initrd/sbin/halt.local,   exec /initrd/sbin/halt.local \$command,g;s,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/halt
 	[ -f /etc/rc.d/init.d/netfs ] && /bin/sed -i.livecd -e 's,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/netfs
+
+	# make sure we get halt and reboot binaries
+	cp -f /sbin/halt /sbin/reboot /initrd/sbin
 	
 	# restart the splash before MDK init (this is very hacky)
 	silent=`/bin/grep -i splash=silent /proc/cmdline`
