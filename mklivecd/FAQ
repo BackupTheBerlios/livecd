@@ -1,4 +1,4 @@
-# $Id: FAQ,v 1.12 2003/10/10 09:42:54 jaco Exp $
+# $Id: FAQ,v 1.13 2003/10/21 13:59:30 jaco Exp $
 
 Q: How do I create a tiny (truly minimal) bootable Mandrake
    LiveCD?
@@ -28,7 +28,7 @@ Q: I have created a LiveCD and I'm seeing weird hangs. This either
    process. Any ideas?
 A: The most common cause for these hangs is an outdated cloop
    module as shipped in the MDK 9.2 kernel. Install an updated
-   kernel (providing cloop 1.02 or later) or
+   kernel >= 2.4.22.18mdk (providing cloop 1.02) or
    kernel-tmb >= 2.4.22.10.tmb.4mdk from contrib, and use this
    one as the kernel for your LiveCD.
 
