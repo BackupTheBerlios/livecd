@@ -28,15 +28,10 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.27 2004/04/25 15:08:06 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.28 2004/04/26 14:57:13 tom_kelly33 Exp $
 #
 
 #use LCDLang;
-
-use vars qw(
-	$opt_debug
-	$opt_nocopy
-);
 
 use threads;
 use threads::shared;
@@ -45,6 +40,11 @@ use lib qw(/usr/lib/libDrakX);
 
 use fs;
 use swap;
+
+use vars qw(
+        $opt_debug
+        $opt_nocopy
+);
 
 my $debug   : shared = undef;
 my $nocopy  : shared = undef;
@@ -161,86 +161,85 @@ sub pageSelected # SLOT: ( const QString & )
 
 sub initLang 
 {
-	setCaption(trUtf8(getStr('caption')));
+	setCaption(getStr('caption'));
 	
-	setTitle(page, trUtf8(getStr('scr_1_title')));
-	tlWelcome->setText(trUtf8(getStr('scr_1_text')));
-	bDiskPartitioner->setText(trUtf8(getStr('btn_disk_part')));
+	setTitle(page, getStr('scr_1_title'));
+	tlWelcome->setText(getStr('scr_1_text'));
+	bDiskPartitioner->setText(getStr('btn_disk_part'));
 
-	setTitle(page_2, trUtf8(getStr('scr_2_title')));
-	tlWelcome_2_3->setText(trUtf8(getStr('scr_2_text')));
-	groupBox16->setTitle(trUtf8(getStr('scr_2_req')));
-	textLabel5->setText(trUtf8(getStr('scr_2_swap')));
-	textLabel1->setText(trUtf8(getStr('scr_2_root')));
-	groupBox16_2->setTitle(trUtf8(getStr('scr_2_opt')));
-	textLabel1_2->setText(trUtf8(getStr('scr_2_home')));
-	textLabel5_2->setText(trUtf8(getStr('scr_2_var')));
-	textLabel5_2_2->setText(trUtf8(getStr('scr_2_tmp')));
-	cbTmpFormat->setText(trUtf8(getStr('scr_2_fmt')));
-	cbVarFormat->setText(trUtf8(getStr('scr_2_fmt')));
-	cbHomeFormat->setText(trUtf8(getStr('scr_2_fmt')));
-	cbRootFormat->setText(trUtf8(getStr('scr_2_fmt')));
-	cbSwapFormat->setText(trUtf8(getStr('scr_2_fmt')));
+	setTitle(page_2, getStr('scr_2_title'));
+	tlWelcome_2_3->setText(getStr('scr_2_text'));
+	groupBox16->setTitle(getStr('scr_2_req'));
+	textLabel5->setText(getStr('scr_2_swap'));
+	textLabel1->setText(getStr('scr_2_root'));
+	groupBox16_2->setTitle(getStr('scr_2_opt'));
+	textLabel1_2->setText(getStr('scr_2_home'));
+	textLabel5_2->setText(getStr('scr_2_var'));
+	textLabel5_2_2->setText(getStr('scr_2_tmp'));
+	cbTmpFormat->setText(getStr('scr_2_fmt'));
+	cbVarFormat->setText(getStr('scr_2_fmt'));
+	cbHomeFormat->setText(getStr('scr_2_fmt'));
+	cbRootFormat->setText(getStr('scr_2_fmt'));
+	cbSwapFormat->setText(getStr('scr_2_fmt'));
 	
-	setTitle(page_3, trUtf8(getStr('scr_3_title')));
-	textLabel1_3->setText(trUtf8(getStr('scr_3_text')));
-	lvVerify->header()->setLabel(0, trUtf8(getStr('scr_3_mnt')));
-	lvVerify->header()->setLabel(1, trUtf8(getStr('scr_3_dev')));
-	lvVerify->header()->setLabel(2, trUtf8(getStr('scr_3_fmt')));
+	setTitle(page_3, getStr('scr_3_title'));
+	textLabel1_3->setText(getStr('scr_3_text'));
+	lvVerify->header()->setLabel(0, getStr('scr_3_mnt'));
+	lvVerify->header()->setLabel(1, getStr('scr_3_dev'));
+	lvVerify->header()->setLabel(2, getStr('scr_3_fmt'));
 	lvVerify->clear();
 	my $item = Qt::ListViewItem(lvVerify, undef);
 	
-	setTitle(page_4, trUtf8(getStr('scr_4_title')));
-	textLabel1_3_2->setText(trUtf8(getStr('scr_4_text')));
+	setTitle(page_4, getStr('scr_4_title'));
+	textLabel1_3_2->setText(getStr('scr_4_text'));
 	tlInstInfo->setText("");
-	groupBox3->setTitle(trUtf8(getStr('scr_4_progress')));
-	textLabel2->setText(trUtf8(getStr('scr_4_fmt')));
-	textLabel2_2->setText(trUtf8(getStr('scr_4_copy')));
-	textLabel2_2_2->setText(trUtf8(getStr('scr_4_overall')));
-	tlOverall->setText(trUtf8("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining')));
-	tlFormat->setText(trUtf8("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining')));
-	tlCopy->setText(trUtf8("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining')));
+	groupBox3->setTitle(getStr('scr_4_progress'));
+	textLabel2->setText(getStr('scr_4_fmt'));
+	textLabel2_2->setText(getStr('scr_4_copy'));
+	textLabel2_2_2->setText(getStr('scr_4_overall'));
+	tlOverall->setText("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining'));
+	tlFormat->setText("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining'));
+	tlCopy->setText("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining'));
 
 	# Page 5	
-	setTitle(page_5, trUtf8(getStr('scr_5_title')));
-	textLabel1_3_2_2->setText(trUtf8(getStr('scr_5_text')));
-        textLabel52->setText(trUtf8(getStr('scr_52')));
-	bInstall->setText(trUtf8(getStr('btn_inst')));
-	bLogging_yes->setText(trUtf8(getStr('btn_logging_yes')));
-	bLogging_no->setText(trUtf8(getStr('btn_logging_no')));
+	setTitle(page_5, getStr('scr_5_title'));
+	textLabel1_3_2_2->setText(getStr('scr_5_text'));
+        textLabel52->setText(getStr('scr_52'));
+	bInstall->setText(getStr('btn_inst'));
+	bLogging_yes->setText(getStr('btn_logging_yes'));
+	bLogging_no->setText(getStr('btn_logging_no'));
  
 	# Page 6	
-	setTitle(page_6, trUtf8(getStr('scr_6_title')));
-	tlWelcome_2->setText(trUtf8(getStr('scr_6_text')));
+	setTitle(page_6, getStr('scr_6_title'));
+	tlWelcome_2->setText(getStr('scr_6_text'));
 
-	textLabel611->setText(trUtf8(getStr('scr_6_typeroot')));
-	textLabel612->setText(trUtf8(getStr('scr_6_typeroot2')));
-	bWritePassword->setText(trUtf8(getStr('btn_write_pw')));
+	textLabel611->setText(getStr('scr_6_typeroot'));
+	textLabel612->setText(getStr('scr_6_typeroot2'));
+	bWritePassword->setText(getStr('btn_write_pw'));
 
-        textLabel621->setText(trUtf8(getStr('scr_6_del_guest')));
-        bDeleteGuest->setText(trUtf8(getStr('btn_del_guest')));
+        textLabel621->setText(getStr('scr_6_del_guest'));
+        bDeleteGuest->setText(getStr('btn_del_guest'));
 
-        textLabel631->setText(trUtf8(getStr('scr_6_add_user')));
-        textLabel632->setText(trUtf8(getStr('scr_6_au_login')));
-        textLabel633->setText(trUtf8(getStr('scr_6_au_real')));
-        textLabel634->setText(trUtf8(getStr('scr_6_au_pw')));
-        textLabel635->setText(trUtf8(getStr('scr_6_au_rpw')));
-        bCreateUser->setText(trUtf8(getStr('btn_cr_user')));
+        textLabel631->setText(getStr('scr_6_add_user'));
+        textLabel632->setText(getStr('scr_6_au_login'));
+        textLabel633->setText(getStr('scr_6_au_real'));
+        textLabel634->setText(getStr('scr_6_au_pw'));
+        textLabel635->setText(getStr('scr_6_au_rpw'));
+        bCreateUser->setText(getStr('btn_cr_user'));
 
         buttonGroup2->setTitle( "" );
-        rbNoReboot->setText(trUtf8(getStr('scr_6_no')));
-        rbReboot->setText(trUtf8(getStr('scr_6_yes')));
+        rbNoReboot->setText(getStr('scr_6_no'));
+        rbReboot->setText(getStr('scr_6_yes'));
 
 }
 
 sub init
 {
 	select(STDOUT);
-	$| = 1;
+ 	$| = 1;
 
 	# initialise our languages
 	$lang = getMyLang();
-	
 	print getStr('script_init')."\n";
 	initLang();
 	do_system("mkdir -p $mnt");
@@ -385,40 +384,42 @@ sub scanPartitions
 
 sub showVerify
 {
-    if (this->cbRoot->currentText() =~ m/none/) {
+    my $none = getStr('part_none'); # For translations
+
+    if (this->cbRoot->currentText() =~ m/$none/) {
 	emit back();
 	Qt::MessageBox::warning(undef, getStr('part_no_root_t'), getStr('part_no_root'), getStr('btn_retry'));
     }
-    elsif (this->cbSwap->currentText() =~ m/none/) {
+    elsif (this->cbSwap->currentText() =~ m/$none/) {
 	emit back();
 	Qt::MessageBox::warning(undef, getStr('part_no_swap_t'), getStr('part_no_swap'), getStr('btn_retry'));
     }
-    elsif (!(this->cbHome->currentText() =~ m/none/) &&
+    elsif (!(this->cbHome->currentText() =~ m/$none/) &&
            (this->cbHome->currentText() eq this->cbRoot->currentText())) {
 	emit back();
 	Qt::MessageBox::warning(undef, getStr('part_o_home_t'), getStr('part_o_home'), getStr('btn_retry'));
     }
-    elsif (!(this->cbVar->currentText() =~ m/none/) &&
+    elsif (!(this->cbVar->currentText() =~ m/$none/) &&
            (this->cbVar->currentText() eq this->cbRoot->currentText())) {
 	emit back();
 	Qt::MessageBox::warning(undef, getStr('part_o_var_t'), getStr('part_o_var'), getStr('btn_retry'));
     }
-    elsif (!(this->cbVar->currentText() =~ m/none/) &&
+    elsif (!(this->cbVar->currentText() =~ m/$none/) &&
            (this->cbVar->currentText() eq this->cbHome->currentText())) {
 	emit back();
 	Qt::MessageBox::warning(undef, getStr('part_o_varhome_t'), getStr('part_o_varhome'), getStr('btn_retry'));
     }
-    elsif (!(this->cbTmp->currentText() =~ m/none/) &&
+    elsif (!(this->cbTmp->currentText() =~ m/$none/) &&
            (this->cbTmp->currentText() eq this->cbRoot->currentText())) {
 	emit back();
 	Qt::MessageBox::warning(undef, getStr('part_o_tmp_t'), getStr('part_o_tmp'), getStr('btn_retry'));
     }
-    elsif (!(this->cbTmp->currentText() =~ m/none/) &&
+    elsif (!(this->cbTmp->currentText() =~ m/$none/) &&
            (this->cbTmp->currentText() eq this->cbHome->currentText())) {
 	emit back();
 	Qt::MessageBox::warning(undef, getStr('part_o_tmphome_t'), getStr('part_o_tmphome'), getStr('btn_retry'));
     }
-    elsif (!(this->cbTmp->currentText() =~ m/none/) &&
+    elsif (!(this->cbTmp->currentText() =~ m/$none/) &&
            (this->cbTmp->currentText() eq this->cbVar->currentText())) {
 	emit back();
 	Qt::MessageBox::warning(undef, getStr('part_o_tmpvar_t'), getStr('part_o_tmpvar'), getStr('btn_retry'));
@@ -435,7 +436,7 @@ sub showVerify
 	$item->setText(0, getStr('part_name_swap'));
 	$item->setText(1, $text);
 	$item->setText(2, getStr('yes')) if (this->cbSwapFormat->isChecked());
-	unless (this->cbTmp->currentText() =~ m/none/) {
+	unless (this->cbTmp->currentText() =~ m/$none/) {
 	    $item = Qt::ListViewItem(this->lvVerify, $item);
 	    $text = this->cbTmp->currentText();
 	    ($tmppart, @rest) = split(/,/, $text);
@@ -443,7 +444,7 @@ sub showVerify
 	    $item->setText(1, $text);
 	    $item->setText(2, getStr('yes')) if (this->cbTmpFormat->isChecked());
 	}
-	unless (this->cbVar->currentText() =~ m/none/) {
+	unless (this->cbVar->currentText() =~ m/$none/) {
 	    $item = Qt::ListViewItem(this->lvVerify, $item);
 	    $text = this->cbVar->currentText();
 	    ($varpart, @rest) = split(/,/, $text);
@@ -451,7 +452,7 @@ sub showVerify
 	    $item->setText(1, $text);
 	    $item->setText(2, getStr('yes')) if (this->cbVarFormat->isChecked());
 	}
-	unless (this->cbHome->currentText() =~ m/none/) {
+	unless (this->cbHome->currentText() =~ m/$none/) {
 	    $item = Qt::ListViewItem(this->lvVerify, $item);
 	    $text = this->cbHome->currentText();
 	    ($homepart, @rest) = split(/,/, $text);

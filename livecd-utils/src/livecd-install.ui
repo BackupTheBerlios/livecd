@@ -41,6 +41,26 @@
                 <bool>true</bool>
             </property>
         </widget>
+        <widget class="QPushButton">
+            <property name="name">
+                <cstring>bDiskPartitioner</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>415</x>
+                    <y>350</y>
+                    <width>210</width>
+                    <height>35</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&amp;Disk Partitioner
+(for advanced users)</string>
+            </property>
+            <property name="accel">
+                <string>Alt+D</string>
+            </property>
+        </widget>
         <widget class="QLabel">
             <property name="name">
                 <cstring>tlWelcome</cstring>
@@ -54,30 +74,10 @@
                 </rect>
             </property>
             <property name="text">
-                <string>&lt;p&gt;&lt;b&gt;Welcome&lt;/b&gt; to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the &lt;i&gt;Back&lt;/i&gt; and &lt;i&gt;Next&lt;/i&gt; buttons. You can stop at any time with the &lt;i&gt;Cancel&lt;/i&gt; button.&lt;/p&gt;&lt;p&gt;This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing important data or making your system unbootable. Use it with care!&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or $distroname\'s homepage: $distrohome.</string>
+                <string>&lt;p&gt;&lt;b&gt;Welcome&lt;/b&gt; to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the &lt;i&gt;Back&lt;/i&gt; and &lt;i&gt;Next&lt;/i&gt; buttons. You can stop at any time with the &lt;i&gt;Cancel&lt;/i&gt; button.&lt;/p&gt;&lt;p&gt;This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing important data or making your system unbootable. Use it with care!&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.</string>
             </property>
             <property name="alignment">
                 <set>WordBreak|AlignTop|AlignLeft</set>
-            </property>
-        </widget>
-        <widget class="QPushButton">
-            <property name="name">
-                <cstring>bDiskPartitioner</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>415</x>
-                    <y>350</y>
-                    <width>185</width>
-                    <height>35</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&amp;Disk Partitioner
-(for advanced users)</string>
-            </property>
-            <property name="accel">
-                <string>Alt+D</string>
             </property>
         </widget>
     </widget>
@@ -109,157 +109,6 @@
         </widget>
         <widget class="QGroupBox">
             <property name="name">
-                <cstring>groupBox16_2</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>310</x>
-                    <y>210</y>
-                    <width>395</width>
-                    <height>170</height>
-                </rect>
-            </property>
-            <property name="title">
-                <string>Optional Partitions</string>
-            </property>
-            <widget class="QLabel">
-                <property name="name">
-                    <cstring>textLabel1_2</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>20</y>
-                        <width>170</width>
-                        <height>20</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Home (/home) device:</string>
-                </property>
-            </widget>
-            <widget class="QLabel">
-                <property name="name">
-                    <cstring>textLabel5_2</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>70</y>
-                        <width>180</width>
-                        <height>20</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Var (/var) device:</string>
-                </property>
-            </widget>
-            <widget class="QLabel">
-                <property name="name">
-                    <cstring>textLabel5_2_2</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>120</y>
-                        <width>180</width>
-                        <height>20</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Temp (/tmp) device:</string>
-                </property>
-            </widget>
-            <widget class="QComboBox">
-                <property name="name">
-                    <cstring>cbVar</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>90</y>
-                        <width>370</width>
-                        <height>26</height>
-                    </rect>
-                </property>
-            </widget>
-            <widget class="QComboBox">
-                <property name="name">
-                    <cstring>cbTmp</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>140</y>
-                        <width>370</width>
-                        <height>26</height>
-                    </rect>
-                </property>
-            </widget>
-            <widget class="QCheckBox">
-                <property name="name">
-                    <cstring>cbTmpFormat</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>300</x>
-                        <y>120</y>
-                        <width>70</width>
-                        <height>20</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Format</string>
-                </property>
-            </widget>
-            <widget class="QCheckBox">
-                <property name="name">
-                    <cstring>cbVarFormat</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>300</x>
-                        <y>70</y>
-                        <width>70</width>
-                        <height>20</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Format</string>
-                </property>
-            </widget>
-            <widget class="QCheckBox">
-                <property name="name">
-                    <cstring>cbHomeFormat</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>300</x>
-                        <y>20</y>
-                        <width>70</width>
-                        <height>20</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Format</string>
-                </property>
-            </widget>
-            <widget class="QComboBox">
-                <property name="name">
-                    <cstring>cbHome</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>40</y>
-                        <width>370</width>
-                        <height>26</height>
-                    </rect>
-                </property>
-            </widget>
-        </widget>
-        <widget class="QGroupBox">
-            <property name="name">
                 <cstring>groupBox16</cstring>
             </property>
             <property name="geometry">
@@ -273,22 +122,6 @@
             <property name="title">
                 <string>Required Partitions</string>
             </property>
-            <widget class="QLabel">
-                <property name="name">
-                    <cstring>textLabel5</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>70</y>
-                        <width>170</width>
-                        <height>20</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Swap device:</string>
-                </property>
-            </widget>
             <widget class="QComboBox">
                 <property name="name">
                     <cstring>cbSwap</cstring>
@@ -300,22 +133,6 @@
                         <width>370</width>
                         <height>26</height>
                     </rect>
-                </property>
-            </widget>
-            <widget class="QLabel">
-                <property name="name">
-                    <cstring>textLabel1</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>20</y>
-                        <width>180</width>
-                        <height>20</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Root (/) device:</string>
                 </property>
             </widget>
             <widget class="QComboBox">
@@ -331,6 +148,38 @@
                     </rect>
                 </property>
             </widget>
+            <widget class="QLabel">
+                <property name="name">
+                    <cstring>textLabel5</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>70</y>
+                        <width>225</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Swap device:</string>
+                </property>
+            </widget>
+            <widget class="QLabel">
+                <property name="name">
+                    <cstring>textLabel1</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>20</y>
+                        <width>195</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Root (/) device:</string>
+                </property>
+            </widget>
             <widget class="QCheckBox">
                 <property name="name">
                     <cstring>cbRootFormat</cstring>
@@ -340,9 +189,9 @@
                 </property>
                 <property name="geometry">
                     <rect>
-                        <x>300</x>
+                        <x>260</x>
                         <y>20</y>
-                        <width>70</width>
+                        <width>110</width>
                         <height>20</height>
                     </rect>
                 </property>
@@ -359,9 +208,9 @@
                 </property>
                 <property name="geometry">
                     <rect>
-                        <x>300</x>
+                        <x>260</x>
                         <y>70</y>
-                        <width>70</width>
+                        <width>110</width>
                         <height>20</height>
                     </rect>
                 </property>
@@ -392,6 +241,157 @@
                 <set>WordBreak|AlignTop|AlignLeft</set>
             </property>
         </widget>
+        <widget class="QGroupBox">
+            <property name="name">
+                <cstring>groupBox16_2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>210</y>
+                    <width>395</width>
+                    <height>170</height>
+                </rect>
+            </property>
+            <property name="title">
+                <string>Optional Partitions</string>
+            </property>
+            <widget class="QComboBox">
+                <property name="name">
+                    <cstring>cbVar</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>90</y>
+                        <width>370</width>
+                        <height>26</height>
+                    </rect>
+                </property>
+            </widget>
+            <widget class="QComboBox">
+                <property name="name">
+                    <cstring>cbTmp</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>140</y>
+                        <width>370</width>
+                        <height>26</height>
+                    </rect>
+                </property>
+            </widget>
+            <widget class="QComboBox">
+                <property name="name">
+                    <cstring>cbHome</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>40</y>
+                        <width>370</width>
+                        <height>26</height>
+                    </rect>
+                </property>
+            </widget>
+            <widget class="QCheckBox">
+                <property name="name">
+                    <cstring>cbTmpFormat</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>260</x>
+                        <y>120</y>
+                        <width>110</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Format</string>
+                </property>
+            </widget>
+            <widget class="QCheckBox">
+                <property name="name">
+                    <cstring>cbVarFormat</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>260</x>
+                        <y>70</y>
+                        <width>110</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Format</string>
+                </property>
+            </widget>
+            <widget class="QCheckBox">
+                <property name="name">
+                    <cstring>cbHomeFormat</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>260</x>
+                        <y>20</y>
+                        <width>110</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Format</string>
+                </property>
+            </widget>
+            <widget class="QLabel">
+                <property name="name">
+                    <cstring>textLabel1_2</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>20</y>
+                        <width>220</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Home (/home) device:</string>
+                </property>
+            </widget>
+            <widget class="QLabel">
+                <property name="name">
+                    <cstring>textLabel5_2_2</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>120</y>
+                        <width>205</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Temp (/tmp) device:</string>
+                </property>
+            </widget>
+            <widget class="QLabel">
+                <property name="name">
+                    <cstring>textLabel5_2</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>70</y>
+                        <width>210</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Var (/var) device:</string>
+                </property>
+            </widget>
+        </widget>
     </widget>
     <widget class="QWidget">
         <property name="name">
@@ -417,6 +417,25 @@
             </property>
             <property name="scaledContents">
                 <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel1_3</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>0</y>
+                    <width>390</width>
+                    <height>100</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&lt;p&gt;&lt;b&gt;Warning&lt;/b&gt; The following changes will be made to your system to install $distroname. To correct your selections, press the &lt;i&gt;Back&lt;/i&gt; button, otherwise press &lt;i&gt;Next&lt;/i&gt; to start the installation process.&lt;/p&gt;</string>
+            </property>
+            <property name="alignment">
+                <set>WordBreak|AlignTop</set>
             </property>
         </widget>
         <widget class="QListView">
@@ -479,29 +498,10 @@
             <property name="geometry">
                 <rect>
                     <x>310</x>
-                    <y>90</y>
+                    <y>105</y>
                     <width>390</width>
-                    <height>290</height>
+                    <height>275</height>
                 </rect>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel1_3</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>310</x>
-                    <y>0</y>
-                    <width>390</width>
-                    <height>80</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&lt;p&gt;&lt;b&gt;Warning&lt;/b&gt; The following changes will be made to your system to install $distroname. To correct your selections, press the &lt;i&gt;Back&lt;/i&gt; button, otherwise press &lt;i&gt;Next&lt;/i&gt; to start the installation process.&lt;/p&gt;</string>
-            </property>
-            <property name="alignment">
-                <set>WordBreak|AlignTop</set>
             </property>
         </widget>
     </widget>
@@ -775,57 +775,6 @@
                 <set>WordBreak|AlignTop</set>
             </property>
         </widget>
-        <widget class="QListBox">
-            <property name="name">
-                <cstring>lbBootloader</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>310</x>
-                    <y>80</y>
-                    <width>390</width>
-                    <height>180</height>
-                </rect>
-            </property>
-        </widget>
-        <widget class="QPushButton">
-            <property name="name">
-                <cstring>bInstall</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>310</x>
-                    <y>265</y>
-                    <width>140</width>
-                    <height>30</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&amp;Install</string>
-            </property>
-            <property name="accel">
-                <string>Alt+I</string>
-            </property>
-        </widget>
-        <widget class="QPushButton">
-            <property name="name">
-                <cstring>bLogging_no</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>565</x>
-                    <y>360</y>
-                    <width>140</width>
-                    <height>25</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&amp;Deactivate Logging</string>
-            </property>
-            <property name="accel">
-                <string>Alt+D</string>
-            </property>
-        </widget>
         <widget class="QLabel">
             <property name="name">
                 <cstring>textLabel52</cstring>
@@ -844,13 +793,32 @@
         </widget>
         <widget class="QPushButton">
             <property name="name">
+                <cstring>bLogging_no</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>545</x>
+                    <y>360</y>
+                    <width>160</width>
+                    <height>25</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&amp;Deactivate Logging</string>
+            </property>
+            <property name="accel">
+                <string>Alt+D</string>
+            </property>
+        </widget>
+        <widget class="QPushButton">
+            <property name="name">
                 <cstring>bLogging_yes</cstring>
             </property>
             <property name="geometry">
                 <rect>
                     <x>310</x>
                     <y>360</y>
-                    <width>140</width>
+                    <width>155</width>
                     <height>25</height>
                 </rect>
             </property>
@@ -859,6 +827,38 @@
             </property>
             <property name="accel">
                 <string>Alt+A</string>
+            </property>
+        </widget>
+        <widget class="QPushButton">
+            <property name="name">
+                <cstring>bInstall</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>270</y>
+                    <width>155</width>
+                    <height>25</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&amp;Install</string>
+            </property>
+            <property name="accel">
+                <string>Alt+I</string>
+            </property>
+        </widget>
+        <widget class="QListBox">
+            <property name="name">
+                <cstring>lbBootloader</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>80</y>
+                    <width>390</width>
+                    <height>180</height>
+                </rect>
             </property>
         </widget>
     </widget>
