@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.134 2005/01/15 00:31:10 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.135 2005/01/16 00:08:48 tom_kelly33 Exp $
 #
 
 use strict;
@@ -44,7 +44,7 @@ my $PROG_VERSION   = '@MKLIVECDVER@';
 my $PROG_NAME      = '@PKGNAME@';
 my $ESC            = "\x1B[";
 my $URL            = "http://livecd.berlios.de/";
-my $COPYRIGHT      = "Copyright (C) 2002-2004, Jaco Greeff <jaco\@linuxminicd.org>";
+my $COPYRIGHT      = "Copyright (C) 2002-2004, Jaco Greeff <jaco\@puxedo.org>";
 
 ### global variables
 my $starttime      = time;

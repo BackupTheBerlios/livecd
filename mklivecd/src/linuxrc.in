@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.88 2005/01/15 00:31:10 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.89 2005/01/16 00:08:48 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -539,8 +539,77 @@ createramdisk() {
 	else
 		$SETCOLOR_FAIL
 		echo ""
-		echo "ERROR: Insufficient memory to create ramdisk,"
-		echo "       Dropping you to a limited shell."
+		echo "ERROR: Insufficient memory to create ramdisk."
+		echo "       Press [y] to initialize virtual swap area creation process,"
+		echo "       Otherwise, you will be dropped to a limited shell."
+		read choice
+
+		if [ "$choice" = "y" ]; then
+			useswap "";
+		else
+			echo -n "You did not select 'y', so dropping you to a limited shell."
+                	$SETCOLOR_NORMAL
+                	execshell
+		fi
+        fi
+}
+
+useswap() {
+	DOSPARTITIONS=""
+   
+	# Find all DOS partitions
+	if [ -f /proc/partitions ]; then
+		partitions=""
+		for p in $(awk 'BEGIN{old="__start"}{if($0==old){exit}else{old=$0;if($4&&$4!="name"){print $4}}}' /proc/partitions); do
+			case $p in
+			hd?|sd?) partitions="$partitions /dev/$p"; ;;
+			*) ;;
+			esac
+		done
+  
+		if [ -n "$partitions" ]; then
+			foundp="$(LANG=C LC_ALL=C fdisk -l $partitions 2>/dev/null)"
+			for p in `echo "$foundp" | awk '/^\/dev\//{if(/FAT/){print $1}}'`; do
+				d="/mnt/${p##*/}"
+				if mount -o ro -t vfat $p $d 2>/dev/null; then
+					[ ! -f $d/livecd.swp ] && DOSPARTITIONS="$DOSPARTITIONS $p"
+					umount $d
+				fi
+			done
+		fi
+	fi
+  
+	if [ -n "$DOSPARTITIONS" ]; then
+		for p in $DOSPARTITIONS; do
+			d="/mnt/${p##*/}"
+			f="$d/livecd.swp"
+			if mount -o umask=000,rw -t vfat $p $d; then
+				AVAIL=$(df -m $d | awk '/^\/dev\//{print $4}')
+				if [ "$AVAIL" -lt 128 ]; then
+					$SETCOLOR_FAIL
+					echo -n "Sorry, not enough free space on $p. At least 128 MB required. Dropping you to a limited shell"
+					$SETCOLOR_NORMAL
+					umount $d
+					execshell
+				else
+					rm -f "$TMP"
+					IN="128"
+					$SETCOLOR_NORMAL
+					echo -n "creating temporary swap partition"
+					dd if=/dev/zero of="$f" bs=1000k count="$IN" && \
+					mkswap -v1 "$f" && swapon -v "$f" 2>/dev/null && \
+					echo "$f swap swap defaults 0 0" >>/etc/fstab
+					if [ "$?" = "0" ]; then
+						$SETCOLOR_NORMAL
+						echo -n "Temporary swap file successfully created."
+					fi
+					umount "$d" 2>/dev/null
+					mount -o remount,ro $d
+				fi
+			fi
+		done
+	else
+		echo -n "Sorry, no dos partitions available. dropping you to a limited shell."
 		$SETCOLOR_NORMAL
 		execshell
 	fi

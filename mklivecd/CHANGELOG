@@ -1,5 +1,10 @@
-# $Id: CHANGELOG,v 1.130 2005/01/15 00:31:09 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.131 2005/01/16 00:08:48 tom_kelly33 Exp $
 
+* 2005-01-15
+	[rcsysinit] - added etjr change for nxserver
+	- added Ross's patch for /var/log/messages
+	[linuxrc.in] - added Emre's patch for dos-swap option
+	
 * 2005-01-14
 	all - updated Jaco's email to jaco@puxedo.org
 	[hwdetect] - added sata loading
