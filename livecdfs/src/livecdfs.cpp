@@ -18,14 +18,16 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.7 2004/01/22 07:51:50 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.8 2004/01/22 08:32:42 jaco Exp $
  */
 
 #include <dirent.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <unistd.h>
+#include <utime.h>
        
 #include <vector>
 
@@ -356,6 +358,7 @@ LiveCDFS::doRead(char *file,
 
 	int res = read(fd, buf, count);
 	close(fd);
+	TRACE("Read count=" << std::dec << count << ", res=" << res);
 	return res;
 }
 
@@ -374,7 +377,7 @@ LiveCDFS::doWrite(char *file,
 	int fd = open(path->mkpath(file).c_str(), O_RDWR);
 	if (fd <= 0) {
 		WARN("Cannot open file='" << file << "' O_RDWR");
-		return -1;
+		return fd;
 	}
 	
 	if (lseek(fd, offset, SEEK_SET) < 0) {
@@ -406,7 +409,7 @@ LiveCDFS::doRmdir(char *dir)
 	FUNC("dir='" << dir << "'");
 
 	if (path->isTmp(dir)) {
-		rmdir(path->mktmp(file).c_str());
+		rmdir(path->mktmp(dir).c_str());
 	}
 	if (path->isRoot(dir)) {
 		whiteout->setVisible(dir, false);
@@ -494,5 +497,42 @@ LiveCDFS::doSetattr(char *file,
 		return -1;
 	}
 	
-	return -1;
+	if (!path->isTmp(file)) {
+		path->copyTmp(file);
+	}
+	
+	string tmppath = path->mktmp(file);
+	struct stat stat;
+	int res;
+	if ((res = lstat(tmppath.c_str(), &stat)) < 0) {
+		ERROR("Could not perform stat on file='" << file << "', res=" << std::dec << res);
+		return res;
+	}
+	
+	if (stat.st_size > attr->f_size) {
+		TRACE("Truncating file to " << std::dec << attr->f_size << " bytes");
+		if ((res = truncate(tmppath.c_str(), attr->f_size)) < 0) {
+			ERROR("Unable to truncate, res=" << std::dec << res);
+			return res;
+		}
+	}
+	
+	if (stat.st_mode != attr->f_mode) {
+		TRACE("Set mode=" <<  attr->f_mode << ", old=" << stat.st_mode);
+		if ((res = chmod(tmppath.c_str(), attr->f_mode)) < 0) {
+			ERROR("Unable to chmod, res=" << std::dec << res);
+			return res;
+		}
+	}
+	
+	if ((stat.st_atime != (time_t)attr->f_atime) || 
+	    (stat.st_mtime != (time_t)attr->f_mtime)) {
+		struct utimbuf utim = {attr->f_atime, attr->f_mtime};
+		if ((res = utime(tmppath.c_str(), &utim)) < 0) {
+			ERROR("Unable to utime, res=" << std::dec << res);
+			return res;
+		}
+	}
+	
+	return 0;
 }
