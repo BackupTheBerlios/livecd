@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.5 2003/10/01 10:41:01 jaco Exp $
+# $Id: hwdetect.in,v 1.6 2003/10/01 11:21:28 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -264,6 +264,17 @@ sub hwdetect_probeall {
 	scalar @detected_devices ? print_success() : print_failed();
 }
 
+sub hwdetect_getkeyb {
+	print "Selecting keyboard: ";
+	my $probed_keyb = undef;
+	my $probed_desc = "";
+	eval { $probed_keyb = keyboard::lang2keyboard('en') and print_success(); } or print_failed();
+	$probed_desc = keyboard::keyboard2text($probed_keyb);
+	hwdetect_loadmod('unknown', "", $probed_desc);
+	print_hash($probed_keyb) if ($printdebug);
+	$probed_keyb;
+}
+
 sub hwdetect_getmouse {
 	print "Detecting mouse: ";
 	my $probed_vendor = "";
@@ -321,7 +332,7 @@ sub hwdetect_getmonitor {
 }
 
 sub hwdetect_getxfree {
-	my $def_keyboard = keyboard::lang2keyboard('en');
+	my $def_keyboard = hwdetect_getkeyb();
 	my $def_mouse = hwdetect_getmouse();
 	my $def_card = hwdetect_getvideo();
 	my $rawX = Xconfig::default::configure($def_keyboard, $def_mouse);
