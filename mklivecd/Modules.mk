@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.12 2004/01/11 18:06:44 jaco Exp $
+# $Id: Modules.mk,v 1.13 2004/01/22 14:40:02 jaco Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -96,6 +96,7 @@ DEF_SCSI_MODULES_PATH_24=\
 #	drivers/scsi/nsp32
 #	drivers/scsi/qla1280
 #	drivers/scsi/sym53c8xx_2/sym53c8xx
+#	drivers/scsi/atp870u
 # insmod hangs (no chip):
 #	drivers/scsi/ips
 # insmod loads wrongly (no chip):
@@ -108,7 +109,6 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/aha1542 \
 	drivers/scsi/aha1740 \
 	drivers/scsi/aic7xxx/aic7xxx \
-	drivers/scsi/atp870u \
 	drivers/scsi/BusLogic \
 	drivers/scsi/cpqfc \
 	drivers/scsi/dmx3191d \
