@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: whiteout.cpp,v 1.2 2004/01/22 07:51:50 jaco Exp $
+ * $Id: whiteout.cpp,v 1.3 2004/01/22 08:41:10 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -145,7 +145,6 @@ Whiteout::load(const string &path)
 	if (fd > 0) {
 		entries.clear();
 		char sz[2];
-		bool eof = false;
 		string line("");
 		sz[1] = '\0';
 		while (read(fd, &sz, 1) == 1) {
