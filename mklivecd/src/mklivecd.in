@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.89 2004/01/07 13:29:42 jaco Exp $
+# $Id: mklivecd.in,v 1.90 2004/01/08 07:59:47 jaco Exp $
 #
 
 use strict;
@@ -490,7 +490,6 @@ sub check_kernel {
 	if (($major == 2) && ($minor >= 5)) {
 		$kernel26 = 1;
 		$modfile = "/etc/modprobe.conf";
-		$opts{splash} = "no";
 		$depmod = "/sbin/depmod-25";
 		$modext = ".ko";
 		$modules = $modules_26;
@@ -672,7 +671,7 @@ sub create_initrd {
 	# make splash
 	do_cmd("mv -f $initrd.gz $o_root/tmp ; \
 		chroot $o_root /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz $o_resolution; \
-		mv -f $o_root/tmp/initrd.gz $workdir/livecd/isolinux", ++$pos) if ($opts{splash} =~ m/yes/);
+		mv -f $o_root/tmp/initrd.gz $workdir/livecd/isolinux", ++$pos) if ($o_splash =~ m/yes/);
 
 	# we are done
 	end_progress();
