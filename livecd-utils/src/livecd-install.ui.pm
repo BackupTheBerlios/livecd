@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.10 2004/01/12 20:06:32 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.11 2004/01/12 20:11:59 jaco Exp $
 #
 
 use threads;
@@ -99,7 +99,7 @@ my %fsopts = (
 );
 
 
-sub do_do_system 
+sub do_system 
 {
 	my ($param) = @_;
 	print "EXEC: $param\n";
@@ -159,7 +159,7 @@ sub init
 	select(STDOUT);
 	$| = 1;
 	print "Initialising ... ";
-	do_do_system("mkdir -p $mnt");
+	do_system("mkdir -p $mnt");
 	print "Done.\n";
 }
 
@@ -175,13 +175,13 @@ sub destroy
 	$destroy = 1;
 	sleep(1) while ($isBusy);
 
-	do_do_system("umount $mnt/home") if (defined($homepart));
-	do_do_system("umount $mnt/var") if (defined($varpart));
-	do_do_system("umount $mnt/tmp") if (defined($tmppart));
-	do_do_system("umount $mnt && rm -rf $mnt");
+	do_system("umount $mnt/home") if (defined($homepart));
+	do_system("umount $mnt/var") if (defined($varpart));
+	do_system("umount $mnt/tmp") if (defined($tmppart));
+	do_system("umount $mnt && rm -rf $mnt");
 
 	#close(STDERR);
-	do_do_system("rm -rf $log");
+	do_system("rm -rf $log");
 
 	print "Done.\n";
 	if ($reboot) {
@@ -252,8 +252,8 @@ sub scanPartitions
 	this->cbTmp->insertItem("(none)");
 	this->cbTmp->setCurrentItem(0);
 
-	do_do_system("mkdir -p $prefix/etc/livecd/hwdetect");
-	do_do_system("/initrd/usr/sbin/hwdetect --prefix $prefix --fdisk >/dev/null");
+	do_system("mkdir -p $prefix/etc/livecd/hwdetect");
+	do_system("/initrd/usr/sbin/hwdetect --prefix $prefix --fdisk >/dev/null");
 	foreach my $line (common::cat_("$prefix/etc/livecd/hwdetect/mounts.cfg")) {
 	    chomp($line);
 	    my ($dev, $info) = split(/=\|/, $line, 2);
@@ -444,24 +444,24 @@ sub showInstall
 	unless ($destroy) {
 		$time_c_start = time;
 		$time_c_run = 1;
-		do_do_system("mkdir -p $mnt");
-		do_do_system("mount -t ".$devs->{$rootpart}{type}." $rootpart $mnt");
-		do_do_system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
-		do_do_system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
-		do_do_system("mkdir -p $mnt/var ; chmod 755 $mnt/var");
-		do_do_system("mount -t ".$devs->{$homepart}{type}." $homepart $mnt/home") if (defined($homepart));
-		do_do_system("mount -t ".$devs->{$varpart}{type}." $varpart $mnt/var") if (defined($varpart));
-		do_do_system("mount -t ".$devs->{$tmppart}{type}." $tmppart $mnt/tmp") if (defined($tmppart));
+		do_system("mkdir -p $mnt");
+		do_system("mount -t ".$devs->{$rootpart}{type}." $rootpart $mnt");
+		do_system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
+		do_system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
+		do_system("mkdir -p $mnt/var ; chmod 755 $mnt/var");
+		do_system("mount -t ".$devs->{$homepart}{type}." $homepart $mnt/home") if (defined($homepart));
+		do_system("mount -t ".$devs->{$varpart}{type}." $varpart $mnt/var") if (defined($varpart));
+		do_system("mount -t ".$devs->{$tmppart}{type}." $tmppart $mnt/tmp") if (defined($tmppart));
 	
-		do_do_system("mkdir -p $mnt/initrd ; chmod 755 $mnt/initrd");
-		do_do_system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
-		do_do_system("mkdir -p $mnt/dev ; chmod 755 $mnt/dev");
-		do_do_system("mkdir -p $mnt/proc ; chmod 755 $mnt/proc");
-		do_do_system("mkdir -p $mnt/root/tmp ; chmod -R 755 $mnt/root/tmp");
-		do_do_system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
-		do_do_system("mkdir -p $mnt/var/lock/subsys ; chmod -R 755 $mnt/var/lock/subsys");
-		do_do_system("mkdir -p $mnt/var/run/netreport ; chmod -R 755 $mnt/var/run/netreport ; touch $mnt/var/run/utmp");
-		do_do_system("cd $mnt/var ; ln -s ../tmp") unless (-e "$mnt/var/tmp");
+		do_system("mkdir -p $mnt/initrd ; chmod 755 $mnt/initrd");
+		do_system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
+		do_system("mkdir -p $mnt/dev ; chmod 755 $mnt/dev");
+		do_system("mkdir -p $mnt/proc ; chmod 755 $mnt/proc");
+		do_system("mkdir -p $mnt/root/tmp ; chmod -R 755 $mnt/root/tmp");
+		do_system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
+		do_system("mkdir -p $mnt/var/lock/subsys ; chmod -R 755 $mnt/var/lock/subsys");
+		do_system("mkdir -p $mnt/var/run/netreport ; chmod -R 755 $mnt/var/run/netreport ; touch $mnt/var/run/utmp");
+		do_system("cd $mnt/var ; ln -s ../tmp") unless (-e "$mnt/var/tmp");
 	}
 	
 	doCopy($initrd, $devs, @dirs) unless ($destroy);
@@ -532,17 +532,17 @@ sub doFormat
 {
 	my ($this, $devs) = @_;
 
-	do_do_system("umount $rootpart");
+	do_system("umount $rootpart");
 	formatPart($rootpart, $devs) if ($this->cbRootFormat->isChecked());
 	if ($this->cbSwapFormat->isChecked()) {
-		do_do_system("umount $swappart");
+		do_system("umount $swappart");
 		formatPart($swappart, $devs);
 	}
-	do_do_system("umount $homepart") if (defined($homepart));
+	do_system("umount $homepart") if (defined($homepart));
 	formatPart($homepart, $devs) if (defined($homepart) && ($this->cbHomeFormat->isChecked()));
-	do_do_system("umount $varpart") if (defined($varpart));
+	do_system("umount $varpart") if (defined($varpart));
 	formatPart($varpart, $devs) if (defined($varpart) && ($this->cbVarFormat->isChecked()));
-	do_do_system("umount $tmppart") if (defined($tmppart));
+	do_system("umount $tmppart") if (defined($tmppart));
 	formatPart($tmppart, $devs) if (defined($tmppart) && ($this->cbTmpFormat->isChecked()));
 }
 
@@ -605,10 +605,10 @@ sub copyDir
 		$infotext = "Copying from $from:\n$dir" unless ($destroy);
 
 		if (!defined($debug)) {
-			do_do_system("mkdir -p \"$mnt/$dir\"");
-			do_do_system("chmod \"--reference=$from/$dir\" $mnt/$dir 2>/dev/null");
-			do_do_system("chown \"--reference=$from/$dir\" $mnt/$dir 2>/dev/null");
-			do_do_system("( (cd $from/$dir ; tar --no-recursion --exclude .. -c * .*) | (cd $mnt/$dir ; tar -x) ) 2>/dev/null");
+			do_system("mkdir -p \"$mnt/$dir\"");
+			do_system("chmod \"--reference=$from/$dir\" $mnt/$dir 2>/dev/null");
+			do_system("chown \"--reference=$from/$dir\" $mnt/$dir 2>/dev/null");
+			do_system("( (cd $from/$dir ; tar --no-recursion --exclude .. -c * .*) | (cd $mnt/$dir ; tar -x) ) 2>/dev/null");
 		}
 
 		$pb_c_num++;
@@ -671,15 +671,15 @@ image=$kernel
 	read-only
 ";
 		close LILO;
-		do_do_system("mount -t proc none $mnt/proc");
-		do_do_system("mount -t devfs none $mnt/dev");
-		do_do_system("rm -rf $mnt/$initrd");
-		do_do_system("mkdir -p $mnt/root/tmp");
+		do_system("mount -t proc none $mnt/proc");
+		do_system("mount -t devfs none $mnt/dev");
+		do_system("rm -rf $mnt/$initrd");
+		do_system("mkdir -p $mnt/root/tmp");
 		my $with = "";
-		do_do_system("chroot $mnt /sbin/mkinitrd -v $with $initrd $kernelver");
-		do_do_system("/sbin/lilo -v -r $mnt");
-		do_do_system("umount $mnt/dev");
-		do_do_system("umount $mnt/proc");
+		do_system("chroot $mnt /sbin/mkinitrd -v $with $initrd $kernelver");
+		do_system("/sbin/lilo -v -r $mnt");
+		do_system("umount $mnt/dev");
+		do_system("umount $mnt/proc");
 	}
 
 	emit this->next();
@@ -704,7 +704,7 @@ sub writeFstab {
 		foreach my $dev (sort keys %$devs) {
 			my $devpnt = $dev;
 			$devpnt =~ s|/dev/||;
-			do_do_system("mkdir -p $mnt/mnt/$devpnt 2>/dev/null");
+			do_system("mkdir -p $mnt/mnt/$devpnt 2>/dev/null");
 
 			my $mount = "";
 			my $opt = undef;
