@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.20 2004/02/01 13:04:19 jaco Exp $
+# $Id: rc.sysinit.in,v 1.21 2004/02/02 04:59:28 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -161,191 +161,231 @@ execshell() {
 }
 
 
-### setup an overlay fs
-setuproot_overlay() {
-	FSROOT="/tmp/.livecdfs"
-	FSLOG="$FSROOT/trace."
+### setup a directory as overlay (cow)
+setupdir_cow() { # mount-directory, [extra options]
+	mountdir=$1
+	lufsopt=$2
 	
-	docmd   "Creating overlay structure" \
-		"mkdir -p $FSROOT" \
-		"ln -sf /udev $FSROOT/udev" \
-		"ln -sf /tmp  $FSROOT/tmp"  \
-		"ln -sf /sys  $FSROOT/sys"  \
-		"ln -sf /proc $FSROOT/proc" \
-		"ln -sf /dev  $FSROOT/dev"  \
-		"cp -a $MNTLIVECD/etc/alternatives /etc" \
-		"rm -rf /lib  && ln -sf $MNTLIVECD/lib  /lib"  \
-		"rm -rf /sbin && ln -sf $MNTLIVECD/sbin /sbin" \
-		"rm -rf /usr  && ln -sf $MNTLIVECD/usr  /usr"
-	set_progress
-	docmd   "Creating root filesystem" \
-		"touch /fastboot" \
-		"$MNTLIVECD/sbin/modprobe lufs" \
-		"cd $MNTLIVECD ; \
-		for d in *; do \
-			if [ -d $MNTLIVECD/\$d ]; then \
-				case \$d in \
-					dev|proc|sys|tmp|udev) \
-						;; \
-					home|var) \
-						rm -rf /\$d ; \
-						mkdir -p /\$d $FSROOT/\$d ; \
-						/initrd/usr/sbin/lufsd.livecdfs /\$d -o uid=0,gid=0,fmask=666,dmask=777,rw_tmp=$FSROOT/\$d,ro_root=$MNTLIVECD/\$d >$FSLOG\$d ; \
-						;; \
-					*) \
-						rm -rf /\$d ; \
-						mkdir -p /\$d $FSROOT/\$d ; \
-						/initrd/usr/sbin/lufsd.livecdfs /\$d -o uid=0,gid=0,dmask=755,rw_tmp=$FSROOT/\$d,ro_root=$MNTLIVECD/\$d >$FSLOG\$d ; \
-						;; \
-				esac ; \
-			fi ; \
-		done"
-	set_progress
-	docmd   "Creating /var structure" \
-		"mkdir -p /var/lock/subsys" \
-		"mkdir -p /var/log && touch /var/log/wtmp" \
-		"mkdir -p /var/run && touch /var/run/utmp" \
-		"rm -rf /var/tmp && ln -sf /tmp /var/tmp"
-	set_progress
-	docmd   "Creating /etc structure" \
-		"mkdir -p /etc/livecd/hwdetect" \
-		"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
-		"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
-		"echo '/dev/rd/3 /     tmpfs defaults 0 0' >>/etc/fstab" \
-		"rm -rf /etc/mtab && touch /etc/mtab" \
-		"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
-		"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
-		"rm -rf /etc/rc.d/rc5.d/S05harddrake"
+	LUFSD_OPTS="rw_tmp=$FSROOT/$mountdir,ro_root=$MNTLIVECD/$mountdir"
+	[ -n "$lufsopt" ] && LUFSD_OPTS="$lufsopt,$LUFSD_OPTS"
+	
+	rm -rf /$mountdir && mkdir -p /$mountdir $FSROOT/$mountdir
+	/initrd/usr/sbin/lufsd.livecdfs /$mountdir -o $LUFSD_OPTS >$FSLOG$mountdir
+}
+
+
+### setup an arbitrary directory
+setupdir_dir() { # rootdir
+	rootdir=$1
+	rm -rf /$rootdir && ln -s $MNTLIVECD/$rootdir /$rootdir 
+}
+
+
+### setup an /etc structure
+setupdir_etc() {
+	echo -n "Building /etc structure: "
+	
+	if [ -n "$COW" ]; then
+		setupdir_cow "etc" "dmask=755"
+	else
+		rm -rf /etc && cp -a $MNTLIVECD/etc /
+		chmod a+rw /etc
+	fi
+	
+	mkdir -p /etc/livecd/hwdetect
+	rm -rf /etc/fstab && touch /etc/fstab
+	echo 'none      /proc proc  defaults 0 0' >/etc/fstab
+	echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab
+	echo '/dev/rd/3 /     tmpfs defaults 0 0' >>/etc/fstab
+	rm -rf /etc/mtab && ln -s /proc/mounts /etc/mtab
+	rm -rf /etc/modules.conf && touch /etc/modules.conf
+	rm -rf /etc/rc.d/rc3.d/S05harddrake
+	rm -rf /etc/rc.d/rc5.d/S05harddrake
+	
+	printok
 	set_progress
 }
 
 
-### setup a copy filesystm
-setuproot_normal() {
-	docmd   "Building root filesystem" \
-		"cd /" \
-		"touch fastboot" \
-		"rm -rf /lib && mkdir -p /lib" \
-		"cd $MNTLIVECD/lib ; \
-		for f in *; do \
-			case \$f in \
-				dev-state) \
-					mkdir -p /lib/\$f ; \
-					;; \
-				modules) \
-					mkdir -p /lib/\$f ; \
-					for k in \$f/*; do \
-						if \`echo \$k | grep -q \$f/$KERNELVER\`; then \
-							mkdir -p /lib/\$k ; \
-							for s in \$k/*; do \
-								if [ -f $MNTLIVECD/lib/\$s ]; then \
-									cp $MNTLIVECD/lib/\$s /lib/\$s ; \
-									chmod 644 /lib/\$s ; \
-								else \
-									mkdir -p /lib/\$s ; \
-									for d in \`find \$s -type d\`; do \
-										mkdir -p /lib/\$d || true; \
-										for m in \$d/*; do \
-											[ -f $MNTLIVECD/lib/\$m ] && ln -sf $MNTLIVECD/lib/\$m /lib/\$m || true; \
-										done \
-									done \
-								fi \
-							done \
-						else \
-							ln -sf $MNTLIVECD/lib/\$k /lib/\$k || true; \
-						fi \
-					done \
-					;; \
-				*) \
-					ln -sf $MNTLIVECD/lib/\$f /lib/\$f || true; \
-					;; \
-			esac \
-		done" \
-		"rm -rf /bin && ln -sf $MNTLIVECD/bin" \
-		"rm -rf /boot && ln -sf $MNTLIVECD/boot" \
-		"rm -rf /opt && ln -sf $MNTLIVECD/opt" \
-		"rm -rf /sbin && ln -sf $MNTLIVECD/sbin" \
-		"rm -rf /usr && ln -sf $MNTLIVECD/usr" \
-		"mkdir -p /mnt && ln -sf $MNTCDROM /mnt/cdrom"
+### setup the /home structure
+setupdir_home() {
+	echo -n "Building /home structure: "
+	
+	if [ -n "$COW" ]; then
+		setupdir_cow "home" "fmask=666,dmask=777"
+	else
+		cp -a $MNTLIVECD/home /
+	fi
+	
+	printok
 	set_progress
-	PREV=
-	docmd   "Creating /var structure" \
-		"rm -rf /var && mkdir -p /var ; " \
-		"for d in \`find $MNTLIVECD/var/ -type d\`; do \
-			CURR=\${d#$MNTLIVECD/var/} ; \
-			[ -n \"\$PREV\" ] && CURR=\"\$PREV \$CURR\" ; \
-			if [ -e \"$MNTLIVECD/var/\$CURR\" ]; then \
-				d=\"\$CURR\" ; \
-				case \$d in \
-					lib/rpm*|lib/urpmi*|lib/samba*|lib/mysql*) \
-						[ ! -e \"/var/\$d\" ] && ln -sf \"$MNTLIVECD/var/\$d\" \"/var/\$d\" || true; \
-						;; \
-					cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|yp*) \
-						mkdir -p \"/var/\$d\" || true ; \
-						$MNTLIVECD/bin/chown --reference=\"$MNTLIVECD/var/\$d\" \"/var/\$d\" ; \
-						$MNTLIVECD/bin/chmod --reference=\"$MNTLIVECD/var/\$d\" \"/var/\$d\" ; \
-						;; \
-					tmp*) \
-						;; \
-					*) \
-						[ ! -e \"/var/\$d\" ] && ln -sf \"$MNTLIVECD/var/\$d\" \"/var/\$d\" || true; \
-						;; \
-				esac ; \
-				CURR=\"\" ; \
-			fi ; \
-			PREV=\"\$CURR\" ; \
-		done" \
-		"mkdir -p /var/lock/subsys" \
-		"mkdir -p /var/log && touch /var/log/wtmp" \
-		"mkdir -p /var/run && touch /var/run/utmp" \
-		"ln -sf /tmp /var/tmp"
+}
+
+
+### setup the /lib structure
+setupdir_lib() {
+	echo -n "Building /lib structure: "
+		
+	if [ -n "$COW" ]; then
+		setupdir_cow "lib" "dmask=755"
+	else
+		rm -rf /lib && mkdir -p /lib
+		cd $MNTLIVECD/lib/
+		for f in *; do
+			case $f in
+				dev-state)
+					mkdir -p /lib/$f
+					;;
+				modules)
+					mkdir -p /lib/$f
+					for k in $f/*; do
+						if `echo $k | grep -q $f/$KERNELVER`; then
+							mkdir -p /lib/$k
+							for s in $k/*; do
+								if [ -f $MNTLIVECD/lib/$s ]; then
+									cp $MNTLIVECD/lib/$s /lib/$s
+									chmod 644 /lib/$s
+								else
+									mkdir -p /lib/$s
+									for d in `find $s -type d`; do
+										mkdir -p /lib/$d || true
+										for m in $d/*; do
+											[ -f $MNTLIVECD/lib/$m ] && ln -sf $MNTLIVECD/lib/$m /lib/$m || true
+										done
+									done
+								fi
+							done
+						else
+							ln -sf $MNTLIVECD/lib/$k /lib/$k || true
+						fi
+					done
+					;;
+				*)
+					ln -sf $MNTLIVECD/lib/$f /lib/$f || true
+					;;
+			esac
+		done
+		cd /
+	fi
+
+	printok
 	set_progress
-	docmd   "Creating /etc structure" \
-		"rm -rf /etc && cp -a $MNTLIVECD/etc /" \
-		"mkdir -p /etc/livecd/hwdetect" \
-		"chmod a+rw /etc" \
-		"rm -rf /etc/fstab && touch /etc/fstab" \
-		"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
-		"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
-		"echo '/dev/rd/3 /     tmpfs defaults 0 0' >>/etc/fstab" \
-		"rm -rf /etc/mtab && touch /etc/mtab" \
-		"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
-		"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
-		"rm -rf /etc/rc.d/rc5.d/S05harddrake"
+}
+
+
+### setup the /root structure
+setupdir_root() {
+	echo -n "Building /root structure: "
+	
+	if [ -n "$COW" ]; then
+		setupdir_cow "root"
+	else
+		cp -a $MNTLIVECD/root /
+	fi
+	
+	printok
 	set_progress
-	docmd   "Creating user directories" \
-		"cp -a $MNTLIVECD/root /" \
-		"cp -a $MNTLIVECD/home /"
+}
+
+
+### setup a /var structure
+setupdir_var() {
+	echo -n "Building /var structure: "
+	if [ -n "$COW" ]; then
+		setupdir_cow "var" "dmask=777,fmask=666"
+	else
+		PREV=
+		rm -rf /var && mkdir -p /var
+		for d in `find $MNTLIVECD/var/ -type d`; do
+			CURR=${d#$MNTLIVECD/var/}
+			[ -n "$PREV" ] && CURR="$PREV $CURR"
+			if [ -e "$MNTLIVECD/var/$CURR" ]; then
+				d="$CURR"
+				case $d in
+					tmp*)
+						;;
+					lib/rpm*|lib/urpmi*|lib/samba*|lib/mysql*)
+						[ ! -e "/var/$d" ] && ln -sf "$MNTLIVECD/var/$d" "/var/$d" || true
+						;;
+					cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|yp*)
+						mkdir -p "/var/$d" || true
+						$MNTLIVECD/bin/chown --reference="$MNTLIVECD/var/$d" "/var/$d"
+						$MNTLIVECD/bin/chmod --reference="$MNTLIVECD/var/$d" "/var/$d"
+						;;
+					*)
+						[ ! -e "/var/$d" ] && ln -sf "$MNTLIVECD/var/$d" "/var/$d" || true
+						;;
+				esac
+				CURR=
+			fi
+			PREV="$CURR"
+		done
+	fi
+	
+	mkdir -p /var/lock/subsys
+	mkdir -p /var/log && touch /var/log/wtmp
+	mkdir -p /var/run && touch /var/run/utmp
+	rm -rf /var/tmp && ln -sf /tmp /var/tmp
+
+	printok
 	set_progress
 }
 
 
 ### Setup the root fs
 setuproot() {
-	# setup translucency (if available)
-	# Note: for some obscure reason the static insmod cannot
-	#       insert the module, the dynamic version can
-	transmod="/lib/modules/$KERNELVER/kernel/translucency.o"
-	if [ -f $transmod ]; then
-		kmin=`echo $KERNELVER | awk -F'.' '{ print $2 }'`
-		[ $kmin -gt 4 ] && kmin=5
-		$MNTLIVECD/sbin/insmod-2$kmin $transmod 2>&1 >/dev/null
+	# check for overlay support
+	COW=
+	if [ -e /initrd/usr/sbin/lufsd.livecdfs ]; then
+		if `/bin/grep -iqv nocow /proc/cmdline`; then
+			COW=1
+			FSROOT="/tmp/.livecdfs"
+			FSLOG="$FSROOT/trace."
+			docmd   "Initialising overlay filesystem" \
+				"mkdir -p $FSROOT" \
+				"cp -a $MNTLIVECD/etc/alternatives /etc" \
+				"rm -rf /lib  && ln -sf $MNTLIVECD/lib  /lib"  \
+				"rm -rf /sbin && ln -sf $MNTLIVECD/sbin /sbin" \
+				"rm -rf /usr  && ln -sf $MNTLIVECD/usr  /usr" \
+				"$MNTLIVECD/sbin/modprobe lufs"
+		fi
 	fi
 	set_progress
 	
-	# create the correct root type
-	OVERLAY=
-	if [ -e /initrd/usr/sbin/lufsd.livecdfs ]; then
-		if `/bin/grep -iqv nocow /proc/cmdline`; then
-			OVERLAY=1
+	for d in $MNTLIVECD/*; do
+		d=${d#$MNTLIVECD/}
+		if [ -d $MNTLIVECD/$d ]; then
+			case $d in
+				dev|proc|sys|mnt|tmp|udev)
+					;;
+				etc)
+					setupdir_etc
+					;;
+				home)
+					setupdir_home
+					;;
+				lib)
+					setupdir_lib
+					;;
+				root)
+					setupdir_root
+					;;
+				var)
+					setupdir_var
+					;;
+				*)
+					setupdir_dir $d
+					;;
+			esac
+		else
+			cp $MNTLIVECD/$d /
 		fi
-	fi
+	done
 	
-	if [ -n "$OVERLAY" ]; then
-		setuproot_overlay
-	else
-		setuproot_normal
-	fi
+	touch /fastboot
+	mkdir -p /mnt && ln -sf $MNTCDROM /mnt/cdrom
+	
+	set_progress
 }
 
 
