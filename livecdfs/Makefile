@@ -1,11 +1,11 @@
-# $Id: Makefile,v 1.12 2004/01/31 07:45:42 jaco Exp $
+# $Id: Makefile,v 1.13 2004/01/31 15:30:19 jaco Exp $
 
 include Rules.mk
 
 all: $(LIBRARY) $(LUFSDLIVECDFS)
 
 debug:
-	$(MAKE) EXTRA_CXXFLAGS=-DDEBUG
+	$(MAKE) DEBUG_CXXFLAGS=-DDEBUG
 
 $(LIBRARY): $(OBJECTS) 
 	$(CC) -shared -Wl,-soname \
