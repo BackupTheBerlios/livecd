@@ -1,15 +1,14 @@
-# $Id: BOOTCODES,v 1.13 2004/01/24 09:54:04 jaco Exp $
+# $Id: README.BOOTCODES,v 1.1 2004/01/25 06:51:40 jaco Exp $
 
-LiveCD bootcodes: These codes allow you to override the LiveCD
-defaults to modify the boot process for your specific needs. The
-codes can be used on their own (as specified) on the syslinux
-(initial) boot command-line or can be combined to specify more
-than one listed option, eg.
+LiveCD bootcodes: These codes allow you to override the LiveCD defaults to 
+modify the boot process for your specific needs. The codes can be used on 
+their own (as specified) on the syslinux (initial) boot command-line or can 
+be combined to specify more than one listed option, eg.
 
 livecd xres=800x600 keyb=de
 
-The latest list will always be available from the LiveCD website
-(CVS) which can be accessed from:
+The latest list will always be available from the LiveCD website (CVS) which 
+can be accessed from:
 
 http://livecd.berlios.de
 

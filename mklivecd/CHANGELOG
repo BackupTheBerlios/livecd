@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.116 2004/01/24 10:16:50 jaco Exp $
+# $Id: CHANGELOG,v 1.117 2004/01/25 06:51:40 jaco Exp $
 
 * Wed, Jan 21, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@obsidian.co.za>:
@@ -14,8 +14,6 @@
         additional files to the root of the LiveCD ISO image
         (ie to see when browsing the CD normally)
   + Jaco Greeff <jaco@linuxminicd.org>:
-    [BOOTCODES]:
-      - Added
     [FAQ]:
       - Point to the gif2lss program in the boot splash section
       - Show how to override Makefile parameters
@@ -23,6 +21,10 @@
       - Updated to point to the new LiveCD home of mklivecd,
         http://developer.berlios.de/projects/livecd/ with the
         correct mailing list info
+    [README.BOOTCODES]:
+      - Added
+    [README.USB]:
+      - Added
     [Modules.mk]:
       - Remove AIC7xxx_old module (hangs Adaptec cards with
         AIC7xxx loaded already)
