@@ -2,7 +2,7 @@
  * fsctl.c
  * Copyright (C) 2002 Florin Malita <mali@go.ro>
  *
- * Modifiled from fsctl.c to statically link livecdfs in
+ * Modified from fsctl.c to statically link livecdfs in
  * Copyright (C) 2004 Jaco Greeff <jaco@linuxminicd.org>
  *
  * This file is part of LUFS, a free userspace filesystem implementation.
@@ -22,7 +22,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: fsctl.c,v 1.1 2004/01/30 18:22:56 jaco Exp $
+ * $Id: fsctl.c,v 1.2 2004/01/30 19:19:06 jaco Exp $
  */
 
 #ifdef HAVE_CONFIG_H
