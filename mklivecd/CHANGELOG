@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.112 2004/01/23 08:43:58 jaco Exp $
+# $Id: CHANGELOG,v 1.113 2004/01/23 12:06:43 jaco Exp $
 
 * Wed, Jan 21, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@obsidian.co.za>:
@@ -145,6 +145,7 @@
       - Added uncompressed loop image support
       - Added "normal" option to --resolution
       - Copy modules.dep if it cannot be created
+      - Removed bzloop option (only 2.4, no benefit over squashfs)
     [mklivecd.spec]:
       - Updated URL: http://livecd.berlios.de
       - Synced with MDK contrib spec

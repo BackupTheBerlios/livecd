@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.103 2004/01/21 08:36:23 jaco Exp $
+# $Id: mklivecd.in,v 1.104 2004/01/23 12:06:43 jaco Exp $
 #
 
 use strict;
@@ -145,7 +145,7 @@ Image generation:
 Compression options:
    --blocksize <size>              Compression (if used) blocksize in K 
                                    (default: $blocksize)
-   --looptype <clp|bzlp|sqfs|iso>  Create a cloop, bzloop, squashfs or iso (non-
+   --looptype <clp|sqfs|iso>       Create a cloop, squashfs or iso (non-
                                    compressed) image. 
                                    (default: $o_looptype)
 
@@ -457,11 +457,6 @@ sub parse_options {
 	elsif ($o_looptype =~ /clp/) {
 		$loopcmp = "/usr/bin/create_compressed_fs";
 		$loopmod = "drivers/block/cloop";
-		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 64;
-	}
-	elsif ($o_looptype =~ /bzlp/) {
-		$loopcmp = "/usr/bin/create_bzfs";
-		$loopmod = "drivers/block/bzloop";
 		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 64;
 	}
 	elsif ($o_looptype =~ /sqfs/) {
