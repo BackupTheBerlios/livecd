@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.61 2003/11/01 09:37:26 jaco Exp $
+# $Id: CHANGELOG,v 1.62 2003/11/01 15:36:54 jaco Exp $
 
-* Wed, Oct 29, 2003, 0.5.7-cvs
+* Sat, Nov 01, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [linuxrc]:
       - Fix error on illegal attempt to unmount /initrd/cdrom upon
@@ -25,6 +25,7 @@
         cannot be reliably detected, eg. laptop panels
       - Add support for Nvidia GLX drivers
       - Add support for ATI GLX drivers
+      - Detect USB Flash devices and mount them rw
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
