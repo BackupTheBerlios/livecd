@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.26 2004/02/01 07:16:13 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.27 2004/02/01 13:06:49 jaco Exp $
  */
 
 #include <dirent.h>
@@ -647,12 +647,13 @@ LiveCDFS::doLinkAll(const char *target,
 	
 	string dir = path->getDir(newlink);
 	string slink = path->mktmp(newlink);
+	string starget = string(target);
 	if ((dir.length() != 0) && !path->isTmp(dir)) {
 		TRACE("Creating directory dir='%s' (link)", dir.c_str());
 		path->recurseMkdir(dir); 
 	}
 	
-	if (*target != '/') {
+	if (path->exists(path->mkpath(target), 0)) {
 		if (!path->isDir(target)) {
 			dir = path->getDir(target);
 			if ((dir.length() != 0) && !path->isTmp(dir)) {
@@ -666,12 +667,22 @@ LiveCDFS::doLinkAll(const char *target,
 				path->copyTmp(target);
 			}
 		}
+		
+		if (*target == '/') {
+			starget = path->mkpath(target);
+		}
+	}
+	else {
+		// target is hopefully pointing at our root, ignore
 	}
 	
-	TRACE("Creating link, target='%s', link='%s'", target, slink.c_str());
-	int ret = issymlink ? symlink(target, slink.c_str()) : link(target, slink.c_str());
+	TRACE("Creating link, target='%s', link='%s'", starget.c_str(), slink.c_str());
+	int ret = issymlink ? symlink(starget.c_str(), slink.c_str()) : link(starget.c_str(), slink.c_str());
 	if (ret < 0) {
-		ERROR("strerror(errno)='%s' on link(target='%s', link='%s')", strerror(errno), target, slink.c_str());
+		ERROR("strerror(errno)='%s' on link(target='%s', link='%s')", strerror(errno), starget.c_str(), slink.c_str());
+	}
+	else {
+		whiteout->setVisible(newlink, true);
 	}
 	FUNC_RET("%d", ret, ret);
 }

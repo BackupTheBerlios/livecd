@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.cpp,v 1.14 2004/02/01 07:14:31 jaco Exp $
+ * $Id: path.cpp,v 1.15 2004/02/01 13:06:49 jaco Exp $
  */
 
 #include <errno.h>
@@ -234,9 +234,14 @@ Path::recurseMkdir(const string &path,
 		FUNC_END();
 	}
 	
+	struct stat buf;
 	if (!exists(mktmp(root), 0)) {
 		TRACE("Making root='%s'", root.c_str());
-		if (mkdir(mktmp(root).c_str(), 0666) != 0) {
+		int mode = 0777;
+		if (stat(mkroot(root).c_str(), &buf) == 0) {
+			mode = buf.st_mode;
+		}
+		if (mkdir(mktmp(root).c_str(), mode) != 0) {
 			ERROR("Creation of root='%s' failed", root.c_str());
 			FUNC_END();
 		}
@@ -255,7 +260,11 @@ Path::recurseMkdir(const string &path,
 	else {
 		string dir = join(root, path);
 		TRACE("Making dir='%s'", dir.c_str());
-		mkdir(mktmp(dir).c_str(), 0666);
+		int mode = 0777;
+		if (stat(mkroot(dir).c_str(), &buf) == 0) {
+			mode = buf.st_mode;
+		}
+		mkdir(mktmp(dir).c_str(), mode);
 	}
 	
 	TRACE("Recurse path='%s', root='%s' completed", path.c_str(), root.c_str());
