@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: whiteout.cpp,v 1.4 2004/01/22 14:57:20 jaco Exp $
+ * $Id: whiteout.cpp,v 1.5 2004/01/22 15:30:20 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -31,7 +31,7 @@
 
 #include "debug.h"
 
-vector<t_whiteout> entries;
+vector<t_whiteout> Whiteout::entries;
 
 Whiteout *
 Whiteout::create(const string &tmp)
