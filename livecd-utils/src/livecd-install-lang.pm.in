@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install-lang.pm.in,v 1.13 2004/05/13 21:12:24 tom_kelly33 Exp $
+# $Id: livecd-install-lang.pm.in,v 1.14 2004/05/14 01:40:51 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -125,8 +125,8 @@ my %strings = (
 
 	'user'		   => [ "User ", "Utente ", "Benutzer ", "Utilisateur ", undef ],
 	'user_added'	   => [ " was added successfully.", " é stato aggiunto con successo", " wurde erfolgreich hinzugef�gt.", " a été ajouté avec succes", undef ],
-	'guest_del_ok'     => [ "Guest account has been deleted.", "L'account Guest è stato rimosso", "Guest Zugang wurde gelöscht.", "Le compte invité (guest) a été supprimé", undef ],
-	'guest_not_found'  => [ "Account 'guest' was not found.", "L'account 'guest' non p stato trovato", "Zugang 'Guest' wurde nicht gefunden.", "Le compte invité 'guest' n'a pas été trouvé", undef ],
+	'guest_del_ok'     => [ "Guest account has been deleted.", "L'account 'guest' è stato rimosso", "Guest Zugang wurde gelöscht.", "Le compte invité 'guest' a été supprimé", undef ],
+	'guest_not_found'  => [ "Account 'guest' was not found.", "L'account 'guest' non è stato trovato", "Zugang 'Guest' wurde nicht gefunden.", "Le compte invité 'guest' n'a pas été trouvé", undef ],
 	'inst_scan'        => [ "Scanning available directories", "Analisi delle cartelle disponibili", "Durchsuche verf�gbare Verzeichnisse.", "Recherche le repertoire disponible", undef ],
 	'inst_fstab'       => [ "Creating /etc/fstab", "Creazione di /etc/fstab", "Erstelle /etc/fstab", "Crée /etc/fstab", undef ],
 	'inst_done'        => [ "Installation completed. Please press Next to continue.",  "Installazione completata. Premi Avanti per continuare", "Installation abgeschlossen. Zum fortfahren bitte Weiter ausw�hlen.", "Installation complète. Svp cliquer sur Suivant pour continuer", undef ],
@@ -148,7 +148,7 @@ my %strings = (
 undef ],
 	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", "Passo 2 di 6: Selezione delle Partizioni", "Schritt 2 von 6: Auswahl der Partition", "Etape 2 sur 6: Selectionner une partition", undef ],
 	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify the <i>root</i> and <i>swap</i> locations. A separate <i>home</i> partition is recommended, not required. X = none.</p>", 
-"<p><b>Scegli</b> le partizioni da associare ai diversi punti di mount. Devi specificare le posizioni di <i>root</i> e di <i>swap</i>. Una partizione separate per <i>home</i> è raccomandata, non richiesta. X = nessuna.</p>", 
+"<p><b>Scegli</b> le partizioni da associare ai diversi punti di mount. Devi specificare le posizioni di <i>root</i> e di <i>swap</i>. Una partizione separata per <i>home</i> è raccomandata, non richiesta. X = nessuna.</p>", 
 "<p><b>Wähle</b> die Partitionen die mit unterschiedlichen Einhängepunkte verbunden werden sollen. Es sind sowohl die <i>root</i> als auch die <i>swap</i> Partition zu bestimmen. Eine extra <i>home</i> Partition ist sinnvoll jedoch nicht erforderlich. X = keine.</p>", 
 "Choisissez les partitions qui seront associées aux differents points de montage.  Vous devez specifier l'endroit ou sera créé root et swap . Une partition home separée est recommandé, non requise. X = Jamais."
 , undef ],
@@ -164,7 +164,7 @@ undef ],
 
 	'scr_3_title'      => [ "Step 3 of 6: Partition Verification", "Passo 3 di 6: Verifica delle partizioni", "Schritt 3 von 6: Partitionsüberprüfung", "Etape 3 sur 6: Verification de la partition", undef ],
 	'scr_3_text'       => [ "<p><b>Warning</b> The following changes will be made to your system to install $distroname. To correct your selections, press the <i>Back</i> button, otherwise press <i>Next</i> to start the installation process.</p>", 
-"<p><b>Attenzione</b> Saranno applicate le seguenti modifiche al tuo sistema per installare $distroname. Per correggere le selezione premi il tasto <i>Indietro</i>, altrimenti premi <i>Avanti</i> per iniziare il processo di installazione.</p>", 
+"<p><b>Attenzione</b> Saranno applicate le seguenti modifiche al tuo sistema per installare $distroname. Per correggere le selezioni premi il tasto <i>Indietro</i>, altrimenti premi <i>Avanti</i> per iniziare il processo di installazione.</p>", 
 "<p><b>Warnung</b> Die folgenden Änderungen werden auf dem System durchgeführt um $distroname zu installieren. Um die Auswahl zu ändern bitte die <i>Zurück</i> Schaltfläche benutzen, zum Start der Installation bitte die Schaltfläche <i>Weiter</i> benutzen.", 
 "<p><b>Attention,</b> la modification suivante sera effectuée sur votre systeme pour installer la distribution. Pour modifier votre selection, cliquer sur <i>Back</i>, autrement cliquer sur <i>Next</i> pour debuter la procedure d'installation.</p>",
 undef ],
