@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.19 2004/08/20 18:24:44 tom_kelly33 Exp $
+# $Id: Modules.mk,v 1.20 2004/09/22 00:28:47 tom_kelly33 Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -108,7 +108,7 @@ DEF_SCSI_MODULES_PATH_24=\
 #	drivers/scsi/aha1740
 DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/3w-xxxx \
-	drivers/scsi/advansys \
+#	drivers/scsi/advansys \
 	drivers/scsi/aha1542 \
 	drivers/scsi/aic7xxx/aic7xxx \
 	drivers/scsi/BusLogic \

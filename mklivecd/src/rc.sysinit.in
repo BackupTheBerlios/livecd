@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.26 2004/08/20 16:18:48 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.27 2004/09/22 00:28:48 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -448,7 +448,7 @@ setupinit() {
 	export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
 	/etc/rc.d/rc.sysinit
 }
-
+echo -n "-------------- rcsysinit --------------"
 setuproot ""
 setupinit ""
 sleep 5

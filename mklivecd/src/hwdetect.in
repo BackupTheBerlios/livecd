@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.133 2004/09/19 16:58:43 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.134 2004/09/22 00:28:47 tom_kelly33 Exp $
 #
 
 use strict;
@@ -106,6 +106,7 @@ my $verbose	  = 0;
 my $progress_now  = @VAL_SPLASH_LINUXRC@+@VAL_SPLASH_SYSINIT@;
 my $progress_full = @VAL_SPLASH_FULL@;
 my $progress_max  = @MAX_SPLASH@;
+my $progress_on = 1;
 
 sub get_exec { 
 	my $ret = qx($_[0]); 
@@ -686,7 +687,6 @@ sub hwdetect_getxfree {
 
 	# detect a resolution
 	print getStr('resolution_probe').": ";
-	my %old_X;
 	$old_X->{default_depth} = defined($cmdline{'xbpp'}) ? $cmdline{'xbpp'} : 16;
 	my $resolution_wanted = undef;
 	if (defined($cmdline{'xres'})) {
@@ -780,7 +780,7 @@ sub hwdetect_getnetwork {
 			print "$modules_conf->set_alias('eth$num', '$driver')\n" if ($debug);
 			
 			$num++;
-			# don't loaded driver, only add to /etc/modules.conf (as with sound)
+			# don't load driver, only add to /etc/modules.conf (as with sound)
 			hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
 			print_hash($card) if ($debug);
 		}
@@ -1411,7 +1411,7 @@ MAIN: {
 		'debug'    => \$debug,
 		'probe'    => \$probe,
 		'fdisk'    => \$fdisk,
-		'prefix=s' => \$prefix,
+		'prefix=s' => \$prefix
 	);
 	
 	# initialise

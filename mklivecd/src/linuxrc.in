@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.75 2004/07/14 14:49:02 jaco Exp $
+# $Id: linuxrc.in,v 1.76 2004/09/22 00:28:48 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -441,6 +441,7 @@ createramdisk() {
 }
 
 ### main script entry point
+echo -n "--------- linuxrc ------------ \n"
 initialise    ""
 printwelcome  ""
 findcloop     ""
