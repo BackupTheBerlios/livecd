@@ -1,15 +1,20 @@
-### $Id: Makefile,v 1.5 2003/09/29 10:39:26 jaco Exp $
+### $Id: Makefile,v 1.6 2003/09/30 08:21:32 jaco Exp $
 
 ### our version identifiers
 MAJORVER=0
 MINORVER=5
-PATCHVER=5
+PATCHVER=6
+RPMRELVER=1mdk
 CVSVER=yes
 
-ifeq "$(CVSVER)" "yes" 
-	MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)$(shell date +-cvs.%Y%m%d)
+MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
+ifeq "$(CVSVER)" "yes"
+	CVSDATE=$(shell date +cvs.%Y%m%d)
+	RELEASE=0.$(CVSDATE).$(RPMRELVER)
+	ARCHIVEVER=$(MKLIVECDVER)-$(CVSDATE)
 else
-	MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
+	RELEASE=$(RPMRELVER)
+	ARCHIVEVER=$(MKLIVECDVER)
 endif
 KERNELVER=$(shell uname -r)
 
@@ -27,7 +32,7 @@ RCDIR=$(SHAREDIR)/init.d
 ### internal directories
 MKLIVECDBUILD=.build
 MKLIVECDSRC=src
-MKLIVECDDIST=mklivecd-$(MKLIVECDVER)
+MKLIVECDDIST=mklivecd-$(ARCHIVEVER)
 
 ### utility programs
 BZIP2=/usr/bin/bzip2
@@ -75,7 +80,7 @@ install:
 
 spec:
 	$(CAT) mklivecd.spec.in | \
-		$(SED) -e 's/@MKLIVECDVER/$(MKLIVECDVER)/g' \
+		$(SED) -e 's/@MKLIVECDVER/$(MKLIVECDVER)/g;s/@RELEASE/$(RELEASE)/g' \
 		>mklivecd.spec
 
 clean:

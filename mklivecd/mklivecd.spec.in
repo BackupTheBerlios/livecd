@@ -1,8 +1,8 @@
-# $Id: mklivecd.spec.in,v 1.4 2003/09/29 10:40:10 jaco Exp $
+# $Id: mklivecd.spec.in,v 1.5 2003/09/30 08:21:32 jaco Exp $
 
 %define name		mklivecd
 %define version		@MKLIVECDVER
-%define release		1mdk
+%define release		@RELEASE
 
 %define summary		Builds a LiveCD from an existing Mandrake Linux installation
 
@@ -44,7 +44,7 @@ rm -rf %buildroot
 %{_datadir}/mklivecd/init.d/hwdetect
 
 %changelog
-* Mon Sep 29 2003 Jaco Greeff <jaco@linuxminicd.org> @MKLIVECDVER-1mdk
+* Mon Sep 29 2003 Jaco Greeff <jaco@linuxminicd.org> @MKLIVECDVER-@RELEASE
 - version @MKLIVECDVER
 
 * Sat Sep 27 2003 Tibor Pittich <Tibor.Pittich@phuture.sk> 0.5.5-2mdk
