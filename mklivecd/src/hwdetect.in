@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.81 2004/01/10 08:33:08 jaco Exp $
+# $Id: hwdetect.in,v 1.82 2004/01/10 17:47:04 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -722,6 +722,8 @@ sub hwdetect_readconf {
 sub hwdetect_writeconf {
 	unless ($probe) {
 		print "Writing modules configuration: ";
+		system(":> $prefix/etc/modules.conf"); # clear first
+		system(":> $prefix/etc/modprobe.conf"); # clear first
 		modules::write_conf($prefix);
 		print_success();
 	}
