@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.147 2005/01/20 21:29:19 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.148 2005/01/20 21:40:20 tom_kelly33 Exp $
 #
 
 use strict;
@@ -557,7 +557,7 @@ sub hwdetect_getsata() {
 	foreach $sata (@satalist) {
 		my $num = modprobe("", $sata);
 		#hwdetect_loadmod($sata, undef, undef, undef);
-		if ($num ne 0) {
+		if ($num eq 0) {
 			print "\n Module $sata loaded\n";
 			$total+=1;
 		}
