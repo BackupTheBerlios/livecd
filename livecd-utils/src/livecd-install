@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Wed Jan 21 12:52:46 2004
+# Created: Fri Jan 23 09:12:49 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -3401,7 +3401,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.50 2004/01/21 10:52:45 jaco Exp $
+# $Id: livecd-install,v 1.51 2004/01/23 07:12:48 jaco Exp $
 #
 
 use threads;
@@ -3473,7 +3473,7 @@ my %fsopts = (
 
 
 sub cat_ { local *F; open F, $_[0] or return; my @l = <F>; wantarray() ? @l : join('', @l); };
-sub do_system  { my ($p) = @_; print "+ $p\n"; system($p); }
+sub do_system  { my ($p) = @_; print "+ $p {\n"; my $c = system($p); print "+ }=$c\n"; };
 
 sub pageSelected # SLOT: ( const QString & )
 {
@@ -4170,7 +4170,7 @@ sub toggleReboot # SLOT: ( bool )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.50 2004/01/21 10:52:45 jaco Exp $
+# $Id: livecd-install,v 1.51 2004/01/23 07:12:48 jaco Exp $
 #
 
 package main;

@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.17 2004/01/21 10:52:46 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.18 2004/01/23 07:12:48 jaco Exp $
 #
 
 use threads;
@@ -100,7 +100,7 @@ my %fsopts = (
 
 
 sub cat_ { local *F; open F, $_[0] or return; my @l = <F>; wantarray() ? @l : join('', @l); };
-sub do_system  { my ($p) = @_; print "+ $p\n"; system($p); }
+sub do_system  { my ($p) = @_; print "+ $p {\n"; my $c = system($p); print "+ }=$c\n"; };
 
 sub pageSelected # SLOT: ( const QString & )
 {
