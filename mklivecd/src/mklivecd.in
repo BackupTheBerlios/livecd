@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.117 2004/09/22 00:28:48 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.118 2004/09/24 19:58:04 tom_kelly33 Exp $
 #
 
 use strict;
@@ -492,15 +492,15 @@ sub check_kernel {
 
 	if (($major == 2) && ($minor >= 5)) {
 		$kernel26 = 1;
-		$modfile = "/etc/modprobe.conf";
-		$depmod = "/sbin/depmod-25";
+		$modfile = "$o_root/etc/modprobe.conf";
+		$depmod = "$o_root/sbin/depmod-25";
 		$modext = ".ko";
 		$modules = $modules_26;
 		$modules_opt = $modules_opt_26;
 		#print STDERR "\nWARNING: Using a 2.6.x kernel for the LiveCD is currently not recommended";
 	}
 	else {
-		$depmod = "/sbin/depmod";
+		$depmod = "$o_root/sbin/depmod";
 		$modext = ".o";
 		$modules = $modules_24;
 		$modules_opt = $modules_opt_24;
@@ -598,13 +598,20 @@ sub create_initrd {
 	set_progress(++$pos, "mkdir -p $dir/...");
 
 	# find our insmod
-	my $insmod;
 	if (defined($dietarch)) {
-		do_copy(defined($kernel26) ? "/sbin/insmod-25-DIET" : "/sbin/insmod-DIET", 755, "$dir/sbin/insmod", ++$pos);
-	}
-	else {
-		do_copy(defined($kernel26) ? "/sbin/insmod.static-25" : "/sbin/insmod.static", 755, "$dir/sbin/insmod", ++$pos);
-	}
+		if (-e "$o_root/sbin/insmod-25")  {do_copy("$o_root/sbin/insmod-25",	755,	"$dir/sbin/insmod-25", ++$pos)}
+		if (-e "$o_root/sbin/insmod-24")  {do_copy("$o_root/sbin/insmod-24",	755,	"$dir/sbin/insmod-24", ++$pos)}
+		if (-e "$o_root/sbin/insmod.old") {do_copy("$o_root/sbin/insmod.old",	755,	"$dir/sbin/insmod.old", ++$pos)}
+		if (defined($kernel26)) {
+			do_copy("$dir/sbin/insmod-25",	755,	"$dir/sbin/insmod",	++$pos);
+		} else {
+			do_copy("$dir/sbin/insmod-24",	755,	"$dir/sbin/insmod",	++$pos);
+		}
+	} else {
+		if (-e "$o_root/sbin/insmod.static") {	
+			do_copy("$o_root/sbin/insmod.static",	755,	"$dir/sbin/insmod.static", ++$pos);
+		}
+	} 
 
 	# copy files
 	do_copy("/usr/bin/busybox",               755, "$dir/bin/busybox",             ++$pos);
