@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.101 2004/01/07 12:52:02 jaco Exp $
+# $Id: CHANGELOG,v 1.102 2004/01/08 11:39:58 jaco Exp $
 
 * Wed, Jan 07, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -73,6 +73,9 @@
       - Removable devices are mounted with supermount now
       - Add /proc/bus/usb (usbdevfs) to /etc/fstab
       - Write real device names (not devfs) to /etc/fstab
+      - Added LVM detection (Thanks to Leslie Hazelton 
+        <seawolf@attglobal.net> and SI Reasoning <si@mindspring.com>
+        for all testing and help in debugging.)
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
