@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.80 2004/10/19 14:07:01 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.81 2004/10/20 03:59:42 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -567,6 +567,7 @@ else
 			`umount $MNTCDROM 2>&1 >/dev/null`
 		fi
 	done
+
 	if [ -z "$FOUND_ISO" ]; then
 		printfail
 		$SETCOLOR_FAIL
@@ -608,6 +609,7 @@ createramdisk() {
 			"mkdir -p /sys && mount -n -t sysfs none /sys" \
 			"mkdir -p /tmp && chmod 777 /tmp" \
 			"mkdir -p /dev && mount -n -t tmpfs none /dev" \
+			"mkdir -p /dev/pts" \
 			"cd /" \
 			"ln -s /initrd/bin" \
 			"ln -s /initrd/boot" \
@@ -626,8 +628,9 @@ createramdisk() {
 			if [ ! -x /sbin/hotplug ]; then
 				echo /sbin/udev > /proc/sys/kernel/hotplug
 			fi
-		docmd	"  Starting udevstart" \
-			"/sbin/udevstart 2>&1"   # remove 2>&1  and ()? to see messages
+
+			echo -n "  Starting udevstart"
+			( `/sbin/udevstart >/dev/null 2>/dev/null` & ) && printok || printfail
 
 	    else # 2.4 kernel
                 docmd   "  Creating 2.4 root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
