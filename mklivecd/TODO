@@ -1,7 +1,7 @@
-# $Id: TODO,v 1.5 2003/10/01 13:23:13 jaco Exp $
+# $Id: TODO,v 1.6 2003/10/01 13:24:31 jaco Exp $
 
 - Add command-line options (at isolinux bootup) to select the
-  screen size and bitdepth for the X configuration 
+  screen size and bitdepth for the X configuration
 - Persistent home
 - Install to HDD. This is possible now that the LiveCD is a direct
   copy of a MDK image insted of a hacked-up version to fit on a
@@ -11,10 +11,6 @@
 - Cleanup of mklivecd script (some functions exists, creation of
   initrd is a good canidate)
 - There is no boot.msg or help.msg to display in isolinux boot
-- We don't have a splash page, possbily modify the default 9.2
-  background or the normal lilo screen (Rather detect and use the
-  configs in /etc/bootsplash, either way we need bootsplash
-  support)
 - memtest option in isolinux.cfg does not exist (we need to copy
   the correct image to provide this option)
 - We should detect swap partitions and add them to fstab to allow
