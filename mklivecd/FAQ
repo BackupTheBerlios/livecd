@@ -1,4 +1,4 @@
-# $Id: FAQ,v 1.2 2003/09/26 08:16:42 jaco Exp $
+# $Id: FAQ,v 1.3 2003/10/02 09:21:08 jaco Exp $
 
 Q: How do I create a tiny (truly minimal) bootable Mandrake
    LiveCD?
@@ -81,3 +81,14 @@ A: Indeed. The LiveCD creation script has two options, --blocksize
            49s, 158.06%, knoppix.iso.bzlp-64
            73s, 235.48%, knoppix.iso.bzlp-224
 
+
+Q: How do I change my keyboard layout?
+A: By default the script installs a keyboard layout for en_US.
+   You can change this behaviour in two ways:
+
+   1. On bootup, specify "livecd keyb=<language>" at the isolinux
+      prompt. For instance, "livecd keyb=en_UK" will select the
+      keyboard layout as used in the UK.
+   2. If you are building a specific CD which should cater for a
+      specific layout, you can edit the DEF_KEYBOARD value in the
+      mklivecd Makefile.
