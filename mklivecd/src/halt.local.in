@@ -28,12 +28,14 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: halt.local.in,v 1.8 2003/12/07 11:24:55 jaco Exp $
+# $Id: halt.local.in,v 1.9 2003/12/07 13:18:20 jaco Exp $
 #
 
 # Variables
 MNTCDROM="/cdrom"
 MNTLIVECD="/loopfs"
+CMD="$1"
+[ -z "$CMD" ] && CMD=/sbin/halt
 
 # should we eject the CD?
 EJECT=1
@@ -43,7 +45,7 @@ grep -q noeject /proc/cmdline && EJECT=
 MSG="Remove the CD, and press [Enter] to power the computer off"
 
 # Copy the binaries we need
-cp -f /sbin/halt /initrd/sbin
+cp -f /sbin/halt /sbin/reboot /initrd/sbin
 
 # Find which device we want to eject:
 #DEVICE=`cat /proc/mounts | grep /initrd$MNTCDROM | awk '{ print \$1 }'`
@@ -84,4 +86,4 @@ umount /proc 2>/dev/null
 # Hope this works ;-)
 # (We need to cater for reboots as well, currently we
 # shutdown/power-off everything...)
-halt -i -d -p >/dev/null 2>/dev/null
+$CMD -i -d -p >/dev/null 2>/dev/null
