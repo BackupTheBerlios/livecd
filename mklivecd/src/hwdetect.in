@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.107 2004/01/24 09:44:09 jaco Exp $
+# $Id: hwdetect.in,v 1.108 2004/01/24 09:54:04 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -579,6 +579,7 @@ sub hwdetect_getvideo {
 					$module = $probed_card->{Driver2};
 				}
 			}
+			$card->{VideoRam} = $cmdline{'xram'} if (defined($cmdline{'xram'}));
 			hwdetect_loadmod($module, $probed_vendor, $card->{card_name});
 			print_hash($card) if ($debug);
 		}
@@ -590,9 +591,11 @@ sub hwdetect_getvideo {
 			description => 'Linux|Default Framebuffer Device', 
 			VideoRam    => 4096
 		};
-		$probed_card->{Driver} = $cmdline{'xdrv'} if (defined($cmdline{'xdrv'}));
+		
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
-		hwdetect_loadmod('unknown', $probed_vendor, $card->{card_name});
+		$probed_card->{Driver} = $cmdline{'xdrv'} if (defined($cmdline{'xdrv'}));
+		$probed_card->{VideoRam} = $cmdline{'xram'} if (defined($cmdline{'xram'}));
+			hwdetect_loadmod($module, $probed_vendor, $card->{card_name});
 	}
 	$probed_card;
 }

@@ -1,4 +1,4 @@
-# $Id: BOOTCODES,v 1.12 2004/01/24 09:30:03 jaco Exp $
+# $Id: BOOTCODES,v 1.13 2004/01/24 09:54:04 jaco Exp $
 
 LiveCD bootcodes: These codes allow you to override the LiveCD
 defaults to modify the boot process for your specific needs. The
@@ -184,6 +184,9 @@ livecd xbpp=<depth>     Specify the bitdepth for X. <depth> can
 
 livecd xdrv=<driver>    Override the default driver chosen for your 
 			video card with <driver>.
+
+livecd xram=<videoram>  Use <videoram> (KB) instead of the probed
+			vide card RAM
 
 livecd xres=<res>       Specify the resolution for X. <res> can
 			be one of 800x600, 1024x768, 1280x1024 or

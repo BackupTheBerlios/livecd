@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.114 2004/01/24 09:31:06 jaco Exp $
+# $Id: CHANGELOG,v 1.115 2004/01/24 09:54:04 jaco Exp $
 
 * Wed, Jan 21, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@obsidian.co.za>:
@@ -87,6 +87,7 @@
       - Don't detect network cards when 'nonetwork' is specified
       - Don't detect sound cards when 'nosound' is specified
       - Add 'xdrv' option to override detected X driver
+      - Add 'xram' option to override detected VideoRam
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
