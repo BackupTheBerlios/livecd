@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.104 2004/01/10 08:33:08 jaco Exp $
+# $Id: CHANGELOG,v 1.105 2004/01/10 18:27:26 jaco Exp $
 
 * Sat, Jan 10, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -77,6 +77,8 @@
         <seawolf@attglobal.net> and SI Reasoning <si@mindspring.com>
         for all testing and help in debugging.)
       - Adhere to the "nousb", "noscsi" and "nopcmcia" boot options
+      - Don't run pcmcia, sound or network boot scripts if not 
+        detected, i.e. remove the /etc/rc.d/rc?.d/ links
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules

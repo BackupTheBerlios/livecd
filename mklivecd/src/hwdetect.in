@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.82 2004/01/10 17:47:04 jaco Exp $
+# $Id: hwdetect.in,v 1.83 2004/01/10 18:23:39 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -415,6 +415,9 @@ sub hwdetect_initpcmcia() {
 		$res += modprobe("-q", $_) foreach (@modules);
 		$res ? $probe ? print_warning() : print_failed() : print_loaded();
 	}
+	else {
+		system("rm -rf /etc/rc.d/rc?.d/*pcmcia");
+	}
 	set_progress();
 }
 
@@ -633,6 +636,7 @@ sub hwdetect_getsound {
 	eval { @probed_cards = hwdetect_get_mediatype('MULTIMEDIA_AUDIO'); };
 	print scalar(@probed_cards)." found";
 	scalar @probed_cards ? print_success() : print_failed();
+	system("rm -rf /etc/rc.d/rc?.d/*alsa /etc/rc.d/rc?.d/sound") unless (scalar(@probed_cards));
 	my $num = 0;
 	foreach my $card (@probed_cards) {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
@@ -661,6 +665,7 @@ sub hwdetect_getnetwork {
 	eval { @probed_cards = hwdetect_get_mediatype('NETWORK_ETHERNET|NETWORK_OTHER'); };
 	print scalar(@probed_cards)." found";
 	scalar @probed_cards ? print_success() : print_failed();
+	system("rm -rf /etc/rc.d/rc?.d/*network") unless (scalar(@probed_cards));
 	my $num = 0;
 	foreach my $card (@probed_cards) {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
