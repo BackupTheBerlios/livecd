@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.56 2003/10/31 07:10:07 jaco Exp $
+# $Id: CHANGELOG,v 1.57 2003/11/01 07:25:42 jaco Exp $
 
 * Wed, Oct 29, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -15,6 +15,11 @@
       - Created list for default normal and SCSI modules
       - Created listing for optional modules
       - Split modules into Modules.mk
+    [hwdetect]:
+      - PS/2 mice should now work in wheel and non-wheel modes.
+        Thanks to Texstar <texstar@houston.rr.com> for ideas and
+        investigation. Threads around this are available from:
+        http://lists.berlios.de/pipermail/minicd-scripts/2003-October/000229.html
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules

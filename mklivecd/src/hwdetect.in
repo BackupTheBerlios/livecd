@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.28 2003/10/30 19:36:07 jaco Exp $
+# $Id: hwdetect.in,v 1.29 2003/11/01 07:25:42 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -429,6 +429,11 @@ sub hwdetect_getmouse {
 			$device = $probed_mice[0];
 			($probed_vendor, $probed_desc) = split(/\|/, $device->{description});
 		}
+	}
+	elsif ($probed_mouse->{device} =~ /psaux/) {
+		# http://lists.berlios.de/pipermail/minicd-scripts/2003-October/000229.html
+		$probed_mouse->{XMOUSETYPE} = 'auto'; # X will auto-detect the protocol
+		$probed_mouse->{nbuttons} = 4;        # get the ZAxisMapping right (needed for wheel)
 	}
 	hwdetect_loadmod('unknown', $probed_vendor, $probed_mouse->{type}." ".$probed_mouse->{name}." ".$probed_desc);
 	print_hash($probed_mouse) if ($debug);
