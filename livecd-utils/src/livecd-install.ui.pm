@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.37 2004/08/22 19:16:34 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.38 2004/09/06 19:27:54 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -90,6 +90,7 @@ my %fsnames = (
 	'swap'     => 'Linux swap',
 	'ext2'     => 'Linux native',
 	'reiserfs' => 'Journalised FS: ReiserFS',
+	'reiser4'  => 'Journalised FS: Reiser4',
 	'xfs'      => 'Journalised FS: XFS',
 	'jfs'      => 'Journalised FS: JFS',
 	'ext3'     => 'Journalised FS: ext3'
@@ -100,6 +101,7 @@ my %fsopts = (
 	'ext3'     => 'defaults',
 	'jfs'      => 'defaults',
 	'reiserfs' => 'notail,noatime',
+	'reiser4'  => 'notail,noatime',
 	'xfs'      => 'defaults'
 );
 
@@ -118,6 +120,27 @@ sub pageSelected # SLOT: ( const QString & )
 
 	if ($title =~ m/ 1/) {
 		this->setFinishEnabled($page, 0);
+
+		## Setup language list
+		cbLanguage->clear();
+		cbLanguage->insertItem('Language');
+		cbLanguage->setCurrentItem(0);
+		cbLanguage->insertItem('Deutsch - de');
+		cbLanguage->setCurrentItem(1);
+		cbLanguage->insertItem('English - en');
+		cbLanguage->setCurrentItem(1);
+		cbLanguage->insertItem('francais - fr');
+		cbLanguage->setCurrentItem(1);
+		cbLanguage->insertItem('italiano - it');
+		cbLanguage->setCurrentItem(1);
+		cbLanguage->insertItem('Turkish - tr');
+		cbLanguage->setCurrentItem(0); ## Language 1st item
+
+		## Make mount, remove swap and nfs
+		do_system("mkdir -p $mnt");  # make mountpoint
+		do_system2("swapoff -a");    # swap may change
+		do_system2("umount -t nfs"); # don't want to copy nfs dirs
+
 		doEvents();
 	}
 	elsif ($title =~ m/ 2/) {
@@ -239,7 +262,6 @@ sub init
 	if ($lang eq '') {$lang = getMyLang() };
 	print getStr('script_init')."\n";
 	initLang();
-	do_system("mkdir -p $mnt");
 	print getStr('done')."\n";
 }
 
@@ -361,6 +383,7 @@ sub scanPartitions
 	    if ($devs{$_}{type} =~ /ext2/ ||
 		$devs{$_}{type} =~ /ext3/ ||
 		$devs{$_}{type} =~ /reiserfs/ ||
+		$devs{$_}{type} =~ /reiser4/ ||
 		$devs{$_}{type} =~ /xfs/ ||
 		$devs{$_}{type} =~ /jfs/ ||
 		$devs{$_}{type} =~ /swap/) {
@@ -637,7 +660,6 @@ sub doFormat
 	if ($this->cbSwapFormat->isChecked()) {
 		print getStr('fmt_title')."\n$swappart (".$fsnames{$devs->{$swappart}{type}}.")\n";
 		$infotext = getStr('fmt_title')."\n$swappart (".$fsnames{$devs->{$swappart}{type}}.")" unless ($destroy);
-		do_system2("swapoff $swappart");
 		do_system2("mkswap -c $swappart");
 		do_system2("swapon $swappart");
 		$pb_f_num++;
@@ -675,7 +697,10 @@ sub formatPart
 			fs::format_jfs($dev, @options);
 		}
 			elsif ($devs->{$dev}{type} =~ /reiserfs/) {
-			fs::format_reiserfs($dev, @options) ;
+			fs::format_reiserfs($dev, @options);
+		}
+			elsif ($devs->{$dev}{type} =~ /reiser4/) {
+			# fs::format_reiser4($dev, @options);
 		}
 			elsif ($devs->{$dev}{type} =~ /xfs/) {
 			fs::format_xfs($dev, @options);
@@ -1035,7 +1060,7 @@ sub deleteGuest # SLOT: ( )
 
 	# Delete the guest account and report - not found, deleted ok, error
 	$comm="/usr/sbin/userdel -r guest";
-	my $result = do_system2("/bin/echo $comm | chroot $mnt");
+	$result = do_system2("/bin/echo $comm | chroot $mnt");
 	print "\nDEBUG: Delete Guest result = $result\n";
         if ($result eq "1536") {
 	   Qt::MessageBox::information (this, getStr('caption'), getStr('guest_not_found'));

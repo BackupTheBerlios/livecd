@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
 <class>fMain</class>
 <widget class="QWizard">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>718</width>
-            <height>465</height>
+            <width>727</width>
+            <height>494</height>
         </rect>
     </property>
     <property name="caption">
@@ -46,44 +46,6 @@
             </property>
             <property name="text">
                 <string>&lt;p&gt;&lt;b&gt;Welcome&lt;/b&gt; to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the &lt;i&gt;Back&lt;/i&gt; and &lt;i&gt;Next&lt;/i&gt; buttons. You can stop at any time with the &lt;i&gt;Cancel&lt;/i&gt; button.&lt;/p&gt;&lt;p&gt;This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing important data or making your system unbootable. Use it with care!&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.</string>
-            </property>
-        </widget>
-        <widget class="QComboBox">
-            <item>
-                <property name="text">
-                    <string>       Language</string>
-                </property>
-            </item>
-            <item>
-                <property name="text">
-                    <string>Deutsch - de</string>
-                </property>
-            </item>
-            <item>
-                <property name="text">
-                    <string>English - en</string>
-                </property>
-            </item>
-            <item>
-                <property name="text">
-                    <string>français - fr</string>
-                </property>
-            </item>
-            <item>
-                <property name="text">
-                    <string>italiano - it</string>
-                </property>
-            </item>
-            <property name="name">
-                <cstring>cbLanguage</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>310</x>
-                    <y>350</y>
-                    <width>145</width>
-                    <height>35</height>
-                </rect>
             </property>
         </widget>
         <widget class="QPushButton">
@@ -123,6 +85,19 @@
             </property>
             <property name="scaledContents">
                 <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QComboBox">
+            <property name="name">
+                <cstring>cbLanguage</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>350</y>
+                    <width>145</width>
+                    <height>35</height>
+                </rect>
             </property>
         </widget>
     </widget>
