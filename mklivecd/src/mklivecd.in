@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.24 2003/10/04 16:10:43 jaco Exp $
+# $Id: mklivecd.in,v 1.25 2003/10/04 16:53:10 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -56,7 +56,7 @@ isoimage=""
 isobootkeymsg=""
 resolution="@DEF_RESOLUTION@"
 vgamode="@DEF_VGAMODE@"
-bootsplash=""
+bootsplash="splash=yes"
 
 usage () {
 	echo "Usage:" >&2
@@ -99,7 +99,7 @@ usage () {
 	echo "    --iso-bgimage=<image.lss>  Use 'image.lss' as the isolinux display image" >&2
 	echo "    --keyboard=<mapping>       Specify a different keyboard layout (default: @DEF_KEYBOARD@)" >&2
 	echo "    --resolution=<res>         Specify the resolution for the framebuffer (default: @DEF_RESOLUTION@)" >&2
-	echo "    --splash                   Create with bootsplash if availble on image" >&2
+	echo "    --splash={yes|no}          Create with bootsplash if available on image (default: yes)" >&2
 	echo "" >&2
 	echo "Examples:" >&2
 	echo "    `basename $0` --exclude-dir=\"^/usr/src/RPM ^/root/tmp\" livecd.iso" >&2
@@ -258,7 +258,7 @@ create_initrdimg() {
 	if [ -n "$bootsplash" ]; then
 		if [ -x ${rootdir}usr/share/bootsplash/scripts/make-boot-splash ]; then
 			do_cmd "(mv -f $ISOLINUXDIR/initrd.gz ${rootdir}tmp/; \
-		        	chroot ${rootdir} /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz $resolution; \
+		        	chroot ${rootdir} /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz ${resolution}; \
 				mv -f ${rootdir}tmp/initrd.gz $ISOLINUXDIR)"
 		else
 			echo "WARNING: '${rootdir}usr/share/bootsplash/scripts/make-boot-splash' does not exist. Creating initrd image without bootsplash" >&2
@@ -501,9 +501,20 @@ while [ $# -gt 0 ]; do
 			final=1
 			;;
 
-		--splash)
-			bootsplash="splash=yes"
+		--splash*)
+			if echo $1 | grep '=' >/dev/null ; then
+				yn=`echo $1 | sed 's/^--yn=//'`
+			else
+				yn=$2
+				shift
+			fi
+			if [ $yn == yes ]; then
+				bootsplash="splash=yes"
+			else
+				bootsplash=""
+			fi
 			;;
+
 
 		--keyboard*)
 			if echo $1 | grep '=' >/dev/null ; then

@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.38 2003/10/04 16:10:43 jaco Exp $
+# $Id: CHANGELOG,v 1.39 2003/10/04 16:53:10 jaco Exp $
 
 * Sat, Oct 04, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -93,8 +93,8 @@
       - Added '--iso-bootkey=<key>,<msg>' option
       - Be less verbose by default, '--verbose' option works now
       - Added '--resolution' option for fb resolution setup
-      - Added '--splash' option to try and create a bootsplash
-        initrd
+      - Added '--splash={yes|no}' option to try and create a
+        bootsplash initrd (default: yes)
     [mklivecd.spec]:
       - Synced with contrib spec
       - Ability to auto-generate version info for changelog
