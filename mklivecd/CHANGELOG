@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.110 2004/01/21 09:59:37 jaco Exp $
+# $Id: CHANGELOG,v 1.111 2004/01/22 05:09:14 jaco Exp $
 
 * Wed, Jan 21, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@obsidian.co.za>:
@@ -82,8 +82,8 @@
       - Reworked module loading to allow for 2.4 and 2.6 USB modules
       - Make our xres, xbpp always override libDrakX unless "safex"
         is specified
-      - Allow specification of the sound module with the snddrv option
-      - Allow specification of the network module with the netdrv option
+      - Allow specification of the sound module with the sound{x} option
+      - Allow specification of the network module with the eth{x} option
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
