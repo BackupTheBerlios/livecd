@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.18 2003/10/03 06:19:06 jaco Exp $
+# $Id: mklivecd.in,v 1.19 2003/10/03 09:17:21 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -50,9 +50,10 @@ loopmod="cloop"
 blocksize=64
 
 # boot options
-keyboard=""
+isokeyboard=""
 isobootmsg=""
 isoimage=""
+isobootkeymsg=""
 
 usage () {
 	echo "Usage:" >&2
@@ -89,7 +90,8 @@ usage () {
 	echo "       (unintended) side-effects." >&2
 	echo "" >&2
 	echo "Boot options:" >&2
-	echo "    --iso-bootmsg=<boot.msg>   Use 'boot.msg' as the isolinux message display" >&2
+	echo "    --iso-bootmsg=<msg>        Use 'msg' as the isolinux message display" >&2
+	echo "    --iso-bootkey=<key>,<msg>  Display 'msg' on key 'key' from isolinux" >&2
 	echo "    --iso-graphic              Use the Madrake boot image extension" >&2
 	echo "    --iso-bgimage=<image.lss>  Use 'image.lss' as the isolinux display image" >&2
 	echo "    --keyboard=<mapping>       Specify a different keyboard layout (default: @DEF_KEYBOARD@) (4)" >&2
@@ -267,7 +269,6 @@ create_isolinux() {
 	else
 		do_cp $isolinuxbin $ISOLINUXDIR/isolinux.bin
 	fi
-	do_cmd "cat /usr/share/mklivecd/isolinux.cfg | sed -e 's/\@BOOT_KEYB\@/$keyboard/g' >$ISOLINUXDIR/isolinux.cfg"
 	if [ ! -f ${rootdir}boot/vmlinuz-$kernel ]; then
 		echo "ERROR: The kernel '${rootdir}boot/vmlinuz-$kernel' does not exist on your machine." >&2
 		exit 1
@@ -280,6 +281,33 @@ create_isolinux() {
 		do_cmd "echo -e '\\030livecd.lss' >>$ISOLINUXDIR/livecd.msg"
 		do_cp $isoimage $ISOLINUXDIR/livecd.lss
 	fi
+	# everything generated via echo since we put in some of our variables on the
+	# various command-lines
+	do_cmd "echo 'default livecd' >$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo 'prompt  1' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo 'timeout 950' >>$ISOLINUXDIR/isolinux.cfg"
+	[ -f $ISOLINUXDIR/livecd.msg ] && do_cmd "echo 'display livecd.msg' >>$ISOLINUXDIR/isolinux.cfg"
+	keymsg=""
+	if [ -n "$isobootkeymsg" ]; then
+		for l in $isobootkeymsg; do
+			key=`echo $l | tr "," " " | awk '{ print $1 }'`
+			msg=`echo $l | tr "," " " | awk '{ print $2 }'`
+			do_cp $msg $ISOLINUXDIR/livecd_$key.msg
+			do_cmd "echo '$key livecd_$key.msg' >>$ISOLINUXDIR/isolinux.cfg"
+		done
+	fi
+	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo 'label livecd' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    append initrd=initrd.gz devfs=mount fastboot=yes nomodules ramdisk_size=32000 root=/dev/rd/3 vga=788 automatic=method:cdrom $isokeyboard' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo 'label initrd' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    append livecd=initrd initrd=initrd.gz devfs=mount fastboot=yes nomodules ramdisk_size=32000 root=/dev/rd/3 vga=788 automatic=method:cdrom $isokeyboard' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo 'label memtest' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    kernel memtest' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "dd if=/dev/zero of=$ISOLINUXDIR/boot.cat bs=1k count=2 2> /dev/null"
 }
 
@@ -402,12 +430,12 @@ while [ $# -gt 0 ]; do
 
 		--keyboard*)
 			if echo $1 | grep '=' >/dev/null ; then
-				language=`echo $1 | sed 's/^--keyboard=//'`
+				mapping=`echo $1 | sed 's/^--keyboard=//'`
 			else
-				language=$2
+				mapping=$2
 				shift
 			fi
-			keyboard="keyb=$language"
+			isokeyboard="keyb=$mapping"
 			;;
 
 		--iso-bootmsg*)
@@ -421,6 +449,26 @@ while [ $# -gt 0 ]; do
 				echo "ERROR: The specified boot message, '$isobootmsg' could not be found." >&2
 				exit 1
 			fi
+			;;
+
+		--iso-bootkey*)
+			if echo $1 | grep '=' >/dev/null ; then
+				isobootkey=`echo $1 | sed 's/^--iso-bootkey=//'`
+			else
+				isobootkey=$2
+				shift
+			fi
+			key=`echo $isobootkey | tr "," " " | awk '{ print $1 }'`
+			msg=`echo $isobootkey | tr "," " " | awk '{ print $2 }'`
+			if [ -z "$key" -o -z "$msg" ]; then
+				echo "ERROR: You need to specify both the key and message for the '--iso-bootkey' parameter." >&2
+				exit 1
+			fi
+			if [ ! -f "$msg" ]; then
+				echo "ERROR: The specified boot message, '$msg' could not be found." >&2
+				#exit 1
+			fi
+			isobootkeymsg="$isobootkeymsg $isobootkey"
 			;;
 
 		--iso-graphic)

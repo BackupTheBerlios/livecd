@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.31 2003/10/03 06:32:01 jaco Exp $
+# $Id: CHANGELOG,v 1.32 2003/10/03 09:17:21 jaco Exp $
 
 * Fri, Oct 03, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -79,6 +79,9 @@
         prompt
       - Added '--iso-graphic' option to cater for the Mandrake
         isolinux graphic extension
+      - Removed the isolinux.cfg file, it is generated dynamically
+        now to cater for trhe mklivecd options
+      - Added '--iso-bootkey=<key>,<msg>' option
     [mklivecd.spec]:
       - Synced with contrib spec
       - Ability to auto-generate version info for changelog
