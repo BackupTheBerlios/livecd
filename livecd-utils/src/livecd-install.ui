@@ -31,14 +31,11 @@
                     <x>310</x>
                     <y>0</y>
                     <width>390</width>
-                    <height>380</height>
+                    <height>340</height>
                 </rect>
             </property>
             <property name="text">
-                <string>&lt;p&gt;&lt;b&gt;Welcome&lt;/b&gt; to the LiveCD installation program. This application will guide you through the steps of installing the LiveCD to your local disk.&lt;/p&gt;
-&lt;p&gt;Navigation through the steps can be done with the &lt;i&gt;Back&lt;/i&gt; and &lt;i&gt;Next&lt;/i&gt; buttons, while you can exit/abort the process at any time with the &lt;i&gt;Cancel&lt;/i&gt; button.&lt;/p&gt;
-&lt;p&gt;This is BETA quality software and might have adverse (unintended) side effects on your current running system. These side-effects might include erasing of important data and/or rendering of your system in an unbootable state. Use it with care!&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;
-</string>
+                <string>&lt;p&gt;&lt;b&gt;Welcome&lt;/b&gt; to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk.&lt;/p&gt;&lt;p&gt;Navigation can be done with the &lt;i&gt;Back&lt;/i&gt; and &lt;i&gt;Next&lt;/i&gt; buttons. You can exit/abort at any time with the &lt;i&gt;Cancel&lt;/i&gt; button.&lt;/p&gt;&lt;p&gt;This is BETA quality software and might have adverse or unintended side effects on your current running system. These could include erasing of important data and/or making your system unbootable. Use it with care!&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or $distroname\'s homepage: $distrohome.</string>
             </property>
             <property name="alignment">
                 <set>WordBreak|AlignTop|AlignLeft</set>
@@ -65,7 +62,7 @@
         </widget>
         <widget class="QPushButton">
             <property name="name">
-                <cstring>DiskPartitioner</cstring>
+                <cstring>bDiskPartitioner</cstring>
             </property>
             <property name="geometry">
                 <rect>
@@ -88,6 +85,25 @@
         <attribute name="title">
             <string>Step 2 of 6: Partition Selection</string>
         </attribute>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>pixmapLabel3</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>300</width>
+                    <height>380</height>
+                </rect>
+            </property>
+            <property name="pixmap">
+                <pixmap>image0</pixmap>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+        </widget>
         <widget class="QGroupBox">
             <property name="name">
                 <cstring>groupBox16_2</cstring>
@@ -95,9 +111,9 @@
             <property name="geometry">
                 <rect>
                     <x>310</x>
-                    <y>200</y>
+                    <y>210</y>
                     <width>390</width>
-                    <height>180</height>
+                    <height>170</height>
                 </rect>
             </property>
             <property name="title">
@@ -149,19 +165,6 @@
                 </property>
                 <property name="text">
                     <string>Temp (/tmp) device:</string>
-                </property>
-            </widget>
-            <widget class="QComboBox">
-                <property name="name">
-                    <cstring>cbHome</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>40</y>
-                        <width>370</width>
-                        <height>26</height>
-                    </rect>
                 </property>
             </widget>
             <widget class="QComboBox">
@@ -238,45 +241,19 @@
                     <string>Format</string>
                 </property>
             </widget>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>tlWelcome_2_3</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>310</x>
-                    <y>0</y>
-                    <width>390</width>
-                    <height>50</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&lt;p&gt;&lt;b&gt;Choose&lt;/b&gt; the partitions to be associated with different mountpoints. You need to specify devices for use by the &lt;i&gt;root&lt;/i&gt; and &lt;i&gt;swap&lt;/i&gt;, while a seperate &lt;i&gt;home&lt;/i&gt; partition is recommended.&lt;/p&gt;
-</string>
-            </property>
-            <property name="alignment">
-                <set>WordBreak|AlignTop|AlignLeft</set>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>pixmapLabel3</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>300</width>
-                    <height>380</height>
-                </rect>
-            </property>
-            <property name="pixmap">
-                <pixmap>image0</pixmap>
-            </property>
-            <property name="scaledContents">
-                <bool>true</bool>
-            </property>
+            <widget class="QComboBox">
+                <property name="name">
+                    <cstring>cbHome</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>40</y>
+                        <width>370</width>
+                        <height>26</height>
+                    </rect>
+                </property>
+            </widget>
         </widget>
         <widget class="QGroupBox">
             <property name="name">
@@ -285,9 +262,9 @@
             <property name="geometry">
                 <rect>
                     <x>310</x>
-                    <y>60</y>
+                    <y>80</y>
                     <width>390</width>
-                    <height>130</height>
+                    <height>120</height>
                 </rect>
             </property>
             <property name="title">
@@ -393,6 +370,26 @@
                 </property>
             </widget>
         </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>tlWelcome_2_3</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>0</y>
+                    <width>390</width>
+                    <height>70</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&lt;p&gt;&lt;b&gt;Choose&lt;/b&gt; the partitions to be associated with different mountpoints. You need to specify devices for use by the &lt;i&gt;root&lt;/i&gt; and &lt;i&gt;swap&lt;/i&gt;, while a seperate &lt;i&gt;home&lt;/i&gt; partition is recommended.&lt;/p&gt;
+</string>
+            </property>
+            <property name="alignment">
+                <set>WordBreak|AlignTop|AlignLeft</set>
+            </property>
+        </widget>
     </widget>
     <widget class="QWidget">
         <property name="name">
@@ -401,6 +398,25 @@
         <attribute name="title">
             <string>Step 3 of 6: Partition Verification</string>
         </attribute>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>pixmapLabel4</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>300</width>
+                    <height>380</height>
+                </rect>
+            </property>
+            <property name="pixmap">
+                <pixmap>image0</pixmap>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+        </widget>
         <widget class="QListView">
             <column>
                 <property name="text">
@@ -480,29 +496,10 @@
                 </rect>
             </property>
             <property name="text">
-                <string>&lt;p&gt;&lt;b&gt;Warning&lt;/b&gt; The following changes will be made to your system to install the LiveCD. If you want to make changes, press the &lt;i&gt;Back&lt;/i&gt; button or press &lt;i&gt;Next&lt;/i&gt; to start the installation process.&lt;/p&gt;</string>
+                <string>&lt;p&gt;&lt;b&gt;Warning&lt;/b&gt; The following changes will be made to your system to install $distroname. If you want to make changes, press the &lt;i&gt;Back&lt;/i&gt; button or press &lt;i&gt;Next&lt;/i&gt; to start the installation process.&lt;/p&gt;</string>
             </property>
             <property name="alignment">
                 <set>WordBreak|AlignTop</set>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>pixmapLabel4</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>300</width>
-                    <height>380</height>
-                </rect>
-            </property>
-            <property name="pixmap">
-                <pixmap>image0</pixmap>
-            </property>
-            <property name="scaledContents">
-                <bool>true</bool>
             </property>
         </widget>
     </widget>
@@ -569,111 +566,40 @@
         </widget>
         <widget class="QLabel">
             <property name="name">
-                <cstring>textLabel2_2</cstring>
+                <cstring>pixmapLabel5</cstring>
             </property>
             <property name="geometry">
                 <rect>
-                    <x>310</x>
-                    <y>130</y>
-                    <width>140</width>
-                    <height>20</height>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>300</width>
+                    <height>380</height>
                 </rect>
             </property>
-            <property name="text">
-                <string>Data copy progress:</string>
+            <property name="pixmap">
+                <pixmap>image0</pixmap>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
             </property>
         </widget>
         <widget class="QLabel">
             <property name="name">
-                <cstring>tlFormat</cstring>
+                <cstring>textLabel1_3_2</cstring>
             </property>
             <property name="geometry">
                 <rect>
-                    <x>320</x>
-                    <y>100</y>
-                    <width>380</width>
-                    <height>20</height>
+                    <x>310</x>
+                    <y>0</y>
+                    <width>390</width>
+                    <height>50</height>
                 </rect>
             </property>
             <property name="text">
-                <string>00:00:00 Elapsed, 00:00:00 Remaining</string>
+                <string>&lt;p&gt;&lt;b&gt;Installation&lt;/b&gt; of $distroname to your hard disk is currently in progress. Please be patient as this process does take some time.&lt;/p&gt;</string>
             </property>
             <property name="alignment">
-                <set>AlignVCenter|AlignRight</set>
-            </property>
-        </widget>
-        <widget class="QProgressBar">
-            <property name="name">
-                <cstring>pbOverall</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>310</x>
-                    <y>220</y>
-                    <width>390</width>
-                    <height>21</height>
-                </rect>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel2</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>311</x>
-                    <y>60</y>
-                    <width>140</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Disk format:</string>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>tlCopy</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>320</x>
-                    <y>170</y>
-                    <width>380</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>00:00:00 Elapsed, 00:00:00 Remaining</string>
-            </property>
-            <property name="alignment">
-                <set>AlignVCenter|AlignRight</set>
-            </property>
-        </widget>
-        <widget class="QProgressBar">
-            <property name="name">
-                <cstring>pbFormat</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>311</x>
-                    <y>80</y>
-                    <width>390</width>
-                    <height>21</height>
-                </rect>
-            </property>
-        </widget>
-        <widget class="QProgressBar">
-            <property name="name">
-                <cstring>pbCopy</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>310</x>
-                    <y>150</y>
-                    <width>390</width>
-                    <height>21</height>
-                </rect>
+                <set>WordBreak|AlignTop</set>
             </property>
         </widget>
         <widget class="QLabel">
@@ -692,42 +618,113 @@
                 <string>Overall progress:</string>
             </property>
         </widget>
-        <widget class="QLabel">
+        <widget class="QProgressBar">
             <property name="name">
-                <cstring>textLabel1_3_2</cstring>
+                <cstring>pbOverall</cstring>
             </property>
             <property name="geometry">
                 <rect>
                     <x>310</x>
-                    <y>0</y>
+                    <y>220</y>
                     <width>390</width>
-                    <height>50</height>
+                    <height>21</height>
                 </rect>
-            </property>
-            <property name="text">
-                <string>&lt;p&gt;&lt;b&gt;Installation&lt;/b&gt; of LiveCD to your hard disk is currently in progress. Please be patient as this process does take some time.&lt;/p&gt;</string>
-            </property>
-            <property name="alignment">
-                <set>WordBreak|AlignTop</set>
             </property>
         </widget>
         <widget class="QLabel">
             <property name="name">
-                <cstring>pixmapLabel5</cstring>
+                <cstring>tlCopy</cstring>
             </property>
             <property name="geometry">
                 <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>300</width>
-                    <height>380</height>
+                    <x>320</x>
+                    <y>180</y>
+                    <width>380</width>
+                    <height>20</height>
                 </rect>
             </property>
-            <property name="pixmap">
-                <pixmap>image0</pixmap>
+            <property name="text">
+                <string>00:00:00 Elapsed, 00:00:00 Remaining</string>
             </property>
-            <property name="scaledContents">
-                <bool>true</bool>
+            <property name="alignment">
+                <set>AlignVCenter|AlignRight</set>
+            </property>
+        </widget>
+        <widget class="QProgressBar">
+            <property name="name">
+                <cstring>pbCopy</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>160</y>
+                    <width>390</width>
+                    <height>21</height>
+                </rect>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel2_2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>140</y>
+                    <width>140</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Data copy progress:</string>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>tlFormat</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>320</x>
+                    <y>120</y>
+                    <width>380</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>00:00:00 Elapsed, 00:00:00 Remaining</string>
+            </property>
+            <property name="alignment">
+                <set>AlignVCenter|AlignRight</set>
+            </property>
+        </widget>
+        <widget class="QProgressBar">
+            <property name="name">
+                <cstring>pbFormat</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>100</y>
+                    <width>390</width>
+                    <height>21</height>
+                </rect>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>80</y>
+                    <width>140</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Disk format:</string>
             </property>
         </widget>
     </widget>
@@ -754,38 +751,6 @@
                 <string>&amp;Install</string>
             </property>
         </widget>
-        <widget class="QListBox">
-            <property name="name">
-                <cstring>lbBootloader</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>310</x>
-                    <y>70</y>
-                    <width>390</width>
-                    <height>260</height>
-                </rect>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel1_3_2_2</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>310</x>
-                    <y>0</y>
-                    <width>390</width>
-                    <height>60</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&lt;p&gt;&lt;b&gt;Installation&lt;/b&gt; of the bootloader will now take place. Please select the drive or partition on which you would like to install it and press &lt;i&gt;Install&lt;/i&gt; to install the bootloader, or &lt;i&gt;Next&lt;/i&gt; to complete the installation.&lt;/p&gt;</string>
-            </property>
-            <property name="alignment">
-                <set>WordBreak|AlignTop</set>
-            </property>
-        </widget>
         <widget class="QLabel">
             <property name="name">
                 <cstring>pixmapLabel6</cstring>
@@ -805,6 +770,38 @@
                 <bool>true</bool>
             </property>
         </widget>
+        <widget class="QListBox">
+            <property name="name">
+                <cstring>lbBootloader</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>90</y>
+                    <width>390</width>
+                    <height>240</height>
+                </rect>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel1_3_2_2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>0</y>
+                    <width>390</width>
+                    <height>80</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&lt;p&gt;&lt;b&gt;Installation&lt;/b&gt; of the bootloader will now take place. Please select the drive or partition on which you would like to install it and press &lt;i&gt;Install&lt;/i&gt; to install the bootloader, or &lt;i&gt;Next&lt;/i&gt; to complete the installation.&lt;/p&gt;</string>
+            </property>
+            <property name="alignment">
+                <set>WordBreak|AlignTop</set>
+            </property>
+        </widget>
     </widget>
     <widget class="QWidget">
         <property name="name">
@@ -813,6 +810,25 @@
         <attribute name="title">
             <string>Step 6 of 6: Reboot</string>
         </attribute>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>pixmapLabel7</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>300</width>
+                    <height>380</height>
+                </rect>
+            </property>
+            <property name="pixmap">
+                <pixmap>image0</pixmap>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+        </widget>
         <widget class="QButtonGroup">
             <property name="name">
                 <cstring>buttonGroup2</cstring>
@@ -820,9 +836,9 @@
             <property name="geometry">
                 <rect>
                     <x>330</x>
-                    <y>120</y>
+                    <y>310</y>
                     <width>320</width>
-                    <height>80</height>
+                    <height>70</height>
                 </rect>
             </property>
             <property name="frameShape">
@@ -858,12 +874,12 @@
                     <rect>
                         <x>10</x>
                         <y>10</y>
-                        <width>280</width>
+                        <width>300</width>
                         <height>20</height>
                     </rect>
                 </property>
                 <property name="text">
-                    <string>Yes, reboot my system atomatically now.</string>
+                    <string>Yes, reboot my system automatically now.</string>
                 </property>
             </widget>
         </widget>
@@ -876,34 +892,97 @@
                     <x>310</x>
                     <y>0</y>
                     <width>390</width>
-                    <height>110</height>
+                    <height>130</height>
                 </rect>
             </property>
             <property name="text">
-                <string>&lt;p&gt;&lt;b&gt;Congratulations&lt;/b&gt; you have completed the installation of the LiveCD to your local disk. Press &lt;i&gt;Finish&lt;/i&gt; to boot your machine into your new install.&lt;/p&gt;
-&lt;p&gt;It is recommended, after the boot, that you immediately change the passwords for both the root and user account, to ensure the security of your system.&lt;/p&gt;</string>
+                <string>&lt;p&gt;&lt;b&gt;Congratulations&lt;/b&gt; you have completed the installation of $distroname to your local disk. Now select a new root password for the installation, to ensure the security of your system.&lt;/p&gt;&lt;p&gt;Remember to delete or change the password of the guest account when you reboot the system.</string>
             </property>
             <property name="alignment">
                 <set>WordBreak|AlignTop|AlignLeft</set>
             </property>
         </widget>
-        <widget class="QLabel">
+        <widget class="QLineEdit">
             <property name="name">
-                <cstring>pixmapLabel7</cstring>
+                <cstring>lineEdit1</cstring>
             </property>
             <property name="geometry">
                 <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>300</width>
-                    <height>380</height>
+                    <x>320</x>
+                    <y>160</y>
+                    <width>290</width>
+                    <height>24</height>
                 </rect>
             </property>
-            <property name="pixmap">
-                <pixmap>image0</pixmap>
+            <property name="echoMode">
+                <enum>Password</enum>
             </property>
-            <property name="scaledContents">
-                <bool>true</bool>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEdit2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>320</x>
+                    <y>220</y>
+                    <width>290</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="echoMode">
+                <enum>Password</enum>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel1_4</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>320</x>
+                    <y>140</y>
+                    <width>240</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Please type the new root password.</string>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel1_4_2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>320</x>
+                    <y>200</y>
+                    <width>270</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Please confirm the new root password.</string>
+            </property>
+        </widget>
+        <widget class="QPushButton">
+            <property name="name">
+                <cstring>bWritePassword</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>400</x>
+                    <y>260</y>
+                    <width>140</width>
+                    <height>26</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&amp;Write the password.</string>
+            </property>
+            <property name="accel">
+                <string>Alt+W</string>
             </property>
         </widget>
     </widget>
@@ -933,10 +1012,16 @@
         <slot>toggleReboot(bool)</slot>
     </connection>
     <connection>
-        <sender>DiskPartitioner</sender>
+        <sender>bWritePassword</sender>
         <signal>clicked()</signal>
         <receiver>fMain</receiver>
-        <slot>DiskPartitioner_clicked()</slot>
+        <slot>writeRootPW()</slot>
+    </connection>
+    <connection>
+        <sender>bDiskPartitioner</sender>
+        <signal>clicked()</signal>
+        <receiver>fMain</receiver>
+        <slot>diskPartition()</slot>
     </connection>
 </connections>
 <includes>
@@ -947,7 +1032,8 @@
     <slot language="Perl">pageSelected( const QString &amp; )</slot>
     <slot language="Perl">toggleReboot( bool )</slot>
     <slot language="Perl">doLoaderInstall()</slot>
-    <slot>DiskPartitioner_clicked()</slot>
+    <slot>writeRootPW()</slot>
+    <slot>diskPartition()</slot>
 </slots>
 <functions>
     <function language="Perl">init()</function>

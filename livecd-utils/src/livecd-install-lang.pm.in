@@ -19,14 +19,20 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install-lang.pm.in,v 1.6 2004/04/08 04:01:42 tom_kelly33 Exp $
+# $Id: livecd-install-lang.pm.in,v 1.7 2004/04/19 15:42:30 tom_kelly33 Exp $
 #
 
 package fMain;
 
 use strict;
 
-my $lang    : shared = 0;
+my $lang       : shared = 0;
+
+my $distroname : shared = "";  # Modify as desired for distro
+my $distrohome : shared = "";  # Modify as desired for distro
+
+if ($distrohome eq "") {$distrohome = "(homepage not given)" } 
+if ($distroname eq "") {$distroname =  qx(cat /etc/redhat-release | awk '{ print \$1 }') }
 
 my %cmdline = map {
 		chomp;
@@ -41,12 +47,13 @@ my %languages = (
 );
 
 my %strings = (
-	'caption'          => [ "LiveCD Installation", undef ],
+	'caption'          => [ "$distroname Installation", undef ],
 	'script_init'      => [ "Initialising ... ", undef ],
 	'script_destroy'   => [ "Destroying ... ", undef ],
 	'done'             => [ "Done.", undef ],
 	'reboot'           => [ "Rebooting...", undef ],
 
+        'btn_disk_part'    => [ "&Disk Partitioner\n(for advanced users)", undef ],
 	'btn_retry'        => [ "&Retry", undef ],
 	'btn_help'         => [ "&Help", undef ],
 	'btn_cancel'       => [ "&Cancel", undef ],
@@ -56,6 +63,7 @@ my %strings = (
 	'btn_yes'          => [ "&Yes", undef ],
 	'btn_no'           => [ "&No", undef ],
 	'btn_inst'         => [ "&Install", undef ],
+        'btn_writepw'      => [ "&Write Password", undef ],
 	
 	'yes'              => [ "Yes", undef ],
 
@@ -84,7 +92,10 @@ my %strings = (
 	'part_name_var'    => [ "/var", undef ],
 	'part_name_home'   => [ "/home", undef ],
 	'part_name_root'   => [ "/", undef ],
-				
+
+	'pword_not_same'   => [ "Passwords are not the same. Please try again.", undef],
+	'pword_ok'         => [ "New root password has been written successfully.", undef],
+
 	'inst_scan'        => [ "Scanning available directories", undef ],
 	'inst_fstab'       => [ "Creating /etc/fstab", undef ],
 	'inst_done'        => [ "Installation completed. Please press Next to continue.", undef ],
@@ -96,14 +107,13 @@ my %strings = (
 	'boot_bs'          => [ "(Bootsector of partition)", undef ],
 	'boot_mbr'         => [ "(Master boot record of drive)", undef ],
 	
-	'fstab_info'       => [ "Entries below this line were automatically added by LiveCD install", undef ],
+	'fstab_info'       => [ "Entries below this line were automatically added by $distroname install", undef ],
 
 	'scr_1_title'      => [ "Step 1 of 6: Welcome", undef ],
-	'scr_1_text'       => [ "<p><b>Welcome</b> to the LiveCD installation program. This application will guide you through the steps of installing the LiveCD to your local disk.</p>\n<p>Navigation through the steps can be done with the <i>Back</i> and <i>Next</i> buttons, while you can exit/abort the process at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse (unintended) side effects on your current running system. These side-effects might include erasing of important data and/or rendering of your system in an unbootable state. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n", undef ],
-	'disk_partitioner_text' => [ "Disk Partitioner\n(for advanced users)", undef ],
+	'scr_1_text'       => [ "<p><b>Welcome</b> to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk.</p>\n<p>Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can exit/abort at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse or unintended side effects on your current running system. These could include erasing of important data and/or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n<p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or $distroname\'s homepage: $distrohome.", undef ],
 
 	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", undef ],
-	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify devices for use by the <i>root</i> and <i>swap</i>, while a seperate <i>home</i> partition is recommended.</p>\n", undef ],
+	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify devices for use by the <i>root</i> and <i>swap</i>, while a separate <i>home</i> partition is recommended.</p>\n", undef ],
 	'scr_2_fmt'        => [ "Format", undef ],
 	'scr_2_req'        => [ "Required Partitions", undef ],
 	'scr_2_opt'        => [ "Optional Partitions", undef ],
@@ -115,14 +125,14 @@ my %strings = (
 	
 
 	'scr_3_title'      => [ "Step 3 of 6: Partition Verification", undef ],
-	'scr_3_text'       => [ "<p><b>Warning</b> The following changes will be made to your system to install the LiveCD. If you want to make changes, press the <i>Back</i> button or press <i>Next</i> to start the installation process.</p>", undef ],
+	'scr_3_text'       => [ "<p><b>Warning</b> The following changes will be made to your system to install $distroname. If you want to make changes, press the <i>Back</i> button or press <i>Next</i> to start the installation process.</p>", undef ],
 	'scr_3_mnt'        => [ "Mount",  undef ],
 	'scr_3_dev'        => [ "Device", undef ],
 	'scr_3_fmt'        => [ "Format", undef ],
     
 
-	'scr_4_title'      => [ "Step 4 of 6: LiveCD Installation", undef ],
-	'scr_4_text'       => [ "<p><b>Installation</b> of LiveCD to your hard disk is currently in progress. Please be patient as this process does take some time.</p>", undef ],
+	'scr_4_title'      => [ "Step 4 of 6: $distroname Installation", undef ],
+	'scr_4_text'       => [ "<p><b>Installation</b> of $distroname to your hard disk is currently in progress. Please be patient as this process does take some time.</p>", undef ],
 	'scr_4_copy'       => [ "Data copy progress:", undef ],
 	'scr_4_fmt'        => [ "Disk format:", undef ],
 	'scr_4_overall'    => [ "Overall progress:", undef ],
@@ -134,9 +144,12 @@ my %strings = (
 
 
 	'scr_6_title'      => [ "Step 6 of 6: Reboot", undef ],
-	'scr_6_text'       => [ "<p><b>Congratulations</b> you have completed the installation of the LiveCD to your local disk. Press <i>Finish</i> to boot your machine into your new install.</p>\n<p>It is recommended, after the boot, that you immediately change the passwords for both the root and user account, to ensure the security of your system.</p>", undef ],
+	'scr_6_text'       => [ "<p><b>Congratulations</b> you have completed the installation of $distroname to your local disk. Now select a new root password for the installation, to ensure the security of your system.</p><p>Remember to delete or change the password of the guest account when you reboot the system.", undef ],
+	'scr_6_typeroot'   => [ "Please type the new root password.", undef ],
+	'scr_6_typeroot2'  => [ "Please retype the new root password.", undef ],
+	'scr_6_chooserb'   => [ "Choose to reboot or not and press <i>Finish</i> to exit the installer.", undef],
 	'scr_6_no'         => [ "No, I will reboot my system later.", undef ],
-	'scr_6_yes'        => [ "Yes, reboot my system atomatically now.", undef ] 
+	'scr_6_yes'        => [ "Yes, reboot my system automatically now.", undef ]
 ); 
 
 sub getMyLang {

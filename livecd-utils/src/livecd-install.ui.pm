@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.24 2004/04/08 04:01:42 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.25 2004/04/19 15:42:30 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -156,7 +156,7 @@ sub initLang
 	
 	setTitle(page, trUtf8(getStr('scr_1_title')));
 	tlWelcome->setText(trUtf8(getStr('scr_1_text')));
-	DiskPartitioner->setText(trUtf8(getStr('disk_partitioner_text')));
+	bDiskPartitioner->setText(trUtf8(getStr('btn_disk_part')));
 
 	setTitle(page_2, trUtf8(getStr('scr_2_title')));
 	tlWelcome_2_3->setText(trUtf8(getStr('scr_2_text')));
@@ -201,6 +201,9 @@ sub initLang
 	buttonGroup2->setTitle( "" );
 	rbNoReboot->setText(trUtf8(getStr('scr_6_no')));
 	rbReboot->setText(trUtf8(getStr('scr_6_yes')));
+	textLabel1_4->setText(trUtf8(getStr('scr_6_typeroot')));
+	textLabel1_4_2->setText(trUtf8(getStr('scr_6_typeroot2')));
+	bWritePassword->setText(trUtf8(getStr('btn_writepw')));
 }
 
 sub init
@@ -761,9 +764,21 @@ sub writeFstab {
 		fs::write_fstab($hdds, $mnt);
 
 		open FSTAB, '>', "$mnt/etc/fstab";
-		print FSTAB "\n### ".getStr('fstab_info')."\n";
+		print FSTAB "\n### livecd-install ".getStr('fstab_info')."\n";
 		print FSTAB "\nnone"."\t"."/proc"."\t"."proc"."\t"."defaults"."\t"."0 0";
 		print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";
+
+		if (index(qx(uname -r), "2.4") eq '-1') {   # If NOT 2.4 kernel add these lines...
+                   print "DEBUG: Added 2.6 kernel to FSTAB\n";
+		   print FSTAB "\nnone"."\t"."/proc/bus/usb"."\t"."usbdevfs"."\t"."defaults"."\t"."0 0";
+		   print FSTAB "\nnone"."\t"."/sys"."\t"."sysfs"."\t"."defaults"."\t"."0 0";
+		   print FSTAB "\nnone"."\t"."/dev/pts"."\t"."devpts"."\t"."mode=0620"."\t"."0 0";
+		   print FSTAB "\nnone"."\t"."/tmp"."\t"."tmpfs"."\t"."defaults"."\t"."0 0";
+		}
+                else {
+                   print "DEBUG: 2.4 kernel found Index:", index(qx(uname -r), "2.6"),"QX:",qx(uname -r),"\n";
+		}
+
 		print FSTAB "\n";
 
 		print "DEBUG: rootpart=$rootpart\n";
@@ -836,9 +851,26 @@ sub toggleReboot # SLOT: ( bool )
 	print "check: $check, reboot: $reboot\n";
 }
 
-sub DiskPartitioner_clicked # SLOT: (   )
+sub diskPartition # SLOT: (  )
 {
         my ($check) = @_;
-        do_system("diskdrake");
+        do_system("diskdrake");   # or other tool, e.g. parted
 }
 
+sub writeRootPW # SLOT: (  )
+{
+	my($check) = @_;
+
+	# Get both root passwords and test for sameness 
+	my $pw1 = lineEdit1->text();
+	my $pw2 = lineEdit2->text();
+	if ($pw1 ne $pw2) {
+           Qt::MessageBox::warning( undef, "$distroname Installer", getStr('pword_not_same'), getStr('btn_retry')); 
+        } else {
+            # Passwords ok - now write to disk
+	    print "DEBUG: Password\n";
+	    do_system("/bin/echo $pw1 | chroot $mnt /usr/bin/passwd --stdin root");
+
+	    Qt::MessageBox::information( this, "$distroname Installer", getStr('pword_ok'));
+	}
+}

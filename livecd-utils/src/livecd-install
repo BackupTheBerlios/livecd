@@ -20,14 +20,20 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.56 2004/04/08 04:01:41 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.57 2004/04/19 15:42:29 tom_kelly33 Exp $
 #
 
 package fMain;
 
 use strict;
 
-my $lang    : shared = 0;
+my $lang       : shared = 0;
+
+my $distroname : shared = "";  # Modify as desired for distro
+my $distrohome : shared = "";  # Modify as desired for distro
+
+if ($distrohome eq "") {$distrohome = "(homepage not given)" } 
+if ($distroname eq "") {$distroname =  qx(cat /etc/redhat-release | awk '{ print \$1 }') }
 
 my %cmdline = map {
 		chomp;
@@ -42,12 +48,13 @@ my %languages = (
 );
 
 my %strings = (
-	'caption'          => [ "LiveCD Installation", undef ],
+	'caption'          => [ "$distroname Installation", undef ],
 	'script_init'      => [ "Initialising ... ", undef ],
 	'script_destroy'   => [ "Destroying ... ", undef ],
 	'done'             => [ "Done.", undef ],
 	'reboot'           => [ "Rebooting...", undef ],
 
+        'btn_disk_part'    => [ "&Disk Partitioner\n(for advanced users)", undef ],
 	'btn_retry'        => [ "&Retry", undef ],
 	'btn_help'         => [ "&Help", undef ],
 	'btn_cancel'       => [ "&Cancel", undef ],
@@ -57,6 +64,7 @@ my %strings = (
 	'btn_yes'          => [ "&Yes", undef ],
 	'btn_no'           => [ "&No", undef ],
 	'btn_inst'         => [ "&Install", undef ],
+        'btn_writepw'      => [ "&Write Password", undef ],
 	
 	'yes'              => [ "Yes", undef ],
 
@@ -85,7 +93,10 @@ my %strings = (
 	'part_name_var'    => [ "/var", undef ],
 	'part_name_home'   => [ "/home", undef ],
 	'part_name_root'   => [ "/", undef ],
-				
+
+	'pword_not_same'   => [ "Passwords are not the same. Please try again.", undef],
+	'pword_ok'         => [ "New root password has been written successfully.", undef],
+
 	'inst_scan'        => [ "Scanning available directories", undef ],
 	'inst_fstab'       => [ "Creating /etc/fstab", undef ],
 	'inst_done'        => [ "Installation completed. Please press Next to continue.", undef ],
@@ -97,14 +108,13 @@ my %strings = (
 	'boot_bs'          => [ "(Bootsector of partition)", undef ],
 	'boot_mbr'         => [ "(Master boot record of drive)", undef ],
 	
-	'fstab_info'       => [ "Entries below this line were automatically added by LiveCD install", undef ],
+	'fstab_info'       => [ "Entries below this line were automatically added by $distroname install", undef ],
 
 	'scr_1_title'      => [ "Step 1 of 6: Welcome", undef ],
-	'scr_1_text'       => [ "<p><b>Welcome</b> to the LiveCD installation program. This application will guide you through the steps of installing the LiveCD to your local disk.</p>\n<p>Navigation through the steps can be done with the <i>Back</i> and <i>Next</i> buttons, while you can exit/abort the process at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse (unintended) side effects on your current running system. These side-effects might include erasing of important data and/or rendering of your system in an unbootable state. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n", undef ],
-	'disk_partitioner_text' => [ "Disk Partitioner\n(for advanced users)", undef ],
+	'scr_1_text'       => [ "<p><b>Welcome</b> to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk.</p>\n<p>Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can exit/abort at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse or unintended side effects on your current running system. These could include erasing of important data and/or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n<p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or $distroname\'s homepage: $distrohome.", undef ],
 
 	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", undef ],
-	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify devices for use by the <i>root</i> and <i>swap</i>, while a seperate <i>home</i> partition is recommended.</p>\n", undef ],
+	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify devices for use by the <i>root</i> and <i>swap</i>, while a separate <i>home</i> partition is recommended.</p>\n", undef ],
 	'scr_2_fmt'        => [ "Format", undef ],
 	'scr_2_req'        => [ "Required Partitions", undef ],
 	'scr_2_opt'        => [ "Optional Partitions", undef ],
@@ -116,14 +126,14 @@ my %strings = (
 	
 
 	'scr_3_title'      => [ "Step 3 of 6: Partition Verification", undef ],
-	'scr_3_text'       => [ "<p><b>Warning</b> The following changes will be made to your system to install the LiveCD. If you want to make changes, press the <i>Back</i> button or press <i>Next</i> to start the installation process.</p>", undef ],
+	'scr_3_text'       => [ "<p><b>Warning</b> The following changes will be made to your system to install $distroname. If you want to make changes, press the <i>Back</i> button or press <i>Next</i> to start the installation process.</p>", undef ],
 	'scr_3_mnt'        => [ "Mount",  undef ],
 	'scr_3_dev'        => [ "Device", undef ],
 	'scr_3_fmt'        => [ "Format", undef ],
     
 
-	'scr_4_title'      => [ "Step 4 of 6: LiveCD Installation", undef ],
-	'scr_4_text'       => [ "<p><b>Installation</b> of LiveCD to your hard disk is currently in progress. Please be patient as this process does take some time.</p>", undef ],
+	'scr_4_title'      => [ "Step 4 of 6: $distroname Installation", undef ],
+	'scr_4_text'       => [ "<p><b>Installation</b> of $distroname to your hard disk is currently in progress. Please be patient as this process does take some time.</p>", undef ],
 	'scr_4_copy'       => [ "Data copy progress:", undef ],
 	'scr_4_fmt'        => [ "Disk format:", undef ],
 	'scr_4_overall'    => [ "Overall progress:", undef ],
@@ -135,9 +145,12 @@ my %strings = (
 
 
 	'scr_6_title'      => [ "Step 6 of 6: Reboot", undef ],
-	'scr_6_text'       => [ "<p><b>Congratulations</b> you have completed the installation of the LiveCD to your local disk. Press <i>Finish</i> to boot your machine into your new install.</p>\n<p>It is recommended, after the boot, that you immediately change the passwords for both the root and user account, to ensure the security of your system.</p>", undef ],
+	'scr_6_text'       => [ "<p><b>Congratulations</b> you have completed the installation of $distroname to your local disk. Now select a new root password for the installation, to ensure the security of your system.</p><p>Remember to delete or change the password of the guest account when you reboot the system.", undef ],
+	'scr_6_typeroot'   => [ "Please type the new root password.", undef ],
+	'scr_6_typeroot2'  => [ "Please retype the new root password.", undef ],
+	'scr_6_chooserb'   => [ "Choose to reboot or not and press <i>Finish</i> to exit the installer.", undef],
 	'scr_6_no'         => [ "No, I will reboot my system later.", undef ],
-	'scr_6_yes'        => [ "Yes, reboot my system atomatically now.", undef ] 
+	'scr_6_yes'        => [ "Yes, reboot my system automatically now.", undef ]
 ); 
 
 sub getMyLang {
@@ -165,7 +178,7 @@ sub getStr {
 
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Wed Apr 7 22:47:28 2004
+# Created: Fri Apr 16 23:32:47 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -182,25 +195,25 @@ use Qt::slots
     pageSelected => ['const QString&'],
     toggleReboot => ['bool'],
     doLoaderInstall => [],
-    DiskPartitioner_clicked => [];
+    writeRootPW => [],
+    diskPartition => [];
 use Qt::attributes qw(
     page
     tlWelcome
     pixmapLabel2
-    DiskPartitioner
+    bDiskPartitioner
     page_2
+    pixmapLabel3
     groupBox16_2
     textLabel1_2
     textLabel5_2
     textLabel5_2_2
-    cbHome
     cbVar
     cbTmp
     cbTmpFormat
     cbVarFormat
     cbHomeFormat
-    tlWelcome_2_3
-    pixmapLabel3
+    cbHome
     groupBox16
     textLabel5
     cbRoot
@@ -208,35 +221,41 @@ use Qt::attributes qw(
     cbRootFormat
     textLabel1
     cbSwapFormat
+    tlWelcome_2_3
     page_3
+    pixmapLabel4
     lvVerify
     textLabel1_3
-    pixmapLabel4
     page_4
     groupBox3
     tlInstInfo
     tlOverall
+    pixmapLabel5
+    textLabel1_3_2
+    textLabel2_2_2
+    pbOverall
+    tlCopy
+    pbCopy
     textLabel2_2
     tlFormat
-    pbOverall
-    textLabel2
-    tlCopy
     pbFormat
-    pbCopy
-    textLabel2_2_2
-    textLabel1_3_2
-    pixmapLabel5
+    textLabel2
     page_5
     bInstall
+    pixmapLabel6
     lbBootloader
     textLabel1_3_2_2
-    pixmapLabel6
     page_6
+    pixmapLabel7
     buttonGroup2
     rbNoReboot
     rbReboot
     tlWelcome_2
-    pixmapLabel7
+    lineEdit1
+    lineEdit2
+    textLabel1_4
+    textLabel1_4_2
+    bWritePassword
 );
 
 
@@ -3288,7 +3307,7 @@ sub NEW
     page = Qt::Widget(this, "page");
 
     tlWelcome = Qt::Label(page, "tlWelcome");
-    tlWelcome->setGeometry( Qt::Rect(310, 0, 390, 380) );
+    tlWelcome->setGeometry( Qt::Rect(310, 0, 390, 340) );
     tlWelcome->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignTop | &Qt::Label::AlignLeft) );
 
     pixmapLabel2 = Qt::Label(page, "pixmapLabel2");
@@ -3296,14 +3315,19 @@ sub NEW
     pixmapLabel2->setPixmap( $image0 );
     pixmapLabel2->setScaledContents( 1 );
 
-    DiskPartitioner = Qt::PushButton(page, "DiskPartitioner");
-    DiskPartitioner->setGeometry( Qt::Rect(450, 340, 140, 40) );
+    bDiskPartitioner = Qt::PushButton(page, "bDiskPartitioner");
+    bDiskPartitioner->setGeometry( Qt::Rect(450, 340, 140, 40) );
     addPage( page, "" );
 
     page_2 = Qt::Widget(this, "page_2");
 
+    pixmapLabel3 = Qt::Label(page_2, "pixmapLabel3");
+    pixmapLabel3->setGeometry( Qt::Rect(0, 0, 300, 380) );
+    pixmapLabel3->setPixmap( $image0 );
+    pixmapLabel3->setScaledContents( 1 );
+
     groupBox16_2 = Qt::GroupBox(page_2, "groupBox16_2");
-    groupBox16_2->setGeometry( Qt::Rect(310, 200, 390, 180) );
+    groupBox16_2->setGeometry( Qt::Rect(310, 210, 390, 170) );
 
     textLabel1_2 = Qt::Label(groupBox16_2, "textLabel1_2");
     textLabel1_2->setGeometry( Qt::Rect(10, 20, 170, 20) );
@@ -3313,9 +3337,6 @@ sub NEW
 
     textLabel5_2_2 = Qt::Label(groupBox16_2, "textLabel5_2_2");
     textLabel5_2_2->setGeometry( Qt::Rect(10, 120, 180, 20) );
-
-    cbHome = Qt::ComboBox(0, groupBox16_2, "cbHome");
-    cbHome->setGeometry( Qt::Rect(10, 40, 370, 26) );
 
     cbVar = Qt::ComboBox(0, groupBox16_2, "cbVar");
     cbVar->setGeometry( Qt::Rect(10, 90, 370, 26) );
@@ -3332,17 +3353,11 @@ sub NEW
     cbHomeFormat = Qt::CheckBox(groupBox16_2, "cbHomeFormat");
     cbHomeFormat->setGeometry( Qt::Rect(300, 20, 70, 20) );
 
-    tlWelcome_2_3 = Qt::Label(page_2, "tlWelcome_2_3");
-    tlWelcome_2_3->setGeometry( Qt::Rect(310, 0, 390, 50) );
-    tlWelcome_2_3->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignTop | &Qt::Label::AlignLeft) );
-
-    pixmapLabel3 = Qt::Label(page_2, "pixmapLabel3");
-    pixmapLabel3->setGeometry( Qt::Rect(0, 0, 300, 380) );
-    pixmapLabel3->setPixmap( $image0 );
-    pixmapLabel3->setScaledContents( 1 );
+    cbHome = Qt::ComboBox(0, groupBox16_2, "cbHome");
+    cbHome->setGeometry( Qt::Rect(10, 40, 370, 26) );
 
     groupBox16 = Qt::GroupBox(page_2, "groupBox16");
-    groupBox16->setGeometry( Qt::Rect(310, 60, 390, 130) );
+    groupBox16->setGeometry( Qt::Rect(310, 80, 390, 120) );
 
     textLabel5 = Qt::Label(groupBox16, "textLabel5");
     textLabel5->setGeometry( Qt::Rect(10, 70, 170, 20) );
@@ -3364,9 +3379,18 @@ sub NEW
     cbSwapFormat = Qt::CheckBox(groupBox16, "cbSwapFormat");
     cbSwapFormat->setGeometry( Qt::Rect(300, 70, 70, 20) );
     cbSwapFormat->setChecked( 0 );
+
+    tlWelcome_2_3 = Qt::Label(page_2, "tlWelcome_2_3");
+    tlWelcome_2_3->setGeometry( Qt::Rect(310, 0, 390, 70) );
+    tlWelcome_2_3->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignTop | &Qt::Label::AlignLeft) );
     addPage( page_2, "" );
 
     page_3 = Qt::Widget(this, "page_3");
+
+    pixmapLabel4 = Qt::Label(page_3, "pixmapLabel4");
+    pixmapLabel4->setGeometry( Qt::Rect(0, 0, 300, 380) );
+    pixmapLabel4->setPixmap( $image0 );
+    pixmapLabel4->setScaledContents( 1 );
 
     lvVerify = Qt::ListView(page_3, "lvVerify");
     lvVerify->addColumn(trUtf8("Mount"));
@@ -3377,11 +3401,6 @@ sub NEW
     textLabel1_3 = Qt::Label(page_3, "textLabel1_3");
     textLabel1_3->setGeometry( Qt::Rect(310, -2, 390, 60) );
     textLabel1_3->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignTop) );
-
-    pixmapLabel4 = Qt::Label(page_3, "pixmapLabel4");
-    pixmapLabel4->setGeometry( Qt::Rect(0, 0, 300, 380) );
-    pixmapLabel4->setPixmap( $image0 );
-    pixmapLabel4->setScaledContents( 1 );
     addPage( page_3, "" );
 
     page_4 = Qt::Widget(this, "page_4");
@@ -3397,40 +3416,40 @@ sub NEW
     tlOverall->setGeometry( Qt::Rect(319, 240, 380, 20) );
     tlOverall->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
 
-    textLabel2_2 = Qt::Label(page_4, "textLabel2_2");
-    textLabel2_2->setGeometry( Qt::Rect(310, 130, 140, 20) );
-
-    tlFormat = Qt::Label(page_4, "tlFormat");
-    tlFormat->setGeometry( Qt::Rect(320, 100, 380, 20) );
-    tlFormat->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
-
-    pbOverall = Qt::ProgressBar(page_4, "pbOverall");
-    pbOverall->setGeometry( Qt::Rect(310, 220, 390, 21) );
-
-    textLabel2 = Qt::Label(page_4, "textLabel2");
-    textLabel2->setGeometry( Qt::Rect(311, 60, 140, 20) );
-
-    tlCopy = Qt::Label(page_4, "tlCopy");
-    tlCopy->setGeometry( Qt::Rect(320, 170, 380, 20) );
-    tlCopy->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
-
-    pbFormat = Qt::ProgressBar(page_4, "pbFormat");
-    pbFormat->setGeometry( Qt::Rect(311, 80, 390, 21) );
-
-    pbCopy = Qt::ProgressBar(page_4, "pbCopy");
-    pbCopy->setGeometry( Qt::Rect(310, 150, 390, 21) );
-
-    textLabel2_2_2 = Qt::Label(page_4, "textLabel2_2_2");
-    textLabel2_2_2->setGeometry( Qt::Rect(310, 200, 140, 20) );
+    pixmapLabel5 = Qt::Label(page_4, "pixmapLabel5");
+    pixmapLabel5->setGeometry( Qt::Rect(0, 0, 300, 380) );
+    pixmapLabel5->setPixmap( $image0 );
+    pixmapLabel5->setScaledContents( 1 );
 
     textLabel1_3_2 = Qt::Label(page_4, "textLabel1_3_2");
     textLabel1_3_2->setGeometry( Qt::Rect(310, 0, 390, 50) );
     textLabel1_3_2->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignTop) );
 
-    pixmapLabel5 = Qt::Label(page_4, "pixmapLabel5");
-    pixmapLabel5->setGeometry( Qt::Rect(0, 0, 300, 380) );
-    pixmapLabel5->setPixmap( $image0 );
-    pixmapLabel5->setScaledContents( 1 );
+    textLabel2_2_2 = Qt::Label(page_4, "textLabel2_2_2");
+    textLabel2_2_2->setGeometry( Qt::Rect(310, 200, 140, 20) );
+
+    pbOverall = Qt::ProgressBar(page_4, "pbOverall");
+    pbOverall->setGeometry( Qt::Rect(310, 220, 390, 21) );
+
+    tlCopy = Qt::Label(page_4, "tlCopy");
+    tlCopy->setGeometry( Qt::Rect(320, 180, 380, 20) );
+    tlCopy->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
+
+    pbCopy = Qt::ProgressBar(page_4, "pbCopy");
+    pbCopy->setGeometry( Qt::Rect(310, 160, 390, 21) );
+
+    textLabel2_2 = Qt::Label(page_4, "textLabel2_2");
+    textLabel2_2->setGeometry( Qt::Rect(310, 140, 140, 20) );
+
+    tlFormat = Qt::Label(page_4, "tlFormat");
+    tlFormat->setGeometry( Qt::Rect(320, 120, 380, 20) );
+    tlFormat->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
+
+    pbFormat = Qt::ProgressBar(page_4, "pbFormat");
+    pbFormat->setGeometry( Qt::Rect(310, 100, 390, 21) );
+
+    textLabel2 = Qt::Label(page_4, "textLabel2");
+    textLabel2->setGeometry( Qt::Rect(310, 80, 140, 20) );
     addPage( page_4, "" );
 
     page_5 = Qt::Widget(this, "page_5");
@@ -3438,23 +3457,28 @@ sub NEW
     bInstall = Qt::PushButton(page_5, "bInstall");
     bInstall->setGeometry( Qt::Rect(610, 340, 84, 30) );
 
-    lbBootloader = Qt::ListBox(page_5, "lbBootloader");
-    lbBootloader->setGeometry( Qt::Rect(310, 70, 390, 260) );
-
-    textLabel1_3_2_2 = Qt::Label(page_5, "textLabel1_3_2_2");
-    textLabel1_3_2_2->setGeometry( Qt::Rect(310, 0, 390, 60) );
-    textLabel1_3_2_2->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignTop) );
-
     pixmapLabel6 = Qt::Label(page_5, "pixmapLabel6");
     pixmapLabel6->setGeometry( Qt::Rect(0, 0, 300, 380) );
     pixmapLabel6->setPixmap( $image0 );
     pixmapLabel6->setScaledContents( 1 );
+
+    lbBootloader = Qt::ListBox(page_5, "lbBootloader");
+    lbBootloader->setGeometry( Qt::Rect(310, 90, 390, 240) );
+
+    textLabel1_3_2_2 = Qt::Label(page_5, "textLabel1_3_2_2");
+    textLabel1_3_2_2->setGeometry( Qt::Rect(310, 0, 390, 80) );
+    textLabel1_3_2_2->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignTop) );
     addPage( page_5, "" );
 
     page_6 = Qt::Widget(this, "page_6");
 
+    pixmapLabel7 = Qt::Label(page_6, "pixmapLabel7");
+    pixmapLabel7->setGeometry( Qt::Rect(0, 0, 300, 380) );
+    pixmapLabel7->setPixmap( $image0 );
+    pixmapLabel7->setScaledContents( 1 );
+
     buttonGroup2 = Qt::ButtonGroup(page_6, "buttonGroup2");
-    buttonGroup2->setGeometry( Qt::Rect(330, 120, 320, 80) );
+    buttonGroup2->setGeometry( Qt::Rect(330, 310, 320, 70) );
     buttonGroup2->setFrameShape( &Qt::ButtonGroup::NoFrame() );
 
     rbNoReboot = Qt::RadioButton(buttonGroup2, "rbNoReboot");
@@ -3462,16 +3486,28 @@ sub NEW
     rbNoReboot->setChecked( 1 );
 
     rbReboot = Qt::RadioButton(buttonGroup2, "rbReboot");
-    rbReboot->setGeometry( Qt::Rect(10, 10, 280, 20) );
+    rbReboot->setGeometry( Qt::Rect(10, 10, 300, 20) );
 
     tlWelcome_2 = Qt::Label(page_6, "tlWelcome_2");
-    tlWelcome_2->setGeometry( Qt::Rect(310, 0, 390, 110) );
+    tlWelcome_2->setGeometry( Qt::Rect(310, 0, 390, 130) );
     tlWelcome_2->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignTop | &Qt::Label::AlignLeft) );
 
-    pixmapLabel7 = Qt::Label(page_6, "pixmapLabel7");
-    pixmapLabel7->setGeometry( Qt::Rect(0, 0, 300, 380) );
-    pixmapLabel7->setPixmap( $image0 );
-    pixmapLabel7->setScaledContents( 1 );
+    lineEdit1 = Qt::LineEdit(page_6, "lineEdit1");
+    lineEdit1->setGeometry( Qt::Rect(320, 160, 290, 24) );
+    lineEdit1->setEchoMode( &Qt::LineEdit::Password() );
+
+    lineEdit2 = Qt::LineEdit(page_6, "lineEdit2");
+    lineEdit2->setGeometry( Qt::Rect(320, 220, 290, 24) );
+    lineEdit2->setEchoMode( &Qt::LineEdit::Password() );
+
+    textLabel1_4 = Qt::Label(page_6, "textLabel1_4");
+    textLabel1_4->setGeometry( Qt::Rect(320, 140, 240, 20) );
+
+    textLabel1_4_2 = Qt::Label(page_6, "textLabel1_4_2");
+    textLabel1_4_2->setGeometry( Qt::Rect(320, 200, 270, 20) );
+
+    bWritePassword = Qt::PushButton(page_6, "bWritePassword");
+    bWritePassword->setGeometry( Qt::Rect(400, 260, 140, 26) );
     addPage( page_6, "" );
     languageChange();
     my $resize = Qt::Size(718, 465);
@@ -3482,7 +3518,8 @@ sub NEW
     Qt::Object::connect(this, SIGNAL "selected(const QString&)", this, SLOT "pageSelected(const QString&)");
     Qt::Object::connect(bInstall, SIGNAL "pressed()", this, SLOT "doLoaderInstall()");
     Qt::Object::connect(rbReboot, SIGNAL "toggled(bool)", this, SLOT "toggleReboot(bool)");
-    Qt::Object::connect(DiskPartitioner, SIGNAL "clicked()", this, SLOT "DiskPartitioner_clicked()");
+    Qt::Object::connect(bWritePassword, SIGNAL "clicked()", this, SLOT "writeRootPW()");
+    Qt::Object::connect(bDiskPartitioner, SIGNAL "clicked()", this, SLOT "diskPartition()");
 
     init();
 }
@@ -3500,11 +3537,8 @@ sub DESTROY
 sub languageChange
 {
     setCaption(trUtf8("LiveCD Installation") );
-    tlWelcome->setText( trUtf8("<p><b>Welcome</b> to the LiveCD installation program. This application will guide you through the steps of installing the LiveCD to your local disk.</p>\n" .
-    "<p>Navigation through the steps can be done with the <i>Back</i> and <i>Next</i> buttons, while you can exit/abort the process at any time with the <i>Cancel</i> button.</p>\n" .
-    "<p>This is BETA quality software and might have adverse (unintended) side effects on your current running system. These side-effects might include erasing of important data and/or rendering of your system in an unbootable state. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n" .
-    "") );
-    DiskPartitioner->setText( trUtf8("Disk Partitioner\n" .
+    tlWelcome->setText( trUtf8("<p><b>Welcome</b> to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk.</p><p>Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can exit/abort at any time with the <i>Cancel</i> button.</p><p>This is BETA quality software and might have adverse or unintended side effects on your current running system. These could include erasing of important data and/or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p><p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or $distroname\\'s homepage: $distrohome.") );
+    bDiskPartitioner->setText( trUtf8("Disk Partitioner\n" .
     "(for advanced users)") );
     setTitle( page, trUtf8("Step 1 of 6: Welcome") );
     groupBox16_2->setTitle( trUtf8("Optional Partitions") );
@@ -3514,13 +3548,13 @@ sub languageChange
     cbTmpFormat->setText( trUtf8("Format") );
     cbVarFormat->setText( trUtf8("Format") );
     cbHomeFormat->setText( trUtf8("Format") );
-    tlWelcome_2_3->setText( trUtf8("<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify devices for use by the <i>root</i> and <i>swap</i>, while a seperate <i>home</i> partition is recommended.</p>\n" .
-    "") );
     groupBox16->setTitle( trUtf8("Required Partitions") );
     textLabel5->setText( trUtf8("Swap device:") );
     cbRootFormat->setText( trUtf8("Format") );
     textLabel1->setText( trUtf8("Root (/) device:") );
     cbSwapFormat->setText( trUtf8("Format") );
+    tlWelcome_2_3->setText( trUtf8("<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify devices for use by the <i>root</i> and <i>swap</i>, while a seperate <i>home</i> partition is recommended.</p>\n" .
+    "") );
     setTitle( page_2, trUtf8("Step 2 of 6: Partition Selection") );
     lvVerify->header()->setLabel( 0, trUtf8("Mount") );
     lvVerify->header()->setLabel( 1, trUtf8("Device") );
@@ -3528,26 +3562,29 @@ sub languageChange
     lvVerify->clear();
     my $item = Qt::ListViewItem(lvVerify, undef);
 
-    textLabel1_3->setText( trUtf8("<p><b>Warning</b> The following changes will be made to your system to install the LiveCD. If you want to make changes, press the <i>Back</i> button or press <i>Next</i> to start the installation process.</p>") );
+    textLabel1_3->setText( trUtf8("<p><b>Warning</b> The following changes will be made to your system to install $distroname. If you want to make changes, press the <i>Back</i> button or press <i>Next</i> to start the installation process.</p>") );
     setTitle( page_3, trUtf8("Step 3 of 6: Partition Verification") );
     groupBox3->setTitle( trUtf8("Progress Information") );
     tlInstInfo->setText( "" );
     tlOverall->setText( trUtf8("00:00:00 Elapsed, 00:00:00 Remaining") );
+    textLabel1_3_2->setText( trUtf8("<p><b>Installation</b> of $distroname to your hard disk is currently in progress. Please be patient as this process does take some time.</p>") );
+    textLabel2_2_2->setText( trUtf8("Overall progress:") );
+    tlCopy->setText( trUtf8("00:00:00 Elapsed, 00:00:00 Remaining") );
     textLabel2_2->setText( trUtf8("Data copy progress:") );
     tlFormat->setText( trUtf8("00:00:00 Elapsed, 00:00:00 Remaining") );
     textLabel2->setText( trUtf8("Disk format:") );
-    tlCopy->setText( trUtf8("00:00:00 Elapsed, 00:00:00 Remaining") );
-    textLabel2_2_2->setText( trUtf8("Overall progress:") );
-    textLabel1_3_2->setText( trUtf8("<p><b>Installation</b> of LiveCD to your hard disk is currently in progress. Please be patient as this process does take some time.</p>") );
     setTitle( page_4, trUtf8("Step 4 of 6: LiveCD Installation") );
     bInstall->setText( trUtf8("&Install") );
     textLabel1_3_2_2->setText( trUtf8("<p><b>Installation</b> of the bootloader will now take place. Please select the drive or partition on which you would like to install it and press <i>Install</i> to install the bootloader, or <i>Next</i> to complete the installation.</p>") );
     setTitle( page_5, trUtf8("Step 5 of 6: Bootloader Installation") );
     buttonGroup2->setTitle( "" );
     rbNoReboot->setText( trUtf8("No, I will reboot my system later.") );
-    rbReboot->setText( trUtf8("Yes, reboot my system atomatically now.") );
-    tlWelcome_2->setText( trUtf8("<p><b>Congratulations</b> you have completed the installation of the LiveCD to your local disk. Press <i>Finish</i> to boot your machine into your new install.</p>\n" .
-    "<p>It is recommended, after the boot, that you immediately change the passwords for both the root and user account, to ensure the security of your system.</p>") );
+    rbReboot->setText( trUtf8("Yes, reboot my system automatically now.") );
+    tlWelcome_2->setText( trUtf8("<p><b>Congratulations</b> you have completed the installation of $distroname to your local disk. Now select a new root password for the installation, to ensure the security of your system.</p><p>Remember to delete or change the password of the guest account when you reboot the system.") );
+    textLabel1_4->setText( trUtf8("Please type the new root password.") );
+    textLabel1_4_2->setText( trUtf8("Please confirm the new root password.") );
+    bWritePassword->setText( trUtf8("&Write the password.") );
+    bWritePassword->setAccel( Qt::KeySequence( trUtf8("Alt+W") ) );
     setTitle( page_6, trUtf8("Step 6 of 6: Reboot") );
 }
 
@@ -3573,7 +3610,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.56 2004/04/08 04:01:41 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.57 2004/04/19 15:42:29 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -3701,7 +3738,7 @@ sub initLang
 	
 	setTitle(page, trUtf8(getStr('scr_1_title')));
 	tlWelcome->setText(trUtf8(getStr('scr_1_text')));
-	DiskPartitioner->setText(trUtf8(getStr('disk_partitioner_text')));
+	bDiskPartitioner->setText(trUtf8(getStr('btn_disk_part')));
 
 	setTitle(page_2, trUtf8(getStr('scr_2_title')));
 	tlWelcome_2_3->setText(trUtf8(getStr('scr_2_text')));
@@ -3746,6 +3783,9 @@ sub initLang
 	buttonGroup2->setTitle( "" );
 	rbNoReboot->setText(trUtf8(getStr('scr_6_no')));
 	rbReboot->setText(trUtf8(getStr('scr_6_yes')));
+	textLabel1_4->setText(trUtf8(getStr('scr_6_typeroot')));
+	textLabel1_4_2->setText(trUtf8(getStr('scr_6_typeroot2')));
+	bWritePassword->setText(trUtf8(getStr('btn_writepw')));
 }
 
 sub init
@@ -4306,9 +4346,21 @@ sub writeFstab {
 		fs::write_fstab($hdds, $mnt);
 
 		open FSTAB, '>', "$mnt/etc/fstab";
-		print FSTAB "\n### ".getStr('fstab_info')."\n";
+		print FSTAB "\n### livecd-install ".getStr('fstab_info')."\n";
 		print FSTAB "\nnone"."\t"."/proc"."\t"."proc"."\t"."defaults"."\t"."0 0";
 		print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";
+
+		if (index(qx(uname -r), "2.4") eq '-1') {   # If NOT 2.4 kernel add these lines...
+                   print "DEBUG: Added 2.6 kernel to FSTAB\n";
+		   print FSTAB "\nnone"."\t"."/proc/bus/usb"."\t"."usbdevfs"."\t"."defaults"."\t"."0 0";
+		   print FSTAB "\nnone"."\t"."/sys"."\t"."sysfs"."\t"."defaults"."\t"."0 0";
+		   print FSTAB "\nnone"."\t"."/dev/pts"."\t"."devpts"."\t"."mode=0620"."\t"."0 0";
+		   print FSTAB "\nnone"."\t"."/tmp"."\t"."tmpfs"."\t"."defaults"."\t"."0 0";
+		}
+                else {
+                   print "DEBUG: 2.4 kernel found Index:", index(qx(uname -r), "2.6"),"QX:",qx(uname -r),"\n";
+		}
+
 		print FSTAB "\n";
 
 		print "DEBUG: rootpart=$rootpart\n";
@@ -4381,12 +4433,29 @@ sub toggleReboot # SLOT: ( bool )
 	print "check: $check, reboot: $reboot\n";
 }
 
-sub DiskPartitioner_clicked # SLOT: (   )
+sub diskPartition # SLOT: (  )
 {
         my ($check) = @_;
-        do_system("diskdrake");
+        do_system("diskdrake");   # or other tool, e.g. parted
 }
 
+sub writeRootPW # SLOT: (  )
+{
+	my($check) = @_;
+
+	# Get both root passwords and test for sameness 
+	my $pw1 = lineEdit1->text();
+	my $pw2 = lineEdit2->text();
+	if ($pw1 ne $pw2) {
+           Qt::MessageBox::warning( undef, "$distroname Installer", getStr('pword_not_same'), getStr('btn_retry')); 
+        } else {
+            # Passwords ok - now write to disk
+	    print "DEBUG: Password\n";
+	    do_system("/bin/echo $pw1 | chroot $mnt /usr/bin/passwd --stdin root");
+
+	    Qt::MessageBox::information( this, "$distroname Installer", getStr('pword_ok'));
+	}
+}
 
 1;
 
@@ -4410,7 +4479,7 @@ sub DiskPartitioner_clicked # SLOT: (   )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.56 2004/04/08 04:01:41 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.57 2004/04/19 15:42:29 tom_kelly33 Exp $
 #
 
 package main;
