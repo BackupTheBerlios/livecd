@@ -1,4 +1,4 @@
-# $Id: FAQ,v 1.10 2003/10/03 06:28:21 jaco Exp $
+# $Id: FAQ,v 1.11 2003/10/05 13:04:42 jaco Exp $
 
 Q: How do I create a tiny (truly minimal) bootable Mandrake
    LiveCD?
@@ -21,6 +21,16 @@ A: Here is a step by step process of creating your own Mandrake
    6. Create a LiveCD image from the minimal installation:
       "mklivecd --rootdir /tmp/minimal minimal.iso"
    7. Burn the resulting minimal.iso to CD-R and enjoy :)
+
+
+Q: I have created a LiveCD and I'm seeing weird hangs. This either
+   happens in my XFree86 or sometimes as part of the bootup
+   process. Any ideas?
+A: The most common cause for these hangs is an outdated cloop
+   module as shipped in the MDK 9.2 kernel. Install an updated
+   kernel (providing cloop 1.02 or later) or
+   kernel-tmb >= 2.4.22.10.tmb.4mdk from contrib, and use this
+   one as the kernel for your LiveCD.
 
 
 Q: How much does the default compression algorithm compress the

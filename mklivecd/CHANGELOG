@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.41 2003/10/05 07:04:38 jaco Exp $
+# $Id: CHANGELOG,v 1.42 2003/10/05 13:04:42 jaco Exp $
 
 * Sat, Oct 04, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -24,6 +24,7 @@
       - Added an QA for the creation of LSS images as used by
         the 'mklivecd --iso-bgimage' command
       - Added an QA for the Mandrake isolinux graphics extension
+      - Added entry for random hangs (attributed to cloop < 1.02)
     [Makefile]:
       - Combined piped sed commands into one
       - Removed non-existing busybox and cloop version
