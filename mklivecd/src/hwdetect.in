@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.7 2003/10/01 12:18:05 jaco Exp $
+# $Id: hwdetect.in,v 1.8 2003/10/01 12:44:11 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -151,6 +151,29 @@ sub hwdetect_deinit {
 	print "Completing detection routines: ";
 }
 
+sub mount {
+	my ($text, $opt, $type, $dev, $point) = @_;
+	my $mounted = 0;
+	my $res = 0;
+
+	print $text;
+	open MOUNTS, "</proc/mounts";
+	foreach my $mount (<MOUNTS>) {
+		my ($md, $mp, $mt, $mo, @me) = split(/ /, $mount);
+		$mounted = 1 if ($mp eq $point);
+	}
+	close MOUNTS;
+	$res = system("(mount $opt -t $type $dev $point) 2>/dev/null >/dev/null") if (!$mounted);
+	$res ? print_failed() : print_success();
+}
+
+sub modprobe {
+	my ($opt, $module) = @_;
+	my $res = 0;
+	$res = system("(/sbin/modprobe $opt $module) 2>/dev/null >/dev/null") unless ($probeonly);
+	$res;
+}
+
 sub hwdetect_get_mediatype {
 	my ($media_type) = @_;
 	my @rets = ();
@@ -178,8 +201,7 @@ sub hwdetect_loadmod {
 	my $done = 0;
 	print_device($module, $vendor, $desc);
 	unless ($module =~ /unknown/) {
-		my $res = 1;
-		$res = system("(/sbin/modprobe $module) 2>/dev/null") unless ($probeonly);
+		my $res = modprobe("", $module);
 		$res ? $probeonly ? print_warning : print_failed() : print_loaded();
 		$done++;
 	}
@@ -236,24 +258,23 @@ sub hwdetect_probeusb() {
 	# interface module (TODO: cater for 2.6 as well)
 	my @modules = ('usb-uhci', 'usb-ohci');
 	foreach my $module (@modules) {
-		unless (system("(/sbin/modprobe -q $module) 2>/dev/null >/dev/null")) {
-			open MOD, "+>/etc/modules.conf";
-			print MOD "probeall usb-interface $module\n";
+		unless (modprobe("-q", $module)) {
+			open MOD, ">>/etc/modules.conf";
+			print MOD "probeall usb-interface $module\n" unless ($probeonly);
 			close MOD;
 		}
 	}
 
 	if (-e '/proc/bus/usb') {
 		print_success();
-		print "Mounting USB filesystem: ";
-		system("(mount -n -t usbdevfs none /proc/bus/usb) 2>/dev/null") ? print_failed() : print_success();
+		mount("Mounting USB filesystem: ", "-n", "usbdevfs", "none", "/proc/bus/usb");
 
 		### load the usb modules that are not loaded automatically
 		# "printer" should be in as well? (does cups stuff :(
 		print "Loading base USB modules: ";
 		@modules = ('mousedev', 'keybdev', 'usb-storage', 'visor');
 		foreach my $module (@modules) {
-			system("(/sbin/modprobe -q $module) 2>/dev/null");
+			modprobe("-q", $module);
 		}
 		print_success();
 	}
