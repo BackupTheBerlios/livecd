@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.141 2005/02/25 16:57:18 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.142 2005/02/26 16:31:28 tom_kelly33 Exp $
 #
 
 use strict;
@@ -1018,6 +1018,7 @@ MAIN: {
 #	}
 
 	do_cmd("rm -f $o_root/usr/X11R6/lib/X11/xkb/compiled");
+	do_cmd("rm -f $o_root/usr/X11R6/lib/X11/xdm/authdir");
 	do_cmd("ln -sf $o_root/var/lib/xkb $o_root/usr/X11R6/lib/X11/xkb/compiled");
 	do_cmd("ln -sf $o_root/var/lib/xdm $o_root/usr/X11R6/lib/X11/xdm/authdir");
 
