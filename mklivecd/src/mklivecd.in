@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.86 2004/01/07 13:12:34 jaco Exp $
+# $Id: mklivecd.in,v 1.87 2004/01/07 13:14:06 jaco Exp $
 #
 
 use strict;
@@ -724,11 +724,9 @@ sub create_compressed {
 		}
 		else {
 			start_progress("Creating loop image", 10001);
-			my $iso = "(nice -n 19 mkisofs -R -exclude-list $workdir/excludes.list -sort $workdir/sort.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v";
+			my $iso = "mkisofs -R -exclude-list $workdir/excludes.list -sort $workdir/sort.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v";
 			$iso = defined($loopcmp) ? "$iso $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype" : "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
-			$iso = "$iso) 2>&1";
-			print "\n$iso\n";
-			die_("Hi");
+			$iso = "(nice -n 19 $iso) 2>&1";
 			open CMP, "$iso |";
 			my $line;
 			while ($line = <CMP>) {
