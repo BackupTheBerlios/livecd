@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.8 2003/09/30 09:44:24 jaco Exp $
+# $Id: mklivecd.in,v 1.9 2003/10/01 00:21:32 bgmilne Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -177,9 +177,9 @@ create_initrdimg() {
 	do_cmd "(cd $INITRDDIR; tar cf - .) | (cd $INITRDMNT; tar xf -)"
 	do_cmd "umount $INITRDMNT"
 	do_cmd  "(cd $ISOLINUXDIR ; gzip -9 initrd)"
-	if [ -x /usr/share/bootsplash/scripts/make-boot-splash -a "$rootdir" -ne "/" ]
+	if [ -x ${rootdir}/usr/share/bootsplash/scripts/make-boot-splash ]
 	then
-		do_cmd "(cd $ISOLINUXDIR; /usr/share/bootsplash/scripts/make-boot-splash initrd.gz)"
+		do_cmd "(mv -f $ISOLINUXDIR/initrd.gz ${rootdir}/tmp/; chroot ${rootdir} /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz 1024; mv -f ${rootdir}/tmp/initrd.gz $ISOLINUXDIR)"
 	fi
 }
 
@@ -200,7 +200,7 @@ create_cloop() {
 $e"
 				fi
 			done
-			do_cmd "(cd $rootdir ; find * -type d -printf '/%p\n' 2>/dev/null | grep '$PATTERNS' | sed 's,^/,$rootdir,' >>$EXCLUDELIST)"
+			do_cmd "( find $rootdir -type d 2>/dev/null |sed -e 's,^$rootdir,/,g'| grep '$PATTERNS' | sed 's,^/,$rootdir,' >>$EXCLUDELIST)"
 		fi
 
 		# handle excluded files
@@ -214,7 +214,7 @@ $e"
 $e"
 				fi
 			done
-			do_cmd "(cd $rootdir ; find * -type f -printf '/%p\n' 2>/dev/null | grep '$PATTERNS' | sed 's,^/,$rootdir,' >>$EXCLUDELIST)"
+			do_cmd "(find $rootdir -type f 2>/dev/null |sed -e 's,^$rootdir,/,g'| grep '$PATTERNS' | sed 's,^/,$rootdir,' >>$EXCLUDELIST)"
 		fi
 
 		# create the cloop image
