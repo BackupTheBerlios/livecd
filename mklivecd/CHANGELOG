@@ -1,4 +1,18 @@
-# $Id: CHANGELOG,v 1.125 2004/12/21 19:31:01 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.126 2004/12/31 20:23:44 tom_kelly33 Exp $
+
+* 2004-12-29,30,31
+	[mklivecd]
+	- commented out some of TV's patches
+	[hwdetect]
+	- fixed $rawX call (parameter list changed)
+	- ignore devfs if kernel 26
+	- removed old getpersistent code
+	[linuxrc.in]
+	- added ide devices hda to hdt
+
+* 2004-12-22
+	[mklivecd]
+	- added "--noprompt" boot option from Ross Thomas
 
 * Dec 20th, 2004
 	[mklivecd]: 
