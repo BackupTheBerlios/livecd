@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.9 2003/10/01 12:49:23 jaco Exp $
+# $Id: hwdetect.in,v 1.10 2003/10/01 12:59:02 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -45,6 +45,9 @@ use Xconfig::xfree4;
 my $SCRIPT_DESC    = "hardware detection";
 my $SCRIPT_NAME    = "hwdetect";
 my $SCRIPT_VER     = "@MKLIVECDVER";
+my $DEF_KEYBOARD   = "@DEF_KEYBOARD";
+
+### screen constants
 my $RES_COL        = 65;
 my $ESC            = "\x1B[";
 my $MOVE_TO_COL    = $ESC.$RES_COL."G";
@@ -295,7 +298,7 @@ sub hwdetect_getkeyb {
 	print "Selecting keyboard: ";
 	my $probed_keyb = undef;
 	my $probed_desc = "";
-	eval { $probed_keyb = keyboard::lang2keyboard('en') and print_success(); } or print_failed();
+	eval { $probed_keyb = keyboard::lang2keyboard($DEF_KEYBOARD) and print_success(); } or print_failed();
 	$probed_desc = keyboard::keyboard2text($probed_keyb);
 	hwdetect_loadmod('unknown', "", $probed_desc);
 	print_hash($probed_keyb) if ($printdebug);

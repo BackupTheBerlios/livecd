@@ -1,4 +1,8 @@
-# $Id: Rules.mk,v 1.1 2003/10/01 12:04:25 jaco Exp $
+# $Id: Rules.mk,v 1.2 2003/10/01 12:59:02 jaco Exp $
+
+# User parameters: These are parameters that can be changed for
+# your installation
+DEF_KEYBOARD=us
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release

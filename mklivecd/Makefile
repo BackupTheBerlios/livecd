@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.11 2003/10/01 12:04:25 jaco Exp $
+# $Id: Makefile,v 1.12 2003/10/01 12:59:02 jaco Exp $
 
 include Rules.mk
 
@@ -12,7 +12,7 @@ mklivecd:
 	$(CP) $(SRCDIR)/isolinux.cfg $(DISTDIR)
 	$(CP) $(SRCDIR)/init.d/hwdetect $(DISTDIR)/init.d
 	$(CAT) $(SRCDIR)/hwdetect.in | \
-		$(SED) -e 's/\@MKLIVECDVER/$(ARCHIVEVER)/g' \
+		$(SED) -e 's/\@MKLIVECDVER/$(ARCHIVEVER)/g;s/\@DEF_KEYBOARD/$(DEF_KEYBOARD)/g' \
 		>$(DISTDIR)/hwdetect
 	$(CAT) $(SRCDIR)/linuxrc.in | \
 		$(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g;s/\@KERNELVER/$(KERNELVER)/g' \
