@@ -42,6 +42,23 @@
 					<tr><td bgcolor="#000000">
 						<table width=100% border=0 cellspacing=2 cellpadding=5 cols=2>
 							<tr><td bgcolor=#305080 nowrap>
+								<b><font color=#ffffff>t h u &nbsp; n o v &nbsp; 2 0 &nbsp; 2 0 0 3 &nbsp;</font></b>
+							</td>
+							<td bgcolor=#d0d0d0 nowrap>
+								<b>&nbsp;</b>
+							</td></tr>
+							<tr><td colspan=2 bgcolor=#d0d0d0>
+								<b>B u r n i n g f r o g &nbsp; L i v e C D</b><br>
+								I've added the <a href="http://www.burningfrog.be">Burningfrog</a> LiveCD to the <a href="links.php">links page</a>. This is hopefully the first in a flurry of links to be added - there are lots and lots of custom LiveCD's out there it would seem...
+							</td></tr>
+						</table>
+					</td></tr>
+				</table>
+				<table width="100%" border="0" cellspacing="0" cellpadding="0">
+					<tr><td height="10"></td></tr>
+					<tr><td bgcolor="#000000">
+						<table width=100% border=0 cellspacing=2 cellpadding=5 cols=2>
+							<tr><td bgcolor=#305080 nowrap>
 								<b><font color=#ffffff>t u e &nbsp; n o v &nbsp; 1 8 &nbsp; 2 0 0 3 &nbsp;</font></b>
 							</td>
 							<td bgcolor=#d0d0d0 nowrap>
