@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.38 2003/11/16 09:03:22 jaco Exp $
+# $Id: linuxrc.in,v 1.39 2003/11/16 19:49:47 jaco Exp $
 #
 
 ### global variables
@@ -77,6 +77,18 @@ printok() {
 	echo -n "OK"
 	$SETCOLOR_NORMAL
 	echo "  ]"
+	return 0
+}
+
+
+### print a loaded success msg
+printloaded() {
+	$MOVE_TO_COL
+	echo -n "["
+	$SETCOLOR_OK
+	echo -n "LOADED"
+	$SETCOLOR_NORMAL
+	echo "]"
 	return 0
 }
 
@@ -207,7 +219,7 @@ findcloop() {
 	for i in $DEP_MODULES; do
 		loadmod $i || ALL_LOADED=
 	done
-	[ -n "$ALL_LOADED" ] && printok || printfail
+	[ -n "$ALL_LOADED" ] && printloaded || printfail
 	set_progress
 
 	# probe the SCSI devices
@@ -216,7 +228,7 @@ findcloop() {
 	for i in $SCSI_MODULES; do
 		loadmod $i && SCSI_FOUND=1
 	done
-	[ -n "$SCSI_FOUND" ] && printok || printfail
+	[ -n "$SCSI_FOUND" ] && printloaded || printok
 	set_progress
 
 	# do the loop
@@ -244,7 +256,7 @@ findcloop() {
 				printok
 
 				echo -n "Loading compressed loop kernel module: "
-				loadmod $LOOPMOD.o file=$MNTCDROM/$BASEIMG$LOOPTYPE && printok || printfail
+				loadmod $LOOPMOD.o file=$MNTCDROM/$BASEIMG$LOOPTYPE && printloaded || printfail
 
 				# mount the image, also catering for devfs
 				echo -n "Mounting uncompressed image on $MNTLIVECD"

@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.73 2003/11/16 07:47:00 jaco Exp $
+# $Id: CHANGELOG,v 1.74 2003/11/16 19:49:47 jaco Exp $
 
 * Sun, Nov 16, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -17,10 +17,15 @@
       - Updated to point to the new LiveCD home of mklivecd,
         http://developer.berlios.de/projects/livecd/ with the
         correct mailing list info
+    [Modules.mk]:
+      - Remove AIC7xxx_old module (hangs Adaptec cards with
+        AIC7xxx loaded already)
     [Rules.mk]:
       - Created list for default normal and SCSI modules
       - Created listing for optional modules
       - Split modules into Modules.mk
+      - Force date calculation to LC_ALL=C locale for decent CVS
+        spec generation
     [hwdetect]:
       - PS/2 mice should now work in wheel and non-wheel modes.
         Thanks to Texstar <texstar@houston.rr.com> for ideas and
@@ -50,6 +55,8 @@
       - Updated URL: http://livecd.berlios.de
       - Get Distro name (for starting init sequence.) from
         /etc/redhat-release
+      - Print "LOADED" after loading modules, "OK" otherwise
+        (SCSI doen't print "FAILED" on no SCSI devices)
     [mklivecd]:
       - Be verbose in depmod command
       - Copy SCSI and optinal modules in addition to normal
