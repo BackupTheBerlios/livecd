@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.72 2004/02/02 04:59:28 jaco Exp $
+# $Id: linuxrc.in,v 1.73 2004/02/10 04:59:53 jaco Exp $
 #
 
 ### global variables
@@ -282,6 +282,7 @@ findcloop() {
 	for i in $DEP_MODULES; do
 		loadmod $i || ALL_LOADED=
 	done
+	sleep 2
 	[ -n "$ALL_LOADED" ] && printloaded || printfail
 	set_progress
 
@@ -293,9 +294,11 @@ findcloop() {
 		for i in $USB_MODULES; do
 			loadmod $i || USB_FOUND=
 		done
+		sleep 1
 		for i in $USB_MODULES_DRV; do
 			loadmod $i
 		done
+		sleep 1
 		[ -n "$USB_FOUND" ] && printloaded || printok
 	fi
 	set_progress
@@ -308,6 +311,7 @@ findcloop() {
 		for i in $SCSI_MODULES; do
 			loadmod $i && SCSI_FOUND=1
 		done
+		sleep 1
 		[ -n "$SCSI_FOUND" ] && printloaded || printok
 	fi
 	set_progress
