@@ -19,6 +19,8 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
+# File version: $Id: mklivecd.in,v 1.2 2003/09/25 08:40:25 jaco Exp $
+#
 
 PATH=/sbin:/usr/sbin:$PATH
 export PATH

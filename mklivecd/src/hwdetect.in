@@ -19,6 +19,8 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
+# File version: $Id: hwdetect.in,v 1.2 2003/09/25 08:40:25 jaco Exp $
+#
 
 use lib qw(/usr/lib/libDrakX);
 
