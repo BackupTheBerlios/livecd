@@ -19,10 +19,12 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.21 2003/11/22 21:06:57 jaco Exp $
+# $Id: livecd-install,v 1.22 2003/11/23 06:21:43 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
+
+use Getopt::Long;
 
 use interactive;
 
@@ -66,7 +68,7 @@ my %str = (
 	'WELCOME_STR'      => [ "Welcome to the $distro LiveCD installation program.\n\nThis program will guide you through the process\nof installing the $distro LiveCD to hard disk.",
 				"Welkom by die $distro LiveCD installasie program.\n\nHierdie program sal jou deur die stappe neem\nom die $distro LiveCD op jou harde skyf te installeer." ],
 	'WARNCORR_STR'     => [ "This is BETA quality software and might have\nadverse (unintended) side effects. Use with care!\n\nThis program is distributed in the hope that it will\nbe useful, but WITHOUT ANY WARRANTY;\nwithout even the implied warranty of MERCHANTABILITY\nor FITNESS FOR A PARTICULAR PURPOSE. See the\nGNU General Public License for more details.",
-				"Hierdie is BETA kwaliteit sagteware en mag\nnegatiewe (onbeplande) newe-effekte he. Gebruik dit versigtig!\n\n\"This program is distributed in the hope that it will\nbe useful, but WITHOUT ANY WARRANTY;\nwithout even the implied warranty of MERCHANTABILITY\nor FITNESS FOR A PARTICULAR PURPOSE. See the\nGNU General Public License for more details.\"" ],
+				"Hierdie is BETA kwaliteit sagteware en mag\nnegatiewe (onbeplande) newe-effekte he. Gebruik dit versigtig!\n\n'This program is distributed in the hope that it will\nbe useful, but WITHOUT ANY WARRANTY;\nwithout even the implied warranty of MERCHANTABILITY\nor FITNESS FOR A PARTICULAR PURPOSE. See the\nGNU General Public License for more details'" ],
 
 	# partition selection screen
 	'PROGSEL_TIT'      => [ "Mount Point Selection",
@@ -120,10 +122,14 @@ my %str = (
 );
 
 # languages for %str (numbers represent positions)
-my $LANG_EN   = 0;
-my $LANG_AF   = 1;
-# add any extra language here
-my $lang      = $LANG_EN;
+# add any extra translations here
+my %langs = (
+	'en' => 0,
+	'af' => 1,
+	'vi' => 2
+);
+my $lang_str  = "en";
+my $lang      = 0;
 
 # allowed devices
 my %devs = ();
@@ -342,6 +348,12 @@ sub do_install {
 # main entry point
 MAIN: {
 	my $in = interactive->vnew('su');
+
+	# parse command-line options
+	GetOptions(
+		'lang=s'  => \$lang_str,
+	);
+	$lang = $langs{$lang_str} || $langs{'en'};
 
 	my $ret = qx(which zenity-qt 2>/dev/null || echo none);
 	if ($ret =~ /none/) {
