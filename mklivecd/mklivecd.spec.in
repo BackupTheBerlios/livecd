@@ -1,4 +1,4 @@
-# $Id: mklivecd.spec.in,v 1.26 2003/12/19 12:53:30 jaco Exp $
+# $Id: mklivecd.spec.in,v 1.27 2003/12/30 20:19:51 jaco Exp $
 
 %define name	mklivecd
 %define version	@MKLIVECDVER@
@@ -14,7 +14,7 @@ License:	GPL
 Group:		System/Configuration/Boot and Init
 URL:		http://livecd.berlios.de/
 Source0:	%{name}-@ARCHIVEVER@.tar.bz2
-Requires:	busybox, cloop-utils, mkisofs, squashfs-tools
+Requires:	busybox >= 1:1.00-0.pre4.2mdk, cloop-utils >= 1.02-4mdk, mkisofs, squashfs-tools
 BuildRoot:	%{_tmppath}/%{name}-root
 Buildarch:	noarch
 
@@ -25,7 +25,7 @@ It can be used to create your own travelling Mandrake-based LiveCD, specialised
 LiveCD featuring custom-developed applications or to put together a demo disk
 to show off the power of our favourite OS. The possibilities are endless!
 
-Created CD's features automatic hardware detection and setup. In addition, it
+Created CD's feature automatic hardware detection and setup. In addition, it
 utilises compression technology allowing you to build a LiveCD from a partition
 much larger than will typically fit on a CD. (Up to 2GB for a normal 650MB CD.)
 When booting from this LiveCD, the data is transparently decompressed as needed
@@ -57,8 +57,9 @@ rm -rf %buildroot
 %changelog
 * @SPECDATE@ Jaco Greeff <jaco@mandrake.org> @MKLIVECDVER@-@MKLIVECDREL@mdk
 - version @ARCHIVEVER@
-- update description
+- updated description
 - added squashfs-tools require
+- updated requires to include version numbers where earlier versions won't work
 
 * Wed Dec 03 2003 Per Øyvind Karlsen <peroyvind@linux-mandrake.com> 0.5.6-2mdk
 - spec fixes

@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.70 2003/12/14 06:40:50 jaco Exp $
+# $Id: hwdetect.in,v 1.71 2003/12/30 20:19:51 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -83,10 +83,10 @@ my $kernel_ver    = qx(uname -r);
 chomp($kernel_ver);
 
 ### progress stuff
-my $progress_now  = 10; # 10 from linuxrc+rc.sysinit
-my $progress_full = 27; # our 17, +5 from linuxrc, +5 from rc.sysinit
+my $progress_now  = @VAL_SPLASH_LINUXRC@+@VAL_SPLASH_SYSINIT@;
+my $progress_full = @VAL_SPLASH_FULL@;
+my $progress_max  = @MAX_SPLASH@;
 my $progress_on   = 1;
-my $progress_max  = 65534; # normal: 65534
 
 sub rmws {
 	my ($str) = @_;
@@ -852,9 +852,11 @@ my %fsopts = (
 sub hwdetect_getpersistent {
 	my (%devs) = @_;
 	print "    Finding persistent partitions: ";
-	my $mymnt = "/tmp/hwdetect.mnt";
+	my $mymnt   = "/tmp/hwdetect.mnt";
 	my $persist = "$mymnt/livecd.mnt";
-	system("mkdir -p $mymnt 2>/dev/null");
+	my $loopmnt = "/tmp/hwdetect.img";
+	my $loopimg = "$mymnt/livecd.img";
+	system("mkdir -p $mymnt $loopmnt 2>/dev/null");
 	foreach my $dev (keys %devs) {
 		if ((-e $mymnt) && $devs{$dev}->{persist}) {
 			mount(undef, "", $devs{$dev}->{type}, $devs{$dev}->{devfs}, $mymnt);
@@ -866,15 +868,38 @@ sub hwdetect_getpersistent {
 						$name => $value || 1;
 					} split(/ /, cat_($persist));
 					if ($popts{mount}) {
-						$devs{$dev}->{mount} = $popts{mount};
 						$devs{$dev}->{opt} = $fsopt_fullrw;
 						$devs{$dev}->{persisted} = 1;
+						$devs{$dev}->{mount} = $popts{mount};
+					}
+					elsif ($popts{loop} && (-e $loopimg)) {
+						if ($popts{link}) {
+							system("(mount -o loop -t ext2 $loopimg $loopmnt) 2>/dev/null");
+							system("(cd $loopmnt ; ln -sf ".$devs{$dev}->{mount}." ".$popts{link}.") 2>/dev/null");
+							umount(undef, $loopmnt);
+						}
+
+						$devs{$dev}->{opt} = $fsopt_fullrw;
+						$devs{$dev}->{persisted} = 1;
+						$devs{$dev}->{loop} = $popts{mount};
 					}
 				}
 				elsif (!$fdisk && $cmdline{'home'} =~ /usb/ && $devs{$dev}->{usb}) {
-					system("(cp -au /home/* $mymnt) 2>/dev/null");
-					system("echo 'mount=/home' >$persist");
-					$devs{$dev}->{mount} = "/home";
+					my $totsize = qx(df -m $mymnt | awk '/tmp/{ print \$3 }');
+					chomp($totsize);
+					my $size = int($totsize/2); # 50% of available size
+					$size = 32 if (($size < 32) && ($totsize > 32)); # try to get 32MB
+					system("(dd if=/dev/zero of=$loopimg bs=1M count=$size) 2>/dev/null");
+					system("(mke2fs -F -m0 $loopimg) 2>/dev/null");
+					system("(mount -o loop -t ext2 $loopimg $loopmnt) 2>/dev/null");
+					system("(cp -au /home/* $loopmnt) 2>/dev/null");
+					system("(cd $loopmnt ; ln -sf ".$devs{$dev}->{mount}." USB) 2>/dev/null");
+					umount(undef, $loopmnt);
+
+					system("echo 'loop=/home' >$persist");
+					system("echo 'link=USB' >>$persist");
+
+					$devs{$dev}->{loop} = "/home";
 					$devs{$dev}->{opt} = $fsopt_fullrw;
 					$devs{$dev}->{persisted} = 1;
 				}
@@ -882,11 +907,12 @@ sub hwdetect_getpersistent {
 			}
 		}
 	}
-	system("rm -rf $mymnt 2>/dev/null");
+	system("rm -rf $mymnt $loopmnt 2>/dev/null");
 	print_success();
 }
 
 my %all_devs = ();
+my $numusb = 0;
 
 sub hwdetect_getdisks {
 	print "Detecting disk drives/partitions: ";
@@ -935,6 +961,7 @@ sub hwdetect_getdisks {
 					$all_devs{$dev}->{opt} = $fsopt_fullrw.",".$fsopt_noauto;
 				}
 				$all_devs{$dev}->{extopt} = $extopts;
+				$all_devs{$dev}->{supermount} = 1;
 			}
 		}
 	}
@@ -990,6 +1017,8 @@ sub hwdetect_getdisks {
 						if ($disk->{usb_media_type} =~ /^Mass Storage/) {
 							$all_devs{$dev}->{opt} = $fsopt_auto.",".$fsopt_fullrw;
 							$all_devs{$dev}->{usb} = 1;
+							$all_devs{$dev}->{mount} = "/mnt/usb".$numusb;
+							$numusb++;
 						}
 						elsif (defined($opts[2])) {
 							$all_devs{$dev}->{opt} = ($cmdline{'fstab'} =~ /noauto/) ? $fsopt_fullro.",".$fsopt_noauto : $fsopt_fullro.",".$fsopt_auto;
@@ -1105,16 +1134,40 @@ sub hwdetect_writedisks {
 		open INFO, '>', "$prefix/etc/livecd/hwdetect/mounts.cfg";
 		foreach my $dev (sort keys %all_devs) {
 			print FSTAB "\n# ".$all_devs{$dev}->{info};
-			my $entry = "\n";
-			$entry .= $all_devs{$dev}->{devfs}."\t";
-			$entry .= $all_devs{$dev}->{mount}."\t";
-			$entry .= $all_devs{$dev}->{type}."\t";
-			my $opt = "";
-			$opt .= $all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
-			$opt .= "," if ($all_devs{$dev}->{opt} && $all_devs{$dev}->{extopt});
-			$opt .= $all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
-			$entry .= $opt."\t"."0 0\n";
-			print FSTAB $entry;
+			if ($all_devs{$dev}->{supermount}) {
+				my $entry = "\n";
+				$entry .= "none\t";
+				$entry .= $all_devs{$dev}->{mount}."\t";
+				$entry .= "supermount\t";
+				my $opt = "dev=".$all_devs{$dev}->{devfs}.",fs=udf:iso9660,";
+				$opt .= $all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
+				$opt .= "," if ($all_devs{$dev}->{opt} && $all_devs{$dev}->{extopt});
+				$opt .= $all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
+				$entry .= $opt."\t"."0 0\n";
+				print FSTAB $entry;
+			}
+			else {
+				my $entry = "\n";
+				$entry .= $all_devs{$dev}->{devfs}."\t";
+				$entry .= $all_devs{$dev}->{mount}."\t";
+				$entry .= $all_devs{$dev}->{type}."\t";
+				my $opt = "";
+				$opt .= $all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
+				$opt .= "," if ($all_devs{$dev}->{opt} && $all_devs{$dev}->{extopt});
+				$opt .= $all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
+				$entry .= $opt."\t"."0 0\n";
+				print FSTAB $entry;
+			}
+
+			if ($all_devs{$dev}->{loop}) {
+				my $entry = "# loop image for above\n";
+				$entry .= $all_devs{$dev}->{mount}."/livecd.img\t";
+				$entry .= $all_devs{$dev}->{loop}."\t";
+				$entry .= "ext2\t";
+				$entry .= "loop,".$fsopt_fullrw."\t";
+				$entry .= "0 0\n";
+				print FSTAB $entry;
+			}
 
 			print INFO "$dev=";
 			print INFO "|info=".$all_devs{$dev}->{info};
@@ -1129,6 +1182,8 @@ sub hwdetect_writedisks {
 			print INFO "|opt=".$all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
 			print INFO "|extopt=".$all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
 			print INFO "|usb=".$all_devs{$dev}->{usb} if ($all_devs{$dev}->{usb});
+			print INFO "|loop=".$all_devs{$dev}->{loop} if ($all_devs{$dev}->{loop});
+			print INFO "|supermount=".$all_devs{$dev}->{supermount} if ($all_devs{$dev}->{supermount});
 			print INFO "\n";
 		}
 		print FSTAB "\n";

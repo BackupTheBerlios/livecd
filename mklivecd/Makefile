@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.28 2003/12/13 18:13:05 jaco Exp $
+# $Id: Makefile,v 1.29 2003/12/30 20:19:51 jaco Exp $
 
 include Rules.mk
 include Modules.mk
@@ -12,11 +12,21 @@ mklivecd:
 	$(MKDIR) -p $(DISTDIR)
 	$(CAT) $(SRCDIR)/hwdetect.in | \
 		$(SED) -e 's,@MKLIVECDVER@,$(ARCHIVEVER),g' | \
-		$(SED) -e 's,@DEF_KEYBOARD@,$(DEF_KEYBOARD),g' \
+		$(SED) -e 's,@DEF_KEYBOARD@,$(DEF_KEYBOARD),g' | \
+		$(SED) -e 's,@MAX_SPLASH@,$(MAX_SPLASH),g' | \
+		$(SED) -e 's,@VAL_SPLASH_FULL@,$(VAL_SPLASH_FULL),g' | \
+		$(SED) -e 's,@VAL_SPLASH_LINUXRC@,$(VAL_SPLASH_LINUXRC),g' | \
+		$(SED) -e 's,@VAL_SPLASH_SYSINIT@,$(VAL_SPLASH_SYSINIT),g' | \
+		$(SED) -e 's,@VAL_SPLASH_HWDETECT@,$(VAL_SPLASH_HWDETECT),g' \
 			>$(DISTDIR)/hwdetect
 	$(CAT) $(SRCDIR)/linuxrc.in | \
 		$(SED) -e 's,@MKLIVECDVER@,$(ARCHIVEVER),g' | \
 		$(SED) -e 's,@KERNELVER@,$(KERNELVER),g' | \
+		$(SED) -e 's,@MAX_SPLASH@,$(MAX_SPLASH),g' | \
+		$(SED) -e 's,@VAL_SPLASH_FULL@,$(VAL_SPLASH_FULL),g' | \
+		$(SED) -e 's,@VAL_SPLASH_LINUXRC@,$(VAL_SPLASH_LINUXRC),g' | \
+		$(SED) -e 's,@VAL_SPLASH_SYSINIT@,$(VAL_SPLASH_SYSINIT),g' | \
+		$(SED) -e 's,@VAL_SPLASH_HWDETECT@,$(VAL_SPLASH_HWDETECT),g' | \
 		$(SED) -e 's,@DEF_MODULES@,$(DEF_MODULES),g' | \
 		$(SED) -e 's,@DEF_MODULES_OPT@,$(DEF_MODULES_OPT),g' | \
 		$(SED) -e 's,@DEF_MODULES_DEP@,$(DEF_MODULES_DEP),g' | \
@@ -25,7 +35,13 @@ mklivecd:
 		$(SED) -e 's,@DEF_SCSI_MODULES_DEP@,$(DEF_SCSI_MODULES_DEP),g' \
 			>$(DISTDIR)/linuxrc
 	$(CP) $(SRCDIR)/halt.local.in $(DISTDIR)/halt.local
-	$(CP) $(SRCDIR)/rc.sysinit.in $(DISTDIR)/rc.sysinit
+	$(CAT) $(SRCDIR)/rc.sysinit.in | \
+		$(SED) -e 's,@MAX_SPLASH@,$(MAX_SPLASH),g' | \
+		$(SED) -e 's,@VAL_SPLASH_FULL@,$(VAL_SPLASH_FULL),g' | \
+		$(SED) -e 's,@VAL_SPLASH_LINUXRC@,$(VAL_SPLASH_LINUXRC),g' | \
+		$(SED) -e 's,@VAL_SPLASH_SYSINIT@,$(VAL_SPLASH_SYSINIT),g' | \
+		$(SED) -e 's,@VAL_SPLASH_HWDETECT@,$(VAL_SPLASH_HWDETECT),g' \
+			>$(DISTDIR)/rc.sysinit
 	$(CAT) $(SRCDIR)/$(PKGNAME).in | \
 		$(SED) -e 's,@PKGNAME@,$(PKGNAME),g' | \
 		$(SED) -e 's,@MKLIVECDVER@,$(ARCHIVEVER),g' | \
@@ -69,6 +85,7 @@ clean:
 dist: spec
 	$(MKDIR) -p $(MKLIVECDDIST)/$(SRCDIR)
 	$(CP) $(DOCDIST) $(MKLIVECDDIST)
+	$(CP) $(BUILDDIST) $(MKLIVECDDIST)
 	$(CP) $(SRCDIST) $(MKLIVECDDIST)/$(SRCDIR)
 	$(TAR) -c $(MKLIVECDDIST) | \
 		$(BZIP2) >$(DISTDIR)/$(MKLIVECDDIST).tar.bz2

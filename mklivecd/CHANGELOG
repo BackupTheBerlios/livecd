@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.90 2003/12/19 12:53:30 jaco Exp $
+# $Id: CHANGELOG,v 1.91 2003/12/30 20:19:51 jaco Exp $
 
-* Fri, Dec 19, 2003, 0.5.7-cvs
+* Thu, Dec 29, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
@@ -35,6 +35,7 @@
       - Split modules into Modules.mk
       - Force date calculation to LC_ALL=C locale for decent CVS
         spec generation
+      - Moved splash values here to allow single-place edits
     [hwdetect]:
       - PS/2 mice should now work in wheel and non-wheel modes.
         Thanks to Texstar <texstar@houston.rr.com> for ideas and
@@ -61,6 +62,9 @@
         result in invalid res for card or detected size <= 800x600
       - Attempt a fix at the X "de(nodeadkeys)" keyboard by breaking
         it up into XkbLayout and XkbVariant sections
+      - USB removables are mounted at /mnt/usb[?] now
+      - Home partition located on ext2 loop device to allow symlinks
+      - Removable devices are mounted with supermount now
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
@@ -110,6 +114,8 @@
       - Synced with MDK contrib spec
       - Updated description to be more descriptive
       - Added a require for squashfs-tools
+      - Require versions for busybox and cloop-utils where applicable
+        (Earlier versions won't work)
     [rc.sysinit]:
       - Added (Split commands from linuxrc)
       - Adapted for use with busybox pre4 (Cooker version)

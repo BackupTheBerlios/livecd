@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.4 2003/12/14 06:40:52 jaco Exp $
+# $Id: rc.sysinit.in,v 1.5 2003/12/30 20:19:51 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -40,11 +40,10 @@ SETCOLOR_CLEAR="echo -en \\033c"
 SETCOLOR_CEOL="echo -en \\033[0G\\033[K"
 
 ### progress indicator
-progress_num=5
-progress_full=27 # our 5, +5 for linuxrc, +17 for hwdetect
+progress_num=@VAL_SPLASH_LINUXRC@
+progress_full=@VAL_SPLASH_FULL@
+progress_max=@MAX_SPLASH@
 progress_on=1
-progress_max=65534 # normal: 65534
-
 
 ### print a success msg
 printok() {
