@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.63 2003/11/24 18:23:05 jaco Exp $
+# $Id: hwdetect.in,v 1.64 2003/12/03 20:05:24 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -562,16 +562,15 @@ sub hwdetect_getxfree {
 	# do some resolution magic
 	Xconfig::resolution_and_depth::configure(undef, $rawX, $def_card, $def_monitor, 1);
 	my $resolution = $rawX->get_resolution;
-	if (($resolution->{X} lt 1024) && !defined($cmdline{'xres'}) && !defined($cmdline{'xbpp'})) {
+	$resolution->{Depth} =  defined($cmdline{'xbpp'}) ? $cmdline{'xbpp'} : 16;
+	if (($resolution->{X} < 1024) && !defined($cmdline{'xres'})) {
 		$resolution->{X} = 1024;
 		$resolution->{Y} = 768;
-		$resolution->{Depth} = 16;
 	}
 	elsif (defined($cmdline{'xres'})) {
 		$resolution->{X} = $generic_res{$cmdline{'xres'}}[2] || 1024;
 		$resolution->{Y} = $generic_res{$cmdline{'xres'}}[3] || 768;
 	}
-	$resolution->{Depth} = $cmdline{'xbpp'} if (defined($cmdline{'xbpp'}));
 	$rawX->set_resolution($resolution);
 
 	unless ($probe) {
@@ -811,8 +810,8 @@ my $fsopt_auto   = 'auto';
 my $fsopt_noauto = 'noauto';
 my $fsopt_ro     = 'ro';
 my $fsopt_rw     = 'rw';
-my $fsopt_fullrw = $fsopt_auto.",".$fsopt_user.",".$fsopt_rw;
-my $fsopt_fullro = $fsopt_noauto.",".$fsopt_user.",".$fsopt_ro;
+my $fsopt_fullrw = $fsopt_user.",".$fsopt_rw;
+my $fsopt_fullro = $fsopt_user.",".$fsopt_ro;
 
 # type => (allow persistent, ext. opts, ro only)
 my %fsopts = (
@@ -869,19 +868,8 @@ my %all_devs = ();
 sub hwdetect_getdisks {
 	print "Detecting disk drives/partitions: ";
 	my $fsopt_set = $fsopt_user;
-	if ($cmdline{'fstab'} =~ /rw/) {
-		$fsopt_set .= ",".$fsopt_rw;
-	}
-	else {
-		$fsopt_set .= ",".$fsopt_ro;
-	}
-	if (($cmdline{'fstab'} =~ /auto/) &&
-	    !($cmdline{'fstab'} =~ /noauto/)) {
-		$fsopt_set .= ",".$fsopt_auto;
-	}
-	else {
-		$fsopt_set .= ",".$fsopt_noauto;
-	}
+	$fsopt_set .= ($cmdline{'fstab'} =~ /ro/) ? ",".$fsopt_ro : ",".$fsopt_rw;
+	$fsopt_set .= ($cmdline{'fstab'} =~ /noauto/) ? ",".$fsopt_noauto : ",".$fsopt_auto;
 	my $all_hdds = fsedit::get_hds({}, undef);
 	fs::get_raw_hds('', $all_hdds);
 	#fs::get_info_from_fstab($all_hds, '');
@@ -918,10 +906,10 @@ sub hwdetect_getdisks {
 				$all_devs{$dev}->{mount}  = "/mnt/".$disk->{device};
 				$all_devs{$dev}->{type}   = "auto";
 				if ($disk->{media_type} =~ /^cdrom/) {
-					$all_devs{$dev}->{opt}    = $fsopt_fullro;
+					$all_devs{$dev}->{opt} = $fsopt_fullro.",".$fsopt_noauto;
 				}
 				else {
-					$all_devs{$dev}->{opt}    = $fsopt_noauto.",".$fsopt_user.",".$fsopt_rw;
+					$all_devs{$dev}->{opt} = $fsopt_fullrw.",".$fsopt_noauto;
 				}
 				$all_devs{$dev}->{extopt} = $extopts;
 			}
@@ -977,14 +965,14 @@ sub hwdetect_getdisks {
 					else {
 						$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
 						if ($disk->{usb_media_type} =~ /^Mass Storage/) {
-							$all_devs{$dev}->{opt}   = $fsopt_fullrw;
-							$all_devs{$dev}->{usb}   = 1;
+							$all_devs{$dev}->{opt} = $fsopt_auto.",".$fsopt_fullrw;
+							$all_devs{$dev}->{usb} = 1;
 						}
 						elsif (defined($opts[2])) {
-							$all_devs{$dev}->{opt}   = $fsopt_fullro;
+							$all_devs{$dev}->{opt} = ($cmdline{'fstab'} =~ /noauto/) ? $fsopt_fullro.",".$fsopt_noauto : $fsopt_fullro.",".$fsopt_auto;
 						}
 						else {
-							$all_devs{$dev}->{opt}   = $fsopt_set;
+							$all_devs{$dev}->{opt} = $fsopt_set;
 						}
 					}
 					$all_devs{$dev}->{type}    = $fstypes{$raw->{type}}[1];
@@ -1037,7 +1025,7 @@ sub hwdetect_getdisks {
 						else {
 							$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
 							if (defined($opts[2])) {
-								$all_devs{$dev}->{opt}   = $fsopt_fullro;
+								$all_devs{$dev}->{opt} = ($cmdline{'fstab'} =~ /noauto/) ? $fsopt_fullro.",".$fsopt_noauto : $fsopt_fullro.",".$fsopt_auto;
 							}
 							else {
 								$all_devs{$dev}->{opt}   = $fsopt_set;

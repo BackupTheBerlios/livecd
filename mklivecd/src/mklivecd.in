@@ -20,7 +20,7 @@
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.61 2003/11/23 07:00:27 jaco Exp $
+# $Id: mklivecd.in,v 1.62 2003/12/03 20:05:24 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -28,6 +28,7 @@ export PATH
 VERSION="@MKLIVECDVER@"
 PROGNAME="@PKGNAME@"
 
+sortfile=
 rootdir=/
 target=""
 kernel=""
@@ -67,7 +68,7 @@ timeout=900
 resolution="@DEF_RESOLUTION@"
 vgamode="@DEF_VGAMODE@"
 bootsplash=1
-fstabopt="ro,noauto"
+fstabopt=
 
 # iso details
 isoappid=""
@@ -106,6 +107,9 @@ Image generation:
                                search, e.g. --nodir=^/home/jaco,^/root/.mcop
                                will exclude both the /home/jaco and /root/.mcop
                                directories from the final LiveCD.
+   --sort=<file>               Sort the files on the compressed iso image
+                               according to the mkisofs-style sort specifier
+                               as detailed in file.
    --kernel=<kernel>           Kernel to use as default for the LiveCD image.
                                (default: $kernel)
    --lowmem                    Utilise the disk as temporary storage for iso
@@ -390,6 +394,10 @@ $e"
 			do_cmd "(find $rootdir -type f 2>/dev/null |sed -e 's,^$rootdir,/,g'| grep '$PATTERNS' | sed 's,^/,$rootdir,' >>$EXCLUDELIST)"
 		fi
 
+		# sort, sort, sort
+		do_cmd ":> $SORTLIST"
+		[ -n "$sortfile" ] && do_cmd "cat $sortfile >$SORTLIST"
+
 		# create the cloop image
 		if [ -z `which $loopcmp` ]; then
 			echo "ERROR: '$loopcmp' does not exist on your machine. You need to install an updated version of the cloop-utils package." >&2
@@ -400,7 +408,7 @@ $e"
 			exit 1
 		fi
 		REALSIZE=$[$blocksize*1024]
-		MKISOCMD="nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST -hide-rr-moved -cache-inodes -no-bak -pad $verbose $verbose $rootdir"
+		MKISOCMD="nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST -sort $SORTLIST -hide-rr-moved -cache-inodes -no-bak -pad $verbose $verbose $rootdir"
 		[ -z "$verbose" ] && MKISOCMD="$MKISOCMD 2>/dev/null"
 		if [ -n "$lowmem" ]; then
 			do_cmd "$MKISOCMD >$TMPISO"
@@ -458,12 +466,17 @@ create_isolinux() {
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo 'label livecd' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '    append livecd=livecd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard $bootopt $homedir fstab=$fstabopt' >>$ISOLINUXDIR/isolinux.cfg"
+	appopt="initrd=initrd.gz root=/dev/rd/3 devfs=mount fastboot=yes ramdisk_size=32000 automatic=method:cdrom vga=$vgamode"
+	[ -n "$isokeyboard" ] && appopt="$appopt keyb=$isokeyboard"
+	[ -n "$fstabopt" ] && appopt="$appopt fstab=$fstabopt"
+	[ -n "$homedir" ] && appopt="$appopt $homedir"
+	[ -n "$bootopt" ] && appopt="$appopt $bootopt"
+	do_cmd "echo '    append livecd=livecd $appopt' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	if [ -z "$final" ]; then
 		do_cmd "echo 'label initrd' >>$ISOLINUXDIR/isolinux.cfg"
 		do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-		do_cmd "echo '    append livecd=initrd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard $bootopt $homedir fstab=$fstabopt' >>$ISOLINUXDIR/isolinux.cfg"
+		do_cmd "echo '    append livecd=initrd $appopt' >>$ISOLINUXDIR/isolinux.cfg"
 		do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	fi
 	do_cmd "echo 'label memtest' >>$ISOLINUXDIR/isolinux.cfg"
@@ -566,6 +579,15 @@ while [ $# -gt 0 ]; do
 			for e in `echo $excludes | sed -e 's/,/ /g'`; do
 				excludefiles="$excludefiles $e"
 			done
+			;;
+
+		--sort)
+			if echo $1 | grep '=' >/dev/null ; then
+				sortfile="${1#--sort=}"
+			else
+				sortfile=$2
+				shift
+			fi
 			;;
 
 		--blocksize*)
@@ -671,12 +693,11 @@ while [ $# -gt 0 ]; do
 
 		--keyboard*)
 			if echo $1 | grep '=' >/dev/null ; then
-				mapping="${1#--keyboard=}"
+				isokeyboard="${1#--keyboard=}"
 			else
-				mapping=$2
+				isokeyboard=$2
 				shift
 			fi
-			isokeyboard="keyb=$mapping"
 			;;
 
 		--resolution*)
@@ -931,6 +952,7 @@ LIVECDDIR=`mktemp -d ${tmpdir}/mklivecd.livecd.XXXXXX`
 INITRDDIR=`mktemp -d ${tmpdir}/mklivecd.initrd.XXXXXX`
 INITRDMNT=`mktemp -d ${tmpdir}/mklivecd.initrd.mnt.XXXXXX`
 EXCLUDELIST=`mktemp ${tmpdir}/mklivecd.excludes.XXXXXX`
+SORTLIST=`mktemp ${tmpdir}/mklivecd.sort.XXXXXX`
 TMPISO=`mktemp ${tmpdir}/mklivecd.iso.XXXXXX`
 MODULESDIR=/lib/modules/$kernel
 ISOLINUXDIR=$LIVECDDIR/isolinux
@@ -939,7 +961,7 @@ RCFILE=$INITRDDIR/linuxrc
 LIVECDCLOOPDIR=$LIVECDDIR
 
 ### cleanup on exit, hangup, interrupt, quit, termination
-trap 'rm -rf $CLOOPDIR $LIVECDDIR $INITRDDIR $INITRDMNT $EXCLUDELIST $TMPISO' 0 1 2 3 15
+trap 'rm -rf $CLOOPDIR $LIVECDDIR $INITRDDIR $INITRDMNT $EXCLUDELIST $SORTLIST $TMPISO' 0 1 2 3 15
 
 ### create directories
 if [ -z "$LIVECDDIR" -o -z "$INITRDDIR" -o -z "$INITRDMNT" -o -z "$CLOOPDIR" ]; then

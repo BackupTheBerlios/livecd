@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.76 2003/11/23 07:00:27 jaco Exp $
+# $Id: CHANGELOG,v 1.77 2003/12/03 20:05:24 jaco Exp $
 
-* Sun, Nov 23, 2003, 0.5.7-cvs
+* Thu, Dec 04, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
@@ -41,7 +41,7 @@
       - Add support for Nvidia GLX drivers
       - Add support for ATI GLX drivers
       - Detect USB Flash devices and mount them rw
-      - s/LIVECD.MNT/.livecd.mnt/
+      - s/LIVECD.MNT/livecd.mnt/
       - Updated URL: http://livecd.berlios.de
       - Fix ALSA by not loading sound modules, only adding them
         to modules.conf (Reported and fix suggested by Texstar
@@ -49,6 +49,8 @@
       - Add options to modules.conf for soundcards (as detected)
       - Fix mouse setup for console
       - Fix keyboard setup for console
+      - Mount all devices rw,auto unless ntfs (auto,ro)
+      - Default to 16 bpp X depth
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
@@ -78,6 +80,9 @@
         devices as a persistent home
       - Updated URL: http://livecd.berlios.de
       - Added --timout option to specify boot timeout
+      - Added --sort=<file> option to allow the specification of
+        a mkisofs sort-file to optmise the file layout on the
+        created LiveCD
     [mklivecd.spec]:
       - Updated URL: http://livecd.berlios.de
 
