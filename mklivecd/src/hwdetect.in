@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.111 2004/01/25 08:57:02 jaco Exp $
+# $Id: hwdetect.in,v 1.112 2004/01/25 17:38:09 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -707,8 +707,8 @@ sub hwdetect_getsound {
 		foreach my $card (@probed_cards) {
 			my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
 			my $driver = $card->{driver};
-			$driver = $cmdline{'sound'} if (defined($cmdline) && defined($cmdline{'sound'}));
-			$driver = $cmdline{sound$num} if (defined($cmdline) && defined($cmdline{sound$num}));
+			$driver = $cmdline{'sound'} if (defined(%cmdline) && defined($cmdline{'sound'}));
+			$driver = $cmdline{sound$num} if (defined(%cmdline) && defined($cmdline{sound$num}));
 			modules::add_alias("sound-slot-$num", $driver);
 			print "modules::add_alias('sound-slot-$num', '$driver')\n" if ($debug);
 			if ($card->{options} && ($driver eq $card->{driver})) {
@@ -742,8 +742,8 @@ sub hwdetect_getnetwork {
 		foreach my $card (@probed_cards) {
 			my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
 			my $driver = $card->{driver};
-			$driver = $cmdline{'eth'} if (defined($cmdline) && defined($cmdline{'eth'}));
-			$driver = $cmdline{eth$num} if (defined($cmdline) && defined($cmdline{eth$num}));
+			$driver = $cmdline{'eth'} if (defined(%cmdline) && defined($cmdline{'eth'}));
+			$driver = $cmdline{eth$num} if (defined(%cmdline) && defined($cmdline{eth$num}));
 			
 			modules::add_alias("eth$num", $driver) unless ($probe);
 			print "modules::add_alias('eth$num', '$driver')\n" if ($debug);
