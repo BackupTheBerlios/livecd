@@ -1,7 +1,9 @@
-# $Id: CHANGELOG,v 1.145 2005/02/26 06:25:26 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.146 2005/02/26 17:29:50 tom_kelly33 Exp $
 
 * 2005-02-26 [rc.sysinit.in] skip unionfs test/debug section 
+		"   mtab typo fixed
 	     [linuxrc.in] increase delays while finding devices
+		
 * 2005-02-25 [mklivecd] another keyboard link correction: Ikerek
 * 2005-02-18 [hwdetect] corrected net-pf-10 off bug, thanks to Tex & Ikerek
 * 2005-02-17 [hwdetect & livecd-install] add sata_nv, thanks to Ocilent

@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.48 2005/02/26 00:34:05 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.49 2005/02/26 17:29:50 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -217,7 +217,7 @@ setupdir_etc() {
 		echo '/dev/rd/3 /        tmpfs  defaults  0 0' >>/etc/fstab
 	fi
 
-	rm -f /etc/mtab && touch /mnt/mtab
+	rm -f /etc/mtab && touch /etc/mtab
 	rm -rf /etc/modules.conf && touch /etc/modules.conf
 	rm -rf /etc/rc.d/rc3.d/S05harddrake
 	rm -rf /etc/rc.d/rc5.d/S05harddrake
