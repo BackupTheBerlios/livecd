@@ -322,15 +322,19 @@ sub showInstall
     }
     threads->new(\&timeThread, $this, $page, time, $this->pbOverall, $this->tlOverall) unless ($destroy);
 
-    my @dirs = qx(find $initrd/ -type d | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root);
+    my @dirs = qx(find $initrd/ -type d | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root | grep -v ^/etc);
     print "scalar(dirs)=".scalar(@dirs)."\n";
     my $copysteps = scalar(@dirs);
 
-    my @homedirs = qx(find $initrd/home -type d | sed -s 's,$initrd,,');
+    my @etcdirs = qx(find /etc -type d);
+    print "scalar(etcdirs)=".scalar(@etcdirs)."\n";
+    $copysteps = $copysteps + scalar(@etcdirs);
+
+    my @homedirs = qx(find /home -type d);
     print "scalar(homedirs)=".scalar(@homedirs)."\n";
     $copysteps = $copysteps + scalar(@homedirs);
 
-    my @rootdirs = qx(find $initrd/root -type d | sed -s 's,$initrd,,');
+    my @rootdirs = qx(find /root -type d);
     print "scalar(rootdirs)=".scalar(@rootdirs)."\n";
     $copysteps = $copysteps + scalar(@rootdirs);
 
@@ -366,8 +370,9 @@ sub showInstall
     system("cd $mnt/var ; ln -s ../tmp");
 
     doCopy($this, $initrd, $devs, @dirs);
-    doCopy($this, $initrd, $devs, @homedirs);
-    doCopy($this, $initrd, $devs, @rootdirs);
+    doCopy($this, "/", $devs, @etcdirs);
+    doCopy($this, "/", $devs, @homedirs);
+    doCopy($this, "/", $devs, @rootdirs);
 
     $this->tlInstInfo->setText("Creating /etc/fstab") unless ($destroy);
     writeFstab($devs) unless ($destroy);
