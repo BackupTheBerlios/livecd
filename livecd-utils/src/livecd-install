@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.17 2003/11/22 18:44:41 jaco Exp $
+# $Id: livecd-install,v 1.18 2003/11/22 19:39:43 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -298,7 +298,7 @@ image=/boot/$kernel
 	read-only
 ";
 			close LILO;
-			qx(/sbin/lilo -C $mnt/etc/lilo.conf);
+			qx(/sbin/lilo -f $mnt);
 		}
 	}
 }
@@ -326,7 +326,7 @@ sub do_install {
 				make_lilo($dev, $mnt);
 				qx(umount $mnt && rm -rf $mnt);
 				$ret = qx($dlg --question --title "$str{'FIN_TIT'}[$lang]" --text "$str{'FIN_STR'}[$lang]" && echo reboot);
-				exec("reboot") if ($ret =~ /reboot/);
+				exec("/sbin/reboot") if ($ret =~ /reboot/);
 				exit(0);
 			}
 		}
