@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.22 2003/10/10 06:35:36 jaco Exp $
+# $Id: linuxrc.in,v 1.23 2003/10/22 18:18:06 bgmilne Exp $
 #
 
 ### global variables
@@ -457,6 +457,19 @@ createramdisk() {
 }
 
 
+### function to get the value of an option from the kernel command line
+getbootoption() {
+option="$1"
+val=`sed -r -e "s/(.*)${option}=([[:alnum:]-]*)(.*)/\2/i" /proc/cmdline`
+if [ -n "$val" -a "$val" != "`cat /proc/cmdline`" ]
+then
+	echo $val
+	return 0
+else
+	return 1
+fi
+}
+
 ### setup for init of the actual mdk image
 setupinit() {
 	# setup the full path as now available
@@ -466,6 +479,16 @@ setupinit() {
 	if `grep -iqv hwdetect=no /proc/cmdline`; then
 		/initrd/usr/sbin/hwdetect
 	fi
+
+	# Do various other configuration tasks (now that /etc is available)
+	if hostname=`getbootoption hostname`
+	then
+		sed -i.livecd -e "s/\(\S*HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network
+		sed -i.livecd -e "s/\(\S*DHCP_HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network-scripts/ifcfg-eth*
+	fi
+	
+	#clean up the shutdown sequence:
+	sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/initrd\\\/\.\*\/\3,' /etc/rc.d/init.d/halt
 
 	# do we just want to complete the initrd (debug)?
 	if `grep -iq livecd=initrd /proc/cmdline`; then
