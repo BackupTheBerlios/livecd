@@ -1,14 +1,19 @@
-# $Id: CHANGELOG,v 1.49 2003/10/07 06:36:48 jaco Exp $
+# $Id: CHANGELOG,v 1.50 2003/10/09 12:27:49 jaco Exp $
 
-* Tue, Oct 07, 2003, 0.5.7-cvs
+* Thu, Oct 09, 2003, 0.5.7-cvs
   + Jaco Greeff <jaco@linuxminicd.org>:
     [Rules.mk]:
-      - Create list for default normal and SCSI modules
+      - Created list for default normal and SCSI modules
+      - Created listing for optional modules
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
+      - Added support for zlib_inflate if exists as a module
+      - Added support for translucency kernel module
     [mklivecd]:
-      - Copy SCSI modules to initrd as well
+      - Be verbose in depmod command
+      - Copy SCSI and optinal modules in addition to normal
+        (required) ones to initrd
 
 
 * Mon, Oct 06, 2003, 0.5.6
