@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.29 2003/11/01 07:25:42 jaco Exp $
+# $Id: hwdetect.in,v 1.30 2003/11/01 08:19:24 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -162,6 +162,7 @@ sub hwdetect_init {
 	print "Starting $SCRIPT_DESC ($SCRIPT_NAME v$SCRIPT_VER): ";
 
 	%cmdline = map {
+		chomp;
 		my ($name, $value) = split(/=/);
 		$name => $value || 1;
 	} split(/ /, cat_('/proc/cmdline'));
@@ -456,6 +457,20 @@ sub hwdetect_getvideo {
 	$probed_card;
 }
 
+sub hwdetect_getgenericmonitor() {
+	# res => [ laptop, generic ]
+	my %generic_monitors = (
+		'1024x768'  => ['Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 70 Hz'],
+		'1280x1024' => ['Generic|Flat Panel 1280x1024', 'Generic|1280x1024 @ 60 Hz'],
+		'1400x1050' => ['Generic|Flat Panel 1400x1050', 'Generic|1280x1024 @ 60 Hz'],
+		'1600x1400' => ['Generic|Flat Panel 1600x1200', 'Generic|1600x1200 @ 70 Hz']
+	);
+	my $pos = detect_devices::isLaptop() ? 0 : 1;
+	my $generic_monitor = $generic_monitors{$cmdline{'xres'}}[$pos];
+	$generic_monitor = $generic_monitors{'1024x768'}[$pos] unless ($generic_monitor);
+	$generic_monitor;
+}
+
 sub hwdetect_getmonitor {
 	my ($rawX) = @_;
 	print "Selecting monitor: ";
@@ -465,8 +480,7 @@ sub hwdetect_getmonitor {
 	eval { $probed_monitor = Xconfig::monitor::from_raw_X($rawX); };
 	if (!$probed_monitor->{HorizSync}) {
 		# just grab a good default
-		my $def_monitor = undef;
-		eval { $def_monitor = Xconfig::monitor::good_default_monitor(); };
+		my $def_monitor = hwdetect_getgenericmonitor();
 		my $monitors = Xconfig::monitor::monitors();
 		my %h_monitors = map {; "$_->{VendorName}|$_->{ModelName}" => $_ } @$monitors;
 		$probed_monitor = $h_monitors{$def_monitor};

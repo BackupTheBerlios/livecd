@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.57 2003/11/01 07:25:42 jaco Exp $
+# $Id: CHANGELOG,v 1.58 2003/11/01 08:19:24 jaco Exp $
 
 * Wed, Oct 29, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -20,6 +20,9 @@
         Thanks to Texstar <texstar@houston.rr.com> for ideas and
         investigation. Threads around this are available from:
         http://lists.berlios.de/pipermail/minicd-scripts/2003-October/000229.html
+      - Allow xres={1024x768,1280x1024,1400x1050,1600x1400} to
+        specify the resolution in the case where the monitor
+        cannot be reliably detected
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
