@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.20 2004/01/25 17:09:59 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.21 2004/01/27 11:20:13 jaco Exp $
  */
 
 #include <dirent.h>
@@ -539,16 +539,15 @@ LiveCDFS::doCreate(const char *file,
 		path->recurseMkdir(dir); 
 	}
 	
-	int fd = open(path->mktmp(file).c_str(), O_WRONLY | O_CREAT | O_TRUNC, mode);
-	if (fd > 0) {
+	int ret = mknod(path->mktmp(file).c_str(), mode, 0);
+	if (ret > 0) {
 		whiteout->setVisible(file, true);
-		close(fd);
 	}
 	else {
 		ERROR("Could not create file='%s', mode=%d", file, mode);
 	}
 	
-	FUNC_RET("%d", fd, fd);
+	FUNC_RET("%d", ret, ret);
 }
 
 
