@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.72 2003/11/16 07:25:01 jaco Exp $
+# $Id: CHANGELOG,v 1.73 2003/11/16 07:47:00 jaco Exp $
 
 * Sun, Nov 16, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -48,6 +48,8 @@
       - Utilise the fstab option as passed on the iso commandline
         to automatically mount partitions rw if specified
       - Updated URL: http://livecd.berlios.de
+      - Get Distro name (for starting init sequence.) from
+        /etc/redhat-release
     [mklivecd]:
       - Be verbose in depmod command
       - Copy SCSI and optinal modules in addition to normal
@@ -67,7 +69,7 @@
     [mklivecd.spec]:
       - Updated URL: http://livecd.berlios.de
 
-      
+
 * Mon, Oct 06, 2003, 0.5.6
   + Buchan Milne <bgmilne@cae.co.za>:
     [mklivecd]:
