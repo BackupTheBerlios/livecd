@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.44 2003/10/10 04:52:17 jaco Exp $
+# $Id: mklivecd.in,v 1.45 2003/10/10 07:55:40 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -49,8 +49,11 @@ LIVECDISOCLP="livecd.iso.clp"
 # compression options
 loopcmp="create_compressed_fs"
 loopmod="drivers/block/cloop.o"
-transmod="fs/translucency.o"
 blocksize=64
+
+# translucency options
+transmod="fs/translucency.o"
+withtrans=
 
 # boot options
 isokeyboard=""
@@ -79,6 +82,7 @@ usage () {
 	echo "    --kernel=<kernel>          Kernel to use as boot image" >&2
 	echo "    --lowmem                   Use disk as temporary storage for iso images" >&2
 	echo "    --final                    Strip extra lines from the scripts on the initrd" >&2
+	echo "    --translucency={yes|no}    Enable translucency support (default: no)" >&2
 	echo "" >&2
 	echo "    1. This option can have unexpected side-effects. When an image by this name " >&2
 	echo "       is found, it will not be re-created/overwritten, rather the existing image" >&2
@@ -203,7 +207,8 @@ create_initrdimg() {
 	### modules
 	echo "* Copying initrd kernel modules..." >&2
 	do_cmd "mkdir -p $INITRDDIR$MODULESDIR/kernel"
-	modules="$loopmod $transmod $modules_opt $modules"
+	modules="$loopmod $modules_opt $modules"
+	[ -n "$withtrans" ] && modules="$modules $transmod"
 	for m in $modules; do
 		mod=`basename $m`
 		modpath=${rootdir}lib/modules/$kernel/kernel/$m
@@ -543,6 +548,20 @@ while [ $# -gt 0 ]; do
 
 		--final)
 			final=1
+			;;
+
+		--translucency*)
+			if echo $1 | grep '=' >/dev/null ; then
+				yn="${1#--translucency=}"
+			else
+				yn=$2
+				shift
+			fi
+			if [ "$yn" == "yes" ]; then
+				withtrans=1
+			else
+				withtrans=
+			fi
 			;;
 
 		--splash*)
