@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.43 2004/09/19 17:00:32 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.44 2004/10/12 19:57:30 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -133,6 +133,8 @@ sub pageSelected # SLOT: ( const QString & )
 		cbLanguage->insertItem('italiano - it');
 		cbLanguage->setCurrentItem(1);
 		cbLanguage->insertItem('Turkish - tr');
+		cbLanguage->setCurrentItem(1);
+		cbLanguage->insertItem('Vietnamese - vi');
 		cbLanguage->setCurrentItem(0); ## Language 1st item
 
 		## Make mount, remove swap and nfs

@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.76 2004/09/19 17:00:31 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.77 2004/10/12 19:57:30 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -63,156 +63,158 @@ my %languages = (
 	'fr'	=> 3,	# Thanks to Pierre Laloum
 	'fr_FR' => 3,
 	'tr'    => 4,   # Thanks to Emre Sokullu
-	'tr_TR' => 4,    
+	'tr_TR' => 4,
+	'vi'	=> 5,	# Thanks to Larry Nguyen
+	'vi_VN' => 5, 
 );
 
 
 my %strings = (
-	'caption'          => [ "$distroname Installation", "Installazione di $distroname", "$distroname Installation", "$distroname Installation", "$distroname Kurulum Sihirbazı", undef ],
-	'script_init'      => [ "Initialising... ", "Inizializzazione...", "Initialisierung...", "Initialisation...", "Başlatılıyor...", undef ],
-	'script_destroy'   => [ "Destroying... ", "Sto distruggendo...", "Zerstören...","Destruction...", "Sonlandırılıyor...", undef ],
-	'done'             => [ "Done.", "Fatto.", "Erledigt", "effectué", "Tamam", undef ],
-	'reboot'           => [ "Rebooting...", "Sto riavviando...", "Neustarten", "Redemarrer", "Yeniden Başlatılıyor", undef ],
+	'caption'          => [ "$distroname Installation", "Installazione di $distroname", "$distroname Installation", "$distroname Installation", "$distroname Kurulum Sihirbazı", "Chương trình cài đặt vnlinuxCD", undef ],
+	'script_init'      => [ "Initialising... ", "Inizializzazione...", "Initialisierung...", "Initialisation...", "Başlatılıyor...", "Đang khởi động...",undef ],
+	'script_destroy'   => [ "Destroying... ", "Sto distruggendo...", "Zerstören...","Destruction...", "Sonlandırılıyor...", "Đang bỏ...", undef ],
+	'done'             => [ "Done.", "Fatto.", "Erledigt", "effectué", "Tamam", "Hoàn thành", undef ],
+	'reboot'           => [ "Rebooting...", "Sto riavviando...", "Neustarten", "Redemarrer", "Yeniden Başlatılıyor", "Khởi động lại...", undef ],
 
-        'btn_disk_part'    => [ "&Disk Partitioner\n(for advanced users)", "&Utilità di partizionamento &disco\n(per utenti esperti)", "&Partitionierung\n(für fortgeschrittene Benutzer)", "&Programme de partition de disque\n(pour utilisateur avançé)", "&Disk Bölümleyicisi\n(uzman kullanıcılar için)", undef ],
-	'btn_retry'        => [ "&Retry", "&Riprova", "&Wiederholen", "&Rééssayer", "Yeniden Dene", undef ],
-	'btn_help'         => [ "&Help", "&Aiuto", "&Hilfe", "Aide", "&Yardım", undef ],
-	'btn_cancel'       => [ "&Cancel", "&Annulla", "&Abbruch", "&Annulé", "&Iptal", undef ],
-	'btn_next'         => [ "&Next &gt;", "&Avanti &gt;", "&Weiter", "&Suivant", "&Sonraki", undef ],
-	'btn_back'         => [ "&lt; &Back", "&lt; &Indietro", "&Zurück", "&Retour", "&lt; &Geri", undef ],
-	'btn_finish'       => [ "&Finish", "&Finito", "&Fertig", "&Terminé", "&Sonlandır", undef ],
-	'btn_yes'          => [ "&Yes", "&Sì", "&Ja", "&Oui", "&Evet", undef ],
-	'btn_no'           => [ "&No", "&No", "&Nein", "&Non", "&Hayır", undef ],
-	'btn_inst'         => [ "&Install", "&Installa", "&Installieren", "&Installer", "&Kur", undef ],
-        'btn_write_pw'     => [ "&Write Password", "&Inserisci password", "&schreibe Kennwort","&Saisir le mot de passe", "Parolayı Giriniz", undef ],
-	'btn_del_guest'    => [ "&Delete Guest", "&Rimuovi Guest", "&lösche Gast", "Supprimer l'invité", "&Ziyaretçi Hesabını Kaldır", undef ],
-	'btn_cr_user'      => [ "&Create User", "&Aggungi Utente",  "&erstelle Benutzer", "&Créer un utilisateur", "&Yeni Kullanıcı Yarat", undef ],
-	'btn_logging_yes'  => [ "&Activate Logging", "&Attiva Log", "&aktiviere Protokoll","&Activer le chargement", "&Ceteleyi Etkinleştir",  undef ],
-	'btn_logging_no'   => [ "&Deactivate Logging", "&Disattiva Log", "&deaktiviere Protokoll", "&Desactiver le chargement", "Ceteleyi İptal Et", undef ],
+        'btn_disk_part'    => [ "&Disk Partitioner\n(for advanced users)", "&Utilità di partizionamento &disco\n(per utenti esperti)", "&Partitionierung\n(für fortgeschrittene Benutzer)", "&Programme de partition de disque\n(pour utilisateur avançé)", "&Disk Bölümleyicisi\n(uzman kullanıcılar için)", "&Phân vùng đĩa", undef ],
+	'btn_retry'        => [ "&Retry", "&Riprova", "&Wiederholen", "&Rééssayer", "Yeniden Dene", "&Làm lại", undef ],
+	'btn_help'         => [ "&Help", "&Aiuto", "&Hilfe", "Aide", "&Yardım", "&Giúp đỡ", undef ],
+	'btn_cancel'       => [ "&Cancel", "&Annulla", "&Abbruch", "&Annulé", "&Iptal", "&Bỏ qua", undef ],
+	'btn_next'         => [ "&Next &gt;", "&Avanti &gt;", "&Weiter", "&Suivant", "&Sonraki", "&Tiếp tục", undef ],
+	'btn_back'         => [ "&lt; &Back", "&lt; &Indietro", "&Zurück", "&Retour", "&lt; &Geri", "&lt; &Quay lại", undef ],
+	'btn_finish'       => [ "&Finish", "&Finito", "&Fertig", "&Terminé", "&Sonlandır", "&Hoàn thành", undef ],
+	'btn_yes'          => [ "&Yes", "&Sì", "&Ja", "&Oui", "&Evet", "&Vâng", undef ],
+	'btn_no'           => [ "&No", "&No", "&Nein", "&Non", "&Hayır", "&Không", undef ],
+	'btn_inst'         => [ "&Install", "&Installa", "&Installieren", "&Installer", "&Kur", "&Cài đặt", undef ],
+        'btn_write_pw'     => [ "&Write Password", "&Inserisci password", "&schreibe Kennwort","&Saisir le mot de passe", "Parolayı Giriniz", "&Ghi lại mật khẩu", undef ],
+	'btn_del_guest'    => [ "&Delete Guest", "&Rimuovi Guest", "&lösche Gast", "Supprimer l'invité", "&Ziyaretçi Hesabını Kaldır", "&Xóa người dùng Guest", undef ],
+	'btn_cr_user'      => [ "&Create User", "&Aggungi Utente",  "&erstelle Benutzer", "&Créer un utilisateur", "&Yeni Kullanıcı Yarat", "Tạo &Người dùng", undef ],
+	'btn_logging_yes'  => [ "&Activate Logging", "&Attiva Log", "&aktiviere Protokoll","&Activer le chargement", "&Ceteleyi Etkinleştir",  "Cho &phép", undef ],
+	'btn_logging_no'   => [ "&Deactivate Logging", "&Disattiva Log", "&deaktiviere Protokoll", "&Desactiver le chargement", "Ceteleyi İptal Et", "&Không cho phép", undef ],
 	
-	'yes'              => [ "Yes", "Sì", "Ja", "Oui", "Evet", undef ],
+	'yes'              => [ "Yes", "Sì", "Ja", "Oui", "Evet", "Vâng", undef ],
 
-	'time_elapsed'     => [ "Elapsed", "Trascorso", "Abgelaufen", "Elapsee", "Geçen", undef ],
-	'time_remaining'   => [ "Remaining", "Rimanente","Verbleibend", "Restant", "Kalan", undef ],
-	'part_none'	   => [ "(XX)", "(XX)", "(XX)", "(XX)", "(XX)", undef ],
-	'part_no_root_t'   => [ "Missing root", "Manca root", "Vermisse root", "Manque root", "Kök Kullanıcı Eksik", undef ],
-	'part_no_root'     => [ "You have to specify a root (/) partition.", "Devi specificare una partizione di root (/).", "Es muss eine root (/) Partition spezifiziert werden.", "Vous devez specifier une partition administrateur (/).", "Bir kök dizin (/) belirlemelisiniz.", undef ],
-	'part_no_swap_t'   => [ "Missing swap", "Manca swap", "Vermisse swap", "Manque swap", "Takas Alanı Eksik", undef ],
-	'part_no_swap'     => [ "You have to specify a swap partition", "Devi pecificare una partizione di swap", "Es muss eine swap Partition spezifiziert werden.", "Vous devez specifier une partition swap", "Bir takasa alanı belirlemelisiniz", undef ],
-	'part_o_home_t'    => [ "Overlapping home", "Sovrapposizione di home", "Überschneidung mit home", "Imbrication home", "home çakışıyor", undef ],
-	'part_o_home'      => [ "The home (/home) partition is the same as the root (/) partition.", "La partizione home (/home) è la stessa di root (/).", "Die home (/home) Partition ist die gleiche wie die root (/) Partition", "La partition home (/home) est identique a la partition root (/root)", "Ev dizini (/home) ile kök dizin (/) aynı.", undef ],
-	'part_o_var_t'     => [ "Overlapping var", "Sovrapposizione di var", "Überschneidung mit var",  "Imbrication var", "var çakışıyor", undef ],
-	'part_o_var'       => [ "The var (/var) partition is the same as the root (/) partition.", "La partizione var (/var) è la stessa di root (/).",  "Die var (/var) Partition ist gleiche wie die root (/) Partition", "La partition var (/var) est identique a la partition root (/root)", "Değişkenler dizini (/var) kök dizinle (/) aynı", undef ],
-	'part_o_varhome_t' => [ "Overlapping var/home", "Sovrapposizione di var/home", "Überschneidung mit var/home", "Imbrication var/home", "var/home çakışıyor", undef ],
-	'part_o_varhome'   => [ "The var (/var) partition is the same as the home (/home) partition.","La partizione var (/var) è la stessa di home (/home).", "Die var (/var) Partition ist gleiche wie die home (/home) Partition",  "La partition var (/var) est identique a la partition home (/home)", "Değişkenler dizini (/var) ile ev dizini (/home) aynı",  undef ],
-	'part_o_tmp_t'     => [ "Overlapping temp", "Sovrapposizione di temp", "Überschneidung mit temp", "Imbrication temp", "tmp çakışıyor", undef ],
-	'part_o_tmp'       => [ "The temp (/tmp) partition is the same as the root (/) partition.", "La partizione temp (/tmp) è la stessa di root (/).", "Die temp (/tmp) Partition ist gleiche wie die root (/) Partition.", "La partition temp (/tmp) est identique �la partition root (/root)", "Geçiciler dizini (/tmp) ile kök dizin (/) aynı", undef ],
-	'part_o_tmphome_t' => [ "Overlapping temp/home", "Sovrapposizione di temp/home", "Überschneidung temp/home", "Imbrication temp/home", "tmp/home çakışıyor", undef ],
-	'part_o_tmphome'   => [ "The temp (/tmp) partition is the same as the home (/home) partition.", "La partizione temp (/tmp) è la stessa di home (/home).",  "Die temp (/tmp) Partition ist die gleiche wie die home (/home) Partition.", "La partiton temp (/tmp) est identique a la partition home (/home)", "Geçiciler dizini (/tmp) ile ev dizini (/home) aynılar", undef ],
-	'part_o_tmpvar_t'  => [ "Overlapping temp/var", "Sovrapposizione di temp/var", "Überschneidung temp/var", "Imbrication temp/var", "tmp/var çakışıyor", undef ],
-	'part_o_tmpvar'    => [ "The temp (/tmp) partition is the same as the var (/var) partition.", "La partizione temp (/tmp) è la stessa di var (/var).", "Die temp (/tmp) Partition ist die gleiche wie die (/var) Partition", "La partition temp (/tmp) est identique �la partition var (/var)", "Geçiciler dizini (/tmp) ile değişkenler dizini (/var) aynılar", undef ],
-	'part_name_swap'   => [ "(swap)", "(swap)", "(swap)", "(swap)", "(swap)", undef ],
-	'part_name_tmp'    => [ "/tmp", "/tmp", "/tmp", "/tmp", "/tmp", undef ],
-	'part_name_var'    => [ "/var", "/var", "/var", "/var", "/var", undef ],
-	'part_name_home'   => [ "/home", "/home", "/home", "/home", "/home", undef ],
-	'part_name_root'   => [ "/", "/", "/", "/", "/", undef ],
+	'time_elapsed'     => [ "Elapsed", "Trascorso", "Abgelaufen", "Elapsee", "Geçen", "Đã chạy", undef ],
+	'time_remaining'   => [ "Remaining", "Rimanente","Verbleibend", "Restant", "Kalan", "Còn lại", undef ],
+	'part_none'	   => [ "(XX)", "(XX)", "(XX)", "(XX)", "(XX)", "(XX)", undef ],
+	'part_no_root_t'   => [ "Missing root", "Manca root", "Vermisse root", "Manque root", "Kök Kullanıcı Eksik", "Chưa có vùng root", undef ],
+	'part_no_root'     => [ "You have to specify a root (/) partition.", "Devi specificare una partizione di root (/).", "Es muss eine root (/) Partition spezifiziert werden.", "Vous devez specifier une partition administrateur (/).", "Bir kök dizin (/) belirlemelisiniz.", "Bạn phải chỉ định vùng root (/)", undef ],
+	'part_no_swap_t'   => [ "Missing swap", "Manca swap", "Vermisse swap", "Manque swap", "Takas Alanı Eksik", "Chưa có swap", undef ],
+	'part_no_swap'     => [ "You have to specify a swap partition", "Devi pecificare una partizione di swap", "Es muss eine swap Partition spezifiziert werden.", "Vous devez specifier une partition swap", "Bir takasa alanı belirlemelisiniz", "Bạn phải chỉ định vùng swap", undef ],
+	'part_o_home_t'    => [ "Overlapping home", "Sovrapposizione di home", "Überschneidung mit home", "Imbrication home", "home çakışıyor", "Vùng home bị trùng nhau", undef ],
+	'part_o_home'      => [ "The home (/home) partition is the same as the root (/) partition.", "La partizione home (/home) è la stessa di root (/).", "Die home (/home) Partition ist die gleiche wie die root (/) Partition", "La partition home (/home) est identique a la partition root (/root)", "Ev dizini (/home) ile kök dizin (/) aynı.", "Vùng home (/home) trùng với vùng root (/)", undef ],
+	'part_o_var_t'     => [ "Overlapping var", "Sovrapposizione di var", "Überschneidung mit var",  "Imbrication var", "var çakışıyor", "Vùng var bị trùng nhau", undef ],
+	'part_o_var'       => [ "The var (/var) partition is the same as the root (/) partition.", "La partizione var (/var) è la stessa di root (/).",  "Die var (/var) Partition ist gleiche wie die root (/) Partition", "La partition var (/var) est identique a la partition root (/root)", "Değişkenler dizini (/var) kök dizinle (/) aynı", "Vùng var (/var) trùng với vùng root (/)", undef ],
+	'part_o_varhome_t' => [ "Overlapping var/home", "Sovrapposizione di var/home", "Überschneidung mit var/home", "Imbrication var/home", "var/home çakışıyor", "var/home bị trùng nhau", undef ],
+	'part_o_varhome'   => [ "The var (/var) partition is the same as the home (/home) partition.","La partizione var (/var) è la stessa di home (/home).", "Die var (/var) Partition ist gleiche wie die home (/home) Partition",  "La partition var (/var) est identique a la partition home (/home)", "Değişkenler dizini (/var) ile ev dizini (/home) aynı",  "Vùng var (/var) trùng với vùng home (/home)", undef ],
+	'part_o_tmp_t'     => [ "Overlapping temp", "Sovrapposizione di temp", "Überschneidung mit temp", "Imbrication temp", "tmp çakışıyor", "Vùng temp bị trùng nhau", undef ],
+	'part_o_tmp'       => [ "The temp (/tmp) partition is the same as the root (/) partition.", "La partizione temp (/tmp) è la stessa di root (/).", "Die temp (/tmp) Partition ist gleiche wie die root (/) Partition.", "La partition temp (/tmp) est identique �la partition root (/root)", "Geçiciler dizini (/tmp) ile kök dizin (/) aynı", "Vùng temp (/tmp) bị trùng với vùng root (/)", undef ],
+	'part_o_tmphome_t' => [ "Overlapping temp/home", "Sovrapposizione di temp/home", "Überschneidung temp/home", "Imbrication temp/home", "tmp/home çakışıyor", "temp/home bị trùng nhau", undef ],
+	'part_o_tmphome'   => [ "The temp (/tmp) partition is the same as the home (/home) partition.", "La partizione temp (/tmp) è la stessa di home (/home).",  "Die temp (/tmp) Partition ist die gleiche wie die home (/home) Partition.", "La partiton temp (/tmp) est identique a la partition home (/home)", "Geçiciler dizini (/tmp) ile ev dizini (/home) aynılar", "Vùng temp (/tmp) bị trùng với vùng home (/home)", undef ],
+	'part_o_tmpvar_t'  => [ "Overlapping temp/var", "Sovrapposizione di temp/var", "Überschneidung temp/var", "Imbrication temp/var", "tmp/var çakışıyor", "temp/var bị trùng nhau", undef ],
+	'part_o_tmpvar'    => [ "The temp (/tmp) partition is the same as the var (/var) partition.", "La partizione temp (/tmp) è la stessa di var (/var).", "Die temp (/tmp) Partition ist die gleiche wie die (/var) Partition", "La partition temp (/tmp) est identique �la partition var (/var)", "Geçiciler dizini (/tmp) ile değişkenler dizini (/var) aynılar", "Vùng temp (/tmp) bị trùng với vùng var (/var)",undef ],
+	'part_name_swap'   => [ "(swap)", "(swap)", "(swap)", "(swap)", "(swap)", "(swap)",undef ],
+	'part_name_tmp'    => [ "/tmp", "/tmp", "/tmp", "/tmp", "/tmp", "/tmp",undef ],
+	'part_name_var'    => [ "/var", "/var", "/var", "/var", "/var", "/var", undef ],
+	'part_name_home'   => [ "/home", "/home", "/home", "/home", "/home", "/home", undef ],
+	'part_name_root'   => [ "/", "/", "/", "/", "/", "/", undef ],
 
-	'function_error'   => [ "System function error, return value:", "Errore di sistema, valore restituito:", "Systemfunktionsfehler, Fehlerrückgabe:", "Erreur fonction systeme, retourner la valeur:", "Sistem işleyişinde hata, dönen değer:", undef ],
-        'missing_value'    => [ "A value is missing. Please include login and password twice.", "Manca un valore. Per favore inserisci login e password due volte.", "Ein Wert fehlt. Bitte geben sie login und Kennwort zweimal an.", "Il manque une valeur. Inserer svp une deuxieme fois votre nom utilisateur et votre mot de passe.", "Bir değer eksik. Lütfen bir kere daha kullanıcı adı ve parolanızı giriniz.", undef ],
-	'logging_yes'	   => [ "Logging has been activated.", "Log è stato attivato", "Protokoll wurde aktiviert.", "L'utilisateur a été activé", "Tutanaklama etkinleştirildi", undef ],
-	'logging_no'	   => [ "Logging has been deactivated.", "Log è stato disattivato", "Protokoll wurde deaktiviert.", "L'utilisateur a été desactivé.", "Tutanaklama iptal edildi.", undef ],
+	'function_error'   => [ "System function error, return value:", "Errore di sistema, valore restituito:", "Systemfunktionsfehler, Fehlerrückgabe:", "Erreur fonction systeme, retourner la valeur:", "Sistem işleyişinde hata, dönen değer:", "Hệ thống bị lỗi, lỗi là:", undef ],
+        'missing_value'    => [ "A value is missing. Please include login and password twice.", "Manca un valore. Per favore inserisci login e password due volte.", "Ein Wert fehlt. Bitte geben sie login und Kennwort zweimal an.", "Il manque une valeur. Inserer svp une deuxieme fois votre nom utilisateur et votre mot de passe.", "Bir değer eksik. Lütfen bir kere daha kullanıcı adı ve parolanızı giriniz.", "Thông tin chưa đầy đủ. Vui lòng điền người dùng và mật khẩu 2 lần", undef ],
+	'logging_yes'	   => [ "Logging has been activated.", "Log è stato attivato", "Protokoll wurde aktiviert.", "L'utilisateur a été activé", "Tutanaklama etkinleştirildi", "Đăng nhập đã được chọn", undef ],
+	'logging_no'	   => [ "Logging has been deactivated.", "Log è stato disattivato", "Protokoll wurde deaktiviert.", "L'utilisateur a été desactivé.", "Tutanaklama iptal edildi.", "Đăng nhập đã được tắt", undef ],
 
-	'pword_no_sq'	   => [ "' <- is not permitted.", " ' <- non è permessa", " ' <- ist nicht erlaubt.", " ' <- �blanc n'est pas permis.", "<- izinli değil", undef ],
-	'pword_null'       => [ "A null password is not permitted.", "La password vuota non è permessa", "Ein leeres Kennwort ist nicht erlaubt.", "Un mot de passe �blanc n'est pas permis.", "Boş parola giremezsiniz.", undef ],
-	'pword_not_same'   => [ "Passwords are not the same. Please try again.", " Le password sono diverse, per favore riprova", "Kennwörter sind nicht gleich. Bitte nochmal.", "les mots de passe sont identiques. Reessayer svp.", "Girdiğiniz parolalar birbirlerini tutmuyor. Lütfen bir kere daha deneyin.", undef ],
-	'pword_short'	   => [ "Caution: A short password (< 8 characters) may be unsafe.", "Attenzione: Una password corta (< 8 caratteri) può essere poco sicura", "Achtung: Ein kurzes Kennwort (< 8 Zeichen) ist unsicher.", "Attention: un mot de passe court (< 8 caracteres ) ne sera pas sauvegardé.", "Uyarı: Kısa parolalar (< 8 karakter) güvensizdir.", undef ],
-	'pword_ok'         => [ "New root password has been written successfully.", "La password di root è stata cambiata con successo", "Neues root Kennwort wurde erfolgreich angelegt.", "Nouveau mot de passe administrateur a été saisi avec succés.", "Yeni kök kullanıcı parolası başarıyla kaydedildi.", undef ],
-	'pword_updated'	   => [ "User exists. Password has been updated.", "Utente già esistente. La password è stata modificata", "Benutzer existiert. Kennwort wurde erneuert.", "Utilisateur existant. Le mot de passe a été mise a jour.", "Mevcut Kullanıcı. Parola Güncellendi.", undef ],
+	'pword_no_sq'	   => [ "' <- is not permitted.", " ' <- non è permessa", " ' <- ist nicht erlaubt.", " ' <- �blanc n'est pas permis.", "<- izinli değil", "' <- không được bỏ trống", undef ],
+	'pword_null'       => [ "A null password is not permitted.", "La password vuota non è permessa", "Ein leeres Kennwort ist nicht erlaubt.", "Un mot de passe �blanc n'est pas permis.", "Boş parola giremezsiniz.", "Mật khẩu không được bỏ trống", undef ],
+	'pword_not_same'   => [ "Passwords are not the same. Please try again.", " Le password sono diverse, per favore riprova", "Kennwörter sind nicht gleich. Bitte nochmal.", "les mots de passe sont identiques. Reessayer svp.", "Girdiğiniz parolalar birbirlerini tutmuyor. Lütfen bir kere daha deneyin.", "Mật khẩu không giống nhau. Vui lòng thực hiện lại", undef ],
+	'pword_short'	   => [ "Caution: A short password (< 8 characters) may be unsafe.", "Attenzione: Una password corta (< 8 caratteri) può essere poco sicura", "Achtung: Ein kurzes Kennwort (< 8 Zeichen) ist unsicher.", "Attention: un mot de passe court (< 8 caracteres ) ne sera pas sauvegardé.", "Uyarı: Kısa parolalar (< 8 karakter) güvensizdir.", "Lưu ý: Mật khẩu ngắn (ít hơn 8 ký tự) có thể không an toàn lắm", undef ],
+	'pword_ok'         => [ "New root password has been written successfully.", "La password di root è stata cambiata con successo", "Neues root Kennwort wurde erfolgreich angelegt.", "Nouveau mot de passe administrateur a été saisi avec succés.", "Yeni kök kullanıcı parolası başarıyla kaydedildi.", "Mật khẩu của root đã được tạo thành công.", undef ],
+	'pword_updated'	   => [ "User exists. Password has been updated.", "Utente già esistente. La password è stata modificata", "Benutzer existiert. Kennwort wurde erneuert.", "Utilisateur existant. Le mot de passe a été mise a jour.", "Mevcut Kullanıcı. Parola Güncellendi.", "Người dùng đã có sẵn. Mật khẩu đã được cập nhật", undef ],
 
-	'user'		   => [ "User ", "Utente ", "Benutzer ", "Utilisateur ", "Kullanıcı", undef ],
-	'user_added'	   => [ " was added successfully.", " é stato aggiunto con successo", " wurde erfolgreich hinzugefgt.", " a été ajouté avec succes", " başarıyla eklendi.", undef ],
-	'guest_del_ok'     => [ "Guest account has been deleted.", "L'account 'guest' è stato rimosso", "Guest Zugang wurde gelöscht.", "Le compte invité 'guest' a été supprimé", "Ziyaretçi hesabı silindi.", undef ],
-	'guest_not_found'  => [ "Account 'guest' was not found.", "L'account 'guest' non è stato trovato", "Zugang 'Guest' wurde nicht gefunden.", "Le compte invité 'guest' n'a pas été trouvé", "Ziyaretçi hesabı bulunamadı.", undef ],
-	'inst_scan'        => [ "Scanning available directories", "Analisi delle cartelle disponibili", "Durchsuche verfgbare Verzeichnisse.", "Recherche le repertoire disponible", "Mevcut dizinler araştırılıyor.", undef ],
-	'inst_fstab'       => [ "Creating /etc/fstab", "Creazione di /etc/fstab", "Erstelle /etc/fstab", "Crée /etc/fstab", "/etc/fstab oluşturuluyor", undef ],
-	'inst_done'        => [ "Installation completed. Please press Next to continue.",  "Installazione completata. Premi Avanti per continuare", "Installation abgeschlossen. Zum fortfahren bitte Weiter ausw�len.", "Installation complète. Svp cliquer sur Suivant pour continuer", "Kurulum tamamlandı. Lütfen, Sonraki tuşuna basarak devam edin.", undef ],
+	'user'		   => [ "User ", "Utente ", "Benutzer ", "Utilisateur ", "Kullanıcı", "Người dùng", undef ],
+	'user_added'	   => [ " was added successfully.", " é stato aggiunto con successo", " wurde erfolgreich hinzugefgt.", " a été ajouté avec succes", " başarıyla eklendi.", "đã được thêm thành công", undef ],
+	'guest_del_ok'     => [ "Guest account has been deleted.", "L'account 'guest' è stato rimosso", "Guest Zugang wurde gelöscht.", "Le compte invité 'guest' a été supprimé", "Ziyaretçi hesabı silindi.", "Tài khoản của người dùng Guest đã được xóa", undef ],
+	'guest_not_found'  => [ "Account 'guest' was not found.", "L'account 'guest' non è stato trovato", "Zugang 'Guest' wurde nicht gefunden.", "Le compte invité 'guest' n'a pas été trouvé", "Ziyaretçi hesabı bulunamadı.", "Tài khoản 'guest' không tìm thấy.", undef ],
+	'inst_scan'        => [ "Scanning available directories", "Analisi delle cartelle disponibili", "Durchsuche verfgbare Verzeichnisse.", "Recherche le repertoire disponible", "Mevcut dizinler araştırılıyor.", "Đang dò các thư mục", undef ],
+	'inst_fstab'       => [ "Creating /etc/fstab", "Creazione di /etc/fstab", "Erstelle /etc/fstab", "Crée /etc/fstab", "/etc/fstab oluşturuluyor", "Đang tạo /etc/fstab", undef ],
+	'inst_done'        => [ "Installation completed. Please press Next to continue.",  "Installazione completata. Premi Avanti per continuare", "Installation abgeschlossen. Zum fortfahren bitte Weiter ausw�len.", "Installation complète. Svp cliquer sur Suivant pour continuer", "Kurulum tamamlandı. Lütfen, Sonraki tuşuna basarak devam edin.", "Việc cài đặt đã hoàn thành. Vui lòng nhấn nút Next.", undef ],
 				
-	'fmt_title'        => [ "Formatting", "Formattazione in corso", "Formatiere", "En train de formater", "Biçimlendiriliyor", undef ],
+	'fmt_title'        => [ "Formatting", "Formattazione in corso", "Formatiere", "En train de formater", "Biçimlendiriliyor", "Đang format", undef ],
 	
-	'copy_title'       => [ "Copying from", "Sto copiando da", "Kopieren von", "Copie �partir de", "Kaynak Konum", undef ],
+	'copy_title'       => [ "Copying from", "Sto copiando da", "Kopieren von", "Copie �partir de", "Kaynak Konum", "Đang sao chép từ", undef ],
 	
-	'boot_bs'          => [ "(Bootsector of partition)", "(Settore di boot della partizione", "(Bootsektor der Partition)", "(Secteur de demarrage de la partition)", "Bölümlemenin bootsector'ı (açılış alanı)", undef ],
-	'boot_mbr'         => [ "(Master boot record of drive)", "Master boot record del disco", "(Master boot rekord des Laufwerks)", "(Enregistrement du demarrage principal du Disque)", "Diskin master boot record'u (ana açılış kaydı)", undef ],
-	'bl_written'	   => [ "Bootloader written", "Bootloader scritto", "Bootlader geschrieben", "Fichier chargement demarrage ecrit", "Açılış yükleyicisi yazıldı", undef ],	
-	'fstab_info'       => [ "Automatically added by livecd-install", "Aggiunto automaticamente da livecd-istall", "Automatisch von livecd-install hinzugefügt", "Automatiquement ajouté par l'installation du livecd", "Livecd-install tarafından otomatik olarak eklendi", undef ],
+	'boot_bs'          => [ "(Bootsector of partition)", "(Settore di boot della partizione", "(Bootsektor der Partition)", "(Secteur de demarrage de la partition)", "Bölümlemenin bootsector'ı (açılış alanı)", "(Bootsector của vùng đĩa)", undef ],
+	'boot_mbr'         => [ "(Master boot record of drive)", "Master boot record del disco", "(Master boot rekord des Laufwerks)", "(Enregistrement du demarrage principal du Disque)", "Diskin master boot record'u (ana açılış kaydı)", "(Master boot record của đĩa cứng)", undef ],
+	'bl_written'	   => [ "Bootloader written", "Bootloader scritto", "Bootlader geschrieben", "Fichier chargement demarrage ecrit", "Açılış yükleyicisi yazıldı", "Bootloader đã được ghi xuống", undef ],	
+	'fstab_info'       => [ "Automatically added by livecd-install", "Aggiunto automaticamente da livecd-istall", "Automatisch von livecd-install hinzugefügt", "Automatiquement ajouté par l'installation du livecd", "Livecd-install tarafından otomatik olarak eklendi", "Được thêm vào bởi chương trình livecd-install", undef ],
 
-	'scr_1_title'      => [ "Step 1 of 6: Welcome", "Passo 1 di 6: Benvenuto", "Schritt 1 von 6: Willkommen", "Etape 1 sur 6: Bienvenue", "Adım 1 / 6: Hoşgeldiniz",  undef ],
+	'scr_1_title'      => [ "Step 1 of 6: Welcome", "Passo 1 di 6: Benvenuto", "Schritt 1 von 6: Willkommen", "Etape 1 sur 6: Bienvenue", "Adım 1 / 6: Hoşgeldiniz",  "Bước 1 của 6: Thân chào", undef ],
 	'scr_1_text'       => [ "<p><b>Welcome</b> to the LiveCD installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can exit / abort at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing of important data or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n<p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.", 
 "<p><b>Benvenuto</b> nel LiveCD installer. Questo programma ti guiderà attraverso i passi dell'installazione di $distroname sul tuo hard disk. La navigazione può essere effettuata attraverso i pulsanti <i>Avanti</i> e <i>Indietro</i>. Puoi uscire / annullare in ogni momento con il pulsante <i>Annulla</i>.</p>\n<p>Questo software è in fase BETA e può avere effetti sul tuo sistema inattesi o avversi tra cui la cancellazione di dati importanti o rendere il tuo sistema non avviabile. Usalo con attenzione!</p><p>Questo programma è distribuito con il desiderio che possa essere utile ma SENZA ALCUNA GARANZIA; senza inoltre la garanzia implicita di COMMERCIABILITA' o UTILIZZABILITA' PER UN PARTICOLARE SCOPO. Leggi la GNU General Public License per ulteriori dettagli.</p>\n<p>Per maggiori informazioni visita la home page di LiveCD: http://livecd.berlios.de/ o la homepage di $distroname: $distrohome.",  
 "<p><b>Willkommen</b> zum LiveCD Installationsprogramm. Dieses Programm wird schrittweise durch die Installation führen um $distroname auf das lokale Laufwerk zu installieren. Navigiert wird über die <i>Zurück</i> und <i>Weiter</i> Schaltflächen. Die Installation kann jederzeit mit der <i>Abbruch</i> Schaltfläche verlassen werden.</p>\n<p>Diese Software befindet sich im Betastadium und kann unerwünschte Effekte auf dem System hinterlassen. Dies beinhaltet auch das löschen von Daten oder unbrauchbar werden des Systems. Diese Software sollte mit äußerster Vorsicht benutzt werden !</p><p>Dieses Programm wir in der Hoffnung entwickelt vielen nützlich zu sein. Es wird OHNE JEDE GEWÄHRLEISTUNG weitergegeben, weiterhin gibt es keine Garantie auf MARKTGÄNGIGKEIT oder der EIGNUNG ZU EINEM BESTIMMTEN ZWECK. Weitere Details sind in der GNU General Public License nachzulesen. </p><p>Mehr Informationen über dieses Produkt findet man auf der LiveCD: http://livecd.berlios.de/ oder der $distroname: $distrohome.",
-"<p><b>Bienvenue</b> à l'installation du livecd. Ce programme vous guidera à travers les etapes d'installation de la distribution sur votre disque dur local. La navigation peut s'effectuer avec les boutons <i>Retour</i> et <i>Suivant</i>. Vous pouvez sortir/abandonner a tout moment avec le bouton <i>Annnuler</i>.</p><p>C'est un logiciel en version qualité Beta, ce qui pourrait avoir des effets imprevues sur votre systeme courant. Cela pourrait inclure l'effacement de donnés importantes, et faire que votre systeme ne puisse redemarrer. Utiliser avec prudence. </p><p>Ce programme est distribué dans l'espoir d'être utilisable, mais sans garantie. Sans même la garantie supposée d'une negociation ou d'une intention particuliere. Voir le GNU license publique generale pour de plus amples details.</p><p> Pour plus d'informations, allez a la page d'accueil du LiveCD: http://livecd.berlios.de/ ou la page d'accueil de la distribution: $distrohome.", "<p><b>LiveCD Kurulumcusu'na</b> hoşgeldiniz.</p> Bu sihirbaz $distroname dağıtımını adım adım sabit diskinize kurmakta size rehberlik edecektir. Sihirbaz içerisinde dolaşım <i>İleri</i> ve <i>Geri</i> tuşlarıyla yapılabilir. Ayrıca bu işlemi istediğiniz an <i>İptal</i> tuşunu tıklayarak sonlandırabilirsiniz. Bu araç BETA kalitesindedir ve sisteminize istenmeyen zararlar verebilir. Onu dikkatle kullanmalısınız!</p><p>Bu program faydalı olması amacıyla üretilmiştir, ancak size hiçbir GARANTI SAĞLAMAZ: bunlara dağıtılabilirlik ve uyumluluk garantileri de dahildir. Daha fazlası için GNU GPL lisansına göz atınız. </p>\nLiveCD hakkında daha fazla bilgi için http://livecd.berlios.de/, ya da $distroname anaysayfası $distrohome adreslerine göz atın.</p>", undef ],
-	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", "Passo 2 di 6: Selezione delle Partizioni", "Schritt 2 von 6: Auswahl der Partition", "Etape 2 sur 6: Selectionner une partition", "Adım 2 / 6 : Bölümleme Seçimi",  undef ],
+"<p><b>Bienvenue</b> à l'installation du livecd. Ce programme vous guidera à travers les etapes d'installation de la distribution sur votre disque dur local. La navigation peut s'effectuer avec les boutons <i>Retour</i> et <i>Suivant</i>. Vous pouvez sortir/abandonner a tout moment avec le bouton <i>Annnuler</i>.</p><p>C'est un logiciel en version qualité Beta, ce qui pourrait avoir des effets imprevues sur votre systeme courant. Cela pourrait inclure l'effacement de donnés importantes, et faire que votre systeme ne puisse redemarrer. Utiliser avec prudence. </p><p>Ce programme est distribué dans l'espoir d'être utilisable, mais sans garantie. Sans même la garantie supposée d'une negociation ou d'une intention particuliere. Voir le GNU license publique generale pour de plus amples details.</p><p> Pour plus d'informations, allez a la page d'accueil du LiveCD: http://livecd.berlios.de/ ou la page d'accueil de la distribution: $distrohome.", "<p><b>LiveCD Kurulumcusu'na</b> hoşgeldiniz.</p> Bu sihirbaz $distroname dağıtımını adım adım sabit diskinize kurmakta size rehberlik edecektir. Sihirbaz içerisinde dolaşım <i>İleri</i> ve <i>Geri</i> tuşlarıyla yapılabilir. Ayrıca bu işlemi istediğiniz an <i>İptal</i> tuşunu tıklayarak sonlandırabilirsiniz. Bu araç BETA kalitesindedir ve sisteminize istenmeyen zararlar verebilir. Onu dikkatle kullanmalısınız!</p><p>Bu program faydalı olması amacıyla üretilmiştir, ancak size hiçbir GARANTI SAĞLAMAZ: bunlara dağıtılabilirlik ve uyumluluk garantileri de dahildir. Daha fazlası için GNU GPL lisansına göz atınız. </p>\nLiveCD hakkında daha fazla bilgi için http://livecd.berlios.de/, ya da $distroname anaysayfası $distrohome adreslerine göz atın.</p>", "<p><b>Thân chào</b>, đây là chương trình cài đặt xuống đĩa cứng.  Bạn có thể di chuyển tới lui bằng cách chọn nút <i>Back</i> và <i>Next</i>. Bạn có thể thoát khỏi chương trình hoặc bỏ qua việc cài đặt bất kỳ lúc nào bằng cách nhấn nút <i>Cancel</i>.</p>\n<p> Đây là phần mềm còn ở giai đoạn thử nghiệm và có thể làm hỏng hệ thống vô tình. Nó có thể xóa dữ liệu bạn đang có hoặc làm hệ thống không khởi động được. Bạn nên cẩn thận!</p> <p>Chương trình này được cung cấp nhằm giúp đỡ các bạn việc cài đặt, tuy nhiên, chúng tôi sẽ hoàn toàn không chịu mọi trách nhiệm nếu hệ thống bạn bị hỏng, không khởi động, mất dữ liệu hoặc các tác hại khác. Vui lòng xem GNU General Public License để biết thêm chi tiết.</p>\n Bạn có thể xem thêm thông tin tại trang web của LiveCD tại http://livecd.berlios.de/ hoặc trang chủ của vnlinuxCD tại http://vnlinuxcd.vnlinux.org/", undef ],
+	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", "Passo 2 di 6: Selezione delle Partizioni", "Schritt 2 von 6: Auswahl der Partition", "Etape 2 sur 6: Selectionner une partition", "Adım 2 / 6 : Bölümleme Seçimi",  "Bước 2 của 6: Chọn vùng đĩa", undef ],
 	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify the <i>root</i> and <i>swap</i> locations. A separate <i>home</i> partition is recommended, not required. X = none.</p>", 
 "<p><b>Scegli</b> le partizioni da associare ai diversi punti di mount. Devi specificare le posizioni di <i>root</i> e di <i>swap</i>. Una partizione separata per <i>home</i> è raccomandata, non richiesta. X = nessuna.</p>", 
 "<p><b>Wähle</b> die Partitionen die mit unterschiedlichen Einhängepunkte verbunden werden sollen. Es sind sowohl die <i>root</i> als auch die <i>swap</i> Partition zu bestimmen. Eine extra <i>home</i> Partition ist sinnvoll jedoch nicht erforderlich. X = keine.</p>", 
 "Choisissez les partitions qui seront associées aux differents points de montage.  Vous devez specifier l'endroit ou sera créé root et swap . Une partition home separée est recommandé, non requise. X = Jamais.", "<p>Farklı bağlama noktalarıyla iliştirilecek bölümlemeleri seçin. <i>root</i> ve <i>swap</i> konumları belirtilmelidir. Farklı bir <i>home</i> bölümlemesi seçimseldir, ancak atanması önerilir. X = boş</p>",
-, undef ],
-	'scr_2_fmt'        => [ "Format", "Formatta", "Format", "Formater", "Biçimle", undef ],
-	'scr_2_req'        => [ "Required Partitions", "Partizioni Richieste", "Erforderliche Partitionen", "partition requise", "Gereken Bölümlemeler", undef ],
-	'scr_2_opt'        => [ "Optional Partitions", "Partizioni Opzionali", "Optionale Partitionen", "parition optionelle", "Seçimsel Bölümlemeler", undef ],
-	'scr_2_swap'       => [ "Swap device:", "Dispositivo di Swap:", "Swap Vorrichtung", "Swap device:", "Takas cihazı:", undef ],
-	'scr_2_root'       => [ "Root (/) device:", "Dispositivo di Root (/):", "Root (/) Vorrichtung", "Root / device", "Kök / cihazı",  undef ],
-	'scr_2_home'       => [ "Home (/home) device:", "Dispositivo di Home (/home):", "Home (/home) Vorrichtung", "Home /home device", "Ev /home cihazı", undef ],
-	'scr_2_var'        => [ "Var (/var) device:", "Dispositivo di Var (/var):",  "Var (/var) Vorrichtung", "Var /var device", "Değişken /var cihazı", undef ],
-	'scr_2_tmp'        => [ "Temp (/tmp) device:", "Dispositivo di Temp (/tmp):", "Temp (/tmp) Vorrichtung", "Temp /tmp device", "Geçici /tmp cihazı", undef ],
+, "<b>Chọn</b> vùng đĩa tương ứng với những điểm nối khác nhau. Bạn cần chọn vùng đĩa cho <i>root</i> và vùng đĩa cho <i>swap</i>. Nên chọn một vùng đĩa cho <i>home</i> nhưng không bắt buộc.", undef ],
+	'scr_2_fmt'        => [ "Format", "Formatta", "Format", "Formater", "Biçimle", "Format", undef ],
+	'scr_2_req'        => [ "Required Partitions", "Partizioni Richieste", "Erforderliche Partitionen", "partition requise", "Gereken Bölümlemeler", "Vùng đĩa phải có", undef ],
+	'scr_2_opt'        => [ "Optional Partitions", "Partizioni Opzionali", "Optionale Partitionen", "parition optionelle", "Seçimsel Bölümlemeler", "Vùng đĩa nên có", undef ],
+	'scr_2_swap'       => [ "Swap device:", "Dispositivo di Swap:", "Swap Vorrichtung", "Swap device:", "Takas cihazı:", "Vùng swap:", undef ],
+	'scr_2_root'       => [ "Root (/) device:", "Dispositivo di Root (/):", "Root (/) Vorrichtung", "Root / device", "Kök / cihazı",  "Vùng root (/):", undef ],
+	'scr_2_home'       => [ "Home (/home) device:", "Dispositivo di Home (/home):", "Home (/home) Vorrichtung", "Home /home device", "Ev /home cihazı", "Vùng home (/home)", undef ],
+	'scr_2_var'        => [ "Var (/var) device:", "Dispositivo di Var (/var):",  "Var (/var) Vorrichtung", "Var /var device", "Değişken /var cihazı", "Vùng var (/var)", undef ],
+	'scr_2_tmp'        => [ "Temp (/tmp) device:", "Dispositivo di Temp (/tmp):", "Temp (/tmp) Vorrichtung", "Temp /tmp device", "Geçici /tmp cihazı", "Vùng temp (/tmp)", undef ],
 	
 
-	'scr_3_title'      => [ "Step 3 of 6: Partition Verification", "Passo 3 di 6: Verifica delle partizioni", "Schritt 3 von 6: Partitionsüberprüfung", "Etape 3 sur 6: Verification de la partition", "Adım 3 / 6 : Bölümleme Denetimi", undef ],
+	'scr_3_title'      => [ "Step 3 of 6: Partition Verification", "Passo 3 di 6: Verifica delle partizioni", "Schritt 3 von 6: Partitionsüberprüfung", "Etape 3 sur 6: Verification de la partition", "Adım 3 / 6 : Bölümleme Denetimi", "Bước 3 của 6: Xác nhận vùng đĩa", undef ],
 	'scr_3_text'       => [ "<p><b>Warning</b> The following changes will be made to your system to install $distroname. To correct your selections, press the <i>Back</i> button, otherwise press <i>Next</i> to start the installation process.</p>", 
 "<p><b>Attenzione</b> Saranno applicate le seguenti modifiche al tuo sistema per installare $distroname. Per correggere le selezioni premi il tasto <i>Indietro</i>, altrimenti premi <i>Avanti</i> per iniziare il processo di installazione.</p>", 
 "<p><b>Warnung</b> Die folgenden Änderungen werden auf dem System durchgeführt um $distroname zu installieren. Um die Auswahl zu ändern bitte die <i>Zurück</i> Schaltfläche benutzen, zum Start der Installation bitte die Schaltfläche <i>Weiter</i> benutzen.", 
 "<p><b>Attention,</b> la modification suivante sera effectuée sur votre systeme pour installer la distribution. Pour modifier votre selection, cliquer sur <i>Back</i>, autrement cliquer sur <i>Next</i> pour debuter la procedure d'installation.</p>", "<p><b>Uyarı</b> Bundan sonraki adımlarda, $distroname kurulumu için sisteminizde değişiklikler yapılacak. Seçimlerini düzeltmek için, <i>Geri</i> butonuna basın, yoksa <i>İleri</i> tuşuyla kuruluma devam edin.</p>",
-undef ],
-	'scr_3_mnt'        => [ "Mount", "Punto di mount", "Einbindung", "Monter", "Bağlama Noktası", undef ],
-	'scr_3_dev'        => [ "Device", "Dispositivo", "Vorrichtung", "Peripherique", "Cihaz", undef ],
-	'scr_3_fmt'        => [ "Format", "Da formattare", "Format", "Formatter", "Biçim", undef ],
+"<p><b>Hãy thận trọng</b> Những thay đổi sau sẽ được ghi lại để việc cài đặt vnlinuxCD được bắt đầu. Để thay đổi các lựa chọn, nhấn nút <i>Back</i>, hoặc nhấn nút <i>Next</i> để chương trình cài đặt bắt đầu.", undef ],
+	'scr_3_mnt'        => [ "Mount", "Punto di mount", "Einbindung", "Monter", "Bağlama Noktası", "Điểm nối", undef ],
+	'scr_3_dev'        => [ "Device", "Dispositivo", "Vorrichtung", "Peripherique", "Cihaz", "Thiết bị", undef ],
+	'scr_3_fmt'        => [ "Format", "Da formattare", "Format", "Formatter", "Biçim", "Format", undef ],
     
 
-	'scr_4_title'      => [ "Step 4 of 6: $distroname Installation", "Passo 4 di 6: Installazione di $distroname", "Schritt 4 von 6: $distroname Installation", "Etape 4 sur 6: Installation de la distribution", "Adım 4 / 6 : $distroname Kurulumu", undef ],
+	'scr_4_title'      => [ "Step 4 of 6: $distroname Installation", "Passo 4 di 6: Installazione di $distroname", "Schritt 4 von 6: $distroname Installation", "Etape 4 sur 6: Installation de la distribution", "Adım 4 / 6 : $distroname Kurulumu", "Bước 4 của 6: Cài đặt vnlinuxCD", undef ],
 	'scr_4_text'       => [ "<p><b>Installation</b> of $distroname to your hard disk is currently in progress. Please be patient as this process does take some time.</p>", 
 "<p><b>Installazione</b></p> di $distroname sul tuo hard disk è in corso. Per favore attendi poichè il processo richiede del tempo.</p>", 
 "<p><b>Die Installation</b> von $distroname auf die Festplatte wird ausgeführt. Bitte um etwas Geduld die Installation kann etwas Zeit in Anspruch nehmen.</p>", 
 "<p><b>L'installation</b></p> de la distribution $distroname sur votre Disque dur est en cours. Veuillez patienter, cette procedure peut être assez longue", "<p>$distroname sabit disk kurulumu devam etmekte. Bu süreç biraz zaman alabilir.</p>",
-undef ],
-	'scr_4_copy'       => [ "Data copy progress:", "Avanzamento copia dati:", "Datenkopierstatus:", "Copie d'informations en cours", "Veri Transferi:",  undef ],
-	'scr_4_fmt'        => [ "Disk format:", "Formattazione disco:", "Diskformat:", "Formattage du disque", "Disk Biçimlendirilmesi:", undef ],
-	'scr_4_overall'    => [ "Overall progress:", "Avanzamento globale", "Gesammtstatus:", "Overall en cours", "Toplam İlerleme:", undef ],
-	'scr_4_progress'   => [ "Progress Information", "Informazione sull'Avanzamento", "Status information", "information en cours", "İlerleme Durumu", undef ],
+"<p>vnlinuxCD đang được <b>chép</b> xuống đĩa cứng.  Quá trình này có thể kéo dài khá lâu tùy vào tốc độ máy, xin kiên nhẫn!", undef ],
+	'scr_4_copy'       => [ "Data copy progress:", "Avanzamento copia dati:", "Datenkopierstatus:", "Copie d'informations en cours", "Veri Transferi:",  "Kết quả sao chép:", undef ],
+	'scr_4_fmt'        => [ "Disk format:", "Formattazione disco:", "Diskformat:", "Formattage du disque", "Disk Biçimlendirilmesi:", "Format đĩa:", undef ],
+	'scr_4_overall'    => [ "Overall progress:", "Avanzamento globale", "Gesammtstatus:", "Overall en cours", "Toplam İlerleme:", "Kết quả toàn bộ:", undef ],
+	'scr_4_progress'   => [ "Progress Information", "Informazione sull'Avanzamento", "Status information", "information en cours", "İlerleme Durumu", "Thông tin của quá trình cài đặt", undef ],
 
 
-	'scr_5_title'      => [ "Step 5 of 6: Bootloader Installation and Logging", "Passo 5 di 6: Installazione del Bootloader e Log", "Schritt 5 von 6: Bootlader Installation und Protokoll", "Etape 5 sur 6: Installation du secterur de demarrage et du logging.", "Adım 5 / 6 : Açılış Yükleyicisi Kurulumu ve Tutanaklama", undef ],
+	'scr_5_title'      => [ "Step 5 of 6: Bootloader Installation and Logging", "Passo 5 di 6: Installazione del Bootloader e Log", "Schritt 5 von 6: Bootlader Installation und Protokoll", "Etape 5 sur 6: Installation du secterur de demarrage et du logging.", "Adım 5 / 6 : Açılış Yükleyicisi Kurulumu ve Tutanaklama", "Bước 5 của 6: Cài đặt bootloader và tạo tài khoản", undef ],
 	'scr_5_text'       => [ "<p><b>Installation</b> of the bootloader will now take place. Please select the drive or partition on which you would like to install it and press <i>Install</i> to install the bootloader.</p>", 
 "<p><b>L'Installazione</b> del bootloader ha ora inizio. Seleziona il disco o la patizione sulla quale vuoi installarlo e premi <i>Installa</i> per installare il bootloader.</p>", 
 "<p><b>Die Installation</b> des Bootladers wird nun durchgeführt. Bitte das Laufwerk oder die Partition wählen auf die der Bootlader installiert werden soll. Zur Installation des Bootladers bitte die Schaltfläche <i>Installieren</i> verwenden.</p>",
 "<p><b>L'installation</b> du secteur de demarrage va être crée . Svp selectionner la partition du disque sur laquelle vous voulez l'installer et cliquer sur <i>Install</i> pour installer le secteur de demarrage.</p>", "Açılış yükleyicisi kurulumu başlamak üzere. Devam etmek için, açılış yükleyicisinin kurulmasını istediğiniz disk bölümlemesini seçip, Kur düğmesine tıklayın.",
- undef ],
-	'scr_52'	   => [ "<p>System logging is disabled on the livecd. To enable logging on the installation, press the activate logging button.</p>", "<p>Il Log del sistema è disabilitato nel livecd. Per abilitarlo permi il tasto di attivazione.</p>",  "<p>Das Systemprotokoll ist deaktiviert auf der livecd. Zum aktivieren des Protokolls bitte die <i>aktiviere Protokoll</i> Schaltfläche verwenden.</p>", "Le systeme de logging n'est pas disponible sur le livecd. Pour l'activer, cliquer sur activation du logging.", "<p>Livecd üzerinde sistem tutanaklama etkin değildir. Kurulumda tutanaklamayı etkin kılmak için, Tutanaklamayı Etkinleştir düğmesini tıklayın.</p>", undef ],
+ "<p>Việc <b>cài đặt</b> bootloader sẽ bắt đầu. Vui lòng chọn ổ cứng hay vùng đĩa mà bạn muốn cài và nhấn nút <i>Cài đặt</i> để thực hiện.</p>", undef ],
+	'scr_52'	   => [ "<p>System logging is disabled on the livecd. To enable logging on the installation, press the activate logging button.</p>", "<p>Il Log del sistema è disabilitato nel livecd. Per abilitarlo permi il tasto di attivazione.</p>",  "<p>Das Systemprotokoll ist deaktiviert auf der livecd. Zum aktivieren des Protokolls bitte die <i>aktiviere Protokoll</i> Schaltfläche verwenden.</p>", "Le systeme de logging n'est pas disponible sur le livecd. Pour l'activer, cliquer sur activation du logging.", "<p>Livecd üzerinde sistem tutanaklama etkin değildir. Kurulumda tutanaklamayı etkin kılmak için, Tutanaklamayı Etkinleştir düğmesini tıklayın.</p>", "<p>Đăng nhập vào hệ thống đã bị tắt trên livecd. Vui lòng nhấn nút cho phép đăng nhập.</p>", undef ],
 
 
-	'scr_6_title'      => [ "Step 6 of 6: Customize and Reboot", "Passo 6 di 6, Personalizzazione e Riavvio", "Schritt 6 von 6: Personalisierung und Neustart", "Etape 6 sur 6: Modifier et redemarrer ", "Adım 6 / 6 : Kişiselleştir ve Yeniden Başlat", undef ],
-	'scr_6_text'       => [ "<p><b>Congratulations</b> you have installed $distroname to your local drive. Now you can customize it.", "<p><b>Congratulazioni</b> hai istallato $distroname sul tuo sistema. Ora puoi personalizzarlo.", "<p><b>Glückwunsch</b> das System $distroname wurde auf dem lokalen Laufwerk installiert. Jetzt kann es personalisiert werden.", "Felicitations, Vous venez d'installer la distribution sur votre disque local. Vous pouvez a present la modifier ", "<p><b>Tebrikler</b> $distroname kurulumu başarıyla tamamlandı. Şimdi kurulumunuzu kişiselleştirebilirsiniz.", undef ],
-	'scr_6_typeroot'   => [ "Type the root password.", "Digita la password di root.", "Bitte root Kennwort eingeben.", "Saisir le mot de passe de l'admin.", "Kök kullanıcı parolasını girin.", undef ],
-	'scr_6_typeroot2'  => [ "Please retype to confirm.", "Ridigitala per conferma.", "Wiederholen der Eingabe zur Prüfung.", "de nouveau pour confirmer.", "Onaylamak için tekrarlayın.", undef ],
+	'scr_6_title'      => [ "Step 6 of 6: Customize and Reboot", "Passo 6 di 6, Personalizzazione e Riavvio", "Schritt 6 von 6: Personalisierung und Neustart", "Etape 6 sur 6: Modifier et redemarrer ", "Adım 6 / 6 : Kişiselleştir ve Yeniden Başlat", "Bước 6 của 6: Điều chỉnh tùy ý và thiết lập khởi động", undef ],
+	'scr_6_text'       => [ "<p><b>Congratulations</b> you have installed $distroname to your local drive. Now you can customize it.", "<p><b>Congratulazioni</b> hai istallato $distroname sul tuo sistema. Ora puoi personalizzarlo.", "<p><b>Glückwunsch</b> das System $distroname wurde auf dem lokalen Laufwerk installiert. Jetzt kann es personalisiert werden.", "Felicitations, Vous venez d'installer la distribution sur votre disque local. Vous pouvez a present la modifier ", "<p><b>Tebrikler</b> $distroname kurulumu başarıyla tamamlandı. Şimdi kurulumunuzu kişiselleştirebilirsiniz.", "<p><b>Xin chức mừng</b> bạn vừa cài đặt vnlinuxCD xuống đĩa.", undef ],
+	'scr_6_typeroot'   => [ "Type the root password.", "Digita la password di root.", "Bitte root Kennwort eingeben.", "Saisir le mot de passe de l'admin.", "Kök kullanıcı parolasını girin.", "Mật khẩu cho root.", undef ],
+	'scr_6_typeroot2'  => [ "Please retype to confirm.", "Ridigitala per conferma.", "Wiederholen der Eingabe zur Prüfung.", "de nouveau pour confirmer.", "Onaylamak için tekrarlayın.", "Vui lòng gõ lại để xác nhận", undef ],
 	'scr_6_chooserb'   => [ "Choose to reboot or not and press <i>Finish</i> to exit the installer.", "Scegli di riavviare o meno e premi <i>Finito</i> per uscire dal programma di installazione.",  "Auswahl zwischen Neustart oder kein Neustart und zum verlassen des Installationsprogramms die Schaltfläche <i>Fertig</i> benutzen.", "Choisissez de redemmarrer ou non et cliquez Terminer pour quitter l'installation", "Yeniden başlatıp, başlatmayacağınızı belirleyip Bitir tuşuna basarak kurulumu sonlandırın.",
-undef],
-	'scr_6_no'         => [ "No, I will reboot my system later.", "No, riavvierò in un secondo momento.", "Nein, das System wird später neugestartet.", "Non, je redemarrerai mon systeme plus tard", "Hayır, daha sonra kendim yeniden başlatacağım.", undef ],
-	'scr_6_yes'        => [ "Yes, reboot my system automatically now.", "Sì, riavvia il sistema automaticamente adesso.", "Ja, das System wird jetzt automatisch neugestartet.", "Oui, redemarre �present mon systeme automatiquement", "Evet hemen şimdi sistemi yeniden başlat.", undef ],
-	'scr_6_del_guest'  => [ "Delete the guest user account (optional, if present).", "Rimuovi l'account guest (opzionale, se presente).", "Löschen des Gastzugangs (Option, falls eine existiert).", "Supprimer le compte de invité 'guest' (optionel, si existant)", "Ziyaretçi hesabını sil (seçimsel)", undef ],
-	'scr_6_add_user'   => [ "Add user(s) (optional and repeatable):", "Aggiungi un utente (opzionale e ripetibile)", "hinzufügen hinzufgen (Option und wiederholbar):", "Ajouter utilisateur(s) (optionel)", "Kullanıcı(lar) Ekle (seçimsel, tekrarlanabilir)", undef ],
-	'scr_6_au_login'   => [ "Login name:", "Nome di accesso:", "Benutzername:", "Nom d'utilisateur", "Kullanıcı Adı", undef ],
-	'scr_6_au_real'    => [ "Real name:", "Vero nome:", "Echter Name:", "Nom", "Gerçek İsim", undef ],
-	'scr_6_au_pw'      => [ "Password:", "Password:", "Kennwort:", "Mot de passe", "Parola", undef ],
-	'scr_6_au_rpw'     => [ "Repeat password:", "Ripeti la password:", "Kennwort wiederholen:", "Resaisir le mot de passe", "Parolanızı tekrarlayın", undef ]
+"Chọn khởi động lại hay nhấn nút <i>Finish</i> để thoát khỏi chương trình cài đặt", undef],
+	'scr_6_no'         => [ "No, I will reboot my system later.", "No, riavvierò in un secondo momento.", "Nein, das System wird später neugestartet.", "Non, je redemarrerai mon systeme plus tard", "Hayır, daha sonra kendim yeniden başlatacağım.", "Không, tôi sẽ tự khởi động lát nữa", undef ],
+	'scr_6_yes'        => [ "Yes, reboot my system automatically now.", "Sì, riavvia il sistema automaticamente adesso.", "Ja, das System wird jetzt automatisch neugestartet.", "Oui, redemarre �present mon systeme automatiquement", "Evet hemen şimdi sistemi yeniden başlat.", "Vâng, hãy khởi động lại hệ thống bây giờ", undef ],
+	'scr_6_del_guest'  => [ "Delete the guest user account (optional, if present).", "Rimuovi l'account guest (opzionale, se presente).", "Löschen des Gastzugangs (Option, falls eine existiert).", "Supprimer le compte de invité 'guest' (optionel, si existant)", "Ziyaretçi hesabını sil (seçimsel)", "Xóa tài khoản người dùng guest (nếu có)", undef ],
+	'scr_6_add_user'   => [ "Add user(s) (optional and repeatable):", "Aggiungi un utente (opzionale e ripetibile)", "hinzufügen hinzufgen (Option und wiederholbar):", "Ajouter utilisateur(s) (optionel)", "Kullanıcı(lar) Ekle (seçimsel, tekrarlanabilir)", "Thêm người dùng (không bắt buộc và có thể lặp lại)", undef ],
+	'scr_6_au_login'   => [ "Login name:", "Nome di accesso:", "Benutzername:", "Nom d'utilisateur", "Kullanıcı Adı", "Người dùng:", undef ],
+	'scr_6_au_real'    => [ "Real name:", "Vero nome:", "Echter Name:", "Nom", "Gerçek İsim", "Họ tên:", undef ],
+	'scr_6_au_pw'      => [ "Password:", "Password:", "Kennwort:", "Mot de passe", "Parola", "Mật khẩu:", undef ],
+	'scr_6_au_rpw'     => [ "Repeat password:", "Ripeti la password:", "Kennwort wiederholen:", "Resaisir le mot de passe", "Parolanızı tekrarlayın", "Gõ lại mật khẩu:", undef ]
 ); 
 
 sub getMyLang {
@@ -238,7 +240,7 @@ sub getStr {
 }
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Sun Sep 19 00:00:44 2004
+# Created: Tue Oct 12 14:55:56 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -268,9 +270,9 @@ use Qt::slots
 use Qt::attributes qw(
     page
     tbWelcome
-    bDiskPartitioner
     pixmapLabel2
     cbLanguage
+    bDiskPartitioner
     page_2
     pixmapLabel3
     groupBox16
@@ -3399,16 +3401,16 @@ sub NEW
     tbWelcome->setPaletteBackgroundColor( Qt::Color(230, 231, 230) );
     tbWelcome->setLineWidth( int(1) );
 
-    bDiskPartitioner = Qt::PushButton(page, "bDiskPartitioner");
-    bDiskPartitioner->setGeometry( Qt::Rect(475, 350, 225, 35) );
-
     pixmapLabel2 = Qt::Label(page, "pixmapLabel2");
     pixmapLabel2->setGeometry( Qt::Rect(0, 0, 300, 380) );
     pixmapLabel2->setPixmap( $image0 );
     pixmapLabel2->setScaledContents( 1 );
 
     cbLanguage = Qt::ComboBox(0, page, "cbLanguage");
-    cbLanguage->setGeometry( Qt::Rect(310, 350, 145, 35) );
+    cbLanguage->setGeometry( Qt::Rect(310, 350, 150, 50) );
+
+    bDiskPartitioner = Qt::PushButton(page, "bDiskPartitioner");
+    bDiskPartitioner->setGeometry( Qt::Rect(470, 350, 230, 50) );
     addPage( page, "" );
 
     page_2 = Qt::Widget(this, "page_2");
@@ -3833,7 +3835,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.76 2004/09/19 17:00:31 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.77 2004/10/12 19:57:30 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -3938,6 +3940,8 @@ sub pageSelected # SLOT: ( const QString & )
 		cbLanguage->insertItem('italiano - it');
 		cbLanguage->setCurrentItem(1);
 		cbLanguage->insertItem('Turkish - tr');
+		cbLanguage->setCurrentItem(1);
+		cbLanguage->insertItem('Vietnamese - vi');
 		cbLanguage->setCurrentItem(0); ## Language 1st item
 
 		## Make mount, remove swap and nfs
@@ -4519,7 +4523,6 @@ sub formatPart
 sub format_ext2($@) {
     my ($dev, @options) = @_;
     $dev =~ m,(rd|ida|cciss)/, and push @options, qw(-b 4096 -R stride=16); #- For RAID only.
-  #  push @options, qw(-b 1024 -O none) if arch() =~ /alpha/;
     run_program::raw({ timeout => 60 * 60 }, 'mke2fs', '-F', @options, devices::make($dev)) or die N("%s formatting of %s failed", (any { $_ eq '-j' } @options) ? "ext3" : "ext2", $dev);
 }
 sub format_ext3 {
@@ -5024,7 +5027,7 @@ sub cbLanguage_act # SLOT: ( const QString & )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.76 2004/09/19 17:00:31 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.77 2004/10/12 19:57:30 tom_kelly33 Exp $
 #
 
 package main;

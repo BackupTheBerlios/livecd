@@ -48,26 +48,6 @@
                 <string>&lt;p&gt;&lt;b&gt;Welcome&lt;/b&gt; to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the &lt;i&gt;Back&lt;/i&gt; and &lt;i&gt;Next&lt;/i&gt; buttons. You can stop at any time with the &lt;i&gt;Cancel&lt;/i&gt; button.&lt;/p&gt;&lt;p&gt;This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing important data or making your system unbootable. Use it with care!&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.</string>
             </property>
         </widget>
-        <widget class="QPushButton">
-            <property name="name">
-                <cstring>bDiskPartitioner</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>475</x>
-                    <y>350</y>
-                    <width>225</width>
-                    <height>35</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&amp;Disk Partitioner
-(for advanced users)</string>
-            </property>
-            <property name="accel">
-                <string>Alt+D</string>
-            </property>
-        </widget>
         <widget class="QLabel">
             <property name="name">
                 <cstring>pixmapLabel2</cstring>
@@ -95,9 +75,29 @@
                 <rect>
                     <x>310</x>
                     <y>350</y>
-                    <width>145</width>
-                    <height>35</height>
+                    <width>150</width>
+                    <height>50</height>
                 </rect>
+            </property>
+        </widget>
+        <widget class="QPushButton">
+            <property name="name">
+                <cstring>bDiskPartitioner</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>470</x>
+                    <y>350</y>
+                    <width>230</width>
+                    <height>50</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&amp;Disk Partitioner
+(for advanced users)</string>
+            </property>
+            <property name="accel">
+                <string>Alt+D</string>
             </property>
         </widget>
     </widget>
