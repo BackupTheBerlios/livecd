@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.91 2005/02/07 19:54:08 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.92 2005/02/14 06:56:35 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -358,8 +358,8 @@ findcdroms() {
 			done
 		done
 
-		## Check for scsi cds
-		for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99]
+		## Check for scsi cds, usb cd, usb flash
+		for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99] /dev/sd[a-b][0-99]
 		do
 			if [ -e "$scsi_cdrom" ]; then
 				CDROM_LIST="$CDROM_LIST $scsi_cdrom"
@@ -367,7 +367,7 @@ findcdroms() {
 		done
 	fi
 
-	echo -n "  CDROMs found: $CDROM_LIST"
+	echo -n "  CDROMs and devices found: $CDROM_LIST"
 	printok
         set_progress
 }
@@ -375,7 +375,7 @@ findcdroms() {
 
 findcloop() {
 	## Now try to find and mount the boot CD (we use ID as identification)
-	echo -n "  Finding loop image: "
+	echo -n "  Searching for the loop image: "
         for i in $CDROM_LIST; do
 		CDDEV="$i"
 		$MOVE_TO_COL
@@ -383,7 +383,7 @@ findcloop() {
 		echo "$i"
 		$SETCOLOR_NORMAL
 		ISOTYPE="iso9660"
-		#echo "mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null"
+		# echo "mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null"
 		if `mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null`; then
 			echo -n "  CDROM mounted"
 			# try to find either the .iso, .clp, .bzlp or .sqfs loop image
@@ -420,7 +420,7 @@ findcloop() {
 				printok
 				checkmd5 ""
 
-				if [ -n "$LOOPMOD" ]; then  # -n (not null string)
+				if [ -n "$LOOPMOD" ]; then  ## -n (not null string)
 					echo -n "  Loading compressed loop module: "
 					loadmod $LOOPMOD && printloaded || printfail
 				fi
@@ -431,9 +431,8 @@ findcloop() {
 					mount -r -t $ISOTYPE $DEVLOOP $MNTLIVECD && LOOPMNT=1
 				fi
 
-				# did we get it?
-				#if [ 1 ]; then   # force shell ZZ
-				if [ -z "$LOOPMNT" ]; then
+				## Did we get it?
+				if [ -z "$LOOPMNT" ]; then ## -z (null because mount failed)
 					printfail
 					$SETCOLOR_FAIL
 					echo ""
@@ -445,6 +444,7 @@ findcloop() {
 					$SETCOLOR_NORMAL
 					execshell
 				else
+					## Yes, we got it!
 					printok
 					break
 				fi

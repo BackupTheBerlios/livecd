@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect-lang.in,v 1.7 2005/02/05 07:57:09 tom_kelly33 Exp $
+# $Id: hwdetect-lang.in,v 1.8 2005/02/14 06:56:35 tom_kelly33 Exp $
 #
 
 sub getLanguages() {
@@ -68,6 +68,7 @@ sub getStrings() {
 	'resolution_probe' => [ "Selecting resolution", undef ],
 	'x_write'          => [ "Writing X configuration", undef ],
 
+	'skip_sata'	   => [ "noscsi option: Skipping SATA detection", undef ],
 	'sound_probe'      => [ "Detecting sound cards", undef ],
 	'network_probe'    => [ "Detecting network cards", undef ],
 	'printer_probe'    => [ "Detecting local printers", undef ],
