@@ -1,6 +1,7 @@
 #!/initrd/bin/ash
 #
 # LiveCD init (rc.sysinit) script
+#
 # Copyright (C) 2003, Jaco Greeff <jaco@linuxminicd.org>
 #
 #    This program is free software; you can redistribute it and/or modify
@@ -19,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.3 2003/12/13 18:13:05 jaco Exp $
+# $Id: rc.sysinit.in,v 1.4 2003/12/14 06:40:52 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin

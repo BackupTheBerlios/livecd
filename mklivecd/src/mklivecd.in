@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # LiveCD iso build script
+#
 # Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>
 # Copyright (C) 2003, Buchan Milne <bgmilne@cae.co.za>
 #
@@ -21,7 +22,7 @@
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.68 2003/12/14 06:38:05 jaco Exp $
+# $Id: mklivecd.in,v 1.69 2003/12/14 06:40:52 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
