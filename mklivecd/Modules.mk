@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.11 2004/01/11 13:21:59 jaco Exp $
+# $Id: Modules.mk,v 1.12 2004/01/11 18:06:44 jaco Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -61,18 +61,18 @@ DEF_MODULES_DEP_PATH_26=\
 DEF_SCSI_MODULES_PATH_24=\
 	drivers/scsi/aic7xxx/aic7xxx \
 	drivers/scsi/BusLogic \
-	drivers/scsi/NCR53c406a \
 	drivers/scsi/initio \
 	drivers/scsi/advansys \
-	drivers/scsi/aha1740 \
 	drivers/scsi/aha1542 \
 	drivers/scsi/aha152x \
+	drivers/scsi/aha1740 \
 	drivers/scsi/atp870u \
 	drivers/scsi/dtc \
 	drivers/scsi/eata \
 	drivers/scsi/fdomain \
 	drivers/scsi/gdth \
 	drivers/scsi/megaraid \
+	drivers/scsi/NCR53c406a \
 	drivers/scsi/pas16 \
 	drivers/scsi/pci2220i \
 	drivers/scsi/pci2000 \
@@ -89,33 +89,47 @@ DEF_SCSI_MODULES_PATH_24=\
 	drivers/scsi/a100u2w \
 	drivers/scsi/3w-xxxx
 
-# segfaults: 
-#   drivers/scsi/megaraid
-#   drivers/scsi/a100u2w
-#   drivers/scsi/sym53c8xx_2/sym53c8xx
+# insmod module segfaults (no chip): 
+#	drivers/scsi/a100u2w
+#	drivers/scsi/dc395x
+#	drivers/scsi/megaraid
+#	drivers/scsi/nsp32
+#	drivers/scsi/qla1280
+#	drivers/scsi/sym53c8xx_2/sym53c8xx
+# insmod hangs (no chip):
+#	drivers/scsi/ips
+# insmod loads wrongly (no chip):
+#	drivers/scsi/53c700
+#	drivers/scsi/aacraid/aacraid
 DEF_SCSI_MODULES_PATH_26=\
-	drivers/scsi/aic7xxx/aic7xxx \
-	drivers/scsi/BusLogic \
-	drivers/scsi/NCR53c406a \
+	drivers/scsi/3w-xxxx \
 	drivers/scsi/advansys \
-	drivers/scsi/aha1740 \
-	drivers/scsi/aha1542 \
 	drivers/scsi/aha152x \
+	drivers/scsi/aha1542 \
+	drivers/scsi/aha1740 \
+	drivers/scsi/aic7xxx/aic7xxx \
 	drivers/scsi/atp870u \
+	drivers/scsi/BusLogic \
+	drivers/scsi/cpqfc \
+	drivers/scsi/dmx3191d \
 	drivers/scsi/dtc \
 	drivers/scsi/eata \
 	drivers/scsi/fdomain \
 	drivers/scsi/gdth \
+	drivers/scsi/g_NCR5380 \
+	drivers/scsi/in2000 \
+	drivers/scsi/NCR53c406a \
 	drivers/scsi/pas16 \
 	drivers/scsi/psi240i \
 	drivers/scsi/qlogicfas \
 	drivers/scsi/qlogicfc \
 	drivers/scsi/qlogicisp \
+	drivers/scsi/sym53c416 \
 	drivers/scsi/t128 \
+	drivers/scsi/tmscsim \
 	drivers/scsi/u14-34f \
 	drivers/scsi/ultrastor \
-	drivers/scsi/wd7000 \
-	drivers/scsi/3w-xxxx
+	drivers/scsi/wd7000
 
 # depending on kernel version, these have different names
 DEF_SCSI_MODULES_OPT_PATH_24=\
