@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.40 2003/10/06 08:39:04 jaco Exp $
+# $Id: mklivecd.in,v 1.41 2003/10/06 14:50:35 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -64,10 +64,10 @@ usage () {
 	echo "" >&2
 	echo "General Options:" >&2
 	echo "    --help                     Display this message" >&2
-	echo "    --version                  Display script version information" >&2
-	echo "    --verbose                  Be verbose in output" >&2
+	echo "    --version                  Display version information" >&2
 	echo "" >&2
 	echo "Image generation:" >&2
+	echo "    --verbose                  Be verbose in output" >&2
 	echo "    --rootdir=<rootdir>        Root directory of the live filesystem" >&2
 	echo "    --tmpdir=<tmpdir>          Temp directory for images" >&2
 	echo "    --cloop=<image>            Name of the saved compressed image (1)" >&2
