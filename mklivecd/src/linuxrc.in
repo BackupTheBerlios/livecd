@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.86 2004/12/21 19:31:01 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.87 2004/12/29 02:16:35 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -346,8 +346,8 @@ findcdroms() {
 				break
 			fi
 
-		## Try each ide device to see if we can find the cd-rom drive
-			for ide_device in hda hdb hdc hdd  #hde hdf hdg hdh hdi hdj hdk hdl hdm hdn
+		## Try each ide device to see if we can find the cd-rom drive (up to 20 - hdt)
+			for ide_device in hda hdb hdc hdd hde hdf hdg hdh hdi hdj hdk hdl hdm hdn hdo hdp hdq hdr hds hdt
 			do
 				device_media_file="$ide_channel/$ide_device/media"
 				if [ -e "$device_media_file" ]; then
