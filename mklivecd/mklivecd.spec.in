@@ -1,22 +1,22 @@
-# $Id: mklivecd.spec.in,v 1.20 2003/12/07 11:24:54 jaco Exp $
+# $Id: mklivecd.spec.in,v 1.21 2003/12/07 15:24:41 jaco Exp $
 
-%define name		mklivecd
-%define version		@MKLIVECDVER@
-%define release		@MKLIVECDREL@mdk
+%define name	mklivecd
+%define version	@MKLIVECDVER@
+%define release	@MKLIVECDREL@mdk
 
-%define summary		Builds a LiveCD from an existing Mandrake Linux installation
+%define summary	Builds a LiveCD from an existing Mandrake Linux installation
 
-Summary:		%{summary}
-Name:			%{name}
-Version:		%{version}
-Release:		%{release}
-License:		GPL
-Group:			System/Configuration/Boot and Init
-URL:			http://livecd.berlios.de/
-Source0:		%{name}-@ARCHIVEVER@.tar.bz2
-Requires:		busybox, cloop-utils, mkisofs
-BuildRoot:		%{_tmppath}/%{name}-root
-Buildarch:		noarch
+Summary:	%{summary}
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
+License:	GPL
+Group:		System/Configuration/Boot and Init
+URL:		http://livecd.berlios.de/
+Source0:	%{name}-@ARCHIVEVER@.tar.bz2
+Requires:	busybox, cloop-utils, mkisofs
+BuildRoot:	%{_tmppath}/%{name}-root
+Buildarch:	noarch
 
 %description
 %{summary}
@@ -47,6 +47,10 @@ rm -rf %buildroot
 %changelog
 * @SPECDATE@ Jaco Greeff <jaco@linuxminicd.org> @MKLIVECDVER@-@MKLIVECDREL@mdk
 - version @ARCHIVEVER@
+
+* Wed Dec 03 2003 Per Øyvind Karlsen <peroyvind@linux-mandrake.com> 0.5.6-2mdk
+- spec fixes
+- fix unowned dir
 
 * Mon Oct  6 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.6-1mdk
 - version 0.5.6
