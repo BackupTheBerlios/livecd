@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.101 2004/01/22 05:52:50 jaco Exp $
+# $Id: hwdetect.in,v 1.102 2004/01/23 05:13:25 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -729,7 +729,8 @@ sub hwdetect_getnetwork {
 		print "modules::add_alias('eth$num', '$driver')\n" if ($debug);
 		
 		$num++;
-		hwdetect_loadmod($driver, $probed_vendor, $probed_desc);
+		# don't loaded driver, only add to /etc/modules.conf (as with sound)
+		hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
 		print_hash($card) if ($debug);
 	}
 	set_progress();
