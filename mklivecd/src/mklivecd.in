@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.76 2004/01/05 13:24:42 jaco Exp $
+# $Id: mklivecd.in,v 1.77 2004/01/06 04:32:26 jaco Exp $
 #
 
 use strict;
@@ -603,6 +603,7 @@ sub create_initrd {
 			else {
 				my $modopt = undef;
 				foreach my $opt (@allmods_opt) {
+					$opt = "$opt$modext";
 					$modopt = 1 if ($opt =~ m/$mod/);
 				}
 				die_("\nFATAL: unable to find kernel module '$mod'\n") unless (defined($modopt));
