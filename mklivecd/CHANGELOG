@@ -1,3 +1,6 @@
+* Thu, Sep 25, 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.5-cvs
+- Changed README file to include CVS location
+
 * Thu, Sep 25, 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.5
 - Changed input blocksize to compression in mklivecd from 64K to 224K. This
   still allows for overflow blocks (i.e. block with no compression) to be
