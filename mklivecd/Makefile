@@ -1,59 +1,11 @@
-### $Id: Makefile,v 1.10 2003/10/01 08:28:22 jaco Exp $
+# $Id: Makefile,v 1.11 2003/10/01 12:04:25 jaco Exp $
 
-### our version identifiers
-PKGNAME=mklivecd
-MAJORVER=0
-MINORVER=5
-PATCHVER=6
-RPMRELVER=1mdk
-CVSVER=yes
+include Rules.mk
 
-MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
-ifeq "$(CVSVER)" "yes"
-	CVSDATE=$(shell date +cvs.%Y%m%d)
-	RELEASE=0.$(CVSDATE).$(RPMRELVER)
-	ARCHIVEVER=$(MKLIVECDVER)-$(CVSDATE)
-else
-	RELEASE=$(RPMRELVER)
-	ARCHIVEVER=$(MKLIVECDVER)
-endif
-KERNELVER=$(shell uname -r)
-
-### destination directories
-DESTDIR=
-PREFIX=/usr
-SBINPREFIX=$(PREFIX)
-BINDIR=$(PREFIX)/bin
-LIBDIR=$(PREFIX)/lib/$(PKGNAME)
-SHAREDIR=$(PREFIX)/share/$(PKGNAME)
-DOCDIR=$(PREFIX)/doc/$(PKGNAME)
-SBINDIR=$(SBINPREFIX)/sbin
-RCDIR=$(SHAREDIR)/init.d
-
-### internal directories
-DISTDIR=dist
-SRCDIR=src
-MKLIVECDDIST=$(PKGNAME)-$(ARCHIVEVER)
-
-### utility programs
-BZIP2=/usr/bin/bzip2
-CAT=/bin/cat
-CP=/bin/cp
-GZIP=/bin/gzip
-INSTALL=/usr/bin/install
-MD5SUM=/usr/bin/md5sum
-MKDIR=/bin/mkdir
-LN=/bin/ln
-RM=/bin/rm
-RPMBUILD=/usr/bin/rpmbuild
-SED=/bin/sed
-TAR=/bin/tar
-TOUCH=/bin/touch
-
-all: version mklivecd
+all: mklivecd
 
 version:
-	echo "$(MKLIVECDVER)"
+	@echo "$(PKGNAME), $(MKLIVECDVER)-$(RELEASE)"
 
 mklivecd:
 	$(MKDIR) -p $(DISTDIR)/init.d
