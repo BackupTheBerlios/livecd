@@ -1,8 +1,7 @@
-#!/bin/bash
+#!/usr/bin/perl -w
 #
 # LiveCD iso build script
-#
-# Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>
+# Copyright (C) 2002-2004, Jaco Greeff <jaco@linuxminicd.org>
 # Copyright (C) 2003, Buchan Milne <bgmilne@cae.co.za>
 #
 #    This program is free software; you can redistribute it and/or modify
@@ -20,154 +19,156 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
-# The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.70 2003/12/19 12:53:30 jaco Exp $
+# $Id: mklivecd.in,v 1.71 2004/01/05 05:39:02 jaco Exp $
 #
 
-PATH=/sbin:/usr/sbin:$PATH
-export PATH
-VERSION="@MKLIVECDVER@"
-PROGNAME="@PKGNAME@"
+use strict;
 
-sortfile=
-rootdir=/
-target=""
-kernel=""
-verbose=""
-MODULES=""
-img_vers=""
-builtins=""
-modulefile=/etc/modules.conf
-tmpdir=""
-rc=0
-kernel26=""
-kernel=`uname -r`
-modules_opt="@DEF_MODULES_OPT_PATH@ @DEF_SCSI_MODULES_OPT_PATH@"
-modules="@DEF_MODULES_PATH@ @DEF_MODULES_DEP_PATH@ @DEF_SCSI_MODULES_PATH@ @DEF_SCSI_MODULES_OPT_PATH@ @DEF_SCSI_MODULES_DEP_PATH@"
+### dependancies
+use Getopt::Long;
 
-excludedirs="^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/lock/subsys$ ^/var/run$ ^/var/tmp$"
-excludefiles="^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*[.]rpmnew$ .*[.]rpmsave$ /[.]bash_history$ /[.]fonts[.]cache-[0-9]$ /[.]xauth.* /[.]xsession-errors$"
-cloopimg=""
-LIVECDISOCLP="livecd.clp"
+use threads;
+use threads::shared;
 
-# compression options
-loopcmp="create_compressed_fs"
-loopmod="drivers/block/cloop.o"
-blocksize=64
-blockgiven=
-squashfs=
+### usefull functions
+sub get_exec { my $r = qx($_[0]); chomp($r); $r; };
+sub cat_ { local *F; open F, $_[0] or return; my @l = <F>; wantarray() ? @l : join('', @l); };
 
-# translucency options
-transmod="fs/translucency.o"
-withtrans=
+### global "constants"
+my $PROG_VERSION   = '@MKLIVECDVER@';
+my $PROG_NAME      = '@PKGNAME@';
+my $ESC            = "\x1B[";
+my $URL            = "http://livecd.berlios.de/";
+my $COPYRIGHT      = "Copyright (C) 2002-2004, Jaco Greeff <jaco\@linuxminicd.org>";
 
-# boot options
-isokeyboard=""
-isobootmsg=""
-isoimage=""
-bootopt=""
-isobootkeymsg=""
-timeout=900
-resolution="@DEF_RESOLUTION@"
-vgamode="@DEF_VGAMODE@"
-bootsplash=1
-fstabopt=
+### global variables
+my $starttime      = time;
+my $workdir        = undef;
+my $kernel26       = undef;
+my $dietarch       = undef;
+my $modfile        = "/etc/modules.conf";
+my $modules        = '@DEF_MODULES_PATH@ @DEF_MODULES_DEP_PATH@ @DEF_SCSI_MODULES_PATH@ @DEF_SCSI_MODULES_OPT_PATH@ @DEF_SCSI_MODULES_DEP_PATH@';
+my $modules_opt    = '@DEF_MODULES_OPT_PATH@ @DEF_SCSI_MODULES_OPT_PATH@';
+my $nodirs         = '^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/lock/subsys$ ^/var/run$ ^/var/tmp$';
+my $nofiles        = '^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*[.]rpmnew$ .*[.]rpmsave$ /[.]bash_history$ /[.]fonts[.]cache-[0-9]$ /[.]xauth.* /[.]xsession-errors$';
+my $loopmod        = "drivers/block/cloop.o";
+my $loopcmp        = "create_compressed_fs";
+my $blocksize      = 64;
+my $finaliso       = "livecd.iso";
 
-# iso details
-isoappid=""
-isovolid=""
-isoprepid=""
-isopubid=""
+### command-line options
+my $o_verbose;
+my $o_root         = "/";
+my $o_tmp          = "/tmp";
+my $o_looptype     = "clp";
+my $o_keyboard     = '@DEF_KEYBOARD@';
+my $o_resolution   = '@DEF_RESOLUTION@';
+my $o_vgamode      = '@DEF_VGAMODE@';
+my $o_splash       = "yes";
+my $o_kernel       = get_exec("uname -r");
+my $o_timeout      = 900;
+my %opts           = ( # these are all the options with defaults
+	'root'       => \$o_root,
+	'tmp'        => \$o_tmp,
+	'looptype'   => \$o_looptype,
+	'keyboard'   => \$o_keyboard,
+	'resolution' => \$o_resolution,
+	'splash'     => \$o_splash,
+	'kernel'     => \$o_kernel,
+	'timeout'    => \$o_timeout
+);
 
-# behaviour
-homedir=""
 
-printusage () {
-	echo "
-Usage:
-   `basename $0` [options] <livecd-image>
+### startup banner
+sub print_banner {
+	print STDERR "$PROG_NAME, version $PROG_VERSION, $URL
+$COPYRIGHT
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+";
+}
+
+
+### usage
+sub print_usage {
+	print STDERR "Usage:
+   $0 [options] <livecd-image>
 
 General Options:
    --help                      Display this message
    --version                   Display version information
+   --verbose                   Be verbose in output
 
 Image generation:
-   --verbose                   Be verbose in output
-   --root=<rootdir>            Root directory of the live filesystem to use as
-                               the image for the LiveCD (default: /)
-   --tmp=<tmpdir>              Name of the diirectory to be used for temporary
-                               storage (default: /tmp)
-   --cloop=<image>             Name of the saved compressed image. When an image
+   --root <rootdir>            Root directory of the live filesystem to use as
+                               the image for the LiveCD (default: $o_root)
+   --tmp <tmpdir>              Name of the diirectory to be used for temporary
+                               storage (default: $o_tmp)
+   --img <image>               Name of the saved compressed image. When an image
                                by this name is found, it will not be re-created
                                or overwritten, rather the existing image will be
                                re-used, i.e. the compressed image is not
                                re-built.
-   --nofile=<ex1>[,][...]      Excludes files from the final image. (Also see
+   --nofile <ex1>[,][...]      Excludes files from the final image. (Also see
                                the --nodir option for a full description)
-   --nodir=<ex1>[,][...]       Excludes directories from the final image.
+   --nodir <ex1>[,][...]       Excludes directories from the final image.
                                Patterns passed to this option (as with the
                                --nofile option) should be valid in a grep(1)
                                search, e.g. --nodir=^/home/jaco,^/root/.mcop
                                will exclude both the /home/jaco and /root/.mcop
                                directories from the final LiveCD.
-   --sort=<file>               Sort the files on the compressed iso image
+   --sort <file>               Sort the files on the compressed iso image
                                according to the mkisofs-style sort specifier
                                as detailed in file.
-   --kernel=<kernel>           Kernel to use as default for the LiveCD image.
-                               (default: $kernel)
-   --lowmem                    Utilise the disk as temporary storage for iso
-                               images. (default: off)
-   --final                     Strip extra lines from the scripts on the initrd,
-                               and optimise the LiveCD for production (no
-                               debugging) use. (default: off)
+   --kernel <kernel>           Kernel to use as default for the LiveCD image.
+                               (default: $o_kernel)
    --experimental              Enable experimental LiveCD feautures. Currently
                                this option enables kernel translucency support
-                               (default: off)
 
 Compression options:
-   --blocksize=<size>          Compression blocksize in K (default: 64 for cloop
-                               and bzloop, 32 for squashfs)
-   --looptype=<clp|bzlp|sqfs>  Create a cloop (clp option), bzloop (bzlp option)
-                               or squashfs (sqfs option) image. The bzloop option
-                               is utilising the experimental bzloop kernel module.
-                               As such, bzloop should not be considdered as
+   --blocksize <size>          Compression blocksize in K (default: $blocksize)
+   --looptype <clp|bzlp|sqfs>  Create a cloop, bzloop or squashfs image. The bzloop
+                               option is utilising the experimental bzloop kernel
+                               module. bzloop should not be considdered as
                                stable and might have unintended side-effects on
-                               the created LiveCD. (default: clp)
+                               the created LiveCD. (default: $o_looptype)
 
 Boot options:
-   --bootopt=<opt>[,<opt>]     List of comma-seperated extra options to add to
-                               the kernel boot command-line.
-   --bootmsg=<msg>             Use 'msg' as the isolinux boot message
-   --bootkey=<key>,<msg>       Display 'msg' on key 'key' from isolinux
-   --bootimg=<img>             Use 'img' (LSS format) as the isolinux background
+   --bootopt <opt=value>       Specify an additional boot option to pass to the
+                               kernel command-line.
+   --bootmsg <msg>             Use 'msg' as the isolinux boot message
+   --bootkey <key=msg>         Display 'msg' on key 'key' from isolinux
+   --bootimg <img>             Use 'img' (LSS format) as the isolinux background
                                display image
    --mdkboot                   Use the Mandrake boot image extension to display
-                               the boot message (default: off)
+                               the boot message
    --timeout                   Specify the default ISO Linux prompt timeout in
-                               seconds. (default: $timeout)
-   --keyboard=<mapping>        Specify a different keyboard layout as default
-                               for the LiveCD (default: @DEF_KEYBOARD@)
-   --resolution=<res>          Specify the resolution for the framebuffer output
-                               device (default: @DEF_RESOLUTION@)
-   --splash=<yes|no>[,<theme>] Create the LiveCD with bootsplash support if
-                               available on the root filesystem, optionally use
-                               the specified bootsplash theme (default: yes)
-   --fstab=<options>           Override the default options for the fstab on the
+                               seconds. (default: $o_timeout)
+   --keyboard <mapping>        Specify a different keyboard layout as default
+                               for the LiveCD (default: $o_keyboard)
+   --resolution <res>          Specify the resolution for the framebuffer output
+                               device (default: $o_resolution)
+   --splash <yes|no>           Create the LiveCD with bootsplash support if
+                               available on the root filesystem (default: $o_splash)
+   --fstab <options>           Override the default options for the fstab on the
                                LiveCD. Options are one or more of 'auto' and
                                'rw', for example '--fstab=rw,auto' will
                                automatically mount all detected partitions rw.
 
 ISO Image options:
-   --isoextrafiles=<path>      Add the files in 'path' to the root of the LiveCD
+   --isoextrafiles <path>      Add the files in 'path' to the root of the LiveCD
                                ISO image
-   --application=<id>          Use the specified iso application ID, as '-A'
+   --application <id>          Use the specified iso application ID, as '-A'
                                option to mkisofs
-   --volumeid=<id>             Use the specified iso volume ID, as a '-V' option
+   --volumeid <id>             Use the specified iso volume ID, as a '-V' option
                                to mkisofs
-   --preparer=<prep>           Use the specified preparer ID, as a '-p' option
+   --preparer <prep>           Use the specified preparer ID, as a '-p' option
                                to mkisofs
-   --publisher=<pub>           Use the specified publisher ID, as a '-P' option
+   --publisher <pub>           Use the specified publisher ID, as a '-P' option
                                to mkisofs
 
 Behaviour:
@@ -175,858 +176,677 @@ Behaviour:
                                when available/connected on bootup.
 
 Examples:
-    `basename $0` --nodir=^/usr/src/RPM,^/root/tmp livecd.iso
-    `basename $0` --blocksize=224 --bootopt=splash=silent livecd.iso
-" >&2
-	exit 1
+    $0 --nodir ^/usr/src/RPM,^/root/tmp livecd.iso
+    $0 --blocksize 224 --bootopt splash=silent livecd.iso
+
+";
+	exit(1);
 }
 
-printversion() {
-	echo "
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
-any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-" >&2
-	exit 0
+### print our version (already contained in banner)
+sub print_version {
+	exit(1);
 }
 
-### do a shell command
-do_cmd() {
-	stripped=`echo $* | tr -d "\t"`
-	[ -n "$verbose" ] && echo "+ $stripped"
-	if [ -n "$verbose" ]; then
-		eval "$*" || exit
-	else
-		(eval "$*") 2>&1 >/dev/null || exit
-	fi
+
+### format an elapsed time
+sub fmt_elapsed {
+	my ($t) = @_;
+	my $h = int($t/3600);
+	my $m = int(($t - $h*3600)/60);
+	my $s = int($t - $h*3600 - $m*60);
+	sprintf("%02d:%02d:%02d", $h, $m, $s);
 }
 
-do_cp() {
-	do_cmd "cp $1 $2"
+
+### format a number
+sub fmt_number {
+	my ($n) = @_;
+	$n = $n/1000;
+	my $t = int($n/1000);
+	my $h = $n - $t*1000;
+	my $r = sprintf("%0.3f", $h);
+	$r =~ s/[.]/,/;
+	if ($t > 0) {
+		$r = "0$r" while (length($r) < 7);
+		$r = "$t,$r";
+	}
+	$r;
 }
 
-do_cp_strip() {
-	if [ -n "$final" ]; then
-		do_cmd "cat $1 | \
-			sed -e 's/^#[^!].*//;s/^#$//;s/^[ ].*//' | \
-			tr -d \"\t\" | grep -v ^$ >$2"
-	else
-		do_cp $@
-	fi
+
+### progress bar globals
+my $PROGRESS_MAX     = 76;
+my $progress_max     : shared = 0;
+my $progress_inc     : shared = 0;
+my $progress_curr    : shared = 0;
+my $progress_start   : shared = 0;
+my $progress_tot     : shared = 0;
+my $progress_text    : shared = undef;
+my $progress_ttext   : shared = undef;
+my $progress_timer   : shared = -1; # 0 to active, -1 to deactivate
+my $progress_last    : shared = 0;
+
+### to be called before we use the progress bar
+sub start_progress {
+	my ($title, $max) = @_;
+	my $i = 0;
+	$| = 1;
+	print $title.":\n";
+	print "[";
+	print " " while ($i++ < $PROGRESS_MAX);
+	print "]";
+	$progress_max = $max;
+	$progress_inc = $progress_max/$PROGRESS_MAX;
+	$progress_start = time;
+	$progress_curr = 0;
+	$progress_tot = 0;
+	$progress_text = undef;
+	$progress_ttext = undef;
+	$progress_last = 0;
+	print $ESC."1A".$ESC."52G";
+	print "[  0.00% ".fmt_elapsed(0)."/".fmt_elapsed(0)."]";
+	start_thread();
 }
 
-check_kernel_26() {
-	local -i major minor
 
-	major=$(expr "$1" : '\([^.]\+\)\..*')
-	minor=$(expr "$1" : '[^.]\+\.\([^.]\+\)\..*')
+### while we are progressing
+sub set_progress {
+	my ($curr, $text, $thr) = @_;
+	$progress_last = $curr;
+	my $num = int($progress_last/$progress_inc) - $progress_curr;
+	if (defined($opts{verbose}) && defined($text)) {
+		if (!defined($progress_text) || !($text =~ m/^$progress_text$/)) {
+			if (defined($thr) || ($progress_timer == -1)) {
+				$progress_text = $text;
+				$progress_ttext = $text;
+				print "\n";
+				$progress_curr += $num;
+				print $ESC."1G";
+				chomp($text);
+				if (length($text) > 72) {
+					print "  ".pack("A72", $text)." ...";
+				}
+				else {
+					print "  ".pack("A76",$text);
+				}
+				print $ESC."1A";
+			}
+			else {
+				$progress_ttext = $text;
+			}
+		}
+	}
+	elsif ($num) {
+		if (defined($thr) || ($progress_timer == -1)) {
+			print "\n";
+			my $col = 2+$progress_curr;
+			$progress_curr += $num;
+			print $ESC.$col."G";
+			print "=" while ($num--);
+			print $ESC."1A";
+		}
+	}
 
-	if [ $major -ge 3 -o $major -eq 2 -a $minor -ge 5 ]; then
-		kernel26=yes
-		modulefile=/etc/modprobe.conf
-		splash=""
-	fi
+	if (defined($thr) || ($progress_timer == -1)) {
+		my $elapsed = time - $progress_start;
+		my $remain = 0;
+		if ($progress_curr < $PROGRESS_MAX) {
+			$remain = $progress_curr ? ($elapsed/$progress_curr)*($PROGRESS_MAX - $progress_curr) : 0;
+		}
+		print $ESC."52G";
+		print sprintf("[%6.2f%% ", $curr*100/$progress_max);
+		print fmt_elapsed($elapsed)."/".fmt_elapsed($remain+$elapsed)."]";
+	}
 }
 
-is_good_fs() {
-	local parttype= tmpname=
-	local dir=$1
-	[[ -d $dir ]] || return 1
-	[[ -w $dir ]] || return 1
-	[[ $dir == */ ]] && dir=${dir%/}
-	parttype=$(awk "{if (\$2 == \""$dir"\") print \$3 }" /proc/mounts)
 
-	while tmpname=${dir%/*} && [[ -z $parttype ]];do
-		[[ -z $tmpname ]] && tmpname=/
-		parttype=$(awk "{if (\$2 == \""$tmpname"\") print \$3 }" /proc/mounts)
-		dir=$tmpname
-	done
-
-	case $parttype in
-		nfs|tmpfs) return 1;;
-		*) return 0;
-	esac
+### to close off the progress bar
+sub end_progress {
+	end_thread();
+	set_progress($progress_max, $progress_text);
+	print "\n";
+	my $i = -2;
+	print " " while ($i++ < $PROGRESS_MAX);
+	print $ESC."1G";
 }
 
-is_dietlibc_arch() {
-	if [ -n "`uname -m | grep '\(i.86\|x86_64\)'`" ]; then return 0; fi
-	return 1
+
+### this is our timer thingy
+sub timer_progress {
+	while (($progress_timer > 0) && ($progress_timer < 2)) {
+		set_progress($progress_last, $progress_ttext, 1);
+		sleep(1);
+	}
+	$progress_timer = 0;
 }
 
-### generate actual initrd image
-create_initrdimg() {
-	### create initrd
-	echo "* Creating initrd structure..." >&2
-	do_cmd "mkdir -p $INITRDDIR/{bin,dev,etc/livecd/hwdetect,etc/rc.d/,lib/modules,proc,sbin,usr/{bin,sbin}}"
-	do_cmd "mkdir -p $INITRDDIR/{cdrom,loopfs,ramfs}"
-	if is_dietlibc_arch; then
-		if [[ -n "$kernel26" ]]; then
-			do_cp /sbin/insmod-25-DIET $INITRDDIR/sbin/insmod
-		else
-			do_cp /sbin/insmod-DIET $INITRDDIR/sbin/insmod
-		fi
-		else
-		if [[ -n "$kernel26" ]]; then
-			do_cp /sbin/insmod.static-25 $INITRDDIR/sbin/insmod
-		else
-			do_cp /sbin/insmod.static $INITRDDIR/sbin/insmod
-		fi
-	fi
 
-	# copy all needed files to the initrd
-	do_cp /usr/bin/busybox $INITRDDIR/bin/busybox
-	do_cp_strip /usr/share/mklivecd/linuxrc $INITRDDIR/linuxrc
-	do_cmd "chmod 755 $INITRDDIR/linuxrc"
-	do_cp_strip /usr/share/mklivecd/rc.sysinit $INITRDDIR/etc/rc.d/rc.sysinit
-	do_cmd "chmod 755 $INITRDDIR/etc/rc.d/rc.sysinit"
-	do_cp_strip /usr/sbin/hwdetect $INITRDDIR/usr/sbin/hwdetect
-	do_cmd "chmod 755 $INITRDDIR/usr/sbin/hwdetect"
-	do_cp_strip /usr/share/mklivecd/halt.local $INITRDDIR/sbin/halt.local
-	do_cmd "chmod 755 $INITRDDIR/sbin/halt.local"
-
-	# copy the dynamic init and it's libs
-	do_cp ${rootdir}etc/inittab $INITRDDIR/etc/inittab
-	do_cp ${rootdir}sbin/init $INITRDDIR/sbin/init.dynamic
-	do_cmd "cp -aL ${rootdir}lib/libc.so.6 $INITRDDIR/lib"
-	do_cmd "cp -aL ${rootdir}lib/ld-linux.so.2 $INITRDDIR/lib"
-
-	### modules
-	echo "* Copying initrd kernel modules..." >&2
-	do_cmd "mkdir -p $INITRDDIR$MODULESDIR/kernel"
-	modules="$loopmod $modules_opt $modules"
-	[ -n "$withtrans" ] && modules="$modules $transmod"
-	for m in $modules; do
-		mod=`basename $m`
-		modpath=${rootdir}lib/modules/$kernel/kernel/$m
-		if [ -f $modpath ]; then
-			do_cp ${modpath} $INITRDDIR/$MODULESDIR/kernel/$mod
-		else
-			modpath=${modpath}.gz
-			if [ ! -f $modpath ]; then
-				modopt=
-				for o in $modules_opt; do
-					[ "$o" == "$m" ] && modopt=1
-				done
-				if [ -z "$modopt" ]; then
-					echo "ERROR: unable to find kernel module $m" >&2
-					exit 1
-				fi
-			else
-				do_cmd "gzip -dc ${modpath} >$INITRDDIR$MODULESDIR/kernel/$mod"
-			fi
-		fi
-	done
-	do_cmd ":> $INITRDDIR$modulefile"
-	if [ `uname -r` == "$kernel" ]; then
-		do_cmd "depmod -av --basedir $INITRDDIR --config $INITRDDIR$modulefile"
-	else
-		do_cp ${rootdir}lib/modules/$kernel/modules.* $INITRDDIR/$MODULESDIR/
-	fi
-
-	### devices
-	do_cmd "mknod $INITRDDIR/dev/initrd b 1 250"
-	do_cmd "mknod $INITRDDIR/dev/null c 1 3"
-	do_cmd "mknod $INITRDDIR/dev/systty c 4 0"
-	for i in 1 2 3 4; do
-		do_cmd "mknod $INITRDDIR/dev/tty$i c 4 $i"
-	done
-
-	### compressed image
-	echo "* Creating compressed initrd image..." >&2
-	IMAGESIZE=`du -ks $INITRDDIR | awk '{print $1}'`
-	IMAGESIZE=$[IMAGESIZE+250] # some extra initial scratchpad space
-	INODES=1250                # some extra inodes since we are not doing /dev anymore
-	for i in `find $INITRDDIR`; do
-		INODES=$[INODES + 1];
-	done
-	# we are using devfs and on some installs this pushes up the
-	# inode count too high, resulting in "out-of-space" errors
-	#for i in `find /dev`; do
-	#	INODES=$[INODES + 1];
-	#done
-	IMAGESIZE=$[IMAGESIZE + INODES / 10]  # 10 inodes needs 1k
-	[ -n "$verbose" ] && echo "+ Creating filesystem with size ${IMAGESIZE}KB and $INODES inodes"
-	do_cmd "dd if=/dev/zero of=$INITRD bs=1k count=$IMAGESIZE 2> /dev/null"
-	do_cmd "mke2fs -q -m 0 -F -N $INODES -s 1 $INITRD"
-	do_cmd "mount -o loop -t ext2 $INITRD $INITRDMNT"
-	do_cmd "rm -rf $INITRDMNT/lost+found"
-	do_cmd "(cd $INITRDDIR; tar cf - .) | (cd $INITRDMNT; tar xf -)"
-	do_cmd "umount $INITRDMNT"
-	do_cmd  "(cd $ISOLINUXDIR ; gzip -9 initrd)"
-	if [ -n "$bootsplash" ]; then
-		echo "* Creating bootsplash image..." >&2
-		if [ -x ${rootdir}usr/share/bootsplash/scripts/make-boot-splash ]; then
-			do_cmd "(mv -f $ISOLINUXDIR/initrd.gz ${rootdir}tmp/; \
-		        	chroot ${rootdir} /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz ${resolution}; \
-				mv -f ${rootdir}tmp/initrd.gz $ISOLINUXDIR)"
-		else
-			echo "WARNING: '${rootdir}usr/share/bootsplash/scripts/make-boot-splash' does not exist. Creating initrd image without bootsplash" >&2
-		fi
-	fi
+### start the progress thread
+sub start_thread {
+	if ($progress_timer > -1) {
+		$progress_timer = 1;
+		threads->new(\&timer_progress);
+	}
 }
 
-### create the compressed iso image
-create_cloop() {
-	echo "* Creating compressed loop image..." >&2
-	if [ -f "$cloopimg" ]; then
-		do_cmd "ln $cloopimg $LIVECDCLOOPDIR/$LIVECDISOCLP"
-	else
-		# handle excluded dirs
-		do_cmd ":> $EXCLUDELIST"
-		if [ ! -z "$excludedirs" ]; then
-			PATTERNS=""
-			for e in $excludedirs; do
-				if [ -z "$PATTERNS" ]; then
-					PATTERNS="$e"
-				else
-					PATTERNS="$PATTERNS
-$e"
-				fi
-			done
-			do_cmd "( find $rootdir -type d 2>/dev/null |sed -e 's,^$rootdir,/,g'| grep '$PATTERNS' | sed 's,^/,$rootdir,' >>$EXCLUDELIST)"
-		fi
 
-		# handle excluded files
-		if [ ! -z "$excludefiles" ]; then
-			PATTERNS=""
-			for e in $excludefiles; do
-				if [ -z "$PATTERNS" ]; then
-					PATTERNS="$e"
-				else
-					PATTERNS="$PATTERNS
-$e"
-				fi
-			done
-			do_cmd "(find $rootdir -type f 2>/dev/null |sed -e 's,^$rootdir,/,g'| grep '$PATTERNS' | sed 's,^/,$rootdir,' >>$EXCLUDELIST)"
-		fi
-
-		# sort, sort, sort
-		:> $SORTLIST
-		[ -n "$sortfile" ] && do_cmd "cat $sortfile >$SORTLIST"
-
-		# create the cloop image
-		if [ -z `which $loopcmp` ]; then
-			echo "ERROR: '$loopcmp' does not exist on your machine. You need to install an updated version of the cloop-utils or the squashfs-tools package, depending on your options." >&2
-			exit 1
-		fi
-		if [ -z `which mkisofs` ]; then
-			echo "ERROR: 'mkisofs' does not exist on your machine. You need to install the mkisofs package." >&2
-			exit 1
-		fi
-		REALSIZE=$[$blocksize*1024]
-		if [ -z "$squashfs" ]; then
-			MKISOCMD="nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST -sort $SORTLIST -hide-rr-moved -cache-inodes -no-bak -pad $verbose $verbose $rootdir"
-			[ -z "$verbose" ] && MKISOCMD="$MKISOCMD 2>/dev/null"
-			if [ -n "$lowmem" ]; then
-				do_cmd "$MKISOCMD >$TMPISO"
-				CMD="$loopcmp $TMPISO $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
-				[ -z "$verbose" ] && CMD="$CMD 2>/dev/null"
-				do_cmd "$CMD"
-				do_cmd "rm -rf $TMPISO"
-			else
-				CMD="$MKISOCMD | $loopcmp - $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
-				[ -z "$verbose" ] && CMD="$CMD 2>/dev/null"
-				do_cmd "$CMD"
-			fi
-		else
-			EXCLUDES=`cat $EXCLUDELIST | xargs`
-			MKSQFSCMD="nice -n 19 $loopcmp $rootdir $LIVECDCLOOPDIR/$LIVECDISOCLP"
-			[ -n "$verbose" ] && MKSQFSCMD="$MKSQFSCMD -info"
-			CMD="$MKSQFSCMD -e $EXCLUDES"
-			do_cmd "$CMD"
-			do_cmd "chmod 644 $LIVECDCLOOPDIR/$LIVECDISOCLP"
-		fi
-		[ -n "$cloopimg" ] && do_cmd "ln $LIVECDCLOOPDIR/$LIVECDISOCLP $cloopimg"
-	fi
+### end the progress thread
+sub end_thread {
+	if ($progress_timer > -1) {
+		$progress_timer = 2;
+		sleep(2) if ($progress_timer > 0);
+	}
 }
 
-### install isolinux
-create_isolinux() {
-	echo "* Creating isolinux image..." >&2
-	isolinuxbin="/usr/lib/syslinux/isolinux.bin"
-	[ -n "$isographic" ] && isolinuxbin="/usr/lib/syslinux/isolinux-graphic.bin"
-	if [ ! -f $isolinuxbin ]; then
-		echo "ERROR: '$isolinuxbin' does not exist on your machine. You need to install the syslinux package." >&2
-		exit 1
-	else
-		do_cp $isolinuxbin $ISOLINUXDIR/isolinux.bin
-	fi
-	if [ ! -f ${rootdir}boot/vmlinuz-$kernel ]; then
-		echo "ERROR: The kernel '${rootdir}boot/vmlinuz-$kernel' does not exist on your machine." >&2
-		exit 1
-	else
-		do_cp ${rootdir}boot/vmlinuz-$kernel $ISOLINUXDIR/vmlinuz
-	fi
-	[ -n "$isobootmsg" ] && do_cp $isobootmsg $ISOLINUXDIR/livecd.msg
-	if [ -n "$isoimage" ]; then
-		[ ! -f $ISOLINUXDIR/livecd.msg ] && echo -n "" >$ISOLINUXDIR/livecd.msg
-		do_cmd "echo -e '\\030livecd.lss' >>$ISOLINUXDIR/livecd.msg"
-		do_cp $isoimage $ISOLINUXDIR/livecd.lss
-	fi
-	# everything generated via echo since we put in some of our variables on the
-	# various command-lines
-	do_cmd "echo 'default livecd' >$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo 'prompt  1' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo 'timeout $timeout' >>$ISOLINUXDIR/isolinux.cfg"
-	[ -f $ISOLINUXDIR/livecd.msg ] && do_cmd "echo 'display livecd.msg' >>$ISOLINUXDIR/isolinux.cfg"
-	keymsg=""
-	if [ -n "$isobootkeymsg" ]; then
-		for l in $isobootkeymsg; do
-			key=`echo $l | awk -F',' '{ print $1 }'`
-			msg=`echo $l | awk -F',' '{ print $2 }'`
-			do_cp $msg $ISOLINUXDIR/livecd_$key.msg
-			do_cmd "echo '$key livecd_$key.msg' >>$ISOLINUXDIR/isolinux.cfg"
-		done
-	fi
-	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo 'label livecd' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-	appopt="initrd=initrd.gz root=/dev/rd/3 devfs=mount fastboot=yes ramdisk_size=32000 automatic=method:cdrom vga=$vgamode"
-	[ -n "$isokeyboard" ] && appopt="$appopt keyb=$isokeyboard"
-	[ -n "$fstabopt" ] && appopt="$appopt fstab=$fstabopt"
-	[ -n "$homedir" ] && appopt="$appopt $homedir"
-	[ -n "$bootopt" ] && appopt="$appopt $bootopt"
-	do_cmd "echo '    append livecd=livecd $appopt' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
-	if [ -z "$final" ]; then
-		do_cmd "echo 'label initrd' >>$ISOLINUXDIR/isolinux.cfg"
-		do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-		do_cmd "echo '    append livecd=initrd $appopt' >>$ISOLINUXDIR/isolinux.cfg"
-		do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
-	fi
-	do_cmd "echo 'label memtest' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '    kernel memtest' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "dd if=/dev/zero of=$ISOLINUXDIR/boot.cat bs=1k count=2 2> /dev/null"
+### parse the command-line options
+sub parse_options {
+	GetOptions(\%opts,
+		'help',
+		'version',
+		'verbose+',
+		'root=s',
+		'tmp=s',
+		'img=s',
+		'nofile=s@',
+		'nodir=s@',
+		'sort=s',
+		'kernel=s',
+		'lowmem',
+		'experimental',
+		'looptype=s',
+		'blocksize=i',
+		'bootopt=s%',
+		'bootmsg=s',
+		'bootkey=s%',
+		'bootimg=s',
+		'mdkboot',
+		'keyboard=s',
+		'resolution=s',
+		'splash=s',
+		'fstab=s',
+		'isoextrafiles=s',
+		'application=s',
+		'volumeid=s',
+		'preparer=s',
+		'publisher=s',
+		'usbhome'
+	);
+
+	# help and stuff
+	print_version if (defined($opts{version}));
+	print_usage if (defined($opts{help}));
+
+	# mandatory stuff
+	$o_root =~ s|/$||;
+	$o_root .= "/";
+	die_("\nFATAL: Root directory (--root) '$o_root' does not exist\n") unless (-d $o_root);
+	$o_tmp =~ s|/$||;
+	$o_tmp .= "/";
+	die_("\nFATAL: Temporary directory (--tmp) '$o_tmp' does not exist\n") unless (-d $o_tmp);
+	die_("\nFATAL: Unknown loop type (--looptype) '$o_looptype'\n") unless ($o_looptype =~ /clp|bzlp|sqfs/);
+
+	# optional stuff
+	die_("\nFATAL: Specified sort file (--sort) '".$opts{sort}."' does not exist\n") if (defined($opts{sort}) && !(-f $opts{sort}));
+	print STDERR "\nWARNING: Sort option ignored for 'sqfs' (squashfs) looptype" if (defined($opts{sort}) && ($o_looptype =~ /sqfs/));
+	die_("\nFATAL: Kernel (--kernel) '".$o_kernel."' not installed on the root image\n") if (!(-d $o_root."/lib/modules/".$o_kernel));
+	die_("\nFATAL: Extra ISO directory (--isoextrafiles) '".$opts{isoextrafiles}."' does not exist\n") if (defined($opts{isoextrafiles}) && !(-d $opts{isoextrafiles}));
+	die_("\nFATAL: Unknown splash (--splash) option '$o_splash'\n") unless ($o_splash =~ /yes|no/);
+
+	# final iso name
+	if (scalar(@ARGV) > 0) {
+		die_("\nFATAL: Too many command-line arguments\n") if (scalar(@ARGV) > 1);
+		$finaliso = $ARGV[0];
+	}
+	else {
+		die_("\nFATAL: No final iso name specified\n");
+	}
+
+	# set some options
+	my $distro  = get_exec("gawk -F' ' '{ print \$1 \" \" \$2 }' $o_root/etc/redhat-release");
+	my $version = get_exec("gawk -F' ' '{ print \$4 \" \" \$5 }' $o_root/etc/redhat-release");
+	my $date    = get_exec("date --utc");
+	$opts{volumeid} = "$date" unless (defined($opts{volumeid}));
+	$opts{application} = "$distro $version LiveCD" unless (defined($opts{application}));
+	$opts{preparer} = "$PROG_NAME $PROG_VERSION" unless (defined($opts{preparer}));
+	$opts{publisher} = "$URL" unless (defined($opts{publisher}));
+
+	# create our working dir
+	$workdir = $o_tmp."mklivecd.$$";
+	system("mkdir -p $workdir");
+	die_("\nFATAL: Unable to create working directory, '$workdir'\n") unless (-e $workdir);
+
+	# massage where we might have options csv
+	@{$opts{nofile}} = split(/,/, join(',', @{$opts{nofile}})) if (defined($opts{nofile}));
+	push @{$opts{nofile}}, split(/ /, $nofiles);
+	@{$opts{nodir}} = split(/,/, join(',', @{$opts{nodir}})) if (defined($opts{nodir}));
+	push @{$opts{nodir}}, split(/ /, $nodirs);
+
+	# setup executables
+	if ($o_looptype =~ /clp/) {
+		$loopcmp = "create_compressed_fs";
+		$loopmod = "drivers/block/cloop.o";
+		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 64;
+	}
+	elsif ($o_looptype =~ /bzlp/) {
+		$loopcmp = "create_bzfs";
+		$loopmod = "drivers/block/bzloop.o";
+		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 64;
+	}
+	elsif ($o_looptype =~ /sqfs/) {
+		$loopcmp = "mksquashfs";
+		$loopmod = "fs/squashfs/squashfs.o";
+		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 32;
+	}
+
+	# do other things before starting
+	check_kernel();
+	check_dietlibc();
+	check_resolution();
+	check_root();
+	print "\n\n";
 }
 
-### create the final iso image
-create_liveiso() {
-	echo "* Creating final iso image..." >&2
-	DISTRO=`gawk -F' ' '{ print $1 " " $2 }' $rootdir/etc/mandrake-release`
-	VERSION=`gawk -F' ' '{ print $4 " " $5 }' $rootdir/etc/mandrake-release`
-	VERSION_DATE=`date --utc`
-	[ -z "$isoappid" ] && isoappid="$VERSION $VERSION_DATE"
-	[ -z "$isovolid" ] && isovolid="$DISTRO LiveCD"
 
-	# create MD5 of the cloop image
-	MD5FILE="livecd.md5"
-	MD5FILES="isolinux/initrd.gz isolinux/isolinux.cfg isolinux/vmlinuz $LIVECDISOCLP"
-	do_cmd "cd $LIVECDCLOOPDIR && md5sum $MD5FILES >$MD5FILE"
+### check for the kernel version
+sub check_kernel {
+	# this should really be perl regex's
+	my $major = get_exec("expr \"$o_kernel\" : \"\\([^.]\\+\\)\\..*\"");
+	my $minor = get_exec("expr \"$o_kernel\" : \"[^.]\\+\\.\\([^.]\\+\\)\\..*\"");
 
+	if (($major == 2) && ($minor >= 5)) {
+		$kernel26 = 1;
+		$modfile = "/etc/modprobe.conf";
+		$opts{splash} = "no";
+	}
+}
+
+
+### checks if this is a MDK dietlibc architecture
+sub check_dietlibc {
+	my $arch = get_exec("uname -m");
+	$dietarch = 1 if ($arch =~ m/i.86|x86_64/);
+}
+
+
+### checks the resolution given
+sub check_resolution {
+	if ($o_resolution =~ m/^640x480/) {
+		$o_vgamode = 785;
+	}
+	elsif ($o_resolution =~ m/^800x600/) {
+		$o_vgamode = 788;
+	}
+	elsif ($o_resolution =~ m/^1024x768/) {
+		$o_vgamode = 791;
+	}
+	elsif ($o_resolution =~ m/^1280x1024/) {
+		$o_vgamode = 794;
+	}
+	elsif ($o_resolution =~ m/^1600x1200/) {
+		$o_vgamode = 797;
+	}
+	else {
+		die_("\nFATAL: Invalid resolution '$o_resolution' specified with '--resolution' option
+       Valid resolutions are:
+            640x480
+            800x600
+           1024x768
+          1280x1024
+          1600x1200\n");
+	}
+}
+
+
+### see if we are indeed root
+sub check_root {
+	die_("\nFATAL: You have to be root to execute this program\n") if ($> > 0);
+}
+
+
+### execute a command
+sub do_cmd {
+	my ($cmd, $prog) = @_;
+	set_progress($prog-1, $cmd) if (defined($prog));
+	system($cmd) and die_("\nFATAL: Execution of '$cmd' failed\n");
+	set_progress($prog, $cmd) if (defined($prog));
+}
+
+
+### copy a file
+sub do_copy {
+	my ($src, $mode, $dest, $prog) = @_;
+	my $cmd = ($mode > 0) ? "install -m $mode $src $dest" : "cp -aL $src $dest";
+	set_progress($prog-1, $cmd) if (defined($prog));
+	system($cmd);
+	set_progress($prog, $cmd) if (defined($prog));
+}
+
+
+### create an initrd image
+sub create_initrd {
+	# get our modules
+	my @allmods = split(/ /, $modules);
+	push @allmods, $loopmod;
+	my @allmods_opt = split(/ /, $modules_opt);
+
+	# start progress bar
+	my $pos = 0;
+	start_progress("Creating initrd", 29+scalar(@allmods));
+
+	# create directories
+	my $dir = $workdir."/initrd.dir";
+	system("mkdir -p $dir/{bin,dev,etc/livecd/hwdetect,etc/rc.d/,lib/modules/$o_kernel/kernel,proc,sbin,usr/{bin,sbin},cdrom,loopfs,ramfs}") and die_("\nFATAL: Unable to create initrd directory, '$dir'\n");
+	set_progress(++$pos, "mkdir -p $dir/...");
+
+	# find our insmod
+	my $insmod;
+	if (defined($dietarch)) {
+		do_copy(defined($kernel26) ? "/sbin/insmod-25-DIET" : "/sbin/insmod-DIET", 755, "$dir/sbin/insmod", ++$pos);
+	}
+	else {
+		do_copy(defined($kernel26) ? "/sbin/insmod.static-25" : "/sbin/insmod.static", 755, "$dir/sbin/insmod", ++$pos);
+	}
+
+	# copy files
+	do_copy("/usr/bin/busybox",               755, "$dir/bin/busybox",         ++$pos);
+	do_copy("/usr/share/mklivecd/linuxrc",    755, "$dir/linuxrc",             ++$pos);
+	do_copy("/usr/share/mklivecd/rc.sysinit", 755, "$dir/etc/rc.d/rc.sysinit", ++$pos);
+	do_copy("/usr/sbin/hwdetect",             755, "$dir/usr/sbin/hwdetect",   ++$pos);
+	do_copy("/usr/share/mklivecd/halt.local", 755, "$dir/sbin/halt.local",     ++$pos);
+	do_copy($o_root."etc/inittab",            644, "$dir/etc/inittab",         ++$pos);
+	do_copy($o_root."sbin/init",              755, "$dir/sbin/init.dynamic",   ++$pos);
+	do_copy($o_root."lib/libc.so.6",            0, "$dir/lib",                 ++$pos);
+	do_copy($o_root."lib/ld-linux.so.2",        0, "$dir/lib",                 ++$pos);
+
+	# create devices
+	do_cmd("mknod $dir/dev/initrd b 1 250", ++$pos);
+	do_cmd("mknod $dir/dev/null c 1 3",     ++$pos);
+	do_cmd("mknod $dir/dev/systty c 4 0",   ++$pos);
+	do_cmd("mknod $dir/dev/tty$_ c 4 $_",   ++$pos) foreach((1,2,3,4));
+
+	# copy modules
+	foreach my $mod (@allmods) {
+		my $modpath = $o_root."lib/modules/$o_kernel/kernel/$mod";
+		$mod = get_exec("basename $mod");
+		my $tomod = "$dir/lib/modules/$o_kernel/kernel/$mod";
+		if (-f $modpath) {
+			do_copy($modpath, 644, $tomod, ++$pos);
+		}
+		else {
+			$modpath = $modpath.".gz";
+			if (-f $modpath) {
+				do_cmd("gzip -dc $modpath >$tomod", ++$pos);
+			}
+			else {
+				my $modopt = undef;
+				foreach my $opt (@allmods_opt) {
+					$modopt = 1 if ($opt =~ m/$mod/);
+				}
+				die_("\nFATAL: unable to find kernel module '$mod'\n") unless (defined($modopt));
+				set_progress(++$pos, $modpath);
+			}
+		}
+	}
+	do_cmd(":>$dir$modfile ; depmod -a --basedir $dir --config $dir$modfile 2>/dev/null", ++$pos);
+
+	# get sizes
+	my $size = get_exec("du -ks $dir | awk '{print \$1}'");
+	$size = $size + 250;
+	set_progress(++$pos, "du -ks $dir");
+
+	# number of inodes
+	my $inodes = 1250;
+	my $num = get_exec("find $dir | wc -l");
+	$inodes = $inodes + $num;
+	$size = int($size + ($inodes / 10)) + 1; # 10 inodes needs 1K
+	set_progress(++$pos, "find $dir | wc -l");
+
+	# do magic
+	my $initrd = "$workdir/livecd/isolinux/initrd";
+	my $mnt = "$workdir/initrd.mnt";
+	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos);
+	do_cmd("dd if=/dev/zero of=$initrd bs=1k count=$size 2> /dev/null", ++$pos);
+	do_cmd("mke2fs -q -m 0 -F -N $inodes -s 1 $initrd",                 ++$pos);
+	do_cmd("mkdir -p $mnt ; mount -o loop -t ext2 $initrd $mnt",        ++$pos);
+	do_cmd("rm -rf $mnt/lost+found",                                    ++$pos);
+	do_cmd("(cd $dir ; tar cf - .) | (cd $mnt ; tar xf -)",             ++$pos);
+	do_cmd("umount $mnt",                                               ++$pos);
+	do_cmd("(cd $workdir/livecd/isolinux ; gzip -9 initrd)",            ++$pos);
+
+	# make splash
+	do_cmd("mv -f $initrd.gz $o_root/tmp ; \
+		chroot $o_root /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz $o_resolution; \
+		mv -f $o_root/tmp/initrd.gz $workdir/livecd/isolinux", ++$pos) if ($opts{splash} =~ m/yes/);
+
+	# we are done
+	end_progress();
+}
+
+
+### create the compressed image
+sub create_compressed {
+	if (defined($opts{img}) && (-f $opts{img})) {
+		do_cmd("ln $opts{img} $workdir/livecd/livecd.$o_looptype");
+	}
+	else {
+		my $pos = 0;
+		start_progress("Setting compression parameters", 5);
+
+		# handle excludes
+		do_cmd(":>$workdir/excludes.list", ++$pos);
+		if (defined($opts{nodir})) {
+			my $ex = join("\n", @{$opts{nodir}});
+			do_cmd("(find $o_root -type d 2>/dev/null | sed -e 's,^$o_root,/,g' | grep '$ex' | sed 's,^/,$o_root,' >>$workdir/excludes.list)", ++$pos);
+		}
+		if (defined($opts{nofile})) {
+			my $ex = join("\n", @{$opts{nofile}});
+			do_cmd("(find $o_root -type f 2>/dev/null | sed -e 's,^$o_root,/,g' | grep '$ex' | sed 's,^/,$o_root,' >>$workdir/excludes.list)", ++$pos);
+		}
+
+		# handle sort
+		do_cmd(":>$workdir/sort.list", ++$pos);
+		do_cmd("cat ".$opts{sort}." >>$workdir/sort.list", ++$pos) if (defined($opts{sort}));
+		end_progress();
+
+		$pos = 0;
+		my $size = $blocksize*1024;
+		if ($o_looptype =~ m/sqfs/) {
+			my @files = qx(find $o_root -type f 2>/dev/null);
+			my $total = scalar(@files);
+			start_progress("Creating compressed image", $total+2);
+			my $ex = "";
+			foreach(cat_("$workdir/excludes.list")) {
+				chomp;
+				$ex .= " $_";
+			}
+			my $cmd = "nice -n 19 $loopcmp $o_root $workdir/livecd/livecd.$o_looptype -info -e $ex 2>&1";
+			open CMP, "$cmd |";
+			my $line;
+			my $linep = "";
+			while ($line = <CMP>) {
+				if ($line =~ m/mksquashfs: file/) {
+					$linep = $line;
+					$pos++;
+				}
+				set_progress($pos, $linep);
+			}
+			close CMP;
+			do_cmd("chmod 644 $workdir/livecd/livecd.$o_looptype", $total+1);
+			do_cmd("ln $workdir/livecd/livecd.$o_looptype $opts{img}", $total+2) if (defined($opts{img}));
+			end_progress();
+		}
+		else {
+			start_progress("Creating compressed image", 10001);
+			my $cmd="(nice -n 19 mkisofs -R -exclude-list $workdir/excludes.list -sort $workdir/sort.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype) 2>&1";
+			open CMP, "$cmd |";
+			my $line;
+			while ($line = <CMP>) {
+				if ($line =~ m/done, estimate/) {
+					$line =~ s/^ //g while ($line =~ m/^ /);
+					my ($per, @rest) = split(/ /, $line);
+					$per =~ s/%//;
+					$pos = int($per*100);
+				}
+				set_progress($pos, $line);
+			}
+			close CMP;
+			do_cmd("ln $workdir/livecd/livecd.$o_looptype $opts{img}", 10001) if (defined($opts{img}));
+			end_progress();
+		}
+	}
+}
+
+
+### create the isolinux stuff
+sub create_isolinux {
+	my $pos = 0;
+	start_progress("Creating isolinux boot", 8);
+
+	# copy boot images
+	my $bin = "/usr/lib/syslinux/isolinux.bin";
+	$bin = "/usr/lib/syslinux/isolinux-graphic.bin" if (defined($opts{mdkboot}));
+	die_("\nFATAL: '$bin' does not exist on your machine. You need to install the syslinux package.\n") unless (-f $bin);
+	do_copy($bin, 644, "$workdir/livecd/isolinux/isolinux.bin", ++$pos);
+	die_("\nFATAL: The kernel '".$o_root."boot/vmlinuz-$o_kernel' does not exist on your machine.\n") unless (-f $o_root."boot/vmlinuz-$o_kernel");
+	do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/isolinux/vmlinuz", ++$pos);
+
+	# copy messages
+	do_copy($opts{bootmsg}, 644, "$workdir/livecd/isolinux/livecd.msg", ++$pos) if (defined($opts{bootmsg}));
+	if (defined($opts{bootimg})) {
+		do_cmd("echo -n '' >$workdir/livecd/isolinux/livecd.msg", ++$pos);
+		do_cmd("echo -e '\\030livecd.lss' >>$workdir/livecd/isolinux/livecd.msg", ++$pos);
+		do_copy($opts{bootimg}, 644, "$workdir/livecd/isolinux/livecd.lss", ++$pos);
+	}
+
+	# write config
+	my $appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=mount fastboot=yes ramdisk_size=32000 automatic=method:cdrom vga=$o_vgamode keyb=$o_keyboard";
+	$appopt = "$appopt fstab=".$opts{fstab} if (defined($opts{fstab}));
+	$appopt = "$appopt home=usb" if (defined($opts{usbhome}));
+	$appopt = "$appopt $_=".${$opts{bootopt}}{$_} foreach (keys %{$opts{bootopt}});
+	open CFG, '>', "$workdir/livecd/isolinux/isolinux.cfg";
+	print CFG "default livecd\n";
+	print CFG "prompt  1\n";
+	print CFG "timeout $o_timeout\n";
+	print CFG "display livecd.msg\n" if (-f "$workdir/livecd/isolinux/livecd.msg");
+	foreach my $k (keys %{$opts{bootkey}}) {
+		do_copy(${$opts{bootkey}}{$k}, 644, "$workdir/livecd/isolinux/livecd_$k.msg");
+		print CFG "$k livecd_$k.msg\n";
+	}
+	print CFG "label livecd\n";
+	print CFG "    kernel vmlinuz\n";
+	print CFG "    append livecd=livecd $appopt\n";
+	print CFG "label initrd\n";
+	print CFG "    kernel vmlinuz\n";
+	print CFG "    append livecd=initrd $appopt\n";
+	print CFG "label memtest\n";
+	print CFG "    kernel memtest\n";
+	close CFG;
+	set_progress(++$pos, "$workdir/livecd/isolinux/isolinux.cfg");
+
+	# create boot catalogue
+	do_cmd("dd if=/dev/zero of=$workdir/livecd/isolinux/boot.cat bs=1k count=2 2> /dev/null", ++$pos);
+
+	end_progress();
+}
+
+
+### create the md5's
+sub create_md5 {
+	# create the md5
+	my @files = ("isolinux/initrd.gz", "isolinux/isolinux.cfg", "isolinux/vmlinuz", "livecd.$o_looptype");
+	start_progress("Calculating MD5 checksums", scalar(@files));
+	do_cmd(":> livecd.md5");
+	my $pos = 0;
+	do_cmd("cd $workdir/livecd ; md5sum $_ >>livecd.md5", ++$pos) foreach (@files);
+	end_progress();
+}
+
+
+### create the final iso
+sub create_finaliso {
 	# create a sort-file
-	:> $SORTLIST
-	echo "$ISOLINUXDIR/isolinux.bin 500" >>$SORTLIST
-	echo "$ISOLINUXDIR/isolinux.cfg 499" >>$SORTLIST
-	echo "$ISOLINUXDIR/vmlinuz 498" >>$SORTLIST
-	echo "$ISOLINUXDIR/initrd.gz 497" >>$SORTLIST
-	echo "$ISOLINUXDIR/* 450" >>$SORTLIST
-	echo "$LIVECDCLOOPDIR/$MD5FILE 420"  >>$SORTLIST
-	echo "$LIVECDCLOOPDIR/$LIVECDISOCLP 400"  >>$SORTLIST
+	my $pos = 0;
+	start_progress("Creating final iso", 10001);
+	open SORT, '>', "$workdir/sort_iso.list";
+	print SORT "$workdir/livecd/isolinux/isolinux.bin 500\n";
+	print SORT "$workdir/livecd/isolinux/isolinux.cfg 499\n";
+	print SORT "$workdir/livecd/isolinux/vmlinuz 498\n";
+	print SORT "$workdir/livecd/isolinux/initrd.gz 497\n";
+	print SORT "$workdir/livecd/isolinux/* 450\n";
+	print SORT "$workdir/livecd/livecd.md5 420\n";
+	print SORT "$workdir/livecd/livecd.$o_looptype 400\n";
+	close SORT;
+	set_progress(++$pos, "$workdir/sort_iso.list");
 
 	# create actual iso
-	CMD="nice -n 19 mkisofs -pad -l -R -J ${isoextrafiles:+-f} $verbose \
-		-V '$isovolid' -A '$isoappid' -p '$isoprepid' -P '$isopubid' \
-		-b isolinux/isolinux.bin -c isolinux/boot.cat \
-		-hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table \
-		-sort $SORTLIST -o $target $LIVECDDIR $isoextrafiles"
-	[ -z "$verbose" ] && CMD="$CMD 2>/dev/null"
-	do_cmd "$CMD"
-}
-
-check_theme() {
-	[ -z "$theme" ] && return 0
-	if [ -x ${rootdir}usr/share/bootsplash/scripts/switch-themes ]; then
-		current_theme="`chroot ${rootdir} /usr/share/bootsplash/scripts/switch-themes -c`"
-		current_theme="${current_theme#*: }"
-		if [ "$theme" != "$current_theme" ]
-		then
-			# Is it available?
-			have_requested_theme=
-			for i in `chroot ${rootdir} /usr/share/bootsplash/scripts/switch-themes -l|awk '{if ($1!="Available") print $1}'`
-			do
-				[ "$i" == "$theme" ] && have_requested_theme=1 || :
-			done
-			if [ -z "$have_requested_theme" ]
-			then
-				echo "ERROR: The specified bootsplash theme, '$theme', is not available" >&2
-				exit 1
-			fi
-
-			#We have the theme, so change it
-			chroot ${rootdir} /usr/share/bootsplash/scripts/switch-themes "$theme"
-		fi
-	else
-		echo "ERROR: '${rootdir}usr/share/bootsplash/scripts/switch-themes' does not exist. Cannot adhere to '--theme' option." >&2
-		exit 1
-	fi
-}
-
-restore_theme() {
-	[ -z "$theme" ] && return 0
-	if [ "$theme" != "$current_theme" ]
-	then
-		chroot ${rootdir} /usr/share/bootsplash/scripts/switch-themes "$current_theme"
-	fi
+	$opts{isoextrafiles} = "" unless (defined($opts{isoextrafiles}));
+	my $cmd="nice -n 19 mkisofs -pad -l -R -J -v -v \\\
+		-V '".$opts{volumeid}."' \\\
+		-A '".$opts{application}."' \\\
+		-p '".$opts{preparer}."' \\\
+		-P '".$opts{publisher}."' \\\
+		-b isolinux/isolinux.bin -c isolinux/boot.cat \\\
+		-hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table \\\
+		-sort $workdir/sort_iso.list -o $finaliso $workdir/livecd/ ".$opts{isoextrafiles}." 2>&1";
+	open ISO, "$cmd |";
+	my $line;
+	while ($line = <ISO>) {
+		if ($line =~ m/done, estimate/) {
+			$line =~ s/^ //g while ($line =~ m/^ /);
+			my ($per, @rest) = split(/ /, $line);
+			$per =~ s/%//;
+			$pos = int($per*100)+1;
+		}
+		set_progress($pos, $line);
+	}
+	close ISO;
+	end_progress();
 }
 
 
-echo "$PROGNAME, version $VERSION, http://livecd.berlios.de" >&2
-echo "Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>" >&2
-while [ $# -gt 0 ]; do
-	case $1 in
-		--exclude*|--rootdir*|--tmpdir*|--translucency*|--iso-*|--theme*)
-			echo "ERROR: The $1 option has been removed. Please use \"`basename $0` --help\" for a list of valid options." >&2
-			exit 1
-			;;
+### clean everything
+sub cleanup {
+	if (defined($workdir)) {
+		system("umount $workdir/initrd.mnt 2>/dev/null");
+		system("rm -rf $workdir");
+	}
+}
 
-		--cloop*)
-			if echo $1 | grep '=' >/dev/null ; then
-				cloopimg="${1#--cloop=}"
-			else
-				cloopimg=$2
-				shift
-			fi
-			;;
 
-		--nodir*)
-			if echo $1 | grep '=' >/dev/null ; then
-				excludes="${1#--nodir=}"
-			else
-				excludes=$2
-				shift
-			fi
-			for e in `echo $excludes | sed -e 's/,/ /g'`; do
-				excludedirs="$excludedirs $e"
-			done
-			;;
+### signals
+sub die_ {
+	do_signal('DIE', join(' ', @_));
+}
+sub do_signal {
+	my ($signal, $text) = @_;
+	end_thread();
+	my $to = $text ? $text : "\nFATAL: Interrupted.\n";
+	chomp($to);
+	print pack("A80", $to)."\n";
+	cleanup();
+	exit(1);
+}
 
-		--nofile*)
-			if echo $1 | grep '=' >/dev/null ; then
-				excludes="${1#--nofile=}"
-			else
-				excludes=$2
-				shift
-			fi
-			for e in `echo $excludes | sed -e 's/,/ /g'`; do
-				excludefiles="$excludefiles $e"
-			done
-			;;
 
-		--sort*)
-			if echo $1 | grep '=' >/dev/null ; then
-				sortfile="${1#--sort=}"
-			else
-				sortfile=$2
-				shift
-			fi
-			;;
+### main program entry point
+MAIN: {
+	$SIG{INT} = \&do_signal;
+	$SIG{KILL} = \&do_signal;
+	$SIG{PIPE} = \&do_signal;
 
-		--blocksize*)
-			if echo $1 | grep '=' >/dev/null ; then
-				blocksize="${1#--blocksize=}"
-			else
-				blocksize=$2
-				shift
-			fi
-			blockgiven=1
-			;;
+	print_banner();
+	parse_options();
 
-		--kernel*)
-			if echo $1 | grep '=' >/dev/null ; then
-				kernel="${1#--kernel=}"
-			else
-				kernel=$2
-				shift
-			fi
-			;;
+	create_initrd();
+	create_compressed();
+	create_isolinux();
+	create_md5();
+	create_finaliso();
 
-		--tmp*)
-			if echo $1 | grep '=' >/dev/null ; then
-				tmpdir="${1#--tmp=}"
-			else
-				tmpdir=$2
-				shift
-			fi
-			;;
+	cleanup();
 
-		--root*)
-			if echo $1 | grep '=' >/dev/null ; then
-				rootdir="${1#--root=}"
-			else
-				rootdir=$2
-				shift
-			fi
-			;;
-
-		--looptype*)
-			if echo $1 | grep '=' >/dev/null ; then
-				looptype="${1#--looptype=}"
-			else
-				looptype=$2
-				shift
-			fi
-			if [ "$looptype" == "clp" ]; then
-				LIVECDISOCLP="livecd.clp"
-				loopcmp="create_compressed_fs"
-				loopmod="drivers/block/cloop.o"
-				squashfs=
-				[ -z "$blockgiven" ] && blocksize=64
-			elif [ "$looptype" == "bzlp" ]; then
-				LIVECDISOCLP="livecd.bzlp"
-				loopcmp="create_bzfs"
-				loopmod="drivers/block/bzloop.o"
-				squashfs=
-				[ -z "$blockgiven" ] && blocksize=64
-			elif [ "$looptype" == "sqfs" ]; then
-				LIVECDISOCLP="livecd.sqfs"
-				loopcmp="mksquashfs"
-				loopmod="fs/squashfs/squashfs.o"
-				squashfs=1
-				[ -z "$blockgiven" ] && blocksize=32
-			else
-				echo "ERROR: You need to specify either clp, bzlp or sqfs with the '--looptype' option" >&2
-				exit 1
-			fi
-			;;
-
-		--lowmem)
-			lowmem=1
-			;;
-
-		--final)
-			final=1
-			;;
-
-		--experimental)
-			withtrans=1
-			;;
-
-		--usbhome)
-			homedir="home=usb"
-			;;
-
-		--splash*)
-			if echo $1 | grep '=' >/dev/null ; then
-				cl="${1#--splash=}"
-			else
-				cl=$2
-				shift
-			fi
-			yn=`echo $cl | awk -F',' '{ print $1 }'`
-			theme=`echo $cl | awk -F',' '{ print $2 }'`
-			if [ "$yn" == "yes" ]; then
-				bootsplash=1
-			else
-				bootsplash=
-				theme=
-			fi
-			;;
-
-		--timeout*)
-			if echo $1 | grep '=' >/dev/null ; then
-				timeout="${1#--timeout=}"
-			else
-				timeout=$2
-				shift
-			fi
-			;;
-
-		--keyboard*)
-			if echo $1 | grep '=' >/dev/null ; then
-				isokeyboard="${1#--keyboard=}"
-			else
-				isokeyboard=$2
-				shift
-			fi
-			;;
-
-		--resolution*)
-			if echo $1 | grep '=' >/dev/null ; then
-				resolution="${1#--resolution=}"
-			else
-				resolution=$2
-				shift
-			fi
-			case $resolution in
-				640*)
-					vgamode=785
-					;;
-				800*)
-					vgamode=788
-					;;
-				1024*)
-					vgamode=791
-					;;
-				1280*)
-					vgamode=794
-					;;
-				1600*)
-					vgamode=797
-					;;
-				*)
-					echo "ERROR: Invalid resolution '$resolution' specified with '--resolution' option" >&2
-					echo "       Valid resolutions are: ">&2
-					echo "            640x480" >&2
-					echo "            800x600" >&2
-					echo "           1024x768" >&2
-					echo "          1280x1024" >&2
-					echo "          1600x1200" >&2
-					exit 1
-					;;
-			esac
-			;;
-
-		--bootopt*)
-			if echo $1 | grep '=' >/dev/null ; then
-				opts="${1#--bootopt=}"
-			else
-				opts=$2
-				shift
-			fi
-			for o in `echo $opts | sed -e 's/,/ /g'`; do
-				bootopt="$bootopt $o"
-			done
-			;;
-
-		--bootmsg*)
-			if echo $1 | grep '=' >/dev/null ; then
-				isobootmsg="${1#--bootmsg=}"
-			else
-				isobootmsg=$2
-				shift
-			fi
-			if [ ! -f "$isobootmsg" ]; then
-				echo "ERROR: The specified boot message, '$isobootmsg' could not be found." >&2
-				exit 1
-			fi
-			;;
-
-		--bootkey*)
-			if echo $1 | grep '=' >/dev/null ; then
-				isobootkey="${1#--bootkey=}"
-			else
-				isobootkey=$2
-				shift
-			fi
-			key=`echo $isobootkey | awk -F',' '{ print $1 }'`
-			msg=`echo $isobootkey | awk -F',' '{ print $2 }'`
-			if [ -z "$key" -o -z "$msg" ]; then
-				echo "ERROR: You need to specify both the key and message for the '--iso-bootkey' parameter." >&2
-				exit 1
-			fi
-			if [ ! -f "$msg" ]; then
-				echo "ERROR: The specified boot message, '$msg' could not be found." >&2
-				#exit 1
-			fi
-			isobootkeymsg="$isobootkeymsg $isobootkey"
-			;;
-
-		--mdkboot)
-			isographic=1
-			;;
-
-		--bootimg*)
-			if echo $1 | grep '=' >/dev/null ; then
-				isoimage="${1#--bootimg=}"
-			else
-				isoimage=$2
-				shift
-			fi
-			if [ ! -f "$isoimage" ]; then
-				echo "ERROR: The specified boot graphic, '$isoimage' could not be found." >&2
-				exit 1
-			fi
-			;;
-
-		--isoextrafiles*)
-			if echo $1 | grep '=' >/dev/null ; then
-				isoextrafiles="${1#--isoextrafiles=}"
-			else
-				isoextrafiles="$2"
-				shift
-			fi
-			if [ ! -e "$isoextrafiles" ]
-			then
-				echo "ERROR: Extra ISO files directory $isoextrafiles could not be found." >&2
-				exit 1
-			fi
-			;;
-
-		--application*)
-			if echo $1 | grep '=' >/dev/null ; then
-				isoappid="${1#--application=}"
-			else
-				isoappid=$2
-				shift
-			fi
-			;;
-
-		--volumeid*)
-			if echo $1 | grep '=' >/dev/null ; then
-				isovolid="${1#--volumeid=}"
-			else
-				isovolid=$2
-				shift
-			fi
-			;;
-
-		--preparer*)
-			if echo $1 | grep '=' >/dev/null ; then
-				isoprepid="${1#--preparer=}"
-			else
-				isoprepid=$2
-				shift
-			fi
-			;;
-
-		--publisher*)
-			if echo $1 | grep '=' >/dev/null ; then
-				isopubid="${1#--publisher=}"
-			else
-				isopubid=$2
-				shift
-			fi
-			;;
-
-		--fstab*)
-			if echo $1 | grep '=' >/dev/null ; then
-				fstabopt="${1#--fstab=}"
-			else
-				fstabopt=$2
-				shift
-			fi
-			;;
-
-		--version)
-			printversion
-			;;
-
-		-h|--help)
-			printusage
-			;;
-
-		-v|--verbose)
-			verbose="-v"
-			;;
-
-		-*)
-			echo "ERROR: Unknown command-line option '$1'. Try '`basename $0` --help' for valid options." >&2
-			exit 1
-			;;
-
-		*)
-			if [ -z "$target" ]; then
-				target="$1"
-			else
-				printusage
-			fi
-			;;
-	esac
-	shift
-done
-
-### do we have the correct iso options?
-if [ -n "$isographic" ]; then
-	if [ -n "$isoimage" ]; then
-		echo "ERROR: You cannot specify the '--iso-graphic' and '--iso-bgimage' options together." >&2
-		exit 1
-	fi
-	if [ -z "$isobootmsg" ]; then
-		echo "ERROR: You should specify the '--iso-bootmsg' option in conjunction with the '--iso-graphic' option/" >&2
-		exit 1
-	fi
-fi
-
-### do we have correct theme options?
-if [ -n "$theme" ]; then
-	if [ -z "$bootsplash" ]; then
-		echo "ERROR: The '--theme' option can only be used with bootsplash enabled ('--splash') enabled." >&2
-		exit 1
-	fi
-fi
-
-### do we have target?
-[ -z "$target" ] && usage
-
-### are we root?
-if [ `id -u` != "0" ]; then
-	echo "ERROR: You need to be root to execute this program." >&2
-	exit
-fi
-
-### check our passed parameters
-[ -z "$kernel" ] && kernel=`uname -r`
-[ -n "$verbose" ] && echo "+ Using $kernel as boot kernel"
-check_kernel_26 "$kernel"
-[[ -n $tmpdir ]] && { is_good_fs $tmpdir || tmpdir= ;} #command-line
-if [[ -z $tmpdir ]]; then
-	if is_good_fs /tmp; then
-		tmpdir=/tmp
-	elif is_good_fs $TMPDIR; then
-		tmpdir=$TMPDIR
-	elif is_good_fs /var/tmp; then
-		tmpdir=/var/tmp
-	elif is_good_fs /root/tmp; then
-		tmpdir=/root/tmp
-	else
-		echo "Cannot find a suitable tmp directory" >&2
-		exit 1
-	fi
-fi
-
-# fix the root directory to be uniform in "/-before" and "/-after"
-rootdir=`echo $rootdir | sed 's,/$,,'`
-rootdir="$rootdir/"
-[ -n "$verbose" ] && echo "+ Using $rootdir as root directory."
-
-[ -n "$verbose" ] && echo "+ Using $tmpdir as temporary directory."
-if [ -z "$target" ]; then
-	usage
-fi
-
-### create the temporary directories for us to use
-echo "* Creating temporary directories..." >&2
-do_cmd "rm -rf $tmpdir/mklivecd.*"
-CLOOPDIR=`mktemp -d ${tmpdir}/mklivecd.cloop.XXXXXX`
-LIVECDDIR=`mktemp -d ${tmpdir}/mklivecd.livecd.XXXXXX`
-INITRDDIR=`mktemp -d ${tmpdir}/mklivecd.initrd.XXXXXX`
-INITRDMNT=`mktemp -d ${tmpdir}/mklivecd.initrd.mnt.XXXXXX`
-EXCLUDELIST=`mktemp ${tmpdir}/mklivecd.excludes.XXXXXX`
-SORTLIST=`mktemp ${tmpdir}/mklivecd.sort.XXXXXX`
-TMPISO=`mktemp ${tmpdir}/mklivecd.iso.XXXXXX`
-MODULESDIR=/lib/modules/$kernel
-ISOLINUXDIR=$LIVECDDIR/isolinux
-INITRD=$ISOLINUXDIR/initrd
-RCFILE=$INITRDDIR/linuxrc
-LIVECDCLOOPDIR=$LIVECDDIR
-
-### cleanup on exit, hangup, interrupt, quit, termination
-trap 'rm -rf $CLOOPDIR $LIVECDDIR $INITRDDIR $INITRDMNT $EXCLUDELIST $SORTLIST $TMPISO' 0 1 2 3 15
-
-### create directories
-if [ -z "$LIVECDDIR" -o -z "$INITRDDIR" -o -z "$INITRDMNT" -o -z "$CLOOPDIR" ]; then
-    echo "ERROR: Unable to create temporary files and/or directories." >&2
-    exit 1
-fi
-do_cmd "mkdir -p $LIVECDDIR"
-do_cmd "mkdir -p $ISOLINUXDIR"
-do_cmd "mkdir -p $LIVECDCLOOPDIR"
-do_cmd "mkdir -p $CLOOPDIR"
-
-check_theme
-create_initrdimg
-create_cloop
-create_isolinux
-restore_theme
-create_liveiso
+	my $finalsize = get_exec("ls -al $finaliso | awk '{print \$5 }'");
+	print "\nCreated '$finaliso' (".fmt_number($finalsize)." bytes) in ".fmt_elapsed(time-$starttime)."\n\n";
+}
