@@ -1,0 +1,144 @@
+#
+# LiveCD install script language strings
+#
+# Copyright (C) 2004, Jaco Greeff <jaco@linuxminicd.org>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# The latest version of this script can be found at http://livecd.berlios.de
+#
+# $Id: livecd-install-lang.pm.in,v 1.1 2004/01/25 08:39:26 jaco Exp $
+#
+
+sub getLanguages { (
+	'en'    => 0,
+	'en_US' => 0,
+	'en_GB' => 0
+); }
+
+sub getStrings { (
+	'script_init'      => [ "Initialising ... ", undef ],
+	'script_destroy'   => [ "Destroying ... ", undef ],
+	'done'             => [ "Done.", undef ],
+	'reboot'           => [ "Rebooting...", undef ],
+
+	'btn_retry'        => [ "Retry", undef ],
+	'btn_cancel'       => [ "Cancel", undef ],
+	'btn_next'         => [ "Next", undef ],
+	'btn_back'         => [ "Back", undef ],
+	'btn_finish'       => [ "Finish", undef ],
+	'btn_yes'          => [ "Yes", undef ],
+	'btn_no'           => [ "No", undef ],
+
+	'time_elapsed'     => [ "Elapsed", undef ],
+	'time_remaining'   => [ "Remaining", undef ],
+
+	'part_none'        => [ "(none)", undef ],
+	'part_no_root_t'   => [ "Missing root", undef ],
+	'part_no_root'     => [ "You have to specify a root (/) partition", undef ],
+	'part_no_swap_t'   => [ "Missing swap", undef ],
+	'part_no_swap'     => [ "You have to specify a swap partition", undef ],
+	'part_o_home_t'    => [ "Overlapping home",  undef ],
+	'part_o_home'      => [ "The home (/home) partition is the same as the root (/) partition.", undef ],
+	'part_o_var_t'     => [ "Overlapping var",  undef ],
+	'part_o_var'       => [ "The var (/var) partition is the same as the root (/) partition.",  undef ],
+	'part_o_varhome_t' => [ "Overlapping var/home",  undef ],
+	'part_o_varhome'   => [ "The var (/var) partition is the same as the home (/home) partition.", undef ],
+	'part_o_tmp_t'     => [ "Overlapping temp",  undef ],
+	'part_o_tmp'       => [ "The temp (/tmp) partition is the same as the root (/) partition.",  undef ],
+	'part_o_tmphome_t' => [ "Overlapping remp/home", undef ],
+	'part_o_tmphome'   => [ "The temp (/tmp) partition is the same as the home (/home) partition.", undef ],
+	'part_o_tmpvar_t'  => [ "Overlapping temp/var",  undef ],
+	'part_o_tmpvar'    => [ "The temp (/tmp) partition is the same as the var (/var) partition.", undef ],
+	'part_name_swap'   => [ "(swap)", undef,
+	'part_name_tmp'    => [ "/tmp", undef ],
+	'part_name_var'    => [ "/var", undef ],
+	'part_name_home'   => [ "/home", undef ],
+	'part_name_root'   => [ "/", undef ],
+				
+	'inst_scan'        => [ "Scanning available directories", undef ],
+	'inst_fstab'       => [ "Creating /etc/fstab", undef ],
+	'inst_done'        => [ "Installation completed. Please press Next to continue.", undef ],
+				
+	'fmt_title'        => [ "Formatting", undef ],
+	
+	'copy_title'       => [ "Copying from", undef ],
+	
+	'boot_bs'          => [ "(Bootsector of partition)", undef ],
+	'boot_mbr'         => [ "(Master boot record of drive)", undef ]
+	
+
+	'scr_1_title'      => [ "Step 1 of 6: Welcome", undef ],
+	'src_1_text'       => [ "<p><b>Welcome</b> to the LiveCD installation program. This application will guide you through the steps of installing the LiveCD to your local disk.</p>\n<p>Navigation through the steps can be done with the <i>Back</i> and <i>Next</i> buttons, while you can exit/abort the process at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse (unintended) side effects on your current running system. These side-effects might include erasing of important data and/or rendering of your system in an unbootable state. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n", undef ],
+				
+
+	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", undef ],
+	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify devices for use by the <i>root</i> and <i>swap</i>, while a seperate <i>home</i> partition is recommended.</p>\n", undef ],
+	'scr_2_fmt'        => [ "Format", undef ],
+	'scr_2_req'        => [ "Required Partitions", undef ],
+	'scr_2_opt'        => [ "Optional Partitions", undef ],
+	'scr_2_swap'       => [ "Swap device:", undef ],
+	'scr_2_root'       => [ "Root (/) device:", undef ],
+	'scr_2_home'       => [ "Home (/home) device:", undef ],
+	'scr_2_var'        => [ "Var (/var) device:", undef ],
+	'scr_2_tmp'        => [ "Temp (/tmp) device:", undef ],
+	
+
+	'scr_3_title'      => [ "Step 3 of 6: Partition Verification", undef ],
+	'scr_3_text'       => [ "<p><b>Warning</b> The following changes will be made to your system to install the LiveCD. If you want to make changes, press the <i>Back</i> button or press <i>Next</i> to start the installation process.</p>", undef ],
+	'scr_3_tbl_mnt'    => [ "Mount",  undef ],
+	'scr_3_tbl_dev'    => [ "Device", undef ],
+	'scr_3_tbl_fmt'    => [ "Format", undef ],
+    
+
+	'scr_4_title'      => [ "Step 4 of 6: LiveCD Installation", undef ],
+	'scr_4_text'       => [ "<p><b>Installation</b> of LiveCD to your hard disk is currently in progress. Please be patient as this process does take some time.</p>", undef ],
+	'scr_4_copy'       => [ "Data copy progress:", undef ],
+	'scr_4_fmt'        => [ "Disk format:", undef ],
+	'scr_4_overall'    => [ "Overall progress:", undef ]
+
+
+	'scr_5_title'      => [ "Step 5 of 6: Bootloader Installation", undef ],
+	'scr_5_text'       => [ "<p><b>Installation</b> of the bootloader will now take place. Please select the drive or partition on which you would like to install it and press <i>Install</i> to install the bootloader, or <i>Next</i> to complete the installation.</p>", undef ],
+
+
+	'scr_6_title'      => [ "Step 6 of 6: Reboot", undef ],
+	'scr_6_text'       => [ "<p><b>Congratulations</b> you have completed the installation of the LiveCD to your local disk. Press <i>Finish</i> to boot your machine into your new install.</p>\n<p>It is recommended, after the boot, that you immediately change the passwords for both the root and user account, to ensure the security of your system.</p>", undef ],
+	'scr_6_no'         => [ "No, I will reboot my system later.", undef ],
+	'scr_6_yes'        => [ "Yes, reboot my system atomatically now.", undef ]
+); }
+
+sub getMyLang {
+	my $language = $languages{'en'};
+	if (defined($cmdline) && 
+	    defined($cmdline{'lang'}) && 
+	    defined($languages{$cmdline{'lang'}})) {
+		$language = $languages{$cmdline{'lang'}}; 
+	}
+	$language;
+}
+
+sub getStr {
+	my ($idx) = @_;
+	my $str = $strings{$idx}[$lang];
+	if (!defined($str)) {
+		$str = $strings{$idx}[0];
+		if (!defined($str)) {
+			$str = "INVALID $idx";
+		}
+	}
+	$str;
+}
+
