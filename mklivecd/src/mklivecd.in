@@ -20,7 +20,7 @@
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.62 2003/12/03 20:05:24 jaco Exp $
+# $Id: mklivecd.in,v 1.63 2003/12/05 15:04:57 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -395,7 +395,7 @@ $e"
 		fi
 
 		# sort, sort, sort
-		do_cmd ":> $SORTLIST"
+		:> $SORTLIST
 		[ -n "$sortfile" ] && do_cmd "cat $sortfile >$SORTLIST"
 
 		# create the cloop image
@@ -493,11 +493,21 @@ create_liveiso() {
 	VERSION_DATE=`date --utc`
 	[ -z "$isoappid" ] && isoappid="$VERSION $VERSION_DATE"
 	[ -z "$isovolid" ] && isovolid="$DISTRO LiveCD"
+
+	# create a sort-file
+	:> $SORTLIST
+	echo "$ISOLINUXDIR/isolinux.bin 500" >>$SORTLIST
+	echo "$ISOLINUXDIR/isolinux.cfg 499" >>$SORTLIST
+	echo "$ISOLINUXDIR/vmlinuz 498" >>$SORTLIST
+	echo "$ISOLINUXDIR/ 450" >>$SORTLIST
+	echo "$LIVECDCLOOPDIR/$LIVECDISOCLP 400"  >>$SORTLIST
+
+	# create actual iso
 	CMD="nice -n 19 mkisofs -pad -l -R -J ${isoextrafiles:+-f} $verbose \
 		-V '$isovolid' -A '$isoappid' -p '$isoprepid' -P '$isopubid' \
 		-b isolinux/isolinux.bin -c isolinux/boot.cat \
 		-hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table \
-		-o $target $LIVECDDIR $isoextrafiles"
+		-sort $SORTLIST -o $target $LIVECDDIR $isoextrafiles"
 	[ -z "$verbose" ] && CMD="$CMD 2>/dev/null"
 	do_cmd "$CMD"
 }
@@ -581,7 +591,7 @@ while [ $# -gt 0 ]; do
 			done
 			;;
 
-		--sort)
+		--sort*)
 			if echo $1 | grep '=' >/dev/null ; then
 				sortfile="${1#--sort=}"
 			else
