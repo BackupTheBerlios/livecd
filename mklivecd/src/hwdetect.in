@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.15 2003/10/04 09:51:38 jaco Exp $
+# $Id: hwdetect.in,v 1.16 2003/10/04 10:53:28 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -301,10 +301,8 @@ sub hwdetect_probeusb() {
 	# interface module (TODO: cater for 2.6 as well)
 	my @modules = ('usb-uhci', 'usb-ohci');
 	foreach my $module (@modules) {
-		unless (modprobe("-q", $module)) {
-			open MOD, ">>/etc/modules.conf";
-			print MOD "probeall usb-interface $module\n" unless ($probe);
-			close MOD;
+		unless (modprobe("-q", $module) || ($probe)) {
+			modules::add_probeall("usb-interface", $module);
 		}
 	}
 
@@ -438,8 +436,10 @@ sub hwdetect_getsound {
 	eval { @probed_cards = hwdetect_get_mediatype('MULTIMEDIA_AUDIO'); };
 	print scalar(@probed_cards)." found";
 	scalar @probed_cards ? print_success() : print_failed();
+	my $num = 0;
 	foreach my $card (@probed_cards) {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
+		modules::add_alias("sound-slot-$num", $card->{driver});
 		hwdetect_loadmod($card->{driver}, $probed_vendor, $probed_desc);
 		print_hash($card) if ($debug);
 	}
@@ -451,8 +451,10 @@ sub hwdetect_getnetwork {
 	eval { @probed_cards = hwdetect_get_mediatype('NETWORK_ETHERNET'); };
 	print scalar(@probed_cards)." found";
 	scalar @probed_cards ? print_success() : print_failed();
+	my $num = 0;
 	foreach my $card (@probed_cards) {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
+		modules::add_alias("eth$num", $card->{driver});
 		hwdetect_loadmod($card->{driver}, $probed_vendor, $probed_desc);
 		print_hash($card) if ($debug);
 	}
