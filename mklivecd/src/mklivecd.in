@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.31 2003/10/04 22:48:40 bgmilne Exp $
+# $Id: mklivecd.in,v 1.32 2003/10/05 07:05:22 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -100,6 +100,7 @@ usage () {
 	echo "    --keyboard=<mapping>       Specify a different keyboard layout (default: @DEF_KEYBOARD@)" >&2
 	echo "    --resolution=<res>         Specify the resolution for the framebuffer (default: @DEF_RESOLUTION@)" >&2
 	echo "    --splash={yes|no}          Create with bootsplash if available on image (default: yes)" >&2
+	echo "    --theme=<theme>            Use 'theme' as the bootsplash theme" >&2
 	echo "" >&2
 	echo "Examples:" >&2
 	echo "    `basename $0` --exclude-dir=\"^/usr/src/RPM ^/root/tmp\" livecd.iso" >&2
@@ -411,23 +412,23 @@ check_theme() {
 		done
 		if [ $have_request_theme -eq 0 ]
 		then
-			echo "Theme $theme not available" >&2
+			echo "ERROR: The specified bootsplash theme, '$theme', is not available" >&2
 			exit 1
 		fi
-		
+
 		#We have the theme, so change it
 		${rootdir}/usr/share/bootsplash/scripts/switch-themes "$theme"
 	fi
 }
 
 restore_theme() {
-	[ -z "$theme" ] && return 0 
+	[ -z "$theme" ] && return 0
 	if [ "$theme" != "$current_theme" ]
 	then
 		${rootdir}/usr/share/bootsplash/scripts/switch-themes "$current_theme"
 	fi
 }
-		
+
 
 echo "$PROGNAME, version $VERSION, http://www.linuxminicd.org/mklivecd/" >&2
 echo "Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>" >&2
