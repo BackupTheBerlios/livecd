@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.17 2004/01/24 19:42:33 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.18 2004/01/24 19:50:02 jaco Exp $
  */
 
 #include <dirent.h>
@@ -288,8 +288,8 @@ LiveCDFS::doStat(const char *name,
 	
 	string fullpath = path->mkpath(name);
 	struct stat buf;
-	if (stat(fullpath.c_str(), &buf) < 0) {
-		WARN("Could not perform stat on file='" << fullpath << "'");
+	if (lstat(fullpath.c_str(), &buf) < 0) {
+		WARN("Could not perform lstat on file='" << fullpath << "'");
 		return -1;
 	}
 
@@ -692,8 +692,8 @@ LiveCDFS::doSetattr(const char *file,
 	string tmppath = path->mktmp(file);
 	struct stat buf;
 	int res;
-	if ((res = stat(tmppath.c_str(), &buf)) < 0) {
-		ERROR("Could not perform stat on file='" << file << "', res=" << std::dec << res);
+	if ((res = lstat(tmppath.c_str(), &buf)) < 0) {
+		ERROR("Could not perform lstat on file='" << file << "', res=" << std::dec << res);
 		return res;
 	}
 	

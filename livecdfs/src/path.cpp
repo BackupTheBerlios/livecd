@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.cpp,v 1.8 2004/01/24 19:42:33 jaco Exp $
+ * $Id: path.cpp,v 1.9 2004/01/24 19:50:02 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -160,14 +160,14 @@ Path::exists(const string &path,
 	FUNC("path='" << path << "', flags=" << flags);
 	
 	struct stat buf;
-	if (stat(path.c_str(), &buf) == 0) {
+	if (lstat(path.c_str(), &buf) == 0) {
 		TRACE("buf.st_mode=" << buf.st_mode);
 		if ((buf.st_mode & flags) == (unsigned int)flags) {
 			return true;
 		}
 	}
 	else {
-		ERROR("strerror(errno)='" << strerror(errno) << "' on stat('" << path << "', &buf)");
+		ERROR("strerror(errno)='" << strerror(errno) << "' on lstat('" << path << "', &buf)");
 	}
 	
 	return false;
