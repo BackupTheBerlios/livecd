@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2003/12/03 05:37:02 jaco Exp $
+# $Id: Makefile,v 1.7 2004/01/13 08:30:39 jaco Exp $
 
 include Rules.mk
 
@@ -13,6 +13,7 @@ livecd-install:
 	echo '#!/usr/bin/perl' >$(DISTDIR)/livecd-install
 	$(CAT) $(SRCDIR)/livecd-install.pm.in >>$(DISTDIR)/livecd-install
 	$(CAT) $(SRCDIR)/livecd-install.pl.in >>$(DISTDIR)/livecd-install
+	$(CAT) $(DISTDIR)/livecd-install >$(SRCDIR)/livecd-install 
 
 install:
 	$(MKDIR) -p $(DESTDIR)$(SBINDIR)
