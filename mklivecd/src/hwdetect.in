@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.92 2004/01/20 13:33:12 jaco Exp $
+# $Id: hwdetect.in,v 1.93 2004/01/20 19:13:18 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -635,10 +635,10 @@ sub hwdetect_getxfree {
 		$resolution_wanted->{Y} = $generic_res{$cmdline{'xres'}}[3] || 768;
 		$rawX->{resolution_wanted} = $resolution_wanted;
 	}
-	eval { Xconfig::resolution_and_depth::configure_auto_install($rawX, $def_card, $def_monitor, $rawX); };
+	my $resolution = undef;
+	eval { $resolution = Xconfig::resolution_and_depth::configure_auto_install($rawX, $def_card, $def_monitor, $rawX); };
 
 	# try to make sure we get at least a valid 1024x768 before setting it
-	my $resolution = $rawX->get_resolution;
 	if (!defined($resolution) ||
 	    !defined($resolution->{X}) || !defined($resolution->{Y}) || !defined($resolution->{Depth}) ||
 	    (($resolution->{X} < 1024) && !defined($cmdline{'xres'}) && !defined($cmdline{'xbpp'}))) {
