@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.70 2003/11/12 05:05:51 jaco Exp $
+# $Id: CHANGELOG,v 1.71 2003/11/12 06:42:31 jaco Exp $
 
-* Wed, Nov 05, 2003, 0.5.7-cvs
+* Wed, Nov 12, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [linuxrc]:
       - Fix error on illegal attempt to unmount /initrd/cdrom upon
@@ -37,6 +37,7 @@
       - Fix ALSA by not loading sound modules, only adding them
         to modules.conf (Reported and fix suggested by Texstar
         <texstar@houston.rr.com>)
+      - Add options to modules.conf for soundcards (as detected)
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
