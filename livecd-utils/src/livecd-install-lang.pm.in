@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install-lang.pm.in,v 1.14 2004/05/14 01:40:51 tom_kelly33 Exp $
+# $Id: livecd-install-lang.pm.in,v 1.15 2004/05/20 03:03:07 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -117,6 +117,7 @@ my %strings = (
 	'logging_yes'	   => [ "Logging has been activated.", "Log è stato attivato", "Protokoll wurde aktiviert.", "L'utilisateur a été activé", undef ],
 	'logging_no'	   => [ "Logging has been deactivated.", "Log è stato disattivato", "Protokoll wurde deaktiviert.", "L'utilisateur a été desactivé.", undef ],
 
+	'pword_no_sq'	   => [ "' <- is not permitted.", " ' <- non è permessa", " ' <- ist nicht erlaubt.", " ' <- � blanc n'est pas permis.", undef ],
 	'pword_null'       => [ "A null password is not permitted.", "La password vuota non è permessa", "Ein leeres Kennwort ist nicht erlaubt.", "Un mot de passe � blanc n'est pas permis.", undef ],
 	'pword_not_same'   => [ "Passwords are not the same. Please try again.", " Le password sono diverse, per favore riprova", "Kennwörter sind nicht gleich. Bitte nochmal.", "les mots de passe sont identiques. Reessayer svp.", undef ],
 	'pword_short'	   => [ "Caution: A short password (< 8 characters) may be unsafe.", "Attenzione: Una password corta (< 8 caratteri) può essere poco sicura", "Achtung: Ein kurzes Kennwort (< 8 Zeichen) ist unsicher.", "Attention: un mot de passe court (< 8 caracteres ) ne sera pas sauvegardé.", undef ],

@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.30 2004/05/13 21:12:24 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.31 2004/05/20 03:03:07 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -921,7 +921,11 @@ sub writeRootPW # SLOT: (  )
 	my $pw1 = lineEdit1->text();
 	my $pw2 = lineEdit2->text();
 
-	# Test - if not same ->reject, if null -> reject, if short -> warn and continue 
+	# Test - if " ' " found ->reject,  if not same ->reject, if null ->reject, if short ->warn and continue 
+        if (index($pw1, "'") ne '-1') {   # Reject if " ' " found
+           Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_no_sq'), getStr('btn_retry'));
+           return;
+        }
         if ($pw1 ne $pw2) {
            Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_not_same'), getStr('btn_retry'));
 	   return;
@@ -935,7 +939,7 @@ sub writeRootPW # SLOT: (  )
 	}
 
 	# Passwords ok - now write to disk
-	$result = do_system2("/bin/echo $pw1 | chroot $mnt /usr/bin/passwd --stdin root");
+	$result = do_system2("/bin/echo '"."$pw1"."' | chroot $mnt /usr/bin/passwd --stdin root");
         print "\nDEBUG: Password: $result\n";
 	if ($result eq "0") {	 
 	   Qt::MessageBox::information( this, getStr('caption'), getStr('pword_ok'));
@@ -986,6 +990,10 @@ sub createUser # SLOT: ( )
 
 	## Validation - user/pw1/pw2 null->reject, pw1<>pw2->reject, pw short->warn and accept
 
+        if (index($pw1, "'") ne '-1') {   # Reject if " ' " found
+           Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_no_sq'), getStr('btn_retry'));
+           return;
+        }
 	if ( ($username eq "") || ($pw1 eq "") || ($pw2 eq "") ) {
 	   Qt::MessageBox::warning(undef, getStr('caption'), getStr('missing_value'), getStr('btn_retry'));
            return;
@@ -1029,7 +1037,7 @@ sub createUser # SLOT: ( )
 	}
 
 	# Change the password
-	$result = do_system2("/bin/echo $pw1 | chroot $mnt /usr/bin/passwd --stdin $username");
+	$result = do_system2("/bin/echo '"."$pw1"."' | chroot $mnt /usr/bin/passwd --stdin $username");
 	print "\nDEBUG: change user password result =$result\n";
         if ($result ne "0") {
            $message = getStr('function_error')."$result";
