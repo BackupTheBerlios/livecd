@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.25 2004/01/14 20:21:56 jaco Exp $
+# $Id: Rules.mk,v 1.26 2004/01/24 10:17:54 jaco Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -103,4 +103,5 @@ SRCDIST=\
 	$(SRCDIR)/rc.sysinit.in \
 	$(SRCDIR)/$(PKGNAME).in \
 	$(SRCDIR)/hwdetect.in \
+	$(SRCDIR)/hwdetect-lang.in \
 	$(SRCDIR)/halt.local.in
