@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2004, Jaco Greeff <jaco@linuxminicd.org>
 #
-# $id$
+# $Id: hwdetect-lang.in,v 1.2 2004/01/24 09:05:15 jaco Exp $
 #
 
 sub getLanguages { (
