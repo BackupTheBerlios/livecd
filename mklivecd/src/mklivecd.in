@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.51 2003/10/30 19:36:07 jaco Exp $
+# $Id: mklivecd.in,v 1.52 2003/10/31 07:05:13 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -129,9 +129,10 @@ Boot options:
    --splash=<yes|no>[,<theme>] Create the LiveCD with bootsplash support if
                                available on the root filesystem, optionally use
                                the specified bootsplash theme (default: yes)
-   --fstab=<options>           Override the default option for the fstab on the
+   --fstab=<options>           Override the default options for the fstab on the
                                LiveCD. Options are one or more of 'auto' and
-                               'rw', for example '--fstab=rw,auto'
+                               'rw', for example '--fstab=rw,auto' will
+                               automatically mount all detected partitions rw.
 
 Examples:
     `basename $0` --nodir=^/usr/src/RPM,^/root/tmp livecd.iso
