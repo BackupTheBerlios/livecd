@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.71 2003/11/12 06:42:31 jaco Exp $
+# $Id: CHANGELOG,v 1.72 2003/11/16 07:25:01 jaco Exp $
 
-* Wed, Nov 12, 2003, 0.5.7-cvs
+* Sun, Nov 16, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [linuxrc]:
       - Fix error on illegal attempt to unmount /initrd/cdrom upon
@@ -38,6 +38,8 @@
         to modules.conf (Reported and fix suggested by Texstar
         <texstar@houston.rr.com>)
       - Add options to modules.conf for soundcards (as detected)
+      - Fix mouse setup for console
+      - Fix keyboard setup for console
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules

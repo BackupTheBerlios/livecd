@@ -1,4 +1,4 @@
-# $Id: TODO,v 1.14 2003/11/01 15:50:04 jaco Exp $
+# $Id: TODO,v 1.15 2003/11/16 07:25:01 jaco Exp $
 
 - Add command-line options (at isolinux bootup) to select the
   bitdepth for the X configuration
@@ -15,6 +15,5 @@
 - Localisation support
 - Remove functions in hwdetect where we have duplicated already
   existing MDK functions, e.g. in module loading
-- Mouse configuration should override the gpm config as well
-- Localised keyboard support on console
+
 
