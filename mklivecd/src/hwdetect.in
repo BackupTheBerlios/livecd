@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.143 2004/12/21 19:31:01 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.144 2004/12/30 05:40:09 tom_kelly33 Exp $
 #
 
 use strict;
@@ -250,11 +250,13 @@ sub hwdetect_init() {
 		$kernel26 = 1;
 	}
 
-	# start devfsd (if not already running)
-	my @devfspid = fuzzy_pidofs(qr/\bdevfsd\b/);
-	$owndevfsd = 0 if scalar(@devfspid) > 0;
-	if (-e '/dev/.devfsd' && -e '/sbin/devfsd' && $owndevfsd > 0) {
-		system("PATH=/sbin devfsd /dev 2>/dev/null"); # funny arrangement to allow us to kill it later
+	if ($kernel26 ne "1") {
+		# start devfsd (if not already running)
+		my @devfspid = fuzzy_pidofs(qr/\bdevfsd\b/);
+		$owndevfsd = 0 if scalar(@devfspid) > 0;
+		if (-e '/dev/.devfsd' && -e '/sbin/devfsd' && $owndevfsd > 0) {
+			system("PATH=/sbin devfsd /dev 2>/dev/null"); # funny arrangement to allow us to kill it later
+		}
 	}
 
 	print_success();
@@ -262,13 +264,14 @@ sub hwdetect_init() {
 }
 
 sub hwdetect_deinit() {
-	# kill devfsd (if we started it), it is to be started again
-	# the in init scripts
-	my @devfspid = fuzzy_pidofs(qr/\bdevfsd\b/);
-	if ($owndevfsd > 0 && scalar(@devfspid) > 0) {
-		system("kill -TERM " . $devfspid[0] . " 2>/dev/null");
+	if ($kernel26 ne "1") {
+		# kill devfsd (if we started it), it is to be started again
+		# the in init scripts
+		my @devfspid = fuzzy_pidofs(qr/\bdevfsd\b/);
+		if ($owndevfsd > 0 && scalar(@devfspid) > 0) {
+			system("kill -TERM " . $devfspid[0] . " 2>/dev/null");
+		}
 	}
-	#print "Completing detection routines: ";
 	set_progress();
 }
 
@@ -582,7 +585,7 @@ sub hwdetect_getvideo() {
 	my $probed_card;
 	if (scalar @probed_cards) {
 		print_success();
-		foreach my $card (@probed_cards) {
+		foreach $card (@probed_cards) {
 			my ($probed_vendor, $_probed_desc) = split(/\|/, $card->{description});
 			my $module = 'unknown';
 			unless ($probed_card) { # one card only :(
@@ -605,7 +608,9 @@ sub hwdetect_getvideo() {
 				if ($probed_card->{Driver2} eq 'fglrx' &&
 					-e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
 					-e "/usr/X11R6/lib/modules/drivers/fglrx_drv.o" &&
-					-e "/lib/modules/$kernel_ver/kernel/drivers/char/fglrx.o.gz") {
+					(-e "/lib/modules/$kernel_ver/kernel/drivers/char/fglrx.o.gz" ||
+					 -e "/lib/modules/$kernel_ver/kernel/drivers/video/fglrx.ko" ||
+					 -e "/lib/modules/$kernel_ver/kernel/drivers/video/fglrx.o")) {
 					$probed_card->{Driver} = $probed_card->{Driver2};
 					$probed_card->{use_DRI_GLX} = 1;
 					$module = $probed_card->{Driver2};
@@ -627,7 +632,7 @@ sub hwdetect_getvideo() {
 		my ($probed_vendor, $_probed_desc) = split(/\|/, $card->{description});
 		$probed_card->{Driver} = $cmdline{xdrv} if defined($cmdline{xdrv});
 		$probed_card->{VideoRam} = $cmdline{xram} if defined($cmdline{xram});
-			hwdetect_loadmod($module, $probed_vendor, $card->{card_name});
+		hwdetect_loadmod($module, $probed_vendor, $card->{card_name});
 	}
 	$probed_card;
 }
@@ -667,17 +672,9 @@ sub hwdetect_getxfree() {
 	my $def_keyboard = hwdetect_getkeyb();
 	my $def_mouse = hwdetect_getmouse();
 	my $def_card = hwdetect_getvideo();
-	my $rawX = Xconfig::default::configure($def_keyboard, $def_mouse);
+	my $rawX = Xconfig::default::configure(undef, $def_keyboard, $def_mouse);
 	my $def_monitors = hwdetect_getmonitors($rawX);
 
-	# fix the de(nodeadkeys) keyboard
-	#my $xkb = $rawX->get_keyboard();
-
-	#if ($xkb->{XkbLayout} =~ /de\(nodeadkeys\)/) {
-	#       $xkb->{XkbLayout} = 'de';
-	#       $xkb->{XkbVariant} = 'nodeadkeys';
-	#       $rawX->set_keyboard($xkb);
-	#} 
 	# config card and screen
 	Xconfig::card::to_raw_X($def_card, $rawX);
 	Xconfig::screen::configure($rawX, $def_card);
@@ -856,6 +853,7 @@ sub hwdetect_writeconf() {
 		print getStr('mod_write') . ": ";
 		system(":> $prefix/etc/modules.conf"); # clear first
 		system(":> $prefix/etc/modprobe.conf"); # clear first
+		$modules::prefix = undef;
 		$modules::prefix = $prefix;
 		if ($kernel26) {
 			modules::modprobe_conf::write($modules_conf);
@@ -1006,81 +1004,6 @@ my %fsopts = (
 	'vfat'     => [1,     'iocharset=iso8859-1,codepage=850,umask=0', undef],
 	'xfs'      => [1,     undef,                                      undef]
 );
-
-sub hwdetect_getpersistent {
-	my (%devs) = @_;
-	print "    " . getStr('disk_persist') . ": ";
-	my $mymnt   = "/tmp/hwdetect.mnt";
-	my $persist = "$mymnt/livecd.mnt";
-	my $loopmnt = "/tmp/hwdetect.img";
-	my $loopimg = "$mymnt/livecd.img";
-	mkdir_p($_) foreach $mymnt, $loopmnt;
-	my $homeopt = $cmdline{home};
-	foreach my $dev (keys %devs) {
-		if (-e $mymnt && $devs{$dev}{persist}) {
-			if (mount(undef, "", $devs{$dev}{type}, $devs{$dev}{devfs}, $mymnt)) {
-				if (-e $persist) {
-					my %popts;
-					foreach my $opt (cat_($persist)) {
-						chomp($opt);
-						my ($name, $value) = split(/=/, $opt);
-						$popts{$name} = $value || 1;
-					}
-					if ($popts{mount}) {
-						$devs{$dev}{opt} = $fsopt_fullrw;
-						$devs{$dev}{persisted} = 1;
-						$devs{$dev}{mount} = $popts{mount};
-					}
-					elsif ($popts{loop} && -e $loopimg) {
-						if ($popts{link}) {
-							mount(undef, "-o loop", "ext2", $loopimg, $loopmnt);
-							system("(cd $loopmnt ; ln -sf " . $devs{$dev}{mount} . " " . $popts{link} . " ; cd /) 2>&1 >/dev/null");
-							umount(undef, $loopmnt);
-						}
-
-						$devs{$dev}{loop} = $popts{loop};
-						$devs{$dev}{opt} = $fsopt_fullrw;
-						$devs{$dev}{persisted} = 1;
-					}
-				}
-				elsif (!$fdisk &&  defined($homeopt) && $devs{$dev}{usb}) {
-					if ($homeopt =~ /usb/) {
-						if ($devs{$dev}{type} =~ /vfat/) {
-							my $totsize = qx(df -m $mymnt | awk '/tmp/{ print \$3 }');
-							chomp($totsize);
-							my $size = int($totsize/2); # 50% of available size
-							$size = 32 if $size < 32 && $totsize > 32; # try to get 32MB
-							system("(dd if=/dev/zero of=$loopimg bs=1M count=$size) 2>&1 >/dev/null");
-							system("(mke2fs -F -m0 $loopimg) 2>&1 >/dev/null");
-							system("(mount -o loop -t ext2 $loopimg $loopmnt) 2>&1 >/dev/null");
-							system("(cp -au /home/* $loopmnt) 2>&1 >/dev/null");
-							system("(cd $loopmnt ; ln -sf " . $devs{$dev}{mount} . " USB) 2>&1 >/dev/null");
-							umount(undef, $loopmnt);
-		
-							system("echo 'loop=/home' >$persist");
-							system("echo 'link=USB' >>$persist");
-		
-							$devs{$dev}{loop} = "/home";
-							$devs{$dev}{opt} = $fsopt_fullrw;
-							$devs{$dev}{persisted} = 1;
-						}
-						elsif ($devs{$dev}{type} =~ /ext2/ || 
-							$devs{$dev}{type} =~ /ext3/) {
-							system("echo 'mount=/home' >$persist");
-		
-							$devs{$dev}{mount} = "/home";
-							$devs{$dev}{opt} = $fsopt_fullrw;
-							$devs{$dev}{persisted} = 1;
-						}
-					}
-				}
-				umount(undef, $mymnt);
-			}
-		}
-	}
-	system("rm -rf $mymnt $loopmnt 2>/dev/null");
-	print_success();
-}
 
 sub hwdetect_raw_to_fs_description {
 	my ($raw) = @_;
