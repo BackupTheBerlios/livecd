@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.45 2003/11/03 18:12:18 jaco Exp $
+# $Id: hwdetect.in,v 1.46 2003/11/03 18:36:57 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -818,13 +818,13 @@ sub hwdetect_getpersistent {
 					}
 				}
 				elsif ($cmdline{'home'} =~ /usb/ && $devs{$dev}->{usb}) {
-					open P, ">$persist";
+					system("(cp -au /home/* $mymnt) 2>/dev/null");
+					open P, '>', "$persist";
 					print P "mount=/home\n";
 					close P;
 					$devs{$dev}->{mount} = "/home";
 					$devs{$dev}->{opt} = $fsopt_fullrw;
 					$devs{$dev}->{persisted} = 1;
-					system("(cp -au /home/* $mymnt) 2>/dev/null");
 				}
 				umount(undef, $mymnt);
 			}
