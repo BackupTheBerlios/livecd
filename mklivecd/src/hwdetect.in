@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.130 2004/09/14 18:49:47 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.131 2004/09/14 20:26:00 tom_kelly33 Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -1231,7 +1231,7 @@ sub hwdetect_getdisks {
 					### the topmost extention might be set, which means
 					### we are missing it (only do this if we cannot find it,
 					### see it as a try 2)
-					$raw->{pt_type} = $raw->{pt_type} & 0xFF unless ($fstypes{$raw->{type}});
+					$raw->{pt_type} = $raw->{pt_type} & 0xFF unless ($fstypes{$raw->{pt_type}});
 					my @opts = @{$fsopts{$fstypes{$raw->{pt_type}}[1]}};
 					if ($raw->{devfs_device} && $fstypes{$raw->{pt_type}}[1] && @opts) {
 						my $dev = $raw->{device};
