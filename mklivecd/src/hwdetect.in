@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.14 2003/10/03 06:19:06 jaco Exp $
+# $Id: hwdetect.in,v 1.15 2003/10/04 09:51:38 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -29,9 +29,13 @@ use standalone;
 use common;
 use modules;
 
+use fsedit;
+use fs;
+
 use harddrake::sound;
 use keyboard;
 use mouse;
+
 use Xconfig::card;
 use Xconfig::default;
 use Xconfig::monitor;
@@ -40,6 +44,9 @@ use Xconfig::resolution_and_depth;
 use Xconfig::screen;
 use Xconfig::xfree;
 use Xconfig::xfree4;
+
+use MDK::Common::File;
+use MDK::Common::System;
 
 ### global constants
 my $SCRIPT_DESC    = "hardware detection";
@@ -61,6 +68,9 @@ my $debug       = 0;
 my $probe       = 0;
 my @all_devices = ();
 my %cmdline;
+my $owndevfsd   = 1;
+my $ownprocusb  = 1;
+my $haveswap    = 0;
 
 sub rmws {
 	my ($str) = @_;
@@ -147,35 +157,60 @@ sub hwdetect_init {
 	select(STDOUT);
 	$| = 1;
 	open STDERR, '>', "/dev/null";
+	print "Starting $SCRIPT_DESC ($SCRIPT_NAME v$SCRIPT_VER): ";
 
-	open CMDLINE, "</proc/cmdline";
 	%cmdline = map {
 		my ($name, $value) = split(/=/);
 		$name => $value || 1;
-	} split(/ /, <CMDLINE>);
-	close CMDLINE;
+	} split(/ /, cat_('/proc/cmdline'));
 
-	print "($SCRIPT_NAME $SCRIPT_VER)";
+	# start devfsd (if not already running)
+	my @devfspid = fuzzy_pidofs(qr/\bdevfsd\b/);
+	$owndevfsd = 0 if (scalar(@devfspid) > 0);
+	if ((-e '/dev/.devfsd') && (-e '/sbin/devfsd') && ($owndevfsd > 0)) {
+		system("devfsd /dev 2>/dev/null");
+	}
+
 	print_success();
 }
 
 sub hwdetect_deinit {
-	print "Completing detection routines: ";
+	# kill devfsd (if we started it), it is to be started again
+	# the in init scripts
+	my @devfspid = fuzzy_pidofs(qr/\bdevfsd\b/);
+	if (($owndevfsd > 0) && (scalar(@devfspid) > 0)) {
+		system("kill -TERM ".$devfspid[0]." 2>/dev/null");
+	}
+	#print "Completing detection routines: ";
+}
+
+sub is_mounted {
+	my ($point) = @_;
+	my $mounted = 0;
+	foreach my $mount (cat_('/proc/mounts')) {
+		my ($md, $mp, $mt, $mo, @me) = split(/ /, $mount);
+		$mounted = 1 if ($mp eq $point);
+	}
+	$mounted;
 }
 
 sub mount {
 	my ($text, $opt, $type, $dev, $point) = @_;
-	my $mounted = 0;
 	my $res = 0;
+	my $mounted = is_mounted($point);
 
 	print $text;
-	open MOUNTS, "</proc/mounts";
-	foreach my $mount (<MOUNTS>) {
-		my ($md, $mp, $mt, $mo, @me) = split(/ /, $mount);
-		$mounted = 1 if ($mp eq $point);
-	}
-	close MOUNTS;
 	$res = system("(mount $opt -t $type $dev $point) 2>/dev/null >/dev/null") if (!$mounted);
+	$res ? print_failed() : print_success();
+}
+
+sub umount {
+	my ($text, $point) = @_;
+	my $res = 0;
+	my $mounted = is_mounted($point);
+
+	print $text;
+	$res = system("(umount $point) 2>/dev/null >/dev/null") if ($mounted);
 	$res ? print_failed() : print_success();
 }
 
@@ -255,7 +290,7 @@ sub hwdetect_getmachine {
 	}
 	if ($probed_mem) {
 		hwdetect_loadmod('unknown', "Available Memory", rmws($probed_mem->{MemFree})." of ".rmws($probed_mem->{MemTotal}));
-		hwdetect_loadmod('unknown', "Available Swap", rmws($probed_mem->{SwapFree})." of ".rmws($probed_mem->{SwapTotal}));
+		hwdetect_loadmod('unknown', "Available Swap", rmws($probed_mem->{SwapFree})." of ".rmws($probed_mem->{SwapTotal})) if ($haveswap > 0);
 		print_hash($probed_mem) if ($debug);
 	}
 }
@@ -275,7 +310,12 @@ sub hwdetect_probeusb() {
 
 	if (-e '/proc/bus/usb') {
 		print_success();
-		mount("Mounting USB filesystem: ", "-n", "usbdevfs", "none", "/proc/bus/usb");
+		if (is_mounted('/proc/bus/usb')) {
+			$ownprocusb = 0;
+		}
+		else {
+			mount("Mounting USB filesystem: ", "-n", "usbdevfs", "none", "/proc/bus/usb");
+		}
 
 		### load the usb modules that are not loaded automatically
 		# "printer" should be in as well? (does cups stuff :(
@@ -288,6 +328,12 @@ sub hwdetect_probeusb() {
 	}
 	else {
 		print_failed();
+	}
+}
+
+sub hwdetect_deinitusb() {
+	if (-e '/proc/bus/usb') {
+		umount("Unmounting USB filesystem", "/proc/bus/usb") if ($ownprocusb > 0);
 	}
 }
 
@@ -453,6 +499,333 @@ sub hwdetect_readconf {
 	print_success();
 }
 
+sub hwdetect_writeconf {
+	print "Writing modules configuration: ";
+	modules::write_conf("");
+	print_success();
+}
+
+# descriptive name, type (or auto), mount defaults
+my %fstypes = (
+	0x0   => ['Empty'                                   ,''        ],
+	0x183 => ['Journalised FS: ReiserFS'                ,'reiserfs'],
+	0x283 => ['Journalised FS: XFS'                     ,'xfs'     ],
+	0x383 => ['Journalised FS: JFS'                     ,'jfs'     ],
+	0x483 => ['Journalised FS: ext3'                    ,'ext3'    ],
+	0x1   => ['DOS 12-bit FAT'                          ,'ufs'     ],
+	0x2   => ['XENIX root'                              ,'ufs'     ],
+	0x3   => ['XENIX /usr'                              ,''        ],
+	0x4   => ['DOS 16-bit FAT (up to 32M)'              ,'ufs'     ],
+	0x5   => ['DOS 3.3+ Extended Partition'             ,''        ],
+	0x6   => ['DOS FAT16'                               ,'ufs'     ],
+	0x7   => ['NTFS'                                    ,'ntfs'    ],
+	0x8   => ['OS/2 (v1.0-1.3 only)'                    ,'ufs'     ],
+	0x9   => ['AIX data partition'                      ,''        ],
+	0xa   => ['OS/2 Boot Manager'                       ,''        ],
+	0xb   => ['FAT32'                                   ,'vfat'    ],
+	0xc   => ['Win98 FAT32, LBA-mapped'                 ,'vfat'    ],
+	0xe   => ['Win95: DOS 16-bit FAT, LBA-mapped'       ,'vfat'    ],
+	0xf   => ['Win95: Extended partition, LBA-mapped'   ,''        ],
+	0x10  => ['OPUS (?)'                                ,''        ],
+	0x11  => ['Hidden DOS 12-bit FAT'                   ,''        ],
+	0x12  => ['Compaq/HP config partition'              ,''        ],
+	0x14  => ['Hidden DOS 16-bit FAT <32M'              ,''        ],
+	0x16  => ['Hidden DOS 16-bit FAT >=32M'             ,''        ],
+	0x17  => ['Hidden IFS (e.g., HPFS)'                 ,''        ],
+	0x18  => ['AST Windows swapfile'                    ,''        ],
+	0x1b  => ['Hidden WIN95 OSR2 32-bit FAT'            ,'vfat'    ],
+	0x1c  => ['Hidden WIN95 OSR2 32-bit FAT, LBA-mapped','vfat'    ],
+	0x1e  => ['Hidden FAT95'                            ,'vfat'    ],
+	0x22  => ['Used for Oxygen Extended Partition Table',''        ],
+	0x24  => ['NEC DOS 3.x'                             ,''        ],
+	0x35  => ['JFS (OS/2)'                              ,''        ],
+	0x38  => ['THEOS ver 3.2 2gb partition'             ,''        ],
+	0x39  => ['THEOS ver 4 spanned partition'           ,''        ],
+	0x3a  => ['THEOS ver 4 4gb partition'               ,''        ],
+	0x3b  => ['THEOS ver 4 extended partition'          ,''        ],
+	0x3c  => ['PartitionMagic recovery partition'       ,''        ],
+	0x40  => ['Venix 80286'                             ,''        ],
+	0x41  => ['Linux/MINIX (sharing disk with DRDOS)'   ,''        ],
+	0x42  => ['Windows Dynamic Partition'               ,''        ],
+	0x43  => ['Linux native (sharing disk with DRDOS)'  ,''        ],
+	0x45  => ['EUMEL/Elan'                              ,''        ],
+	0x46  => ['EUMEL/Elan 0x46'                         ,''        ],
+	0x47  => ['EUMEL/Elan 0x47'                         ,''        ],
+	0x48  => ['EUMEL/Elan 0x48'                         ,''        ],
+	0x4d  => ['QNX4.x'                                  ,''        ],
+	0x4e  => ['QNX4.x 2nd part'                         ,''        ],
+	0x4f  => ['QNX4.x 3rd part / Oberon partition'      ,''        ],
+	0x50  => ['OnTrack Disk Manager (older versions) RO',''        ],
+	0x51  => ['Novell'                                  ,''        ],
+	0x52  => ['CP/M / Microport SysV/AT'                ,''        ],
+	0x53  => ['Disk Manager 6.0 Aux3'                   ,''        ],
+	0x54  => ['Disk Manager 6.0 Dynamic Drive Overlay'  ,''        ],
+	0x55  => ['EZ-Drive'                                ,''        ],
+	0x56  => ['Golden Bow VFeature Partitioned Volume'  ,''        ],
+	0x57  => ['DrivePro'                                ,''        ],
+	0x5c  => ['Priam EDisk'                             ,''        ],
+	0x61  => ['SpeedStor'                               ,''        ],
+	0x63  => ['Unix System V (SCO, ...), Mach, GNU Hurd',''        ],
+	0x64  => ['PC-ARMOUR protected partition'           ,''        ],
+	0x65  => ['Novell Netware 3.xx or 4.xx'             ,''        ],
+	0x67  => ['Novell'                                  ,''        ],
+	0x68  => ['Novell 0x68'                             ,''        ],
+	0x69  => ['Novell 0x69'                             ,''        ],
+	0x70  => ['DiskSecure Multi-Boot'                   ,''        ],
+	0x75  => ['IBM PC/IX'                               ,''        ],
+	0x80  => ['MINIX until 1.4a'                        ,''        ],
+	0x81  => ['MINIX since 1.4b, early Linux'           ,''        ],
+	0x82  => ['Linux swap'                              ,'swap'    ],
+	0x83  => ['Linux native'                            ,'ext2'    ],
+	0x84  => ['OS/2 hidden C: drive'                    ,''        ],
+	0x85  => ['Linux extended partition'                ,''        ],
+	0x86  => ['Old Linux RAID partition superblock'     ,''        ],
+	0x87  => ['NTFS volume set'                         ,''        ],
+	0x8a  => ['Linux Kernel Partition (AiR-BOOT)'       ,''        ],
+	0x8e  => ['Linux Logical Volume Manager partition'  ,''        ],
+	0x93  => ['Amoeba'                                  ,''        ],
+	0x94  => ['Amoeba bad block table'                  ,''        ],
+	0x99  => ['DCE376 logical drive'                    ,''        ],
+	0xa0  => ['IBM Thinkpad hibernation partition'      ,''        ],
+	0xa5  => ['BSD/386, 386BSD, NetBSD, FreeBSD'        ,''        ],
+	0xa6  => ['OpenBSD'                                 ,''        ],
+	0xa7  => ['NEXTSTEP'                                ,''        ],
+	0xa9  => ['NetBSD'                                  ,''        ],
+	0xaa  => ['Olivetti Fat 12 1.44Mb Service Partition',''        ],
+	0xb7  => ['BSDI filesystem'                         ,''        ],
+	0xb8  => ['BSDI swap partition'                     ,''        ],
+	0xbe  => ['Solaris boot partition'                  ,''        ],
+	0xc0  => ['CTOS / REAL/32 secure small partition'   ,''        ],
+	0xc1  => ['DRDOS/secured (FAT-12)'                  ,''        ],
+	0xc4  => ['DRDOS/secured (FAT-16, < 32M)'           ,''        ],
+	0xc6  => ['DRDOS/secured (FAT-16, >= 32M)'          ,''        ],
+	0xc7  => ['Windows NT corrupted NTFS volume'        ,''        ],
+	0xcb  => ['reserved for DRDOS/secured (FAT32)'      ,''        ],
+	0xcc  => ['reserved for DRDOS/secured (FAT32, LBA)' ,''        ],
+	0xcd  => ['CTOS Memdump?'                           ,''        ],
+	0xce  => ['reserved for DRDOS/secured (FAT16, LBA)' ,''        ],
+	0xd0  => ['REAL/32 secure big partition'            ,''        ],
+	0xd1  => ['Old Multiuser DOS secured FAT12'         ,''        ],
+	0xd4  => ['Old Multiuser DOS secured FAT16 <32M'    ,''        ],
+	0xd5  => ['Old Multiuser DOS secured extended'      ,''        ],
+	0xd6  => ['Old Multiuser DOS secured FAT16 >=32M'   ,''        ],
+	0xd8  => ['CP/M-86'                                 ,''        ],
+	0xdb  => ['Digital Research CP/M'                   ,''        ],
+	0xdd  => ['Hidden CTOS Memdump?'                    ,''        ],
+	0xe1  => ['DOS access partition'                    ,''        ],
+	0xe3  => ['DOS R/O or SpeedStor'                    ,''        ],
+	0xe4  => ['16-bit FAT extended partition <1024 cyl.',''        ],
+	0xeb  => ['BeOS'                                    ,''        ],
+	0xee  => ['EFI GPT'                                 ,''        ],
+	0xef  => ['EFI (FAT-12/16/32)'                      ,''        ],
+	0xf1  => ['SpeedStor 0xf1'                          ,''        ],
+	0xf2  => ['DOS 3.3+ secondary partition'            ,''        ],
+	0xf4  => ['SpeedStor large partition'               ,''        ],
+	0xf5  => ['Prologue multi-volume partition'         ,''        ],
+	0xfd  => ['Linux RAID'                              ,''        ],
+	0xfe  => ['SpeedStor >1024 cyl'                     ,''        ],
+	0xff  => ['Xenix Bad Block Table'                   ,''        ]
+);
+
+my %fsopts = (
+	'ext2'     => 'noauto,user,ro,exec',
+	'ext3'     => 'noauto,user,ro,exec',
+	'jfs'      => 'noauto,user,ro,exec',
+	'ntfs'     => 'noauto,user,ro,exec,iocharset=iso8859-1,umask=0',
+	'reiserfs' => 'noauto,user,ro,exec,notail,noatime',
+	'swap'     => 'defaults',
+	'ufs'      => 'noauto,user,ro,exec,iocharset=iso8859-1,umask=0',
+	'vfat'     => 'noauto,user,ro,exec,iocharset=iso8859-1,codepage=850,umask=0',
+	'xfs'      => 'noauto,user,ro,exec'
+);
+
+sub hwdetect_getdisks {
+	print "Detecting disk drives/partitions: ";
+	my @detected_fstab = ();
+	my %detected_mounts = ();
+	my $all_hdds = fsedit::get_hds({}, undef);
+	fs::get_raw_hds('', $all_hdds);
+	if ($debug) {
+		foreach my $key (keys %$all_hdds) {
+			print $key . " ->\n";
+			my @disks = @{$all_hdds->{$key}};
+			foreach my $disk (@disks) {
+				print "\tdisk:\n";
+				foreach my $diskkey (keys %$disk) {
+					print "\t\t" . $diskkey . " -> " . $disk->{$diskkey} . "\n";
+				}
+			}
+		}
+	}
+
+	### do all the cd, floppy stuff
+	foreach my $disk (@{$all_hdds->{raw_hds}}) {
+		if ($debug) {
+			print "removable: " . $disk->{info} . "\n";
+			print "\t/dev/" . $disk->{devfs_device} . " on /mnt/" . $disk->{device} . "\n";
+		}
+		unless ($disk->{media_type} =~ /^hd/) {
+			if ($disk->{media_type} =~ /^fd|^cdrom/) {
+				my $entry = "\n\n### " . $disk->{media_type} . ": " . $disk->{info};
+				$entry = $entry . "\n# /dev/$disk->{device}";
+				push(@detected_fstab, $entry);
+				$entry = "\n/dev/".$disk->{devfs_device};
+				$entry = $entry . "\t/mnt/" . $disk->{device};
+				$detected_mounts{$disk->{device}} = [$disk->{devfs_device}, $disk->{media_type}];
+				$entry = $entry . "\tauto";
+				$entry = $entry . "\tnoauto,user,ro,exec,--,iocharset=iso8859-1,codepage=850,umask=0";
+				$entry = $entry . ",nohide" if ($disk->{media_type} =~ /^cdrom/);
+				$entry = $entry . "\t0 0";
+				push(@detected_fstab, $entry);
+			}
+		}
+	}
+
+	### do the hard disks
+	foreach my $disk (@{$all_hdds->{hds}}) {
+		if ($debug) {
+			print "disk: " . $disk->{info} . "\n";
+			print "\tprimary:\n";
+			foreach my $prim (keys %{$disk->{primary}}) {
+				unless ($prim =~ /normal/ || $prim =~ /extended/ || $prim =~ /raw/) {
+					print "\t\t" . $prim . " -> " . $disk->{primary}->{$prim} . "\n";
+				}
+			}
+		}
+		my $entry = "\n\n### hdd: " . $disk->{info};
+		push(@detected_fstab, $entry);
+		if ($debug) {
+			print "\t\tnormal:\n";
+			foreach my $norm (@{$disk->{primary}->{normal}}) {
+				print "\t\t\t" . $norm . "\n";
+			}
+			print "\t\textended:\n";
+			foreach my $extkey (%{$disk->{primary}->{extended}}) {
+				print "\t\t\t" . $extkey . " -> " . $disk->{primary}->{extended}->{$extkey} . "\n";
+			}
+		}
+		foreach my $raw (@{$disk->{primary}->{raw}}) {
+			if ($debug) {
+				print "\t\traw:" . "\n";
+				foreach $rawkey (keys %$raw) {
+					print "\t\t\t" . $rawkey . " -> " . $raw->{$rawkey} . "\n";
+				}
+			}
+			unless ($raw->{size} =~ /^0/) {
+				### the topmost extention might be set, which means
+				### we are missing it (only do this if we cannot find it,
+				### see it as a try 2)
+				$raw->{type} = $raw->{type} & 0xFF unless ($fstypes{$raw->{type}});
+				if ($raw->{devfs_device} && $fstypes{$raw->{type}}[1] && $fsopts{$fstypes{$raw->{type}}[1]}) {
+					$entry = "\n# /dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{type} . ": " . $fstypes{$raw->{type}}[0] . " (primary)";
+					push(@detected_fstab, $entry);
+					$entry = "\n/dev/" . $raw->{devfs_device};
+					if ($raw->{type} =~ /^130/) {
+						$haveswap = 1;
+						$entry = $entry . "\tswap";
+					}
+					else {
+						$entry = $entry . "\t/mnt/" . $raw->{device};
+						$detected_mounts{$raw->{device}} = [$raw->{devfs_device}, 'hd'];
+					}
+					$entry = $entry . "\t" . $fstypes{$raw->{type}}[1];
+					$entry = $entry . "\t" . $fsopts{$fstypes{$raw->{type}}[1]};
+					$entry = $entry . "\t0 0";
+					push(@detected_fstab, $entry);
+				}
+			}
+		}
+		foreach my $ext (@{$disk->{extended}}) {
+			if ($debug) {
+				print "\textended: " . $ext->{info} . "\n";
+				foreach my $key (keys %$ext) {
+					unless ($key =~ /normal/ || $key =~ /extended/ || $key =~ /raw/) {
+						print "\t\t" . $key . " -> " . $ext->{$key} . "\n";
+					}
+				}
+				print "\t\tnormal:\n";
+				foreach my $normkey (%{$ext->{normkey}}) {
+					print "\t\t\t" . $normkey . " -> " . $disk->{primary}->{normal}->{$normkey} . "\n";
+				}
+				print "\t\textended:\n";
+				foreach my $extkey (%{$ext->{extended}}) {
+					print "\t\t\t" . $extkey . " -> " . $disk->{primary}->{extended}->{$extkey} . "\n";
+				}
+			}
+			foreach my $raw (@{$ext->{raw}}) {
+				if ($debug) {
+					print "\t\traw:" . "\n";
+					foreach $rawkey (keys %$raw) {
+						print "\t\t\t" . $rawkey . " -> " . $raw->{$rawkey} . "\n";
+					}
+				}
+				unless ($raw->{size} =~ /^0/) {
+					### the topmost extention might be set, which means
+					### we are missing it (only do this if we cannot find it,
+					### see it as a try 2)
+					$raw->{type} = $raw->{type} & 0xFF unless ($fstypes{$raw->{type}});
+					if ($raw->{devfs_device} && $fstypes{$raw->{type}}[1] && $fsopts{$fstypes{$raw->{type}}[1]}) {
+						$entry = "\n# /dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{type} . ": " . $fstypes{$raw->{type}}[0] . " (extended)";
+						push(@detected_fstab, $entry);
+						$entry = "\n/dev/" . $raw->{devfs_device};
+						if ($raw->{type} =~ /^130/) {
+							$haveswap = 1;
+							$entry = $entry . "\tswap";
+						}
+						else {
+							$entry = $entry . "\t/mnt/" . $raw->{device};
+							$detected_mounts{$raw->{device}} = [$raw->{devfs_device}, 'hd'];
+						}
+						$entry = $entry . "\t" . $fstypes{$raw->{type}}[1];
+						$entry = $entry . "\t" . $fsopts{$fstypes{$raw->{type}}[1]};
+						$entry = $entry . "\t0 0";
+						push(@detected_fstab, $entry);
+					}
+				}
+			}
+		}
+	}
+	$num = 0;
+	$num++ foreach (keys %detected_mounts);
+	print "$num found";
+	if (scalar @detected_fstab) {
+		print_success();
+		unless ($probe) {
+			### create /mnt/*
+			print "    Creating device mountpoints: ";
+			my $cmd;
+			foreach my $mount (keys %detected_mounts) {
+				my $device = $detected_mounts{$mount}[0];
+				$cmd = "mkdir -p /mnt/$mount 2>&1 >/dev/null";
+				`$cmd`;
+			}
+			print_success();
+
+			### write /etc/fstab
+			print "    Writing /etc/fstab: ";
+			open FSTAB, '>>', '/etc/fstab';
+			print FSTAB "\n### entries below this line were automatically added by $SCRIPT_NAME v$SCRIPT_VER";
+			foreach my $entry (@detected_fstab) {
+				print FSTAB $entry;
+			}
+			print FSTAB "\n\n";
+			close FSTAB;
+			print_success();
+		}
+	}
+	else {
+		print_warning();
+	}
+}
+
+
+# start all swap partitions
+sub hwdetect_swapon {
+	print "Activating swap partitions: ";
+	system("swapon -a -e") ? print_failure() : print_success();
+}
+
+
 foreach (@ARGV) {
 	if    (/^--debug/) { $debug = 1; }
 	elsif (/^--probe/) { $probe = 1; }
@@ -460,6 +833,8 @@ foreach (@ARGV) {
 }
 
 hwdetect_init();
+hwdetect_getdisks();
+hwdetect_swapon() if ($haveswap > 0);
 hwdetect_getmachine();
 hwdetect_readconf();
 hwdetect_probeusb();
@@ -470,4 +845,6 @@ hwdetect_getsound();
 hwdetect_getnetwork();
 hwdetect_getserial();
 hwdetect_getusb() if -e '/proc/bus/usb/devices';
+hwdetect_writeconf() unless ($probe);
+hwdetect_deinitusb();
 hwdetect_deinit();
