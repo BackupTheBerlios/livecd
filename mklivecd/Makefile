@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.12 2003/10/01 12:59:02 jaco Exp $
+# $Id: Makefile,v 1.13 2003/10/01 22:23:53 bgmilne Exp $
 
 include Rules.mk
 
@@ -43,7 +43,7 @@ clean:
 
 dist: spec
 	$(MKDIR) -p $(MKLIVECDDIST)/$(SRCDIR)/init.d
-	$(CP) AUTHORS CHANGELOG COPYING FAQ README TODO Makefile $(DISTDIR)/$(PKGNAME).spec $(MKLIVECDDIST)
+	$(CP) AUTHORS CHANGELOG COPYING FAQ README TODO Makefile Rules.mk $(DISTDIR)/$(PKGNAME).spec $(MKLIVECDDIST)
 	$(CP) $(SRCDIR)/isolinux.cfg $(MKLIVECDDIST)/$(SRCDIR)
 	$(CP) $(SRCDIR)/linuxrc.in $(MKLIVECDDIST)/$(SRCDIR)
 	$(CP) $(SRCDIR)/$(PKGNAME).in $(MKLIVECDDIST)/$(SRCDIR)
