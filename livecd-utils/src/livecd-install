@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.58 2004/04/24 06:51:34 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.59 2004/04/25 15:08:06 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -123,11 +123,11 @@ my %strings = (
 	
 	'boot_bs'          => [ "(Bootsector of partition)", undef ],
 	'boot_mbr'         => [ "(Master boot record of drive)", undef ],
-	
-	'fstab_info'       => [ "Entries below this line were automatically added by $distroname install", undef ],
+	'bl_written'	   => [ "Bootloader written", undef ],	
+	'fstab_info'       => [ "Automatically added by livecd-install", undef ],
 
 	'scr_1_title'      => [ "Step 1 of 6: Welcome", undef ],
-	'scr_1_text'       => [ "<p><b>Welcome</b> to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can exit/abort at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing of important data or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n<p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.", undef ],
+	'scr_1_text'       => [ "<p><b>Welcome</b> to the LiveCD installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can exit/abort at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing of important data or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n<p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.", undef ],
 
 	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", undef ],
 	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify the <i>root</i> and <i>swap</i> locations. A separate <i>home</i> partition is recommended, not required.</p>", undef ],
@@ -201,7 +201,7 @@ sub getStr {
 
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Sat Apr 24 00:48:13 2004
+# Created: Sun Apr 25 00:04:13 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -3773,7 +3773,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.58 2004/04/24 06:51:34 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.59 2004/04/25 15:08:06 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -4455,6 +4455,7 @@ sub copyDir
 sub showBootloader
 {
 	this->setBackEnabled($page, 0);
+	this->lbBootloader->clear();
 	this->lbBootloader->insertItem("$rootpart ".getStr('boot_bs'));
 
 	my @drives = ();
@@ -4521,8 +4522,8 @@ image=$kernel
 		do_system("umount $mnt/dev");
 		do_system("umount $mnt/proc");
 	}
-
-#	emit this->next();
+	Qt::MessageBox::information (this, "$distroname Installer", getStr('bl_written'));
+#	emit this->next(); # Jump to next page
 }
 
 
@@ -4536,7 +4537,7 @@ sub writeFstab {
 		fs::write_fstab($hdds, $mnt);
 
 		open FSTAB, '>', "$mnt/etc/fstab";
-		print FSTAB "\n### livecd-install ".getStr('fstab_info')."\n";
+		print FSTAB "## livecd-install ".getStr('fstab_info')."\n";
 		print FSTAB "\nnone"."\t"."/proc"."\t"."proc"."\t"."defaults"."\t"."0 0";
 		print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";
 
@@ -4690,6 +4691,8 @@ sub writeRootPW # SLOT: (  )
            $message = getStr('function_error')."$result";
            Qt::MessageBox::information (this, "$distroname Installer", $message);
 	}
+	lineEdit1->clear();
+	lineEdit2->clear();
 }
 
 
@@ -4816,7 +4819,7 @@ sub createUser # SLOT: ( )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.58 2004/04/24 06:51:34 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.59 2004/04/25 15:08:06 tom_kelly33 Exp $
 #
 
 package main;

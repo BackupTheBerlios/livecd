@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install-lang.pm.in,v 1.9 2004/04/24 14:30:40 tom_kelly33 Exp $
+# $Id: livecd-install-lang.pm.in,v 1.10 2004/04/25 15:08:06 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -122,11 +122,11 @@ my %strings = (
 	
 	'boot_bs'          => [ "(Bootsector of partition)", undef ],
 	'boot_mbr'         => [ "(Master boot record of drive)", undef ],
-	
-	'fstab_info'       => [ "Entries below were automatically added by: \n ## $distroname using livecd-install", undef ],
+	'bl_written'	   => [ "Bootloader written", undef ],	
+	'fstab_info'       => [ "Automatically added by livecd-install", undef ],
 
 	'scr_1_title'      => [ "Step 1 of 6: Welcome", undef ],
-	'scr_1_text'       => [ "<p><b>Welcome</b> to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can exit/abort at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing of important data or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n<p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.", undef ],
+	'scr_1_text'       => [ "<p><b>Welcome</b> to the LiveCD installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can exit/abort at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing of important data or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n<p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.", undef ],
 
 	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", undef ],
 	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify the <i>root</i> and <i>swap</i> locations. A separate <i>home</i> partition is recommended, not required.</p>", undef ],

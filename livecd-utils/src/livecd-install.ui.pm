@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.26 2004/04/24 06:51:34 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.27 2004/04/25 15:08:06 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -710,6 +710,7 @@ sub copyDir
 sub showBootloader
 {
 	this->setBackEnabled($page, 0);
+	this->lbBootloader->clear();
 	this->lbBootloader->insertItem("$rootpart ".getStr('boot_bs'));
 
 	my @drives = ();
@@ -776,8 +777,8 @@ image=$kernel
 		do_system("umount $mnt/dev");
 		do_system("umount $mnt/proc");
 	}
-
-#	emit this->next();
+	Qt::MessageBox::information (this, "$distroname Installer", getStr('bl_written'));
+#	emit this->next(); # Jump to next page
 }
 
 
@@ -791,7 +792,7 @@ sub writeFstab {
 		fs::write_fstab($hdds, $mnt);
 
 		open FSTAB, '>', "$mnt/etc/fstab";
-		print FSTAB "\n### livecd-install ".getStr('fstab_info')."\n";
+		print FSTAB "## livecd-install ".getStr('fstab_info')."\n";
 		print FSTAB "\nnone"."\t"."/proc"."\t"."proc"."\t"."defaults"."\t"."0 0";
 		print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";
 
@@ -945,6 +946,8 @@ sub writeRootPW # SLOT: (  )
            $message = getStr('function_error')."$result";
            Qt::MessageBox::information (this, "$distroname Installer", $message);
 	}
+	lineEdit1->clear();
+	lineEdit2->clear();
 }
 
 
