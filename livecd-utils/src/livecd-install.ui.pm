@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.54 2005/02/17 15:22:55 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.55 2005/03/01 15:45:00 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -88,7 +88,7 @@ my $pb_o_num      : shared = 0;
 my $pb_o_tot      : shared = 0;
 
 my @satalist = qw(libata sd_mod ata_piix scsi_mod sr_mod sg a100u2w
-		advansys aha152x aha1542 aic7xxx BusLogic fdomain gdth
+		advansys aha152x aha1542 aic7xxx ata_piix BusLogic fdomain gdth
 		megaraid sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc);
 
 my %devs   = ();

@@ -1,5 +1,7 @@
-# $Id: CHANGELOG,v 1.7 2005/02/17 15:22:54 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.8 2005/03/01 15:45:00 tom_kelly33 Exp $
 
+* 2005-03-01
+	- added ata_piix, thanks Yoshinori Okuji
 * 2005-02-17
 	- added sata_nv 
 

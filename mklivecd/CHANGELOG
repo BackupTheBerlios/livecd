@@ -1,5 +1,6 @@
-# $Id: CHANGELOG,v 1.146 2005/02/26 17:29:50 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.147 2005/03/01 15:45:20 tom_kelly33 Exp $
 
+* 2005-03-01 [hwdetect] added ata_piix, thanks Yoshinori Okuji
 * 2005-02-26 [rc.sysinit.in] skip unionfs test/debug section 
 		"   mtab typo fixed
 	     [linuxrc.in] increase delays while finding devices

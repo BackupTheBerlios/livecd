@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.152 2005/02/18 23:37:04 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.153 2005/03/01 15:45:20 tom_kelly33 Exp $
 #
 
 use strict;
@@ -559,7 +559,7 @@ sub hwdetect_getsata() {
 		return
 	}
 	my @satalist = qw(libata sd_mod ata_piix scsi_mod sr_mod sg a100u2w 
-		advansys aha152x aha1542 aic7xxx BusLogic fdomain gdth 
+		advansys aha152x aha1542 aic7xxx ata_piix BusLogic fdomain gdth 
 		megaraid sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc);
 
 	print getStr('mod_loaded') . ": ";	
