@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.78 2004/01/08 07:16:18 jaco Exp $
+# $Id: hwdetect.in,v 1.79 2004/01/08 08:41:44 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -70,7 +70,7 @@ my $COLOR_NORMAL   = $ESC."0;39m";
 ### global varibles
 my $debug         = 0;
 my $probe         = 0;
-my $fdisk         = 0;
+my $fdisk         = undef;
 my $prefix        = "";
 my @all_devices   = ();
 my %cmdline;
@@ -1224,37 +1224,47 @@ sub hwdetect_swapon {
 }
 
 
-# parse command-line options
-GetOptions(
-	'debug'    => \$debug,
-	'probe'    => \$probe,
-	'fdisk'    => \$fdisk,
-	'prefix=s' => \$prefix
-);
-
-# initialise
-hwdetect_init();
-hwdetect_readconf();
-hwdetect_probepci() unless ($fdisk);
-hwdetect_initusb() unless ($fdisk);
-hwdetect_initpcmcia() unless ($fdisk);
-
-# get devices
-hwdetect_probeall() unless ($fdisk);
-hwdetect_all() unless ($fdisk);
-hwdetect_getxfree() unless ($fdisk);
-hwdetect_getsound() unless ($fdisk);
-hwdetect_getnetwork() unless ($fdisk);
-#hwdetect_getserial() unless ($fdisk);
-hwdetect_getusb() unless ($fdisk);
-hwdetect_writeconf() unless ($fdisk);
-
-# get disks
-hwdetect_getdisks();
-hwdetect_writedisks();
-hwdetect_swapon() unless ($fdisk);
-hwdetect_getmachine() unless ($fdisk);
-
-# deinit
-hwdetect_deinitusb() unless ($fdisk);
-hwdetect_deinit();
+MAIN: {
+	# parse command-line options
+	GetOptions(
+		'debug'    => \$debug,
+		'probe'    => \$probe,
+		'fdisk'    => \$fdisk,
+		'prefix=s' => \$prefix
+	);
+	
+	# initialise
+	hwdetect_init();
+	hwdetect_readconf();
+	
+	# probe busses
+	unless (defined($fdisk)) {
+		hwdetect_probepci();
+		hwdetect_initusb();
+		hwdetect_initpcmcia();
+	}
+	
+	# get all devices
+	unless (defined($fdisk)) {
+		hwdetect_probeall();
+		hwdetect_all();
+		hwdetect_getxfree();
+		hwdetect_getsound();
+		hwdetect_getnetwork();
+		#hwdetect_getserial();
+		hwdetect_getusb();
+		hwdetect_writeconf();
+	}
+	
+	# get disks
+	hwdetect_getdisks();
+	hwdetect_writedisks();
+	if (defined($fdisk)) {
+		hwdetect_swapon();
+		hwdetect_getmachine();
+	}
+	
+	# deinit
+	hwdetect_deinitusb() unless ($fdisk);
+	hwdetect_deinit();
+}
