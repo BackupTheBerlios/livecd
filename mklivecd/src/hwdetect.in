@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.73 2004/01/07 07:03:01 jaco Exp $
+# $Id: hwdetect.in,v 1.74 2004/01/07 08:55:47 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -1142,7 +1142,7 @@ sub hwdetect_writedisks {
 				$entry .= "none\t";
 				$entry .= $all_devs{$dev}->{mount}."\t";
 				$entry .= "supermount\t";
-				my $opt = "dev=".$all_devs{$dev}->{devfs}.",fs=udf:iso9660,";
+				my $opt = "dev=".$all_devs{$dev}->{dev}.",fs=udf:iso9660,";
 				$opt .= $all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
 				$opt .= "," if ($all_devs{$dev}->{opt} && $all_devs{$dev}->{extopt});
 				$opt .= $all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
@@ -1151,7 +1151,7 @@ sub hwdetect_writedisks {
 			}
 			else {
 				my $entry = "\n";
-				$entry .= $all_devs{$dev}->{devfs}."\t";
+				$entry .= $all_devs{$dev}->{dev}."\t";
 				$entry .= $all_devs{$dev}->{mount}."\t";
 				$entry .= $all_devs{$dev}->{type}."\t";
 				my $opt = "";

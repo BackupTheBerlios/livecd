@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.98 2004/01/07 07:03:01 jaco Exp $
+# $Id: CHANGELOG,v 1.99 2004/01/07 08:55:47 jaco Exp $
 
 * Wed, Jan 07, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -72,6 +72,7 @@
       - Home partition located on ext2 loop device to allow symlinks
       - Removable devices are mounted with supermount now
       - Add /proc/bus/usb (usbdevfs) to /etc/fstab
+      - Write real device names (not devfs) to /etc/fstab
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
