@@ -22,12 +22,13 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.60 2004/01/07 12:52:02 jaco Exp $
+# $Id: linuxrc.in,v 1.61 2004/01/10 08:33:08 jaco Exp $
 #
 
 ### global variables
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
 umask 022
+DEBUG=
 FOUND_MDKISO=""
 OPT_MODULES_24="@DEF_MODULES_OPT_24@"
 DEP_MODULES_24="@DEF_MODULES_DEP_24@ @DEF_SCSI_MODULES_DEP_24@"
@@ -156,11 +157,14 @@ docmd() {
 ### load a module
 loadmod() {
 	MODULE="/lib/modules/$KERNELVER/kernel/$1$MODEXT"
-	#echo -n "$MODULE "
 	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
 	[ ! -f $MODULE ] && return 1
-	#insmod $MODULE $2 && return 0 || return 1
-	insmod $MODULE $2 2>&1 >/dev/null && return 0 || return 1
+	if [ -n "$DEBUG" ]; then
+		echo -n "$MODULE "
+		insmod $MODULE $2 && return 0 || return 1
+	else
+		insmod $MODULE $2 2>&1 >/dev/null && return 0 || return 1
+	fi
 }
 
 
@@ -201,6 +205,9 @@ initialise() {
 		USB_MODULES="$USB_MODULES_26"
 		USB_MODULES_DRV="$USB_MODULES_DRV_26"
 	fi
+	
+	# debugging?
+	DEBUG=`grep -iq debug /proc/cmdline && echo 1`
 
 	set_progress
 }

@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.80 2004/01/08 11:39:58 jaco Exp $
+# $Id: hwdetect.in,v 1.81 2004/01/10 08:33:08 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -373,17 +373,17 @@ sub hwdetect_probepci() {
 		unless (defined($pciid{$pci->{id}})) {
 			$pciid{$pci->{id}} = 1;
 			my ($probed_vendor, $probed_desc) = split(/\|/, $pci->{description});
-			if ($pci->{media_type} =~ /SERIAL_USB/) {
+			if ($pci->{media_type} =~ /SERIAL_USB/ && !defined($cmdline{'nousb'})) {
 				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc, 5);
 				modules::add_probeall("usb-interface", $pci->{driver}) unless ($probe);
 				print "modules::add_probeall('usb-interface', '".$pci->{driver}."')\n" if ($debug);
 			}
-			elsif ($pci->{media_type} =~ /STORAGE_SCSI/) {
+			elsif ($pci->{media_type} =~ /STORAGE_SCSI/ && !defined($cmdline{'noscsi'})) {
 				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
 				modules::add_probeall("scsi_hostadapter", $pci->{driver}) unless ($probe);
 				print "modules::add_probeall('scsi_hostadapter', '".$pci->{driver}."')\n" if ($debug);
 			}
-			elsif ($pci->{media_type} =~ /BRIDGE_CARDBUS/) {
+			elsif ($pci->{media_type} =~ /BRIDGE_CARDBUS/ && !defined($cmdline{'nopcmcia'})) {
 				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
 			}
 			elsif ($pci->{media_type} =~ /BRIDGE_/) {

@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.103 2004/01/08 17:03:01 jaco Exp $
+# $Id: CHANGELOG,v 1.104 2004/01/10 08:33:08 jaco Exp $
 
-* Wed, Jan 07, 2003, 0.5.7-cvs
+* Sat, Jan 10, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
@@ -76,6 +76,7 @@
       - Added LVM detection (Thanks to Leslie Hazelton 
         <seawolf@attglobal.net> and SI Reasoning <si@mindspring.com>
         for all testing and help in debugging.)
+      - Adhere to the "nousb", "noscsi" and "nopcmcia" boot options
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
@@ -96,6 +97,8 @@
       - Added module extension option based on kernel version,
         2.4.x == .o, 2.6.x == .ko
       - Also load USB modules when booting from USB device
+      - "debug" boot option spits out some more scripot debugging
+        information
     [mklivecd]:
       - Be verbose in depmod command
       - Copy SCSI and optinal modules in addition to normal
