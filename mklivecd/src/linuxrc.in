@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.31 2003/11/03 08:26:43 jaco Exp $
+# $Id: linuxrc.in,v 1.32 2003/11/03 11:38:50 jaco Exp $
 #
 
 ### global variables
@@ -55,6 +55,7 @@ MNTRAMDISK=/ramfs
 progress_num=0
 progress_full=26 # our 10, +16 for hwdetect
 progress_on=1
+progress_max=65534; # normal: 65534
 
 ### screen colors
 RES_COL=65
@@ -129,10 +130,10 @@ loadmod() {
 ### set progress bar
 set_progress() {
 	silent=`grep -i splash=silent /proc/cmdline`
-	if [ -e /proc/splash ] && [ -n "$silent" ]; then
+	if [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
 		progress_num=$(($progress_num+1));
-		progress=$((65534*($progress_num+1)/$progress_full));
-		[ -n "$progress_on" ] && echo "show $progress" >/proc/splash
+		progress=$(($progress_max*($progress_num+1)/$progress_full));
+		echo "show $progress" >/proc/splash
 	fi
 }
 
@@ -511,7 +512,7 @@ setupinit() {
 
 	# restart the splash before MDK init (this is very hacky)
 	silent=`grep -i splash=silent /proc/cmdline`
-	if [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
+	if [ $progress_max -eq 65534 ] && [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
 		echo 0 > /proc/splash
 		. /etc/sysconfig/bootsplash
 		res=`/bin/fbresolution`
