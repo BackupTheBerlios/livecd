@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.32 2003/10/05 07:05:22 jaco Exp $
+# $Id: mklivecd.in,v 1.33 2003/10/05 07:39:09 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -127,9 +127,8 @@ do_cp() {
 do_cp_strip() {
 	if [ -n "$final" ]; then
 		do_cmd "cat $1 | \
-			sed -e 's/^#[^!].*//;s/[^$n]#.*//;s/^#$//;s/^[ ].*//' | \
-			tr -d \"\t\" | \
-			grep -v ^$ >$2"
+			sed -e 's/^#[^!].*//;s/^#$//;s/^[ ].*//' | \
+			tr -d \"\t\" | grep -v ^$ >$2"
 	else
 		do_cp $@
 	fi
