@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.68 2004/01/21 08:36:23 jaco Exp $
+# $Id: linuxrc.in,v 1.69 2004/01/28 06:00:19 jaco Exp $
 #
 
 ### global variables
@@ -54,7 +54,7 @@ LOOPCEXT=".clp"           # extension for the above
 LOOPSEXT=".sqfs"
 LOOPIEXT=".iso"
 ISOTYPE="iso9660"
-MD5FILE="livecd.md5"
+MEDIACHECK="isolinux/mediacheck"
 DEVICES=""                # list of all ide/scsi cd-type devices
 FOUNDMEM=200000           # total memory found on box
 TOTALMEM=200000           # total usable memory on box
@@ -256,23 +256,11 @@ execshell() {
 
 ### check the MD5 sum of the cloop iso image
 checkmd5() {
-	if [ -f $MNTCDROM/$MD5FILE ]; then
+	if [ -f $MNTCDROM/$MEDIACHECK ]; then
 		domd5=`grep -iq md5sum /proc/cmdline && echo 1`
 		if [ -n "$domd5" ]; then
-			md5ok=
 			echo -n "Verifying MD5 checksum of iso image: "
-			(eval "cd $MNTCDROM && md5sum -c $MD5FILE") 2>&1 >/dev/null && md5ok=1
-			if [ -z "$md5ok" ]; then
-				printfail
-				$SETCOLOR_FAIL
-				echo ""
-				echo "ERROR: Unable to verify the iso image MD5 checksum,"
-				echo "       dropping you to a limited shell."
-				$SETCOLOR_NORMAL
-				execshell
-			else
-				printok
-			fi
+			$MNTCDROM/$MEDIACHECK $CDDEV && printok || printfail
 		fi
 	fi
 }

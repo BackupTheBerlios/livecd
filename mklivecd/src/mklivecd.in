@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.104 2004/01/23 12:06:43 jaco Exp $
+# $Id: mklivecd.in,v 1.105 2004/01/28 06:00:19 jaco Exp $
 #
 
 use strict;
@@ -767,7 +767,7 @@ sub create_compressed {
 ### create the isolinux stuff
 sub create_isolinux {
 	my $pos = 0;
-	start_progress("Creating isolinux boot", 8);
+	start_progress("Creating isolinux boot", 9);
 
 	# copy boot images
 	my $bin = "/usr/lib/syslinux/isolinux.bin";
@@ -776,6 +776,7 @@ sub create_isolinux {
 	do_copy($bin, 644, "$workdir/livecd/isolinux/isolinux.bin", ++$pos);
 	die_("\nFATAL: The kernel '".$o_root."boot/vmlinuz-$o_kernel' does not exist on your machine.\n") unless (-f $o_root."boot/vmlinuz-$o_kernel");
 	do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/isolinux/vmlinuz", ++$pos);
+	do_copy("/usr/bin/mediacheck", 755, "$workdir/livecd/isolinux/mediacheck", ++$pos);
 
 	# copy messages
 	do_copy($opts{bootmsg}, 644, "$workdir/livecd/isolinux/livecd.msg", ++$pos) if (defined($opts{bootmsg}));
@@ -808,24 +809,15 @@ sub create_isolinux {
 	print CFG "    append livecd=initrd $appopt\n";
 	print CFG "label memtest\n";
 	print CFG "    kernel memtest\n";
+	print CFG "label mediacheck\n";
+	print CFG "    kernel vmlinuz\n";
+	print CFG "    append livecd=livecd md5sum $appopt\n";
 	close CFG;
 	set_progress(++$pos, "$workdir/livecd/isolinux/isolinux.cfg");
 
 	# create boot catalogue
 	do_cmd("dd if=/dev/zero of=$workdir/livecd/isolinux/boot.cat bs=1k count=2 2> /dev/null", ++$pos);
 
-	end_progress();
-}
-
-
-### create the md5's
-sub create_md5 {
-	# create the md5
-	my @files = ("isolinux/initrd.gz", "isolinux/isolinux.cfg", "isolinux/vmlinuz", "livecd.$o_looptype");
-	start_progress("Calculating MD5 checksums", scalar(@files));
-	do_cmd(":> livecd.md5");
-	my $pos = 0;
-	do_cmd("cd $workdir/livecd ; md5sum $_ >>livecd.md5", ++$pos) foreach (@files);
 	end_progress();
 }
 
@@ -841,7 +833,6 @@ sub create_finaliso {
 	print SORT "$workdir/livecd/isolinux/vmlinuz 498\n";
 	print SORT "$workdir/livecd/isolinux/initrd.gz 497\n";
 	print SORT "$workdir/livecd/isolinux/* 450\n";
-	print SORT "$workdir/livecd/livecd.md5 420\n";
 	print SORT "$workdir/livecd/livecd.$o_looptype 400\n";
 	close SORT;
 	set_progress(++$pos, "$workdir/sort_iso.list");
@@ -866,6 +857,29 @@ sub create_finaliso {
 		set_progress($pos, $line);
 	}
 	close ISO;
+	end_progress();
+}
+
+
+### create the embedded md5sum
+sub create_md5 {
+	my $isosize = get_exec("ls -al --block-size=1M $finaliso | awk '{print \$5 }'");
+	start_progress("Embedding MD5 checksum", $isosize);
+	open MD5, "implantisomd5 $finaliso |" or die_("\nFATAL: Unable to execute 'implantisomd5'\n");
+	my $line;
+	my $pos = 0;
+	while ($line = <MD5>) {
+		chomp($line);
+		if ($line =~ /^Read/) {
+			$pos = $line;
+			$pos =~ s/Read//;
+			$pos =~ s/MB//;
+			$pos =~ s/\s// while ($pos =~ /\s/);
+			#print "[pos=$pos, line=$line]\n";
+		}
+		set_progress($pos, $line);
+	}
+	close MD5;
 	end_progress();
 }
 
@@ -906,8 +920,8 @@ MAIN: {
 	create_initrd();
 	create_compressed();
 	create_isolinux();
-	create_md5();
 	create_finaliso();
+	create_md5();
 
 	cleanup();
 

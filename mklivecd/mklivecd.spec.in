@@ -1,4 +1,4 @@
-# $Id: mklivecd.spec.in,v 1.29 2004/01/25 17:45:31 jaco Exp $
+# $Id: mklivecd.spec.in,v 1.30 2004/01/28 06:00:19 jaco Exp $
 
 %define name	mklivecd
 %define version	@MKLIVECDVER@
@@ -14,7 +14,8 @@ License:	GPL
 Group:		System/Configuration/Boot and Init
 URL:		http://livecd.berlios.de/
 Source0:	%{name}-@ARCHIVEVER@.tar.bz2
-Requires:	busybox >= 1:1.00-0.pre4.2mdk, cloop-utils >= 1.02-4mdk, mkisofs, squashfs-tools >= 1.3r2-2mdk
+Requires:	busybox >= 1:1.00-0.pre4.2mdk, cloop-utils >= 1.02-4mdk
+Requires:	mediacheck, mkisofs, squashfs-tools >= 1.3r2-2mdk
 BuildRoot:	%{_tmppath}/%{name}-root
 Buildarch:	noarch
 
