@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.60 2003/11/01 09:15:43 jaco Exp $
+# $Id: CHANGELOG,v 1.61 2003/11/01 09:37:26 jaco Exp $
 
 * Wed, Oct 29, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -23,7 +23,8 @@
       - Allow xres=1024x768|1280x1024|1400x1050|1600x1400 to
         specify the resolution in the case where the monitor
         cannot be reliably detected, eg. laptop panels
-      - Add support for nvidia propritary drivers
+      - Add support for Nvidia GLX drivers
+      - Add support for ATI GLX drivers
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules

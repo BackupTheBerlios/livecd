@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.31 2003/11/01 09:15:43 jaco Exp $
+# $Id: hwdetect.in,v 1.32 2003/11/01 09:37:26 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -464,11 +464,12 @@ sub hwdetect_getvideo {
 		modules::add_alias("/dev/nvidia*", "nvidia") unless ($probe);
 		print "modules::add_alias('/dev/nvidia*', 'nvidia')\n" if ($debug);
 	}
-	#elsif ($probed_card->{Driver2} eq 'fglrx' &&
-	#       -e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
-	#       -e "/usr/X11R6/lib/modules/drivers/fglrx_drv.o") {
-	#	$proved_card->{Driver} = 'fglrx';
-	#}
+	elsif ($probed_card->{Driver2} eq 'fglrx' &&
+	       -e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
+	       -e "/usr/X11R6/lib/modules/drivers/fglrx_drv.o" &&
+	       -e "/lib/modules/$kernel_ver/kernel/drivers/char/fglrx.o.gz") {
+		$probed_card->{Driver} = 'fglrx';
+	}
 	$probed_card;
 }
 
