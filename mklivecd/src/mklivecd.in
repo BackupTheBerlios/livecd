@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.45 2003/10/10 07:55:40 jaco Exp $
+# $Id: mklivecd.in,v 1.46 2003/10/10 09:42:54 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -38,6 +38,7 @@ modulefile=/etc/modules.conf
 tmpdir=""
 rc=0
 kernel26=""
+kernel=`uname -r`
 modules_opt="@DEF_MODULES_OPT_PATH@"
 modules="@DEF_MODULES_PATH@ @DEF_MODULES_DEP_PATH@ @DEF_SCSI_MODULES_PATH@ @DEF_SCSI_MODULES_DEP_PATH@"
 
@@ -64,56 +65,92 @@ resolution="@DEF_RESOLUTION@"
 vgamode="@DEF_VGAMODE@"
 bootsplash=1
 
-usage () {
-	echo "Usage:" >&2
-	echo "    `basename $0` [options] <livecd-image>" >&2
-	echo "" >&2
-	echo "General Options:" >&2
-	echo "    --help                     Display this message" >&2
-	echo "    --version                  Display version information" >&2
-	echo "" >&2
-	echo "Image generation:" >&2
-	echo "    --verbose                  Be verbose in output" >&2
-	echo "    --rootdir=<rootdir>        Root directory of the live filesystem" >&2
-	echo "    --tmpdir=<tmpdir>          Temp directory for images" >&2
-	echo "    --cloop=<image>            Name of the saved compressed image (1)" >&2
-	echo "    --exclude-dir=<excludes>   Excludes directories from the final image (2)" >&2
-	echo "    --exclude-file=<excludes>  Excludes files from the final image (2)" >&2
-	echo "    --kernel=<kernel>          Kernel to use as boot image" >&2
-	echo "    --lowmem                   Use disk as temporary storage for iso images" >&2
-	echo "    --final                    Strip extra lines from the scripts on the initrd" >&2
-	echo "    --translucency={yes|no}    Enable translucency support (default: no)" >&2
-	echo "" >&2
-	echo "    1. This option can have unexpected side-effects. When an image by this name " >&2
-	echo "       is found, it will not be re-created/overwritten, rather the existing image" >&2
-	echo "       will be re-used, i.e. the compressed image is not re-built." >&2
-	echo "    2. Patterns passed to these options is to be valid in a grep(1) search, " >&2
-	echo "       and space delimited, e.g. --exclude-dir=\"^/home/jaco ^/root/\.mozilla\"" >&2
-	echo "       will exclude both the /home/jaco and /root/.mozilla directories" >&2
-	echo "" >&2
-	echo "Compression options:" >&2
-	echo "    --blocksize=<size>         Compression blocksize in K (default: 64)" >&2
-	echo "    --looptype=<cloop|bzloop>  Create a cloop (default) or bzloop image (3)" >&2
-	echo "" >&2
-	echo "    3. The bzloop option is currently utilising the experimental bzloop kernel" >&2
-	echo "       module. It should not be considdered as stable and might have adverse" >&2
-	echo "       (unintended) side-effects." >&2
-	echo "" >&2
-	echo "Boot options:" >&2
-	echo "    --iso-bootmsg=<msg>        Use 'msg' as the isolinux message display" >&2
-	echo "    --iso-bootkey=<key>,<msg>  Display 'msg' on key 'key' from isolinux" >&2
-	echo "    --iso-graphic              Use the Mandrake boot image extension" >&2
-	echo "    --iso-bgimage=<image.lss>  Use 'image.lss' as the isolinux display image" >&2
-	echo "    --keyboard=<mapping>       Specify a different keyboard layout (default: @DEF_KEYBOARD@)" >&2
-	echo "    --resolution=<res>         Specify the resolution for the framebuffer (default: @DEF_RESOLUTION@)" >&2
-	echo "    --splash={yes|no}          Create with bootsplash if available on image (default: yes)" >&2
-	echo "    --theme=<theme>            Use 'theme' as the bootsplash theme" >&2
-	echo "" >&2
-	echo "Examples:" >&2
-	echo "    `basename $0` --exclude-dir=\"^/usr/src/RPM ^/root/tmp\" livecd.iso" >&2
-	echo "    `basename $0` --blocksize=224 livecd.iso" >&2
-	echo "" >&2
+printusage () {
+	echo "
+Usage:
+   `basename $0` [options] <livecd-image>
+
+General Options:
+   --help                      Display this message
+   --version                   Display version information
+
+Image generation:
+   --verbose                   Be verbose in output
+   --root=<rootdir>            Root directory of the live filesystem to use as
+                               the image for the LiveCD (default: /)
+   --tmp=<tmpdir>              Name of the diirectory to be used for temporary
+                               storage (default: /tmp)
+   --cloop=<image>             Name of the saved compressed image. When an image
+                               by this name is found, it will not be re-created
+                               or overwritten, rather the existing image will be
+                               re-used, i.e. the compressed image is not
+                               re-built.
+   --nofile=<ex1>[,][...]      Excludes files from the final image. (Also see
+                               the --nodir option for a full description)
+   --nodir=<ex1>[,][...]       Excludes directories from the final image.
+                               Patterns passed to this option (as with the
+                               --nofile option) should be valid in a grep(1)
+                               search, e.g. --nodir=^/home/jaco,^/root/\.mcop
+                               will exclude both the /home/jaco and /root/.mcop
+                               directories from the final LiveCD.
+   --kernel=<kernel>           Kernel to use as default for the LiveCD image.
+                               (default: $kernel)
+   --lowmem                    Utilise the disk as temporary storage for iso
+                               images. (default: off)
+   --final                     Strip extra lines from the scripts on the initrd,
+                               and optimise the LiveCD for production (no
+                               debugging) use. (default: off)
+   --experimental              Enable experimental LiveCD feautures. Currently
+                               this option enables kernel translucency support
+                               (default: off)
+
+Compression options:
+   --blocksize=<size>          Compression blocksize in K (default: 64)
+   --looptype=<cloop|bzloop>   Create a cloop or bzloop image. The bzloop option
+                               is utilising the experimental bzloop kernel
+                               module. bzloop should not be considdered as
+                               stable and might have unintended side-effects on
+                               the created LiveCD. (default: cloop)
+
+Boot options:
+   --bootmsg=<msg>             Use 'msg' as the isolinux boot message
+   --bootkey=<key>,<msg>       Display 'msg' on key 'key' from isolinux
+   --bootimg=<img>             Use 'img' (LSS format) as the isolinux background
+                               display image
+   --mdkboot                   Use the Mandrake boot image extension to display
+                               the boot message (default: off)
+   --keyboard=<mapping>        Specify a different keyboard layout as default
+                               for the LiveCD (default: @DEF_KEYBOARD@)
+   --resolution=<res>          Specify the resolution for the framebuffer output
+                               device (default: @DEF_RESOLUTION@)
+   --splash=<yes|no>[,<theme>] Create the LiveCD with bootsplash support if
+                               available on the root filesystem, optionally use
+                               the specified bootsplash theme (default: yes)
+
+Examples:
+    `basename $0` --nodir=^/usr/src/RPM,^/root/tmp livecd.iso
+    `basename $0` --blocksize=224 livecd.iso
+" >&2
 	exit 1
+}
+
+printversion() {
+	echo "
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+" >&2
+	exit 0
 }
 
 ### do a shell command
@@ -447,9 +484,13 @@ restore_theme() {
 
 echo "$PROGNAME, version $VERSION, http://www.linuxminicd.org/mklivecd/" >&2
 echo "Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>" >&2
-echo "" >&2
 while [ $# -gt 0 ]; do
 	case $1 in
+		--exclude*|--rootdir*|--tmpdir*|--translucency*|--iso-*|--theme*)
+			echo "ERROR: The $1 option has been removed. Please use \"`basename $0` --help\" for a list of valid options." >&2
+			exit 1
+			;;
+
 		--cloop*)
 			if echo $1 | grep '=' >/dev/null ; then
 				cloopimg="${1#--cloop=}"
@@ -459,26 +500,26 @@ while [ $# -gt 0 ]; do
 			fi
 			;;
 
-		--exclude-dir*)
+		--nodir*)
 			if echo $1 | grep '=' >/dev/null ; then
-				excludes="${1#--exclude-dir=}"
+				excludes="${1#--nodir=}"
 			else
 				excludes=$2
 				shift
 			fi
-			for e in $excludes; do
+			for e in `echo $excludes | sed -e 's/,/ /'`; do
 				excludedirs="$excludedirs $e"
 			done
 			;;
 
-		--exclude-file*)
+		--nofile*)
 			if echo $1 | grep '=' >/dev/null ; then
-				excludes="${1#--exclude-file=}"
+				excludes="${1#--nofile=}"
 			else
 				excludes=$2
 				shift
 			fi
-			for e in $excludes; do
+			for e in `echo $excludes | sed -e 's/,/ /'`; do
 				excludefiles="$excludefiles $e"
 			done
 			;;
@@ -501,18 +542,18 @@ while [ $# -gt 0 ]; do
 			fi
 			;;
 
-		--tmpdir*)
+		--tmp*)
 			if echo $1 | grep '=' >/dev/null ; then
-				tmpdir="${1#--tmpdir=}"
+				tmpdir="${1#--tmp=}"
 			else
 				tmpdir=$2
 				shift
 			fi
 			;;
 
-		--rootdir*)
+		--root*)
 			if echo $1 | grep '=' >/dev/null ; then
-				rootdir="${1#--rootdir=}"
+				rootdir="${1#--root=}"
 			else
 				rootdir=$2
 				shift
@@ -550,43 +591,26 @@ while [ $# -gt 0 ]; do
 			final=1
 			;;
 
-		--translucency*)
-			if echo $1 | grep '=' >/dev/null ; then
-				yn="${1#--translucency=}"
-			else
-				yn=$2
-				shift
-			fi
-			if [ "$yn" == "yes" ]; then
-				withtrans=1
-			else
-				withtrans=
-			fi
+		--experimental)
+			withtrans=1
 			;;
 
 		--splash*)
 			if echo $1 | grep '=' >/dev/null ; then
-				yn="${1#--splash=}"
+				cl="${1#--splash=}"
 			else
-				yn=$2
+				cl=$2
 				shift
 			fi
+			yn=`echo $cl | awk -F',' '{ print $1 }'`
+			theme=`echo $cl | awk -F',' '{ print $2 }'`
 			if [ "$yn" == "yes" ]; then
 				bootsplash=1
 			else
 				bootsplash=
+				theme=
 			fi
 			;;
-
-		--theme*)
-			if echo $1 | grep '=' >/dev/null ; then
-				theme="${1#--theme=}"
-			else
-				theme=$2
-				shift
-			fi
-			;;
-
 
 		--keyboard*)
 			if echo $1 | grep '=' >/dev/null ; then
@@ -634,9 +658,9 @@ while [ $# -gt 0 ]; do
 			esac
 			;;
 
-		--iso-bootmsg*)
+		--bootmsg*)
 			if echo $1 | grep '=' >/dev/null ; then
-				isobootmsg="${1#--iso-bootmsg=}"
+				isobootmsg="${1#--bootmsg=}"
 			else
 				isobootmsg=$2
 				shift
@@ -647,9 +671,9 @@ while [ $# -gt 0 ]; do
 			fi
 			;;
 
-		--iso-bootkey*)
+		--bootkey*)
 			if echo $1 | grep '=' >/dev/null ; then
-				isobootkey="${1#--iso-bootkey=}"
+				isobootkey="${1#--bootkey=}"
 			else
 				isobootkey=$2
 				shift
@@ -667,13 +691,13 @@ while [ $# -gt 0 ]; do
 			isobootkeymsg="$isobootkeymsg $isobootkey"
 			;;
 
-		--iso-graphic)
+		--mdkboot)
 			isographic=1
 			;;
 
-		--iso-bgimage*)
+		--bootimg*)
 			if echo $1 | grep '=' >/dev/null ; then
-				isoimage="${1#--iso-bgimage=}"
+				isoimage="${1#--bootimg=}"
 			else
 				isoimage=$2
 				shift
@@ -685,28 +709,11 @@ while [ $# -gt 0 ]; do
 			;;
 
 		--version)
-			echo "$PROGNAME, version $VERSION, http://www.linuxminicd.org/mklivecd/" >&2
-			echo "Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>" >&2
-			echo "" >&2
-			echo "This program is free software; you can redistribute it and/or modify" >&2
-			echo "it under the terms of the GNU General Public License as published by" >&2
-			echo "the Free Software Foundation; either version 2, or (at your option)" >&2
-			echo "any later version." >&2
-			echo "" >&2
-			echo "This program is distributed in the hope that it will be useful," >&2
-			echo "but WITHOUT ANY WARRANTY; without even the implied warranty of" >&2
-			echo "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the" >&2
-			echo "GNU General Public License for more details." >&2
-			echo "" >&2
-			echo "You should have received a copy of the GNU General Public License" >&2
-			echo "along with this program; if not, write to the Free Software" >&2
-			echo "Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA." >&2
-			echo "" >&2
-			exit 0
+			printversion
 			;;
 
 		-h|--help)
-			usage
+			printusage
 			;;
 
 		-v|--verbose)
@@ -722,7 +729,7 @@ while [ $# -gt 0 ]; do
 			if [ -z "$target" ]; then
 				target="$1"
 			else
-				usage
+				printusage
 			fi
 			;;
 	esac

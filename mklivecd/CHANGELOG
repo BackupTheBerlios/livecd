@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.51 2003/10/10 04:51:39 jaco Exp $
+# $Id: CHANGELOG,v 1.52 2003/10/10 09:42:54 jaco Exp $
 
 * Thu, Oct 09, 2003, 0.5.7-cvs
   + Jaco Greeff <jaco@linuxminicd.org>:
@@ -15,6 +15,7 @@
       - Be verbose in depmod command
       - Copy SCSI and optinal modules in addition to normal
         (required) ones to initrd
+      - Reworked command-line parameters to be more consistent
 
 
 * Mon, Oct 06, 2003, 0.5.6

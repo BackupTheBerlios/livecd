@@ -1,4 +1,4 @@
-# $Id: FAQ,v 1.11 2003/10/05 13:04:42 jaco Exp $
+# $Id: FAQ,v 1.12 2003/10/10 09:42:54 jaco Exp $
 
 Q: How do I create a tiny (truly minimal) bootable Mandrake
    LiveCD?
@@ -19,7 +19,7 @@ A: Here is a step by step process of creating your own Mandrake
       "echo 'root' | passwd --stdin root"
       "exit"
    6. Create a LiveCD image from the minimal installation:
-      "mklivecd --rootdir /tmp/minimal minimal.iso"
+      "mklivecd --root /tmp/minimal minimal.iso"
    7. Burn the resulting minimal.iso to CD-R and enjoy :)
 
 
@@ -209,7 +209,7 @@ A: Here is a full list of the available keyboard mappings along
 
 Q: What are these lss images that isolinux can display? How do I
    generate them?
-A: Ahhh, you found the '--iso-bgimage' option. The LSS image
+A: Ahhh, you found the '--bootimg' option. The LSS image
    format is a run-length encoded format, chosen by the syslinux
    author as a fast/easy way of diaplying boot images. Here is
    how you create them:
@@ -241,7 +241,7 @@ A: Mandrake has made a modification to the isolinux program that
    this option, follow the instructions (and script) in
    /usr/share/doc/syslinux-1.76/README.graphic. In addition to
    specifying the created boot message (as per the README) with
-   the '--iso-bootmsg' flag, you would need to specify
-   '--iso-graphic' on the mklivecd command-line to enable the use
-   of the correct isolinux boot image binary.
+   the '--bootmsg' flag, you would need to specify '--mdkboot'
+   on the mklivecd command-line to enable the use of the correct
+   (Mandrake-enhanced) isolinux boot image binary.
 
