@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.57 2004/01/06 04:56:50 jaco Exp $
+# $Id: linuxrc.in,v 1.58 2004/01/06 05:29:14 jaco Exp $
 #
 
 ### global variables
@@ -147,9 +147,9 @@ docmd() {
 ### load a module
 loadmod() {
 	MODULE="/lib/modules/$KERNELVER/kernel/$1$MODEXT"
+	#echo -n "$MODULE "
 	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
 	[ ! -f $MODULE ] && return 1
-	#echo -n "$MODULE "
 	#insmod $MODULE $2 && return 0 || return 1
 	insmod $MODULE $2 2>&1 >/dev/null && return 0 || return 1
 }
@@ -322,8 +322,8 @@ findcloop() {
 				checkmd5 ""
 
 				echo -n "Loading compressed loop kernel module: "
-				loadmod $LOOPMOD.o && printloaded || printfail
-				#loadmod $LOOPMOD.o file=$MNTCDROM/$BASEIMG$LOOPTYPE && printloaded || printfail
+				loadmod $LOOPMOD && printloaded || printfail
+				#loadmod $LOOPMOD file=$MNTCDROM/$BASEIMG$LOOPTYPE && printloaded || printfail
 
 				echo -n "Mounting compressed image on $MNTLIVECD: "
 				if [ -z "$SQUASHFS" ]; then
