@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.97 2004/01/22 05:09:14 jaco Exp $
+# $Id: hwdetect.in,v 1.98 2004/01/22 05:18:56 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -537,34 +537,42 @@ sub hwdetect_getvideo {
 	my @probed_cards = ();
 	eval { @probed_cards = Xconfig::card::probe(); };
 	print scalar(@probed_cards)." found";
-	scalar @probed_cards ? print_success() : print_failed();
 	my $probed_card = undef;
-	foreach my $card (@probed_cards) {
-		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
-		my $module = 'unknown';
-		unless ($probed_card) { # one card only :(
-			$probed_card = $card;
-			if ($probed_card->{Driver2} eq 'nvidia' &&
-			     -e "/usr/X11R6/lib/modules/drivers/nvidia_drv.o" &&
-			     -e "/usr/X11R6/lib/modules/extensions/libglx.so" &&
-			     (-e "/lib/modules/$kernel_ver/kernel/drivers/char/nvidia.o.gz" ||
-			      -e "/lib/modules/$kernel_ver/kernel/drivers/video/nvidia.o")) {
-				$probed_card->{Driver} = $probed_card->{Driver2};
-				$probed_card->{DRI_GLX_SPECIAL} = 1;
-				$module = $probed_card->{Driver2};
-				modules::add_alias("/dev/nvidia*", $module);
+	if (scalar @probed_cards) {
+		print_success();
+		foreach my $card (@probed_cards) {
+			my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
+			my $module = 'unknown';
+			unless ($probed_card) { # one card only :(
+				$probed_card = $card;
+				if ($probed_card->{Driver2} eq 'nvidia' &&
+				-e "/usr/X11R6/lib/modules/drivers/nvidia_drv.o" &&
+				-e "/usr/X11R6/lib/modules/extensions/libglx.so" &&
+				(-e "/lib/modules/$kernel_ver/kernel/drivers/char/nvidia.o.gz" ||
+				-e "/lib/modules/$kernel_ver/kernel/drivers/video/nvidia.o")) {
+					$probed_card->{Driver} = $probed_card->{Driver2};
+					$probed_card->{DRI_GLX_SPECIAL} = 1;
+					$module = $probed_card->{Driver2};
+					modules::add_alias("/dev/nvidia*", $module);
+				}
+				if ($probed_card->{Driver2} eq 'fglrx' &&
+				-e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
+				-e "/usr/X11R6/lib/modules/drivers/fglrx_drv.o" &&
+				-e "/lib/modules/$kernel_ver/kernel/drivers/char/fglrx.o.gz") {
+					$probed_card->{Driver} = $probed_card->{Driver2};
+					$probed_card->{use_DRI_GLX} = 1;
+					$module = $probed_card->{Driver2};
+				}
 			}
-			if ($probed_card->{Driver2} eq 'fglrx' &&
-			    -e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
-			    -e "/usr/X11R6/lib/modules/drivers/fglrx_drv.o" &&
-			    -e "/lib/modules/$kernel_ver/kernel/drivers/char/fglrx.o.gz") {
-				$probed_card->{Driver} = $probed_card->{Driver2};
-				$probed_card->{use_DRI_GLX} = 1;
-				$module = $probed_card->{Driver2};
-			}
+			hwdetect_loadmod($module, $probed_vendor, $card->{card_name});
+			print_hash($card) if ($debug);
 		}
-		hwdetect_loadmod($module, $probed_vendor, $card->{card_name});
-		print_hash($card) if ($debug);
+	}
+	else {
+		print_warning();
+		$probed_card = { Driver => 'fbdev', description => 'Linux|Default Framebuffer Device' };
+		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
+		hwdetect_loadmod('unknown', $probed_vendor, $card->{card_name});
 	}
 	$probed_card;
 }
