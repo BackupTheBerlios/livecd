@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.h,v 1.2 2004/01/21 19:21:03 jaco Exp $
+ * $Id: livecdfs.h,v 1.3 2004/01/23 12:25:53 jaco Exp $
  */
 
 #ifndef _LIVECDFS_dot_H_
@@ -36,6 +36,15 @@ using namespace std;
 #include "path.h"
 #include "whiteout.h"
 
+class LiveCDFS;
+
+typedef struct active_livecdfs 
+{
+	string root;
+	string tmp;
+	LiveCDFS *fs;
+} t_active_livecdfs;
+
 class LiveCDFS
 {
 private:
@@ -47,6 +56,8 @@ private:
 	Whiteout *whiteout;
 	Handles *handles;
 
+	static vector<t_active_livecdfs> activefs;
+	
 public:
 	static LiveCDFS *create(struct list_head *, 
 				struct dir_cache *, 
@@ -61,21 +72,21 @@ public:
 	
 	int doMount();
 	void doUmount();
-	int doReaddir(char *, struct directory *);
+	int doReaddir(const char *, struct directory *);
 	int doStat(const char *, struct lufs_fattr *);
-	int doReadlink(char *, char *, int);
-	int doOpen(char *, unsigned);
-	int doRelease(char *);
-	int doRead(char *, long long, unsigned long, char *);
-	int doWrite(char *, long long, unsigned long, char *);
-	int doMkdir(char *, int);
-	int doRmdir(char *);
-	int doUnlink(char *);
-	int doCreate(char *, int);
-	int doRename(char *, char *);
-	int doSetattr(char *, struct lufs_fattr *);
-	int doLink(char *, char *);
-	int doSymlink(char *, char *);
+	int doReadlink(const char *, char *, int);
+	int doOpen(const char *, unsigned);
+	int doRelease(const char *);
+	int doRead(const char *, long long, unsigned long, char *);
+	int doWrite(const char *, long long, unsigned long, char *);
+	int doMkdir(const char *, int);
+	int doRmdir(const char *);
+	int doUnlink(const char *);
+	int doCreate(const char *, int);
+	int doRename(const char *, const char *);
+	int doSetattr(const char *, struct lufs_fattr *);
+	int doLink(const char *, const char *);
+	int doSymlink(const char *, const char *);
 };
 
 #endif
