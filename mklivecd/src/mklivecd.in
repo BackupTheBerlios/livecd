@@ -20,7 +20,7 @@
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.65 2003/12/07 11:24:55 jaco Exp $
+# $Id: mklivecd.in,v 1.66 2003/12/12 15:35:46 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -432,6 +432,10 @@ $e"
 			do_cmd "$CMD"
 		fi
 		[ -n "$cloopimg" ] && do_cmd "ln $LIVECDCLOOPDIR/$LIVECDISOCLP $cloopimg"
+
+		# create MD5 of the cloop image
+		MD5FILE=$LIVECDISOCLP.md5
+		do_cmd "cd $LIVECDCLOOPDIR && md5sum $LIVECDISOCLP >$MD5FILE"
 	fi
 }
 
