@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2003/12/01 06:52:27 jaco Exp $
+# $Id: Makefile,v 1.6 2003/12/03 05:37:02 jaco Exp $
 
 include Rules.mk
 
@@ -9,8 +9,9 @@ version:
 
 livecd-install:
 	$(MKDIR) -p $(DISTDIR)
-	(cd $(SRCDIR) && $(PUIC) -x -o livecd-install.pl.in livecd-install.ui)
+	(cd $(SRCDIR) && $(PUIC) -o livecd-install.pm.in livecd-install.ui)
 	echo '#!/usr/bin/perl' >$(DISTDIR)/livecd-install
+	$(CAT) $(SRCDIR)/livecd-install.pm.in >>$(DISTDIR)/livecd-install
 	$(CAT) $(SRCDIR)/livecd-install.pl.in >>$(DISTDIR)/livecd-install
 
 install:
@@ -29,7 +30,7 @@ spec:
 clean:
 	$(RM) -rf $(UTILSDIST)
 	$(RM) -rf $(DISTDIR)
-	$(RM) -rf $(SRCDIR)/*.pl.in
+	$(RM) -rf $(SRCDIR)/*.pm.in
 	$(RM) -rf $(SRCDIR)/*~
 
 dist: spec

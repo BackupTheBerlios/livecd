@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Mon Dec 1 08:46:03 2003
+# Created: Tue Dec 2 09:56:06 2003
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -4051,14 +4051,47 @@ sub toggleReboot # SLOT: ( bool )
 
 1;
 
+#
+# LiveCD-Install script
+# Copyright (C) 2003, Jaco Greeff <jaco@linuxminicd.org>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# The latest version of this script can be found at http://livecd.berlios.de
+#
+# $Id: livecd-install,v 1.35 2003/12/03 05:37:02 jaco Exp $
+#
 
 package main;
+
+use lib qw(/usr/lib/libDrakX);
+use common;
 
 use Qt;
 use fMain;
 
-my $a = Qt::Application(\@ARGV);
-my $w = fMain;
-$a->setMainWidget($w);
-$w->show;
-exit $a->exec;
+MAIN: {
+	require_root_capability();
+
+	my $a = Qt::Application(\@ARGV);
+	my $w = fMain;
+
+	$a->setMainWidget($w);
+	$w->show;
+
+	exit $a->exec;
+}
+
+
