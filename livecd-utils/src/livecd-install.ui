@@ -222,6 +222,45 @@
                 </property>
             </widget>
         </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>tlWelcome_2_3</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>0</y>
+                    <width>390</width>
+                    <height>50</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&lt;p&gt;&lt;b&gt;Choose&lt;/b&gt; the partitions to be associated with different mountpoints. You need to specify devices for use by the &lt;i&gt;root&lt;/i&gt; and &lt;i&gt;swap&lt;/i&gt;, while a seperate &lt;i&gt;home&lt;/i&gt; partition is recommended.&lt;/p&gt;
+</string>
+            </property>
+            <property name="alignment">
+                <set>WordBreak|AlignTop|AlignLeft</set>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>pixmapLabel3</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>300</width>
+                    <height>380</height>
+                </rect>
+            </property>
+            <property name="pixmap">
+                <pixmap>image0</pixmap>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+        </widget>
         <widget class="QGroupBox">
             <property name="name">
                 <cstring>groupBox16</cstring>
@@ -281,25 +320,6 @@
             </widget>
             <widget class="QCheckBox">
                 <property name="name">
-                    <cstring>cbSwapFormat</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>300</x>
-                        <y>70</y>
-                        <width>70</width>
-                        <height>20</height>
-                    </rect>
-                </property>
-                <property name="text">
-                    <string>Format</string>
-                </property>
-                <property name="checked">
-                    <bool>true</bool>
-                </property>
-            </widget>
-            <widget class="QCheckBox">
-                <property name="name">
                     <cstring>cbRootFormat</cstring>
                 </property>
                 <property name="enabled">
@@ -336,45 +356,25 @@
                     <string>Root (/) device:</string>
                 </property>
             </widget>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>tlWelcome_2_3</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>310</x>
-                    <y>0</y>
-                    <width>390</width>
-                    <height>50</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&lt;p&gt;&lt;b&gt;Choose&lt;/b&gt; the partitions to be associated with different mountpoints. You need to specify devices for use by the &lt;i&gt;root&lt;/i&gt; and &lt;i&gt;swap&lt;/i&gt;, while a seperate &lt;i&gt;home&lt;/i&gt; partition is recommended.&lt;/p&gt;
-</string>
-            </property>
-            <property name="alignment">
-                <set>WordBreak|AlignTop|AlignLeft</set>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>pixmapLabel3</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>300</width>
-                    <height>380</height>
-                </rect>
-            </property>
-            <property name="pixmap">
-                <pixmap>image0</pixmap>
-            </property>
-            <property name="scaledContents">
-                <bool>true</bool>
-            </property>
+            <widget class="QCheckBox">
+                <property name="name">
+                    <cstring>cbSwapFormat</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>300</x>
+                        <y>70</y>
+                        <width>70</width>
+                        <height>20</height>
+                    </rect>
+                </property>
+                <property name="text">
+                    <string>Format</string>
+                </property>
+                <property name="checked">
+                    <bool>false</bool>
+                </property>
+            </widget>
         </widget>
     </widget>
     <widget class="QWidget">

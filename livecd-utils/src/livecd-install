@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Wed Dec 3 10:44:18 2003
+# Created: Sun Dec 7 19:57:16 2003
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -33,15 +33,15 @@ use Qt::attributes qw(
     cbTmpFormat
     cbVarFormat
     cbHomeFormat
+    tlWelcome_2_3
+    pixmapLabel3
     groupBox16
     textLabel5
     cbRoot
     cbSwap
-    cbSwapFormat
     cbRootFormat
     textLabel1
-    tlWelcome_2_3
-    pixmapLabel3
+    cbSwapFormat
     page_3
     lvVerify
     textLabel1_3
@@ -3163,6 +3163,15 @@ sub NEW
     cbHomeFormat = Qt::CheckBox(groupBox16_2, "cbHomeFormat");
     cbHomeFormat->setGeometry( Qt::Rect(300, 20, 70, 20) );
 
+    tlWelcome_2_3 = Qt::Label(page_2, "tlWelcome_2_3");
+    tlWelcome_2_3->setGeometry( Qt::Rect(310, 0, 390, 50) );
+    tlWelcome_2_3->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignTop | &Qt::Label::AlignLeft) );
+
+    pixmapLabel3 = Qt::Label(page_2, "pixmapLabel3");
+    pixmapLabel3->setGeometry( Qt::Rect(0, 0, 300, 380) );
+    pixmapLabel3->setPixmap( $image0 );
+    pixmapLabel3->setScaledContents( 1 );
+
     groupBox16 = Qt::GroupBox(page_2, "groupBox16");
     groupBox16->setGeometry( Qt::Rect(310, 60, 390, 130) );
 
@@ -3175,10 +3184,6 @@ sub NEW
     cbSwap = Qt::ComboBox(0, groupBox16, "cbSwap");
     cbSwap->setGeometry( Qt::Rect(10, 90, 370, 26) );
 
-    cbSwapFormat = Qt::CheckBox(groupBox16, "cbSwapFormat");
-    cbSwapFormat->setGeometry( Qt::Rect(300, 70, 70, 20) );
-    cbSwapFormat->setChecked( 1 );
-
     cbRootFormat = Qt::CheckBox(groupBox16, "cbRootFormat");
     cbRootFormat->setEnabled( 1 );
     cbRootFormat->setGeometry( Qt::Rect(300, 20, 70, 20) );
@@ -3187,14 +3192,9 @@ sub NEW
     textLabel1 = Qt::Label(groupBox16, "textLabel1");
     textLabel1->setGeometry( Qt::Rect(10, 20, 180, 20) );
 
-    tlWelcome_2_3 = Qt::Label(page_2, "tlWelcome_2_3");
-    tlWelcome_2_3->setGeometry( Qt::Rect(310, 0, 390, 50) );
-    tlWelcome_2_3->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignTop | &Qt::Label::AlignLeft) );
-
-    pixmapLabel3 = Qt::Label(page_2, "pixmapLabel3");
-    pixmapLabel3->setGeometry( Qt::Rect(0, 0, 300, 380) );
-    pixmapLabel3->setPixmap( $image0 );
-    pixmapLabel3->setScaledContents( 1 );
+    cbSwapFormat = Qt::CheckBox(groupBox16, "cbSwapFormat");
+    cbSwapFormat->setGeometry( Qt::Rect(300, 70, 70, 20) );
+    cbSwapFormat->setChecked( 0 );
     addPage( page_2, "" );
 
     page_3 = Qt::Widget(this, "page_3");
@@ -3342,13 +3342,13 @@ sub languageChange
     cbTmpFormat->setText( trUtf8("Format") );
     cbVarFormat->setText( trUtf8("Format") );
     cbHomeFormat->setText( trUtf8("Format") );
-    groupBox16->setTitle( trUtf8("Required Partitions") );
-    textLabel5->setText( trUtf8("Swap device:") );
-    cbSwapFormat->setText( trUtf8("Format") );
-    cbRootFormat->setText( trUtf8("Format") );
-    textLabel1->setText( trUtf8("Root (/) device:") );
     tlWelcome_2_3->setText( trUtf8("<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify devices for use by the <i>root</i> and <i>swap</i>, while a seperate <i>home</i> partition is recommended.</p>\n" .
     "") );
+    groupBox16->setTitle( trUtf8("Required Partitions") );
+    textLabel5->setText( trUtf8("Swap device:") );
+    cbRootFormat->setText( trUtf8("Format") );
+    textLabel1->setText( trUtf8("Root (/) device:") );
+    cbSwapFormat->setText( trUtf8("Format") );
     setTitle( page_2, trUtf8("Step 2 of 6: Partition Selection") );
     lvVerify->header()->setLabel( 0, trUtf8("Mount") );
     lvVerify->header()->setLabel( 1, trUtf8("Device") );
@@ -4076,7 +4076,7 @@ sub toggleReboot # SLOT: ( bool )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.36 2003/12/03 08:51:38 jaco Exp $
+# $Id: livecd-install,v 1.37 2003/12/07 18:05:31 jaco Exp $
 #
 
 package main;
