@@ -1,10 +1,10 @@
-# $Id: mklivecd.spec.in,v 1.7 2003/10/02 05:29:48 jaco Exp $
+# $Id: mklivecd.spec.in,v 1.8 2003/10/02 07:49:45 jaco Exp $
 
 %define name		mklivecd
 %define version		@MKLIVECDVER@
 %define release		@MKLIVECDREL@mdk
 %if %(echo %release|grep -q cvs; echo $[1-$?])
-%global	cvs		%(echo 0.cvs.20031001.1mdk| tr -d [a-z]|cut -d. -f3)
+%global	cvs		%(echo @MKLIVECDREL@mdk| tr -d [a-z]|cut -d. -f3)
 %endif
 
 %define summary		Builds a LiveCD from an existing Mandrake Linux installation
