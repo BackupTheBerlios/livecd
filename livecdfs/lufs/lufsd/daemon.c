@@ -22,7 +22,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: daemon.c,v 1.2 2004/01/30 19:23:15 jaco Exp $
+ * $Id: daemon.c,v 1.3 2004/01/30 21:08:49 jaco Exp $
  */
 
 #include <stdlib.h>
@@ -107,7 +107,7 @@ main(int argc, char **argv){
     struct list_head cfg;
     struct fs_ctl *ctl;
     char tmp[256], *nopts;
-    int ssock, pid, mpid, res;
+    int ssock, pid;/* mpid, res*/
 
     INIT_LIST_HEAD(&cfg);
 
