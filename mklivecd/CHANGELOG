@@ -1,7 +1,11 @@
-# $Id: CHANGELOG,v 1.54 2003/10/15 07:30:01 jaco Exp $
+# $Id: CHANGELOG,v 1.55 2003/10/29 12:14:54 jaco Exp $
 
-* Thu, Oct 09, 2003, 0.5.7-cvs
+* Wed, Oct 29, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
+    [linuxrc]:
+      - Fix error on illegal attempt to unmount /initrd/cdrom upon
+        system shutdown
+      - Added hostname= boot option to set the hostname
     [mklivecd]:
       - Add support ('--extraisofiles' option) for adding
         additional files to the root of the LiveCD ISO image
