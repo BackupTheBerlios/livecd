@@ -20,7 +20,7 @@
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.63 2003/12/05 15:04:57 jaco Exp $
+# $Id: mklivecd.in,v 1.64 2003/12/06 17:33:16 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -499,7 +499,8 @@ create_liveiso() {
 	echo "$ISOLINUXDIR/isolinux.bin 500" >>$SORTLIST
 	echo "$ISOLINUXDIR/isolinux.cfg 499" >>$SORTLIST
 	echo "$ISOLINUXDIR/vmlinuz 498" >>$SORTLIST
-	echo "$ISOLINUXDIR/ 450" >>$SORTLIST
+	echo "$ISOLINUXDIR/initrd.gz 497" >>$SORTLIST
+	echo "$ISOLINUXDIR/* 450" >>$SORTLIST
 	echo "$LIVECDCLOOPDIR/$LIVECDISOCLP 400"  >>$SORTLIST
 
 	# create actual iso
