@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.84 2004/10/26 04:35:55 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.85 2004/11/22 19:19:46 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -54,6 +54,7 @@ LOOPBEXT=".bzlp"          # extension for the above
 LOOPCEXT=".clp"           # extension for the above
 LOOPSEXT=".sqfs"
 LOOPIEXT=".iso"
+LOOPZEXT=".ziso"
 ISOTYPE="iso9660"
 MEDIACHECK="isolinux/mediacheck"
 DEVICES=""                # list of all ide/scsi cd-type devices
@@ -403,6 +404,10 @@ findcloop() {
 				ISOTYPE="squashfs"
 			elif [ -f $MNTCDROM/$BASEIMG$LOOPIEXT ]; then
 				LOOPTYPE="$LOOPIEXT"
+				DEVLOOP="/dev/loop/0"
+				LOOPMOD=
+			elif [ -f $MNTCDROM/$BASEIMG$LOOPZEXT ]; then
+				LOOPTYPE="$LOOPZEXT"
 				DEVLOOP="/dev/loop/0"
 				LOOPMOD=
 			else echo "$BASEIMG$LOOPTYPE NOT FOUND on $i"
