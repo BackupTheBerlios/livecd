@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.3 2004/01/21 19:21:03 jaco Exp $
+# $Id: Rules.mk,v 1.4 2004/01/22 08:37:20 jaco Exp $
 
 TOPDIR=$(shell pwd)
 SRCDIR=src
@@ -6,8 +6,8 @@ LUFSDIR=$(TOPDIR)/lufs
 PREFIX=/usr
 LIBDIR=$(PREFIX)/lib
 
-CXXFLAGS=-I$(LUFSDIR)/include -DDEBUG
-CFLAGS=-I$(LUFSDIR)/include
+CXXFLAGS=-Wall -DDEBUG -I$(LUFSDIR)/include
+CFLAGS=-Wall -I$(LUFSDIR)/include
 
 CD=cd
 FIND=find
