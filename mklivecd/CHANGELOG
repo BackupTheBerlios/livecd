@@ -1,7 +1,13 @@
-# $Id: CHANGELOG,v 1.8 2003/09/29 10:38:39 jaco Exp $
+# $Id: CHANGELOG,v 1.9 2003/09/29 10:43:53 jaco Exp $
 
 * Mon, Sep 29, 2003, 0.5.5-cvs
-  Jaco Greeff <jaco@linuxminicd.org>:
+  + Buchan Milne <bgmile@cae.co.za>:
+    [mklivecd]:
+      - Fix rootdir to use the kernel/modules from the chroot
+      - Add basic bootsplash support (doesn't work with a chroot
+        at present) if bootsplash is installed on the image'd
+        system
+  + Jaco Greeff <jaco@linuxminicd.org>:
     [FAQ]:
       - Updated FAQ to include some compression parameter
         statistics (describes mklivecd '--blocksize' and
@@ -33,7 +39,7 @@
       - Ability to auto-generate version info for changelog
 
 * Thu, Sep 25, 2003, 0.5.5
-  Jaco Greeff <jaco@linuxminicd.org>:
+  + Jaco Greeff <jaco@linuxminicd.org>:
     [README]:
       - Add mailing list information
     [hwdetect]:
@@ -73,7 +79,7 @@
 
 
 * Tue, Sep 23, 2003, 0.5.4
-  Jaco Greeff <jaco@linuxminicd.org>:
+  + Jaco Greeff <jaco@linuxminicd.org>:
     [FAQ]:
       - Added an entry for creating a very minimal Mandrake LiveCD
     [mklivecd]:
@@ -91,7 +97,7 @@
 
 
 * Mon, Sep 22, 2003, 0.5.3
-  Jaco Greeff <jaco@linuxminicd.org>:
+  + Jaco Greeff <jaco@linuxminicd.org>:
     [Makefile]:
       - Split project version into major, minor & patch
       - Fixed uname -r bug, allowing for correct execution via
@@ -130,14 +136,14 @@
 
 
 * Mon, Sep 15, 2003, 0.5.2
-  * Jaco Greeff <jaco@linuxminicd.org>:
+  + Jaco Greeff <jaco@linuxminicd.org>:
     [linuxrc]:
       - Cater for pivot_root, allowing for better access to actual
         mounted filesystems
 
 
 * Mon, Sep 01, 2003, 0.5.1
-  * Jaco Greeff <jaco@linuxminicd.org>:
+  + Jaco Greeff <jaco@linuxminicd.org>:
     [mklivecd]:
       - Initial release under the mklivecd name (preparing for a
         wider release to the MDK community) after being adapted
