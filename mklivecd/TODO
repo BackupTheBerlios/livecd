@@ -1,7 +1,5 @@
-# $Id: TODO,v 1.15 2003/11/16 07:25:01 jaco Exp $
+# $Id: TODO,v 1.16 2003/11/24 13:39:14 jaco Exp $
 
-- Add command-line options (at isolinux bootup) to select the
-  bitdepth for the X configuration
 - Persistent home (This is now easier since we do partition
   detection in hwdetect - as part of this we should check for
   a livecd file on the disk and mount at the correct place)
@@ -15,5 +13,3 @@
 - Localisation support
 - Remove functions in hwdetect where we have duplicated already
   existing MDK functions, e.g. in module loading
-
-
