@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: debug.h,v 1.2 2004/01/19 06:42:17 jaco Exp $
+ * $Id: debug.h,v 1.3 2004/01/19 07:11:21 jaco Exp $
  */
  
 #ifndef _DEBUG_dot_H_
@@ -44,8 +44,8 @@ using namespace std;
 	#define TRACE_END()	cout << " INFO: " << HDR << "}" << "\n"
 	#define TRACE_RET(x)	TRACE_END(); return x
 	
-	#define WARN(x)		cerr << " WARN: " << HDR << ": " << std::hex << x << std::dec << "\n"
-	#define ERROR(x)	cerr << "ERROR: " << HDR << ": " << std::hex << x << std::dec << "\n"
+	#define WARN(x)		cerr << " WARN: " << HDR << std::hex << x << std::dec << "\n"
+	#define ERROR(x)	cerr << "ERROR: " << HDR << std::hex << x << std::dec << "\n"
 #endif
 
 #endif
