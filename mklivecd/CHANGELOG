@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.94 2004/01/05 09:30:35 jaco Exp $
+# $Id: CHANGELOG,v 1.95 2004/01/05 13:28:55 jaco Exp $
 
 * Mon, Jan 05, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -31,6 +31,7 @@
       - Added loop.o and aes.o (dep. for loop) to be able to mount
         files (such as squashfs files) with the "-o loop" option
       - Removed hardcoded module extension, .o, 2.6 has .ko
+      - Tweaked modules, two trees now (one for 2.4, one for 2.6)
     [Rules.mk]:
       - Created list for default normal and SCSI modules
       - Created listing for optional modules
@@ -84,6 +85,8 @@
       - 'md5' boot option checks cloop MD5 sum
       - Removed extra .iso. from cloop and bzloop image names
       - Added squashfs support
+      - Added module extension option based on kernel version,
+        2.4.x == .o, 2.6.x == .ko
     [mklivecd]:
       - Be verbose in depmod command
       - Copy SCSI and optinal modules in addition to normal
@@ -112,6 +115,9 @@
       - Removed extra .iso. from cloop and bzloop image names
       - Added squashfs support
       - Perl version of the script
+      - Tweak for creation of 2.6 images
+      - Removed /var/run and /var/lock/subsys directories for the
+        excluded dirs, added to the excluded files
     [mklivecd.spec]:
       - Updated URL: http://livecd.berlios.de
       - Synced with MDK contrib spec
