@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.4 2003/11/21 20:07:21 jaco Exp $
+# $Id: livecd-install,v 1.5 2003/11/21 20:19:05 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -176,8 +176,8 @@ sub make_fstab {
 	my @fstab = fs::read_fstab("", "/etc/fstab");
 	my $hdds = {};
 	fs::add2all_hds($hdds, @fstab);
-	fs::write_fstab($hdds, "/home/jaco");#$mnt);
-	open FSTAB, '>>', "/home/jaco/etc/fstab";
+	fs::write_fstab($hdds, $mnt);
+	open FSTAB, '>>', "$mnt/etc/fstab";
 	print FSTAB "$dev / ".$fstypes{$devs{$dev}{'id'}}." defaults 0 0\n";
 	close FSTAB;
 }
