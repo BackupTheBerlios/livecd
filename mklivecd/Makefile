@@ -1,10 +1,16 @@
-### $Id: Makefile,v 1.4 2003/09/25 08:42:54 jaco Exp $
+### $Id: Makefile,v 1.5 2003/09/29 10:39:26 jaco Exp $
 
 ### our version identifiers
 MAJORVER=0
 MINORVER=5
-PATCHVER=5-cvs
-MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
+PATCHVER=5
+CVSVER=yes
+
+ifeq "$(CVSVER)" "yes" 
+	MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)$(shell date +-cvs.%Y%m%d)
+else
+	MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
+endif
 KERNELVER=$(shell uname -r)
 
 ### destination directories
@@ -37,20 +43,25 @@ SED=/bin/sed
 TAR=/bin/tar
 TOUCH=/bin/touch
 
-all: mklivecd
+all: version mklivecd
+
+version:
+	echo "$(MKLIVECDVER)"
 
 mklivecd:
 	$(RM) -rf $(MKLIVECDBUILD)
 	$(MKDIR) -p $(MKLIVECDBUILD)/init.d
 	$(CP) $(MKLIVECDSRC)/isolinux.cfg $(MKLIVECDBUILD)
 	$(CP) $(MKLIVECDSRC)/init.d/hwdetect $(MKLIVECDBUILD)/init.d
-	$(CAT) $(MKLIVECDSRC)/hwdetect.in | $(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g' \
-	                                  >$(MKLIVECDBUILD)/hwdetect
-	$(CAT) $(MKLIVECDSRC)/linuxrc.in  | $(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g' \
-	                                  | $(SED) -e 's/\@KERNELVER/$(KERNELVER)/g' \
-	                                  >$(MKLIVECDBUILD)/linuxrc
-	$(CAT) $(MKLIVECDSRC)/mklivecd.in | $(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g' \
-	                                  >$(MKLIVECDBUILD)/mklivecd
+	$(CAT) $(MKLIVECDSRC)/hwdetect.in | \
+		$(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g' \
+		>$(MKLIVECDBUILD)/hwdetect
+	$(CAT) $(MKLIVECDSRC)/linuxrc.in | \
+		$(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g;s/\@KERNELVER/$(KERNELVER)/g' \
+		>$(MKLIVECDBUILD)/linuxrc
+	$(CAT) $(MKLIVECDSRC)/mklivecd.in | \
+		$(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g' \
+		>$(MKLIVECDBUILD)/mklivecd
 
 install:
 	$(MKDIR) -p $(DESTDIR)$(SHAREDIR)
@@ -63,23 +74,24 @@ install:
 	$(INSTALL) -m 755 $(MKLIVECDBUILD)/init.d/hwdetect $(DESTDIR)$(RCDIR)
 
 spec:
-	$(CAT) mklivecd.spec.in | sed -e 's/@MKLIVECDVER/$(MKLIVECDVER)/g' \
-	                        | sed -e 's/@BUSYBOXVER/$(BUSYBOXVER)/g' \
-	                        | sed -e 's/@CLOOPVER/$(CLOOPVER)/g' \
-	                        >mklivecd.spec
+	$(CAT) mklivecd.spec.in | \
+		$(SED) -e 's/@MKLIVECDVER/$(MKLIVECDVER)/g' \
+		>mklivecd.spec
 
 clean:
 	$(RM) -rf $(MKLIVECDDIST)
 	$(RM) -rf $(MKLIVECDBUILD)
+	$(RM) -rf mklivecd.spec
 
-dist: clean
+dist: clean spec
 	$(MKDIR) -p $(MKLIVECDDIST)/$(MKLIVECDSRC)/init.d
-	$(CP) AUTHORS CHANGELOG COPYING FAQ README TODO Makefile mklivecd.spec.in $(MKLIVECDDIST)
+	$(CP) AUTHORS CHANGELOG COPYING FAQ README TODO Makefile mklivecd.spec $(MKLIVECDDIST)
 	$(CP) $(MKLIVECDSRC)/isolinux.cfg $(MKLIVECDDIST)/$(MKLIVECDSRC)
 	$(CP) $(MKLIVECDSRC)/linuxrc.in $(MKLIVECDDIST)/$(MKLIVECDSRC)
 	$(CP) $(MKLIVECDSRC)/mklivecd.in $(MKLIVECDDIST)/$(MKLIVECDSRC)
 	$(CP) $(MKLIVECDSRC)/hwdetect.in $(MKLIVECDDIST)/$(MKLIVECDSRC)
 	$(CP) $(MKLIVECDSRC)/init.d/hwdetect $(MKLIVECDDIST)/$(MKLIVECDSRC)/init.d
-	$(TAR) -c $(MKLIVECDDIST) | $(BZIP2) >$(MKLIVECDDIST).tar.bz2
+	$(TAR) -c $(MKLIVECDDIST) | \
+		$(BZIP2) >$(MKLIVECDDIST).tar.bz2
 	$(MD5SUM) $(MKLIVECDDIST).tar.bz2 >$(MKLIVECDDIST).tar.bz2.md5
 	$(RM) -rf $(MKLIVECDDIST)
