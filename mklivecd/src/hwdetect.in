@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.61 2003/11/22 15:25:37 jaco Exp $
+# $Id: hwdetect.in,v 1.62 2003/11/24 13:33:46 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -831,7 +831,7 @@ sub hwdetect_getpersistent {
 	my (%devs) = @_;
 	print "    Finding persistent partitions: ";
 	my $mymnt = "/tmp/hwdetect.mnt";
-	my $persist = "$mymnt/.livecd.mnt";
+	my $persist = "$mymnt/livecd.mnt";
 	system("mkdir -p $mymnt 2>/dev/null");
 	foreach my $dev (keys %devs) {
 		if ((-e $mymnt) && $devs{$dev}->{persist}) {
@@ -851,9 +851,7 @@ sub hwdetect_getpersistent {
 				}
 				elsif (!$fdisk && $cmdline{'home'} =~ /usb/ && $devs{$dev}->{usb}) {
 					system("(cp -au /home/* $mymnt) 2>/dev/null");
-					open P, '>', "$persist";
-					print P "mount=/home\n";
-					close P;
+					system("echo 'mount=/home' >$persist");
 					$devs{$dev}->{mount} = "/home";
 					$devs{$dev}->{opt} = $fsopt_fullrw;
 					$devs{$dev}->{persisted} = 1;
