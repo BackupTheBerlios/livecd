@@ -1,4 +1,4 @@
-# $Id: FAQ,v 1.7 2003/10/02 14:21:18 jaco Exp $
+# $Id: FAQ,v 1.8 2003/10/02 14:25:12 jaco Exp $
 
 Q: How do I create a tiny (truly minimal) bootable Mandrake
    LiveCD?
@@ -124,13 +124,13 @@ A: Ahhh, you found the '--iso-bgimage' option. The LSS image
 
 
 Q: Why are the isolinux images so limited? I know that Mandrake
-   uses more than 16 coulour on their installation disks!
+   uses more than 16 colours on their installation disks!
 A: Mandrake has made a modification to the isolinux program that
    allows for the display of images up to 128 colours. To utilise
    this option, follow the instructions (and script) in
-   /usr/share/doc/syslinux-1.76/README.graphic. In addition, to
-   specifying the created boot message with the '--iso-bootmsg'
-   flag, you would need to specify '--iso-graphic' on the mklivecd
-   command-line to enable the use of the correct isolinux boot
-   image binary.
+   /usr/share/doc/syslinux-1.76/README.graphic. In addition to
+   specifying the created boot message (as per the README) with
+   the '--iso-bootmsg' flag, you would need to specify
+   '--iso-graphic' on the mklivecd command-line to enable the use
+   of the correct isolinux boot image binary.
 
