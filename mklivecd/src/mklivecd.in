@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.55 2003/11/02 14:49:34 jaco Exp $
+# $Id: mklivecd.in,v 1.56 2003/11/03 11:28:08 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -72,6 +72,9 @@ isoappid=""
 isovolid=""
 isoprepid=""
 isopubid=""
+
+# behaviour
+homedir=""
 
 printusage () {
 	echo "
@@ -152,6 +155,10 @@ ISO Image options:
                                to mkisofs
    --publisher=<pub>           Use the specified publisher ID, as a '-P' option
                                to mkisofs
+
+Behaviour:
+   --usbhome                   Use USB memory stick devices as a persistent home
+                               when available/connected on bootup.
 
 Examples:
     `basename $0` --nodir=^/usr/src/RPM,^/root/tmp livecd.iso
@@ -442,12 +449,12 @@ create_isolinux() {
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo 'label livecd' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '    append livecd=livecd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard $bootopt fstab=$fstabopt' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    append livecd=livecd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard $bootopt $homedir fstab=$fstabopt' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	if [ -z "$final" ]; then
 		do_cmd "echo 'label initrd' >>$ISOLINUXDIR/isolinux.cfg"
 		do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-		do_cmd "echo '    append livecd=initrd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard $bootopt fstab=$fstabopt' >>$ISOLINUXDIR/isolinux.cfg"
+		do_cmd "echo '    append livecd=initrd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard $bootopt $homedir fstab=$fstabopt' >>$ISOLINUXDIR/isolinux.cfg"
 		do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	fi
 	do_cmd "echo 'label memtest' >>$ISOLINUXDIR/isolinux.cfg"
@@ -621,6 +628,10 @@ while [ $# -gt 0 ]; do
 
 		--experimental)
 			withtrans=1
+			;;
+
+		--usbhome)
+			homedir="home=usb"
 			;;
 
 		--splash*)

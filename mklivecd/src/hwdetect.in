@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.43 2003/11/03 08:26:43 jaco Exp $
+# $Id: hwdetect.in,v 1.44 2003/11/03 11:28:08 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -73,11 +73,14 @@ my $ownprocusb    = 1;
 my $haveswap      = 0;
 my $haveusb       = 0;
 my $havepcmcia    = 0;
+my $kernel_ver    = qx(uname -r);
+chomp($kernel_ver);
+
+### progress stuff
 my $progress_now  = 10; # 10 from linuxrc
 my $progress_full = 26; # our 16, +10 from linuxrc
 my $progress_on   = 1;
-my $kernel_ver    = qx(uname -r);
-chomp($kernel_ver);
+my $progress_max  = 65534; # normal: 65534
 
 sub rmws {
 	my ($str) = @_;
@@ -164,7 +167,7 @@ sub set_progress {
 	if ($progress_on &&
 	    -e '/proc/splash'  &&
 	    $cmdline{'splash'} =~ /silent/) {
-		my $pos = (65534*(++$progress_now+1))/$progress_full;
+		my $pos = ($progress_max*(++$progress_now+1))/$progress_full;
 		system("echo 'show $pos' >/proc/splash");
 	}
 }
@@ -796,7 +799,7 @@ sub hwdetect_getpersistent {
 	my (%devs) = @_;
 	print "    Finding persistent partitions: ";
 	my $mymnt = "/tmp/hwdetect.mnt";
-	my $persist = "$mymnt/LIVECD.MNT";
+	my $persist = "$mymnt/.livecd.mnt";
 	system("mkdir -p $mymnt 2>/dev/null");
 	foreach my $dev (keys %devs) {
 		if ((-e $mymnt) && $devs{$dev}->{persist}) {
@@ -813,6 +816,15 @@ sub hwdetect_getpersistent {
 						$devs{$dev}->{opt} = $fsopt_fullrw;
 						$devs{$dev}->{persisted} = 1;
 					}
+				}
+				elsif ($cmdline{'home'} =~ /usb/ && $devs{$dev}->{usb}) {
+					system("(cp -au /home/* $mymnt) 2>/dev/null");
+					open P, "$persist";
+					print P "mount=/home\n";
+					close P;
+					$devs{$dev}->{mount} = "/home";
+					$devs{$dev}->{opt} = $fsopt_fullrw;
+					$devs{$dev}->{persisted} = 1;
 				}
 				umount(undef, $mymnt);
 			}
@@ -932,6 +944,7 @@ sub hwdetect_getdisks {
 						$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
 						if ($disk->{usb_media_type} =~ /^Mass Storage/) {
 							$all_devs{$dev}->{opt}   = $fsopt_fullrw;
+							$all_devs{$dev}->{usb}   = 1;
 						}
 						elsif (defined($opts[2])) {
 							$all_devs{$dev}->{opt}   = $fsopt_fullro;
@@ -1053,6 +1066,7 @@ sub hwdetect_getdisks {
 				print INFO "|persisted=".$all_devs{$dev}->{persisted} if ($all_devs{$dev}->{persisted});
 				print INFO "|opt=".$all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
 				print INFO "|extopt=".$all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
+				print INFO "|usb=".$all_devs{$dev}->{usb} if ($all_devs{$dev}->{usb});
 				print INFO "\n";
 			}
 			print FSTAB "\n";
