@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.88 2004/01/07 13:24:29 jaco Exp $
+# $Id: mklivecd.in,v 1.89 2004/01/07 13:29:42 jaco Exp $
 #
 
 use strict;
@@ -454,17 +454,17 @@ sub parse_options {
 		$blocksize = 0;
 	}
 	elsif ($o_looptype =~ /clp/) {
-		$loopcmp = "create_compressed_fs";
+		$loopcmp = "/usr/bin/create_compressed_fs";
 		$loopmod = "drivers/block/cloop";
 		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 64;
 	}
 	elsif ($o_looptype =~ /bzlp/) {
-		$loopcmp = "create_bzfs";
+		$loopcmp = "/usr/bin/create_bzfs";
 		$loopmod = "drivers/block/bzloop";
 		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 64;
 	}
 	elsif ($o_looptype =~ /sqfs/) {
-		$loopcmp = "mksquashfs";
+		$loopcmp = "/usr/bin/mksquashfs";
 		$loopmod = "fs/squashfs/squashfs";
 		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 32;
 	}
@@ -549,7 +549,8 @@ sub check_root {
 
 ### see if we are indeed root
 sub check_apps {
-	die_("\nFATAL: mkisofs program not available, please install the correct package\n") unless (-f '/usr/bin/mkisofs');
+	die_("\nFATAL: The '/usr/bin/mkisofs' program is not available, please install the correct package\n") unless (-f '/usr/bin/mkisofs');
+	die("\nFATAL: The '$loopcmp' program not is available, please install the correct package\n") unless (!defined($loopcmp) || -f $loopcmp);
 }
 
 
