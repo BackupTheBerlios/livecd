@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.33 2003/11/01 09:47:17 jaco Exp $
+# $Id: hwdetect.in,v 1.34 2003/11/01 13:05:36 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -786,16 +786,17 @@ sub hwdetect_getdisks {
 	print "Detecting disk drives/partitions: ";
 	my $fsopt_set = $fsopt_user;
 	if ($cmdline{'fstab'} =~ /rw/) {
-		$fsopt_set = ",".$fsopt_rw;
+		$fsopt_set .= ",".$fsopt_rw;
 	}
 	else {
-		$fsopt_set = ",".$fsopt_ro;
+		$fsopt_set .= ",".$fsopt_ro;
 	}
-	if ($cmdline{'fstab'} =~ /auto/) {
-		$fsopt_set = ",".$fsopt_auto;
+	if (($cmdline{'fstab'} =~ /auto/) &&
+	    !($cmdline{'fstab'} =~ /noauto/)) {
+		$fsopt_set .= ",".$fsopt_auto;
 	}
 	else {
-		$fsopt_set = ",".$fsopt_noauto;
+		$fsopt_set .= ",".$fsopt_noauto;
 	}
 	my %all_devs = ();
 	my $all_hdds = fsedit::get_hds({}, undef);
