@@ -41,6 +41,26 @@
 			<tr><td bgcolor="#000000">
 				<table width=100% border=0 cellspacing=2 cellpadding=5 cols=2>
 					<tr><td bgcolor=#305080 nowrap>
+						<b><font color=#ffffff>t u e &nbsp; n o v &nbsp; 1 8 &nbsp; 2 0 0 3 &nbsp; . &nbsp; B u r n i n g f r o g &nbsp;</font></b>
+					</td>
+					<td bgcolor=#d0d0d0 nowrap>
+						<b>&nbsp;</b>
+					</td></tr>
+					<tr><td colspan=2 bgcolor=#d0d0d0>
+						<b>i n f o</b><br>
+						The <a href="http://www.burningfrog.be">Burningfrog</a> LiveCD is a demo LiveCD for custom applications. It features custom graphics, including <a href="http://burningfrog.mine.nu:8000/">bootsplash, icons, gdm theme, background</a>, etc. It has Apache and mySql installed by default and that runs Frogmin, an accounting system developed by Burningfrog.<p>
+						<b>d i s c u s s i o n</b><br>
+						<i>none</i><p>
+
+						<b>m i r r o r s</b><br>
+						<i>none</i>
+					</td></tr>
+				</table>
+			</td></tr>
+			<tr><td height="10"></td></tr>
+			<tr><td bgcolor="#000000">
+				<table width=100% border=0 cellspacing=2 cellpadding=5 cols=2>
+					<tr><td bgcolor=#305080 nowrap>
 						<b><font color=#ffffff>s u n &nbsp; n o v &nbsp; 1 6 &nbsp; 2 0 0 3 &nbsp; . &nbsp; P C L i n u x O S &nbsp; p r e v i e w &nbsp; 3 &nbsp;</font></b>
 					</td>
 					<td bgcolor=#d0d0d0 nowrap>
