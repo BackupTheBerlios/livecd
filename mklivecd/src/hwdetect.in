@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.20 2003/10/05 18:44:48 jaco Exp $
+# $Id: hwdetect.in,v 1.21 2003/10/06 06:56:04 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -323,9 +323,13 @@ sub hwdetect_probepci() {
 		unless (defined($pciid{$pci->{id}})) {
 			$pciid{$pci->{id}} = 1;
 			my ($probed_vendor, $probed_desc) = split(/\|/, $pci->{description});
-			if ($pci->{media_type} =~ /USB/) {
+			if ($pci->{media_type} =~ /SERIAL_USB/) {
 				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
 				modules::add_probeall("usb-interface", $pci->{driver}) unless ($probe);
+			}
+			elsif ($pci->{media_type} =~ /STORAGE_SCSI/) {
+				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
+				modules::add_probeall("scsi_hostadapter", $pci->{driver}) unless ($probe);
 			}
 			elsif ($pci->{media_type} =~ /BRIDGE_CARDBUS/) {
 				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
@@ -502,7 +506,7 @@ sub hwdetect_getsound {
 sub hwdetect_getnetwork {
 	print "Detecting network cards: ";
 	my @probed_cards = ();
-	eval { @probed_cards = hwdetect_get_mediatype('NETWORK_ETHERNET'); };
+	eval { @probed_cards = hwdetect_get_mediatype('NETWORK_ETHERNET|NETWORK_OTHER'); };
 	print scalar(@probed_cards)." found";
 	scalar @probed_cards ? print_success() : print_failed();
 	my $num = 0;
