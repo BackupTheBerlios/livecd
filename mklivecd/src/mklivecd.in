@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.84 2004/01/07 12:52:02 jaco Exp $
+# $Id: mklivecd.in,v 1.85 2004/01/07 13:02:32 jaco Exp $
 #
 
 use strict;
@@ -406,7 +406,7 @@ sub parse_options {
 	$o_tmp =~ s|/$||;
 	$o_tmp .= "/";
 	die_("\nFATAL: Temporary directory (--tmp) '$o_tmp' does not exist\n") unless (-d $o_tmp);
-	die_("\nFATAL: Unknown loop type (--looptype) '$o_looptype'\n") unless ($o_looptype =~ /clp|bzlp|sqfs/);
+	die_("\nFATAL: Unknown loop type (--looptype) '$o_looptype'\n") unless ($o_looptype =~ /clp|bzlp|sqfs|iso/);
 
 	# optional stuff
 	die_("\nFATAL: Specified sort file (--sort) '".$opts{sort}."' does not exist\n") if (defined($opts{sort}) && !(-f $opts{sort}));
@@ -834,9 +834,7 @@ sub create_finaliso {
 		-A '".$opts{application}."' \\\
 		-p '".$opts{preparer}."' \\\
 		-P '".$opts{publisher}."' \\\
-		-b isolinux/isolinux.bin -c isolinux/boot.cat \\\
-		-hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table \\\
-		-sort $workdir/sort_iso.list -o $finaliso $workdir/livecd/ ".$opts{isoextrafiles}." 2>&1";
+		-b isolinux/isolinux.bin -c isolinux/boot.cat -hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table -sort $workdir/sort_iso.list -o $finaliso $workdir/livecd/ ".$opts{isoextrafiles}." 2>&1";
 	open ISO, "$cmd |";
 	my $line;
 	while ($line = <ISO>) {
