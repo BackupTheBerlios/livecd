@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.89 2004/01/14 07:52:18 jaco Exp $
+# $Id: hwdetect.in,v 1.90 2004/01/14 20:21:56 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -1312,7 +1312,7 @@ MAIN: {
 		hwdetect_getxfree();
 		hwdetect_getsound();
 		hwdetect_getnetwork();
-		hwdetect_getprinters();
+		#hwdetect_getprinters();
 		hwdetect_getusb();
 		#hwdetect_getserial();
 		hwdetect_writeconf();

@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.24 2004/01/14 07:52:18 jaco Exp $
+# $Id: Rules.mk,v 1.25 2004/01/14 20:21:56 jaco Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -23,8 +23,8 @@ MAX_SPLASH=65534
 # various script number of splash steps
 VAL_SPLASH_LINUXRC=6
 VAL_SPLASH_SYSINIT=5
-VAL_SPLASH_HWDETECT=18
-VAL_SPLASH_FULL=29
+VAL_SPLASH_HWDETECT=17
+VAL_SPLASH_FULL=28
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
