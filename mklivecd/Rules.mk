@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.4 2003/10/02 05:29:48 jaco Exp $
+# $Id: Rules.mk,v 1.5 2003/10/02 07:57:55 jaco Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation
@@ -24,6 +24,7 @@ else
 	ARCHIVEVER=$(MKLIVECDVER)
 endif
 KERNELVER=$(shell uname -r)
+SPECDATE=$(shell date +"%a %b %e %Y")
 
 # Internal directories: don't edit
 DISTDIR=dist
