@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Tue Jan 6 12:14:13 2004
+# Created: Tue Jan 6 12:21:12 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -3401,7 +3401,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.38 2004/01/06 10:18:10 jaco Exp $
+# $Id: livecd-install,v 1.39 2004/01/06 10:19:23 jaco Exp $
 #
 
 use threads;
@@ -3413,7 +3413,7 @@ use common;
 use fs;
 use swap;
 
-my $debug   : shared = 1; #undef;
+my $debug   : shared = undef;
 
 my $destroy : shared = 0;
 my $isBusy  : shared = 0;
@@ -3841,6 +3841,9 @@ sub showInstall
 
 	$time_c_run = -1;
 	$time_o_run = -1;
+	
+	sleep(1);
+	this->killTimers();
 }
 
 
@@ -3937,9 +3940,6 @@ sub formatPart
 			swap::make($dev, 1);
 		}
 	}
-	else {
-		sleep(1);
-	}
 
 	$pb_f_num++;
 	$pb_o_num++;
@@ -3970,9 +3970,6 @@ sub copyDir
 			system("chmod \"--reference=$from/$dir\" $mnt/$dir 2>/dev/null");
 			system("chown \"--reference=$from/$dir\" $mnt/$dir 2>/dev/null");
 			system("( (cd $from/$dir ; tar --no-recursion --exclude .. -c * .*) | (cd $mnt/$dir ; tar -x) ) 2>/dev/null");
-		}
-		else {
-			sleep(1);
 		}
 
 		$pb_c_num++;
@@ -4045,9 +4042,6 @@ image=$kernel
 		system("umount $mnt/dev");
 		system("umount $mnt/proc");
 	}
-	else {
-		sleep(1);
-	}
 
 	emit this->next();
 }
@@ -4111,9 +4105,6 @@ sub writeFstab {
 			close FSTAB;
 		}
 	}
-	else {
-		sleep(1);
-	}
 }
 
 
@@ -4152,7 +4143,7 @@ sub toggleReboot # SLOT: ( bool )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.38 2004/01/06 10:18:10 jaco Exp $
+# $Id: livecd-install,v 1.39 2004/01/06 10:19:23 jaco Exp $
 #
 
 package main;
