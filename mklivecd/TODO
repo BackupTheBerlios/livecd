@@ -1,4 +1,4 @@
-# $Id: TODO,v 1.10 2003/10/04 11:15:31 jaco Exp $
+# $Id: TODO,v 1.11 2003/10/04 16:13:51 jaco Exp $
 
 - Add command-line options (at isolinux bootup) to select the
   screen size and bitdepth for the X configuration
@@ -14,10 +14,6 @@
   initrd is a good canidate)
 - memtest option in isolinux.cfg does not exist (we need to copy
   the correct image to provide this option)
-- We should detect swap partitions and add them to fstab to allow
-  them to be swapon'ed in the bootup sequence (This implies HDD
-  detection code which should be re-used in the persistent home
-  option)
 - Localisation support
 - Remove functions in hwdetect where we have duplicated already
   existing MDK functions, e.g. in module loading
