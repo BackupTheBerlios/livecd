@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.15 2004/01/13 06:26:08 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.16 2004/01/13 06:38:24 jaco Exp $
 #
 
 use threads;
@@ -433,7 +433,6 @@ sub showInstall
 		$time_f_run = 1;
 		doFormat($this, $devs) unless ($destroy);
 		$time_f_run = -1;
-		$destroy = 1;
 	}
 
 	#threads->new(\&timeThread, this, $page, time, this->pbCopy, this->tlCopy) unless ($destroy);
