@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: whiteout.cpp,v 1.3 2004/01/22 08:41:10 jaco Exp $
+ * $Id: whiteout.cpp,v 1.4 2004/01/22 14:57:20 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -30,6 +30,8 @@
 #include "whiteout.h"
 
 #include "debug.h"
+
+vector<t_whiteout> entries;
 
 Whiteout *
 Whiteout::create(const string &tmp)
@@ -106,12 +108,15 @@ Whiteout::find(const string &path)
 {
 	FUNC("path='" << path << "'");
 	
+	TRACE("Number of whiteout entries=" << std::dec << entries.size());
 	for (vector<t_whiteout>::iterator i = entries.begin(); i != entries.end(); ) {
 		if (i->path == path) {
+			TRACE("Found whiteout path='" << path << "'");
 			return &*i;
 		} 
 		i++;
 	}
+	TRACE("Could not find whiteout path='" << path << "'");
 	return NULL;
 }
 
@@ -121,6 +126,8 @@ Whiteout::add(const string &path)
 	FUNC("path='" << path << "'");
 	     
 	entries.push_back((t_whiteout){path});
+	TRACE("Number of whiteout entries=" << std::dec << entries.size());
+	
 	store("");
 }
 
@@ -131,6 +138,8 @@ Whiteout::erase(vector<t_whiteout>::iterator it)
 	FUNC("it=(iterator)");
 	
 	entries.erase(it);
+	TRACE("Number of whiteout entries=" << std::dec << entries.size());
+	
 	store("");
 }
 
@@ -161,6 +170,7 @@ Whiteout::load(const string &path)
 	else {
 		ERROR("Unable to open/read '.whiteout' in rw_tmp='" << tmp << "'");
 	}
+	TRACE("Number of whiteout entries=" << std::dec << entries.size());
 }
 
 
@@ -182,4 +192,5 @@ Whiteout::store(const string &path)
 	else {
 		ERROR("Unable to create/write '.whiteout' in rw_tmp='" << tmp << "'");
 	}
+	TRACE("Number of whiteout entries=" << std::dec << entries.size());
 }

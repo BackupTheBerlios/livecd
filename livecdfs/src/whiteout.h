@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: whiteout.h,v 1.1 2004/01/21 19:19:11 jaco Exp $
+ * $Id: whiteout.h,v 1.2 2004/01/22 14:57:20 jaco Exp $
  */
  
 #ifndef _WHITEOUT_dot_H_
@@ -39,13 +39,13 @@ typedef struct s_whiteout
 class Whiteout
 {
 private:
-	vector<t_whiteout> entries;
+	static vector<t_whiteout> entries;
 	string tmp;
 	
 public:
 	static Whiteout *create(const string &);
 	
-	Whiteout(const string &tmp);
+	Whiteout(const string &);
 	~Whiteout();
 	
 	bool isVisible(const string &);
