@@ -348,17 +348,21 @@ sub showInstall
     threads->new(\&timeThread, $this, $page, time, $this->pbCopy, $this->tlCopy) unless ($destroy);
     system("mkdir -p $mnt");
     system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
+    system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
+    system("mkdir -p $mnt/var ; chmod 755 $mnt/var");
+
+    system("mount -t ".$devs->{$rootpart}{type}." $rootpart $mnt");
+    system("mount -t ".$devs->{$homepart}{type}." $homepart $mnt/home") if (defined($homepart));
+    system("mount -t ".$devs->{$varpart}{type}." $varpart $mnt/var") if (defined($varpart));
+    system("mount -t ".$devs->{$tmppart}{type}." $tmppart $mnt/tmp") if (defined($tmppart));
+
     system("mkdir -p $mnt/initrd ; chmod 755 $mnt/initrd");
     system("mkdir -p $mnt/dev ; chmod 755 $mnt/dev");
     system("mkdir -p $mnt/proc ; chmod 755 $mnt/proc");
     system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
     system("mkdir -p $mnt/var/lock/subsys ; chmod 755 -R $mnt/var/lock/subsys");
-    system("mkdir -p $mnt/var/run ; chmod 755 -R $mnt/var/run ; touch $mnt/var/run/utmp");
+    system("mkdir -p $mnt/var/run/netreport ; chmod 755 -R $mnt/var/run/netreport ; touch $mnt/var/run/utmp");
     system("cd $mnt/var ; ln -s ../tmp");
-    system("mount -t ".$devs->{$rootpart}{type}." $rootpart $mnt");
-    system("mount -t ".$devs->{$homepart}{type}." $homepart $mnt/home") if (defined($homepart));
-    system("mount -t ".$devs->{$varpart}{type}." $varpart $mnt/var") if (defined($varpart));
-    system("mount -t ".$devs->{$tmppart}{type}." $tmppart $mnt/tmp") if (defined($tmppart));
 
     doCopy($this, $initrd, $devs, @dirs);
     doCopy($this, $initrd, $devs, @homedirs);
