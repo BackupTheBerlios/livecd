@@ -1,8 +1,8 @@
-# $Id: Rules.mk,v 1.3 2003/10/01 13:29:12 jaco Exp $
+# $Id: Rules.mk,v 1.4 2003/10/02 05:29:48 jaco Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation
-DEF_KEYBOARD=en
+DEF_KEYBOARD=en_US
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -10,17 +10,17 @@ PKGNAME=mklivecd
 MAJORVER=0
 MINORVER=5
 PATCHVER=6
-RPMRELVER=1mdk
+RELVER=1
 CVSVER=yes
 
 # Automatic variable updates, leave alone
 MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
 ifeq "$(CVSVER)" "yes"
 	CVSDATE=$(shell date +cvs.%Y%m%d)
-	RELEASE=0.$(CVSDATE).$(RPMRELVER)
+	MKLIVECDREL=0.$(CVSDATE).$(RELVER)
 	ARCHIVEVER=$(MKLIVECDVER)-$(CVSDATE)
 else
-	RELEASE=$(RPMRELVER)
+	MKLIVECDREL=$(RELVER)
 	ARCHIVEVER=$(MKLIVECDVER)
 endif
 KERNELVER=$(shell uname -r)

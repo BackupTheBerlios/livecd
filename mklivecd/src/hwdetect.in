@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.11 2003/10/01 13:20:49 jaco Exp $
+# $Id: hwdetect.in,v 1.12 2003/10/02 05:29:48 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -44,8 +44,8 @@ use Xconfig::xfree4;
 ### global constants
 my $SCRIPT_DESC    = "hardware detection";
 my $SCRIPT_NAME    = "hwdetect";
-my $SCRIPT_VER     = "@MKLIVECDVER";
-my $DEF_KEYBOARD   = "@DEF_KEYBOARD";
+my $SCRIPT_VER     = "@MKLIVECDVER@";
+my $DEF_KEYBOARD   = "@DEF_KEYBOARD@";
 
 ### screen constants
 my $RES_COL        = 65;

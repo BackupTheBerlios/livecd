@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.6 2003/10/01 13:52:06 jaco Exp $
+# $Id: linuxrc.in,v 1.7 2003/10/02 05:29:48 jaco Exp $
 #
 
 ### global variables
@@ -40,10 +40,10 @@ MINLEFT=16000             # At least this much memory minus 30% should remain wh
 MAXSIZE=1000000           # maximum ramdisk size
 RAMSIZE=1000000           # default ramdisk size
 MINRAMSIZE=15000          # the minimum ramdisk size
-KERNELVER="@KERNELVER"    # this is setup via uname -r in the initialise section
-MKLIVECDVER="@MKLIVECDVER"
-NAME_VERSION_STR="@NAME_VERSION_STR"
-CLOOPVER="@CLOOPVER"
+KERNELVER="@KERNELVER@"   # this is setup via uname -r in the initialise section
+MKLIVECDVER="@MKLIVECDVER@"
+NAME_VERSION_STR="@NAME_VERSION_STR@"
+CLOOPVER="@CLOOPVER@"
 MNTCDROM=/cdrom
 MNTLIVECD=/loopfs
 MNTRAMDISK=/ramfs

@@ -1,24 +1,24 @@
-# $Id: Makefile,v 1.13 2003/10/01 22:23:53 bgmilne Exp $
+# $Id: Makefile,v 1.14 2003/10/02 05:29:48 jaco Exp $
 
 include Rules.mk
 
 all: mklivecd
 
 version:
-	@echo "$(PKGNAME), $(MKLIVECDVER)-$(RELEASE)"
+	@echo "$(PKGNAME), $(MKLIVECDVER)-$(MKLIVECDREL)"
 
 mklivecd:
 	$(MKDIR) -p $(DISTDIR)/init.d
 	$(CP) $(SRCDIR)/isolinux.cfg $(DISTDIR)
 	$(CP) $(SRCDIR)/init.d/hwdetect $(DISTDIR)/init.d
 	$(CAT) $(SRCDIR)/hwdetect.in | \
-		$(SED) -e 's/\@MKLIVECDVER/$(ARCHIVEVER)/g;s/\@DEF_KEYBOARD/$(DEF_KEYBOARD)/g' \
+		$(SED) -e 's/@MKLIVECDVER@/$(ARCHIVEVER)/g;s/@DEF_KEYBOARD@/$(DEF_KEYBOARD)/g' \
 		>$(DISTDIR)/hwdetect
 	$(CAT) $(SRCDIR)/linuxrc.in | \
-		$(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g;s/\@KERNELVER/$(KERNELVER)/g' \
+		$(SED) -e 's/@MKLIVECDVER@/$(ARCHIVEVER)/g;s/@KERNELVER@/$(KERNELVER)/g' \
 		>$(DISTDIR)/linuxrc
 	$(CAT) $(SRCDIR)/$(PKGNAME).in | \
-		$(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g' \
+		$(SED) -e 's/@MKLIVECDVER@/$(ARCHIVEVER)/g' \
 		>$(DISTDIR)/$(PKGNAME)
 
 install:
@@ -34,7 +34,7 @@ install:
 spec:
 	$(MKDIR) -p $(DISTDIR)
 	$(CAT) $(PKGNAME).spec.in | \
-		$(SED) -e 's/@MKLIVECDVER/$(MKLIVECDVER)/g;s/@RELEASE/$(RELEASE)/g' \
+		$(SED) -e 's/@MKLIVECDVER@/$(MKLIVECDVER)/g;s/@MKLIVECDREL@/$(MKLIVECDREL)/g' \
 		>$(DISTDIR)/$(PKGNAME).spec
 
 clean:
