@@ -1,4 +1,4 @@
-# $Id: mklivecd.spec.in,v 1.24 2003/12/12 15:50:26 jaco Exp $
+# $Id: mklivecd.spec.in,v 1.25 2003/12/18 07:08:15 jaco Exp $
 
 %define name	mklivecd
 %define version	@MKLIVECDVER@
@@ -55,7 +55,7 @@ rm -rf %buildroot
 %{_datadir}/mklivecd/rc.sysinit
 
 %changelog
-* @SPECDATE@ Jaco Greeff <jaco@linuxminicd.org> @MKLIVECDVER@-@MKLIVECDREL@mdk
+* @SPECDATE@ Jaco Greeff <jaco@mandrake.org> @MKLIVECDVER@-@MKLIVECDREL@mdk
 - version @ARCHIVEVER@
 - update description
 
