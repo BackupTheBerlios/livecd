@@ -19,10 +19,11 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.6 2003/11/22 09:41:20 jaco Exp $
+# $Id: livecd-install,v 1.7 2003/11/22 10:53:36 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
+use lib qw(/initrd/usr/sbin);
 
 use bootloader;
 use fs;
@@ -41,6 +42,14 @@ my %str = (
 				"Fatale Fout" ],
 	'WARN_ERROR_TIT'   => [ "Warning",
 				"Waarskuwing" ],
+
+	# initial exits
+	'INITERR_ROOT'     => [ "You need to be root to run this program",
+				"Jy moet administreerder (root) wees om die program te loop" ],
+	'INITERR_LIVECD'   => [ "This program can only be run from a $distro LiveCD",
+				"Hierdie program kan net van 'n $distro LiveCD geloop word" ],
+	'INITERR_ZEN'      => [ "This program needs 'zenity' or 'zenity-qt' to be installed",
+				"Hierdie program het 'zenity' of 'zenity-qt' nodig" ],
 
 	# welcome screen
 	'WELCOME_TIT'      => [ "Welcome",
@@ -157,7 +166,7 @@ sub copy_to {
 	my $inc = 90/scalar(@dirs); # from 5 to 95
 	foreach my $dir (@dirs) {
 		chomp($dir);
-		$prog = copy_dir($file, $initrd, $dir, $mnt, $prog, $inc); 
+		$prog = copy_dir($file, $initrd, $dir, $mnt, $prog, $inc);
 	}
 
 	# make the rest
@@ -220,13 +229,25 @@ sub do_install {
 
 # main entry point
 MAIN: {
+	unless (-e "/initrd/usr/sbin/hwdetect") {
+		qx($dlg --error --title "$str{'FATAL_ERROR_TIT'}[$lang]" --text "$str{'INITERR_LIVECD'}[$lang]");
+		exit(1);
+	}
+
 	my $ret = qx(id -u);
 	chomp($ret);
-	die "FATAL: You neer to be root to run this program\n" if ($ret ne "0");
+	if ($ret ne "0") {
+		qx($dlg --error --title "$str{'FATAL_ERROR_TIT'}[$lang]" --text "$str{'INITERR_ROOT'}[$lang]");
+		exit(1);
+	}
+
 	$ret = qx(which zenity-qt 2>/dev/null || echo none);
 	if ($ret =~ /none/) {
 		$ret = qx(which zenity 2>/dev/null || echo none);
-		die "FATAL: Neither 'zenity' nor 'zenity-qt' was found in the path. Please install the required packages.\n" if ($ret =~ /none/);
+		if ($ret =~ /none/) {
+			qx($dlg --error --title "$str{'FATAL_ERROR_TIT'}[$lang]" --text "$str{'INITERR_ZEN'}[$lang]");
+			exit(1);
+		}
 	}
 	chomp($ret);
 	$dlg = $ret;
