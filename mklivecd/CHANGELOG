@@ -1,9 +1,14 @@
-# $Id: CHANGELOG,v 1.48 2003/10/07 06:28:07 jaco Exp $
+# $Id: CHANGELOG,v 1.49 2003/10/07 06:36:48 jaco Exp $
 
 * Tue, Oct 07, 2003, 0.5.7-cvs
   + Jaco Greeff <jaco@linuxminicd.org>:
     [Rules.mk]:
       - Create list for default normal and SCSI modules
+    [linuxrc]:
+      - Allow for finding the cloop image on SCSI devices as well
+        by probing with all the SCSI modules
+    [mklivecd]:
+      - Copy SCSI modules to initrd as well
 
 
 * Mon, Oct 06, 2003, 0.5.6
