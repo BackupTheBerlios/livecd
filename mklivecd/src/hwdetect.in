@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.18 2003/10/04 14:56:10 jaco Exp $
+# $Id: hwdetect.in,v 1.19 2003/10/05 09:23:51 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -900,7 +900,7 @@ hwdetect_all() if ($debug);
 hwdetect_getxfree();
 hwdetect_getsound();
 hwdetect_getnetwork();
-hwdetect_getserial();
+#hwdetect_getserial();
 hwdetect_getusb() if -e '/proc/bus/usb/devices';
 hwdetect_writeconf() unless ($probe);
 hwdetect_deinitusb() if ($haveusb > 0);
