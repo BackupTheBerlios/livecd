@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: debug.h,v 1.1 2004/01/18 15:47:52 jaco Exp $
+ * $Id: debug.h,v 1.2 2004/01/19 06:42:17 jaco Exp $
  */
  
 #ifndef _DEBUG_dot_H_
@@ -38,14 +38,14 @@ using namespace std;
 
 	#define HDR		"[" << getpid() << "]: " << __FILE__ << "(" << __LINE__ << "): "
 
-	#define FUNC(x)		cout << HDR << __func__ << "(" << std::hex << x << std::dec << ")\n"
-	#define TRACE(x) 	cout << HDR << __func__ << ": " << std::hex << x << std::dec << "\n"
-	#define TRACE_START()	cout << HDR << "{" << "\n"
-	#define TRACE_END()	cout << HDR << "}" << "\n"
+	#define FUNC(x)		cout << " INFO: " << HDR << __func__ << "(" << std::hex << x << std::dec << ")\n"
+	#define TRACE(x) 	cout << " INFO: " << HDR << __func__ << ": " << std::hex << x << std::dec << "\n"
+	#define TRACE_START()	cout << " INFO: " << HDR << "{" << "\n"
+	#define TRACE_END()	cout << " INFO: " << HDR << "}" << "\n"
 	#define TRACE_RET(x)	TRACE_END(); return x
 	
-	#define WARN(x)		cerr << HDR << ": " << std::hex << x << std::dec << "\n"
-	#define ERROR(x)	cerr << HDR << ": " << std::hex << x << std::dec << "\n"
+	#define WARN(x)		cerr << " WARN: " << HDR << ": " << std::hex << x << std::dec << "\n"
+	#define ERROR(x)	cerr << "ERROR: " << HDR << ": " << std::hex << x << std::dec << "\n"
 #endif
 
 #endif
