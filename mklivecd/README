@@ -12,7 +12,7 @@ If you want to contibute, or just fancy running the latest-
 greatest version, you can also get the latest development version
 from CVS:
 
-    export CVSROOT=:pserver:anonymous@cvs.minicd.berlios.de:/cvsroot/minicd
+    export CVSROOT=:pserver:anonymous@cvs.livecd.berlios.de:/cvsroot/livecd
     cvs login (There is no anonymous password, a simple Enter will do)
     cvs -z3 co mklivecd
 
@@ -20,17 +20,18 @@ If you have been granted developer access to the project, you can
 access CVS with the following commands:
 
     export CVS_RSH=ssh
-    export CVSROOT=:ext:USERNAME@cvs.minicd.berlios.de:/cvsroot/minicd
+    export CVSROOT=:ext:USERNAME@cvs.livecd.berlios.de:/cvsroot/livecd
     cvs -z3 co mklivecd
 
 There is a mailing list available for discussion of the mklivecd
 scripts and associated programs. More information on this list,
 including subscription details can be found at:
 
-    http://lists.berlios.de/mailman/listinfo/minicd-scripts
+    http://lists.berlios.de/mailman/listinfo/livecd-users
+    http://lists.berlios.de/mailman/listinfo/livecd-devel
 
 Patches, suggestions, flames and general comments are always
 welcome at the above adress. Good luck!
 
     - Jaco Greeff <jaco@linuxminicd.org>,
-      Thu, Sep 25, 2003
+      Wed, Nov 05, 2003
