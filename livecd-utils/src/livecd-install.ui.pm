@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.39 2004/09/07 01:44:26 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.40 2004/09/09 05:03:11 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -523,23 +523,23 @@ sub showInstall
 	}
 	#threads->new(\&timeThread, this, $page, time, this->pbOverall, this->tlOverall) unless ($destroy);
 
-	my @dirs = qx(find $initrd/ -type d | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root | grep -v ^/etc | grep -v /lib/dev-state) unless ($destroy);
+	my @dirs = qx(find $initrd/ -type d -mount | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root | grep -v ^/etc | grep -v ^/lib/dev-state) unless ($destroy);
 	print "scalar(dirs)=".scalar(@dirs)."\n";
 	my $copysteps = scalar(@dirs);
 
-	my @etcdirs = qx(find /etc -type d) unless ($destroy);
+	my @etcdirs = qx(find /etc -type d -mount) unless ($destroy);
 	print "scalar(etcdirs)=".scalar(@etcdirs)."\n";
 	$copysteps = $copysteps + scalar(@etcdirs);
 
-	my @homedirs = qx(find /home -type d) unless ($destroy);
+	my @homedirs = qx(find /home -type d -mount) unless ($destroy);
 	print "scalar(homedirs)=".scalar(@homedirs)."\n";
 	$copysteps = $copysteps + scalar(@homedirs);
 
-	my @rootdirs = qx(find /root -type d) unless ($destroy);
+	my @rootdirs = qx(find /root -type d -mount) unless ($destroy);
 	print "scalar(rootdirs)=".scalar(@rootdirs)."\n";
 	$copysteps = $copysteps + scalar(@rootdirs);
 
-	my @devstatedirs = qx(find /lib/dev-state -type d) unless ($destroy);
+	my @devstatedirs = qx(find /lib/dev-state -type d -mount) unless ($destroy);
 	print "scalar(devstatedirs)=".scalar(@devstatedirs)."\n";
 	$copysteps = $copysteps + scalar(@devstatedirs);
 
