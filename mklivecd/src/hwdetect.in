@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.27 2003/10/30 19:00:58 jaco Exp $
+# $Id: hwdetect.in,v 1.28 2003/10/30 19:36:07 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -691,20 +691,25 @@ my %fstypes = (
 );
 
 # these are default options for fstab
-my $fsopt_ro = 'noauto,user,ro,exec';
-my $fsopt_rw = 'user,rw,exec';
+my $fsopt_user   = 'user,exec';
+my $fsopt_auto   = 'auto';
+my $fsopt_noauto = 'noauto';
+my $fsopt_ro     = 'ro';
+my $fsopt_rw     = 'rw';
+my $fsopt_fullrw = $fsopt_auto.",".$fsopt_user.",".$fsopt_rw;
+my $fsopt_fullro = $fsopt_noauto.",".$fsopt_user.",".$fsopt_ro;
 
-# type => (allow persistent, ext. opts)
+# type => (allow persistent, ext. opts, ro only)
 my %fsopts = (
-	'ext2'     => [1,     undef],
-	'ext3'     => [1,     undef],
-	'jfs'      => [1,     undef],
-	'ntfs'     => [undef, 'iocharset=iso8859-1,umask=0'],
-	'reiserfs' => [1,     'notail,noatime'],
-	'swap'     => [undef, 'defaults'],
-	'ufs'      => [1,     'iocharset=iso8859-1,umask=0'],
-	'vfat'     => [1,     'iocharset=iso8859-1,codepage=850,umask=0'],
-	'xfs'      => [1,     undef]
+	'ext2'     => [1,     undef,                                      undef],
+	'ext3'     => [1,     undef,                                      undef],
+	'jfs'      => [1,     undef,                                      undef],
+	'ntfs'     => [undef, 'iocharset=iso8859-1,umask=0',              'ro'],
+	'reiserfs' => [1,     'notail,noatime',                           undef],
+	'swap'     => [undef, 'defaults',                                 undef],
+	'ufs'      => [1,     'iocharset=iso8859-1,umask=0',              undef],
+	'vfat'     => [1,     'iocharset=iso8859-1,codepage=850,umask=0', undef],
+	'xfs'      => [1,     undef,                                      undef]
 );
 
 sub hwdetect_getpersistent {
@@ -725,7 +730,7 @@ sub hwdetect_getpersistent {
 					} split(/ /, cat_($persist));
 					if ($popts{mount}) {
 						$devs{$dev}->{mount} = $popts{mount};
-						$devs{$dev}->{opt} = $fsopt_rw;
+						$devs{$dev}->{opt} = $fsopt_fullrw;
 						$devs{$dev}->{persisted} = 1;
 					}
 				}
@@ -739,6 +744,19 @@ sub hwdetect_getpersistent {
 
 sub hwdetect_getdisks {
 	print "Detecting disk drives/partitions: ";
+	my $fsopt_set = $fsopt_user;
+	if ($cmdline{'fstab'} =~ /rw/) {
+		$fsopt_set = ",".$fsopt_rw;
+	}
+	else {
+		$fsopt_set = ",".$fsopt_ro;
+	}
+	if ($cmdline{'fstab'} =~ /auto/) {
+		$fsopt_set = ",".$fsopt_auto;
+	}
+	else {
+		$fsopt_set = ",".$fsopt_noauto;
+	}
 	my %all_devs = ();
 	my $all_hdds = fsedit::get_hds({}, undef);
 	fs::get_raw_hds('', $all_hdds);
@@ -772,7 +790,12 @@ sub hwdetect_getdisks {
 				$all_devs{$dev}->{media}  = $disk->{media_type};
 				$all_devs{$dev}->{mount}  = "/mnt/".$disk->{device};
 				$all_devs{$dev}->{type}   = "auto";
-				$all_devs{$dev}->{opt}    = $fsopt_ro;
+				if ($disk->{media_type} =~ /^cdrom/) {
+					$all_devs{$dev}->{opt}    = $fsopt_fullro;
+				}
+				else {
+					$all_devs{$dev}->{opt}    = $fsopt_noauto.",".$fsopt_user.",".$fsopt_rw;
+				}
 				$all_devs{$dev}->{extopt} = $extopts;
 			}
 		}
@@ -826,7 +849,12 @@ sub hwdetect_getdisks {
 					}
 					else {
 						$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
-						$all_devs{$dev}->{opt}     = $fsopt_ro;
+						if (defined($opts[2])) {
+							$all_devs{$dev}->{opt}   = $fsopt_fullro;
+						}
+						else {
+							$all_devs{$dev}->{opt}   = $fsopt_set;
+						}
 					}
 					$all_devs{$dev}->{type}    = $fstypes{$raw->{type}}[1];
 					$all_devs{$dev}->{extopt}  = $opts[1];
@@ -877,7 +905,12 @@ sub hwdetect_getdisks {
 						}
 						else {
 							$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
-							$all_devs{$dev}->{opt}   = $fsopt_ro;
+							if (defined($opts[2])) {
+								$all_devs{$dev}->{opt}   = $fsopt_fullro;
+							}
+							else {
+								$all_devs{$dev}->{opt}   = $fsopt_set;
+							}
 						}
 						$all_devs{$dev}->{type}    = $fstypes{$raw->{type}}[1];
 						$all_devs{$dev}->{extopt}  = $opts[1];

@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.50 2003/10/30 07:11:15 jaco Exp $
+# $Id: mklivecd.in,v 1.51 2003/10/30 19:36:07 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -64,6 +64,7 @@ isobootkeymsg=""
 resolution="@DEF_RESOLUTION@"
 vgamode="@DEF_VGAMODE@"
 bootsplash=1
+fstabopt="ro,noauto"
 
 printusage () {
 	echo "
@@ -128,6 +129,9 @@ Boot options:
    --splash=<yes|no>[,<theme>] Create the LiveCD with bootsplash support if
                                available on the root filesystem, optionally use
                                the specified bootsplash theme (default: yes)
+   --fstab=<options>           Override the default option for the fstab on the
+                               LiveCD. Options are one or more of 'auto' and
+                               'rw', for example '--fstab=rw,auto'
 
 Examples:
     `basename $0` --nodir=^/usr/src/RPM,^/root/tmp livecd.iso
@@ -418,12 +422,12 @@ create_isolinux() {
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo 'label livecd' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '    append livecd=livecd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    append livecd=livecd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard fstab=$fstabopt' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	if [ -z "$final" ]; then
 		do_cmd "echo 'label initrd' >>$ISOLINUXDIR/isolinux.cfg"
 		do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-		do_cmd "echo '    append livecd=initrd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard' >>$ISOLINUXDIR/isolinux.cfg"
+		do_cmd "echo '    append livecd=initrd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard fstab=$fstabopt' >>$ISOLINUXDIR/isolinux.cfg"
 		do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	fi
 	do_cmd "echo 'label memtest' >>$ISOLINUXDIR/isolinux.cfg"
@@ -709,6 +713,7 @@ while [ $# -gt 0 ]; do
 				exit 1
 			fi
 			;;
+
 		--isoextrafiles*)
 			if echo $1 | grep '=' >/dev/null
 			then
@@ -721,6 +726,15 @@ while [ $# -gt 0 ]; do
 			then
 				echo "ERROR: Extra ISO files directory $isoextrafiles could not be found." >&2
 				exit 1
+			fi
+			;;
+
+		--fstab*)
+			if echo $1 | grep '=' >/dev/null ; then
+				fstabopt="${1#--fstab=}"
+			else
+				fstabopt=$2
+				shift
 			fi
 			;;
 
