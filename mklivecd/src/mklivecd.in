@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.119 2004/10/01 18:02:14 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.120 2004/10/07 18:35:36 tom_kelly33 Exp $
 #
 
 use strict;
@@ -806,7 +806,12 @@ sub create_isolinux {
 	}
 
 	# write config
-	my $appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=mount vga=$o_vgamode keyb=$o_keyboard"; 
+	my $appopt;
+	#if (defined($opts{udev})) {
+	#	$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=nomount vga=$o_vgamode keyb=$o_keyboard";
+	#} else {
+		$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=mount vga=$o_vgamode keyb=$o_keyboard";
+	#}	
 	$appopt = "$appopt fastboot=yes automatic=method:cdrom ramdisk_size=32000" if (!defined($kernel26));
 	$appopt = "$appopt fstab=".$opts{fstab} if (defined($opts{fstab}));
 	$appopt = "$appopt home=usb" if (defined($opts{usbhome}));

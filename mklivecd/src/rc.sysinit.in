@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.30 2004/10/05 02:03:38 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.31 2004/10/07 18:35:36 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -284,8 +284,9 @@ setupdir_root() {
 	if [ -n "$COW" ]; then
 		setupdir_cow "root"
 	else
-		docmd "cp -a $MNTLIVECD/root /" \
-		"echo ''"
+		# ln -s $MNTLIVECD/root/ /root # link these because of 
+		cp -a  $MNTLIVECD/root /   # problem copying .img files in /root/drakx
+		# if this cp hangs, remove /root/drakx/*.img files
 	fi
 	
 	printok

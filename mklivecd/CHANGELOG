@@ -1,4 +1,8 @@
-# $Id: CHANGELOG,v 1.123 2004/02/27 05:35:35 jaco Exp $
+# $Id: CHANGELOG,v 1.124 2004/10/07 18:35:36 tom_kelly33 Exp $
+
+  Oct 6th. 2004 
+  many changes to get to this point. Release 0.5.8 was
+  the last for MDK 10.0. 
 
 * Fri, Feb 27, 2004, 0.5.7-cvs
   + Buchan Milne <bgmilne@obsidian.co.za>:
