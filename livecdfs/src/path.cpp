@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.cpp,v 1.13 2004/01/31 11:31:41 jaco Exp $
+ * $Id: path.cpp,v 1.14 2004/02/01 07:14:31 jaco Exp $
  */
 
 #include <errno.h>
@@ -77,7 +77,7 @@ Path::mkpath(const string &path)
 	if (!exists(retpath, 0)) {
 		retpath = mkroot(path);
 	}
-	FUNC_RET("%s", retpath.c_str(), retpath);
+	FUNC_RET("'%s'", retpath.c_str(), retpath);
 }
 
 
@@ -149,7 +149,7 @@ Path::join(const string &s1,
 		}
 		ret = string(s1.c_str(), len1) + string("/") + string(s2.c_str(), pos2, s2.length());
 	}
-	FUNC_RET("%s", ret.c_str(), ret);
+	FUNC_RET("'%s'", ret.c_str(), ret);
 }
 
 
@@ -211,7 +211,13 @@ Path::getDir(const string &path)
 	
 	string dir = join("/", path);
 	if (!isDir(path)) {
-		dir = string(path, 0, path.rfind("/"));
+		int pos = path.rfind("/");
+		if (pos >= 0) {
+			dir = string(path, 0, pos);
+		}
+		else {
+			dir = string("");
+		}
 	}
 	FUNC_RET("'%s'", dir.c_str(), dir);
 }
