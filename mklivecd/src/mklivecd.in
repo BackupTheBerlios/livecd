@@ -22,14 +22,17 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.125 2004/11/22 19:19:46 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.126 2004/11/25 03:22:30 tom_kelly33 Exp $
 #
 
 use strict;
+use lib qw(/usr/lib/libDrakX);
 
 ### dependancies
 use Getopt::Long;
 use MDK::Common;
+use run_program;
+use Storable qw(store);
 use threads::shared;
 
 ### useful functions
@@ -456,7 +459,7 @@ opts{workdir}) && !(-d $opts{workdir}));
 	} else {
 		$workdir = $o_tmp."mklivecd.$$";
 	}
-	system("mkdir -p $workdir");
+	mkdir_p($workdir);
 	die_("\nFATAL: Unable to create working directory, '$workdir'\n") unless (-e $workdir);
 	print STDERR "\nWARNING: The temporary directory '$workdir' will not be removed at exit, please do so manually" if (defined($opts{noclean}));
 
@@ -606,7 +609,8 @@ sub create_initrd {
 
 	# create directories
 	my $dir = $workdir."/initrd.dir";
-	system("mkdir -p $dir/{bin,dev,etc/livecd/hwdetect,etc/rc.d/,lib/modules/$o_kernel/kernel,proc,ramfs,sbin,usr/{bin,sbin},cdrom,loopfs,ramfs}") and die_("\nFATAL: Unable to create initrd directory, '$dir'\n");
+	#system("mkdir -p $dir/{bin,dev,etc/livecd/hwdetect,etc/rc.d/,lib/modules/$o_kernel/kernel,proc,ramfs,sbin,usr/{bin,sbin},cdrom,loopfs,ramfs}") and die_("\nFATAL: Unable to create initrd directory, '$dir'\n");
+	mkdir_p("$dir/$_") foreach "lib/modules/$o_kernel/kernel", qw(bin dev etc/livecd/hwdetect etc/rc.d/ proc ramfs sbin usr/bin usr/sbin cdrom loopfs ramfs);
 	set_progress(++$pos, "mkdir -p $dir/...");
 
 	# find our insmod
@@ -800,10 +804,9 @@ sub create_compressed {
 			if (defined($loopcmp)) {
 				$iso = "$iso $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype";
 			} elsif ($o_looptype =~ /ziso/) {
-				my $gzroot = "$workdir/gz/";
-				mkdir_p($gzroot);
+				my $gzroot = "$workdir/gzroot/";
 				system("mkzftree -z 3 $o_root $gzroot");
-				cp_af($_, "$workdir/gzdir/boot/") foreach glob_("$o_root/boot/*");
+				cp_af($_, "$gzroot/boot/") foreach glob_("$o_root/boot/*");
 				$o_root = $gzroot;
 				$iso = "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
 			} else {
@@ -990,6 +993,10 @@ MAIN: {
 	parse_options();
 
 	create_initrd();
+	if (-e "$o_root/etc/init.d/harddrake") {
+		Storable::store({ dummy => 'nothing' } , "$o_root/etc/sysconfig/harddrake2/previous_hw");
+		run_program::rooted($o_root, "chkconfig", "--add", "harddrake");
+	}
 	create_compressed();
 	create_isolinux();
 	create_finaliso();
