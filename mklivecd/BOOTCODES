@@ -1,4 +1,4 @@
-# $Id: BOOTCODES,v 1.10 2004/01/23 08:43:58 jaco Exp $
+# $Id: BOOTCODES,v 1.11 2004/01/24 08:59:19 jaco Exp $
 
 LiveCD bootcodes: These codes allow you to override the LiveCD
 defaults to modify the boot process for your specific needs. The
@@ -13,7 +13,7 @@ The latest list will always be available from the LiveCD website
 
 http://livecd.berlios.de
 
-The following codes are available as of 21 January 2004:
+The following codes are available as of 24 January 2004:
 
 initrd                  Only boot the initrd, not the actual CD.
 			This option is (mostly) only useful to
@@ -40,7 +40,11 @@ livecd home=usb         Copy the user's home directory to a USB
 			be specified on subsequent boots.
 
 livecd hostname=<host>  Sets the hostname for the machine, as
-			specified by <host>, eg. myboz.cool.com
+			specified by <host>, eg. mybox.cool.com
+
+livecd lang=<lang>      Override the default language (en), for
+			the boot scripts and (eventually) CD
+			language selection.
 
 livecd keyb=<mapping>   Use a different keyboard layout mapping
 			from the one the LiveCD was built with.

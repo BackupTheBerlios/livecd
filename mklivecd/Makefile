@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.32 2004/01/06 13:01:34 jaco Exp $
+# $Id: Makefile,v 1.33 2004/01/24 08:59:19 jaco Exp $
 
 include Rules.mk
 include Modules.mk
@@ -19,6 +19,7 @@ mklivecd:
 		$(SED) -e 's,@VAL_SPLASH_SYSINIT@,$(VAL_SPLASH_SYSINIT),g' | \
 		$(SED) -e 's,@VAL_SPLASH_HWDETECT@,$(VAL_SPLASH_HWDETECT),g' \
 			>$(DISTDIR)/hwdetect
+	$(CAT) $(SRCDIR)/hwdetect-lang.in >>$(DISTDIR)/hwdetect
 	$(CAT) $(SRCDIR)/linuxrc.in | \
 		$(SED) -e 's,@MKLIVECDVER@,$(ARCHIVEVER),g' | \
 		$(SED) -e 's,@KERNELVER@,$(KERNELVER),g' | \
