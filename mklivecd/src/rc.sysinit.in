@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.43 2005/02/07 19:54:08 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.44 2005/02/08 17:01:15 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -160,7 +160,7 @@ execshell() {
 	# find the best shell available to us at this point
 	if [ -e /bin/bash ]; then
 		export PATH=$PATH:/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
-		SHELL="/initrd/bin/bash"
+		SHELL="/initrd/bin/ash"
 	else
 		export PATH=$PATH:/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
 		SHELL="/initrd/bin/ash"
