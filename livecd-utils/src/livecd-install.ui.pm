@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.40 2004/09/09 05:03:11 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.41 2004/09/12 14:57:04 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -830,8 +830,9 @@ image=$kernel
 my $r = system "[ \"XY\" = \"`(dd of=/dev/null bs=510 count=1; dd bs=2 count=1 |
           tr -c '\125\252' . | tr '\125\252' XY) <$dev 2>/dev/null`\" ]" ;
 				if ($r == 0) {  # We are ok to use 'other'
+					my $label = substr($devs{$dev}{mount}, 5); # remove /mnt/
 					print LILO "\nother=$dev
-label=\"$devs{$dev}{mount}\"
+label=\"$label\"
 ";
 				} else {
 				next;
