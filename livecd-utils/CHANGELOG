@@ -1,5 +1,7 @@
-# $Id: CHANGELOG,v 1.8 2005/03/01 15:45:00 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.9 2005/03/13 22:02:10 tom_kelly33 Exp $
 
+* 2005-03-13 works with unionfs, thanks to ikerek & etjr
+	- removed ata_piix (already present)
 * 2005-03-01
 	- added ata_piix, thanks Yoshinori Okuji
 * 2005-02-17

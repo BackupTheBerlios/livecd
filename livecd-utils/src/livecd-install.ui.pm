@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.55 2005/03/01 15:45:00 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.56 2005/03/13 22:02:10 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -56,6 +56,7 @@ my $prefix : shared = "/tmp";
 my $mnt    : shared = "/tmp/livecd.install.$$";
 my $log    : shared = "/tmp/livecd.install.log.$$";
 my $initrd : shared = "/initrd/loopfs";
+my $changes : shared = "/changes";
 
 my $kernel26	: shared = undef;
 
@@ -69,6 +70,14 @@ my $homepart : shared = undef;
 my $varpart  : shared = undef;
 my $tmppart  : shared = undef;
 my $bootdev  : shared = undef;
+
+my $copysteps : shared = undef;
+my @dirs     : shared = undef;
+my @changesdirs : shared = undef;
+my @etcdirs  : shared = undef;
+my @homedirs : shared = undef;
+my @rootdirs : shared = undef;
+my @devstatedirs : shared = undef;
 
 my $infotext      : shared = "";
 my $time_o_start  : shared = 0;
@@ -88,7 +97,7 @@ my $pb_o_num      : shared = 0;
 my $pb_o_tot      : shared = 0;
 
 my @satalist = qw(libata sd_mod ata_piix scsi_mod sr_mod sg a100u2w
-		advansys aha152x aha1542 aic7xxx ata_piix BusLogic fdomain gdth
+		advansys aha152x aha1542 aic7xxx BusLogic fdomain gdth
 		megaraid sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc);
 
 my %devs   = ();
@@ -535,27 +544,38 @@ sub showInstall
 		$pb_f_num = 1;
 	}
 	#threads->new(\&timeThread, this, $page, time, this->pbOverall, this->tlOverall) unless ($destroy);
+        my $union = qx(lsmod|grep unionfs|cut -f1 -d' ');
+	
+	if ($union == "unionfs") {       #Unionfs mount
+		@dirs = qx(find $initrd/ -type d -mount | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev) unless ($destroy);
+		print "scalar(dirs)=".scalar(@dirs)."\n";
+		my $copysteps = scalar(@dirs);
+	
+		@changesdirs = qx(find $changes/ -type d -mount | sed -s 's,$changes,,') unless ($destroy);
+		print "scalar(changesdirs)=".scalar(@changesdirs)."\n";
+		$copysteps = $copysteps + scalar(@changesdirs);
+	}
+	else {
+		@dirs = qx(find $initrd/ -type d -mount | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root | grep -v ^/etc | grep -v ^/lib/dev-state) unless ($destroy);
+		print "scalar(dirs)=".scalar(@dirs)."\n";
+		my $copysteps = scalar(@dirs);
 
-	my @dirs = qx(find $initrd/ -type d -mount | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root | grep -v ^/etc | grep -v ^/lib/dev-state) unless ($destroy);
-	print "scalar(dirs)=".scalar(@dirs)."\n";
-	my $copysteps = scalar(@dirs);
+		@etcdirs = qx(find /etc -type d -mount) unless ($destroy);
+		print "scalar(etcdirs)=".scalar(@etcdirs)."\n";
+		$copysteps = $copysteps + scalar(@etcdirs);
 
-	my @etcdirs = qx(find /etc -type d -mount) unless ($destroy);
-	print "scalar(etcdirs)=".scalar(@etcdirs)."\n";
-	$copysteps = $copysteps + scalar(@etcdirs);
+		@homedirs = qx(find /home -type d -mount) unless ($destroy);
+		print "scalar(homedirs)=".scalar(@homedirs)."\n";
+		$copysteps = $copysteps + scalar(@homedirs);
 
-	my @homedirs = qx(find /home -type d -mount) unless ($destroy);
-	print "scalar(homedirs)=".scalar(@homedirs)."\n";
-	$copysteps = $copysteps + scalar(@homedirs);
+		@rootdirs = qx(find /root -type d -mount) unless ($destroy);
+		print "scalar(rootdirs)=".scalar(@rootdirs)."\n";
+		$copysteps = $copysteps + scalar(@rootdirs);
 
-	my @rootdirs = qx(find /root -type d -mount) unless ($destroy);
-	print "scalar(rootdirs)=".scalar(@rootdirs)."\n";
-	$copysteps = $copysteps + scalar(@rootdirs);
-
-	my @devstatedirs = qx(find /lib/dev-state -type d -mount) unless ($destroy);
-	print "scalar(devstatedirs)=".scalar(@devstatedirs)."\n";
-	$copysteps = $copysteps + scalar(@devstatedirs);
-
+		@devstatedirs = qx(find /lib/dev-state -type d -mount) unless ($destroy);
+		print "scalar(devstatedirs)=".scalar(@devstatedirs)."\n";
+		$copysteps = $copysteps + scalar(@devstatedirs);
+	}
 	$pb_c_tot = $copysteps;
 	$pb_c_num = 0;
 
@@ -599,10 +619,15 @@ sub showInstall
 	
 	unless (defined($nocopy)) {
 		doCopy($initrd, @dirs) unless ($destroy);
-		doCopy("/", @etcdirs) unless ($destroy);
-		doCopy("/", @homedirs) unless ($destroy);
-		doCopy("/", @rootdirs) unless ($destroy);
-		doCopy("/", @devstatedirs) unless ($destroy);
+		if ($union == "unionfs") {       #Unionfs mount
+			doCopy($changes, @changesdirs) unless ($destroy);
+		}	
+		else {
+			doCopy("/", @etcdirs) unless ($destroy);
+			doCopy("/", @homedirs) unless ($destroy);
+			doCopy("/", @rootdirs) unless ($destroy);
+			doCopy("/", @devstatedirs) unless ($destroy);
+		}	
 
 	}
 
