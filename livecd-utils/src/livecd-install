@@ -19,11 +19,19 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.3 2003/11/21 18:26:05 jaco Exp $
+# $Id: livecd-install,v 1.4 2003/11/21 20:07:21 jaco Exp $
 #
 
+use lib qw(/usr/lib/libDrakX);
+
+use bootloader;
+use fs;
+
 # our distro
-my $distro = "Mandrake";
+my $distro = qx(cat /etc/redhat-release | awk '{ print \$1 }');
+chomp($distro);
+
+# the dialog we are using (kdialog doen't have progress :(
 my $dlg    = "zenity";
 
 # name => [ lang 1, lang 2, lang 3, ... ]
@@ -31,12 +39,16 @@ my %str = (
 	# error strings
 	'FATAL_ERROR_TIT'  => [ "Fatal Error",
 				"Fatale Fout" ],
+	'WARN_ERROR_TIT'   => [ "Warning",
+				"Waarskuwing" ],
 
 	# welcome screen
 	'WELCOME_TIT'      => [ "Welcome",
 				"Welkom" ],
 	'WELCOME_STR'      => [ "Welcome to the $distro LiveCD installation program.\n\nThis program will guide you through the process\nof installing the $distro LiveCD to hard disk.",
 				"Welkom by die $distro LiveCD installasie program.\n\nHierdie program sal jou deur die stappe neem\nom die $distro LiveCD op jou harde skyf te installeer." ],
+	'WARNCORR_STR'     => [ "This is BETA quality software and might have\nadverse (unintended) side effects. Use with care!\n\nThis program is distributed in the hope that it will\nbe useful, but WITHOUT ANY WARRANTY;\nwithout even the implied warranty of MERCHANTABILITY\nor FITNESS FOR A PARTICULAR PURPOSE. See the\nGNU General Public License for more details.",
+				"Hierdie is BETA kwaliteit sagteware en mag\nnegatiewe (onbeplande) newe-effekte he. Gebruik dit versigtig!\n\n\"This program is distributed in the hope that it will\nbe useful, but WITHOUT ANY WARRANTY;\nwithout even the implied warranty of MERCHANTABILITY\nor FITNESS FOR A PARTICULAR PURPOSE. See the\nGNU General Public License for more details.\"" ],
 
 	# partition selection screen
 	'PROGSEL_TIT'      => [ "Mount Point Selection",
@@ -98,7 +110,8 @@ sub read_parts {
 	}
 }
 
-sub install_dir {
+# copy a single dit, decending on it's subdirs
+sub copy_dir {
 	my ($file, $root, $dir, $mnt, $prog, $inc) = @_;
 
 	my $tmp = $prog;
@@ -110,7 +123,7 @@ sub install_dir {
 		my $i = $inc/scalar(@roots);
 		foreach my $r (@roots) {
 			chomp($r);
-			install_dir($file, $root, $r, $mnt, $prog, $i);
+			copy_dir($file, $root, $r, $mnt, $prog, $i); # from $prog -> $prog+$i
 			$prog = $prog + $i;
 		}
 	}
@@ -118,22 +131,20 @@ sub install_dir {
 	print $file "$prog\n";
 }
 
-sub install_to {
-	my ($dev) = @_;
-	my $initrd = "/mnt/livecd";
-	my $mnt = "/tmp/livecd.inst.$$";
-	my $type = $fstypes{$devs{$dev}{'id'}};
+# copy
+sub copy_to {
+	my ($dev, $mnt) = @_;
+	my $initrd = "/initrd/loopfs";
 	my $file = undef;
 	my $prog = 0;
 	my $cancel = 0;
 
 	open($file, "|$dlg --progress --width 450 --title \"".$str{'INSTPROG_TIT'}[$lang]."\" --text \"".$str{'INSTPROG_STR'}[$lang]." $dev\" --percentage 0 --auto-close");
-	qx(mkdir -p $mnt ; umount $dev ; mount -t $type $dev $mnt);
 
 	# whack everything on new root
 	my @root = qx(ls -a1 $mnt | grep -v lost+found | grep -v ^./ | grep -v ^../);
 	if (scalar(@root)) {
-		my $inc = 10/(scalar(@root)); # from 0->10
+		my $inc = 5/(scalar(@root)); # from 0 to 5
 		foreach my $r (@root) {
 			qx(rm -rf $mnt/$r) unless ($cancel);
 			$prog = $prog + $inc;
@@ -143,15 +154,37 @@ sub install_to {
 	print $file "$prog\n" or $cancel = 1;
 
 	# find all the root dirs on the current root
-	install_dir($file, $initrd, "/", $mnt, 10, 80); # from 10->90
+	copy_dir($file, $initrd, "/", $mnt, 5, 90); # from 5 to 95
 
 	# make the rest
-
-	qx(umount $mnt);
+	qx(mkdir -p $mnt/dev ; mkdir -p $mnt/proc);
+	print $file "96\n";
+	qx(mkdir -p $mnt/initrd);
+	print $file "97\n";
+	qx(mkdir -p $mnt/tmp ; chmod 755 $mnt/tmp);
+	print $file "98\n";
+	qx(ln -sf ../tmp $mnt/var/tmp);
+	print $file "99\n";
+	qx(mkdir -p $mnt/var/lock/subsys ; mkdir -p $mnt/var/run);
 	print $file "100\n";
 	close($file);
+}
 
-	exit(0);
+# create a basic fstab
+sub make_fstab {
+	my ($dev, $mnt) = @_;
+	my @fstab = fs::read_fstab("", "/etc/fstab");
+	my $hdds = {};
+	fs::add2all_hds($hdds, @fstab);
+	fs::write_fstab($hdds, "/home/jaco");#$mnt);
+	open FSTAB, '>>', "/home/jaco/etc/fstab";
+	print FSTAB "$dev / ".$fstypes{$devs{$dev}{'id'}}." defaults 0 0\n";
+	close FSTAB;
+}
+
+# create the lilo.conf
+sub make_lilo {
+	my ($dev, $mnt) = @_;
 }
 
 # do the actual install
@@ -163,8 +196,17 @@ sub do_install {
 		my $dev = qx($dlg --list --radiolist --width 500 --height 300 --title "$str{'INSTPART_TIT'}[$lang]" --column "" --column "$str{'INSTPART_PART'}[$lang]" --column "$str{'INSTPART_SIZE'}[$lang]" --column "$str{'INSTPART_TYPE'}[$lang]" $list || echo cancel);
 		chomp($dev);
 		unless ($dev =~ /cancel/ || $dev eq "") {
-			my $ret = qx($dlg --warning --text "$str{'INSTPART_WARN'}[$lang]\n$dev ($fstypes{$devs{$dev}{'id'}})" || echo cancel);
-			install_to($dev) unless ($ret =~ /cancel/);
+			my $ret = qx($dlg --warning --title "$str{'WARN_ERROR_TIT'}[$lang]" --text "$str{'INSTPART_WARN'}[$lang]\n$dev ($fstypes{$devs{$dev}{'id'}})" || echo cancel);
+			unless ($ret =~ /cancel/) {
+				my $mnt = "/tmp/livecd.inst.$$";
+				my $type = $fstypes{$devs{$dev}{'id'}};
+				qx(mkdir -p $mnt ; umount $dev ; mount -t $type $dev $mnt);
+				copy_to($dev, $mnt);
+				make_fstab($dev, $mnt);
+				make_lilo($dev, $mnt);
+				qx(umount $mnt ; rm -rf $mnt);
+				exit(0);
+			}
 		}
 		else {
 			$quit = 1;
@@ -175,6 +217,9 @@ sub do_install {
 # main entry point
 MAIN: {
 	qx($dlg --info --title "$str{'WELCOME_TIT'}[$lang]" --text "$str{'WELCOME_STR'}[$lang]");
+	my $ret = qx($dlg --warning --title "$str{'WARN_ERROR_TIT'}[$lang]" --text "$str{'WARNCORR_STR'}[$lang]" || echo cancel);
+	exit(0) if ($ret =~ /cancel/);
+
 	my $quit = 0;
 	while (!$quit) {
 		my $ret = qx($dlg --list --radiolist --width 300 --height 200 --title "$str{'PROGSEL_TIT'}[$lang]" --column "" --column "$str{'PROGSEL_COL'}[$lang]" '' "$str{'PROGSEL_DD'}[$lang]" '' "$str{'PROGSEL_INST'}[$lang]" || echo quit);
