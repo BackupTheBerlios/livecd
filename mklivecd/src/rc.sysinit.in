@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.7 2004/01/05 09:31:30 jaco Exp $
+# $Id: rc.sysinit.in,v 1.8 2004/01/05 13:23:10 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -288,7 +288,7 @@ setuproot() {
 			done" \
 			"mkdir -p /var/lock/subsys" \
 			"mkdir -p /var/log && touch /var/log/wtmp" \
-			"mkdir -p /var/run/netreport && touch /var/run/utmp" \
+			"mkdir -p /var/run && touch /var/run/utmp" \
 			"ln -sf /tmp /var/tmp"
 		set_progress
 		docmd   "Creating /etc structure" \
