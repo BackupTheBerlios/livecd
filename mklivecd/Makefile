@@ -1,4 +1,4 @@
-### File version: $Id: Makefile,v 1.3 2003/09/25 08:40:25 jaco Exp $
+### $Id: Makefile,v 1.4 2003/09/25 08:42:54 jaco Exp $
 
 ### our version identifiers
 MAJORVER=0

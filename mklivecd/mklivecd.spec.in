@@ -1,3 +1,5 @@
+# $Id: mklivecd.spec.in,v 1.2 2003/09/25 08:42:54 jaco Exp $
+
 %define name		mklivecd
 %define version		@MKLIVECDVER
 %define release		1mdk
