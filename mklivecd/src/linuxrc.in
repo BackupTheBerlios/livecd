@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.25 2003/11/02 13:34:42 jaco Exp $
+# $Id: linuxrc.in,v 1.26 2003/11/02 14:28:05 bgmilne Exp $
 #
 
 ### global variables
@@ -398,6 +398,8 @@ createramdisk() {
 							;; \
 						cache*|db*|lib*|local*|lock*|log*|mail*|nis*|opt*|preserve*|run*|spool*|yp*) \
 							mkdir -p /var/\$d || true ; \
+							chown --reference=/initrd$MNTLIVECD/var/\$d /var/\$d;\
+							chmod --reference=/initrd$MNTLIVECD/var/\$d /var/\$d;\
 							;; \
 						tmp*) \
 							;; \
@@ -459,6 +461,9 @@ setupinit() {
 	if `grep -iqv hwdetect=no /proc/cmdline`; then
 		/initrd/usr/sbin/hwdetect
 	fi
+
+	#Don't run depmod (must be run before imaging system)
+	sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
 
 	# Do various other configuration tasks (now that /etc is available)
 	if hostname=`getbootoption hostname`
