@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Fri Jan 23 09:12:49 2004
+# Created: Sun Jan 25 09:30:58 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -3401,7 +3401,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.51 2004/01/23 07:12:48 jaco Exp $
+# $Id: livecd-install,v 1.52 2004/01/25 07:32:51 jaco Exp $
 #
 
 use threads;
@@ -3600,6 +3600,9 @@ sub timerEvent
 			tlCopy->setText("$elapsed_s Elapsed, $elapsed_s Remaining");
 		}
 		pbCopy->setProgress($pb_c_num, $pb_c_tot);
+	}
+	else {
+		tlInstInfo->setText($infotext);
 	}
 }
 
@@ -3843,9 +3846,10 @@ sub showInstall
 	print "$infotext\n";
 	writeFstab($devs) unless ($destroy);
 
-	$infotext = "Installation completed.";
+	$infotext = "Installation completed. Please press Next to continue.";
 	print "$infotext\n";
 	$this->setNextEnabled($page, 1) unless ($destroy);
+	sleep(1);
 
 	$isBusy = 0;
 
@@ -4170,7 +4174,7 @@ sub toggleReboot # SLOT: ( bool )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.51 2004/01/23 07:12:48 jaco Exp $
+# $Id: livecd-install,v 1.52 2004/01/25 07:32:51 jaco Exp $
 #
 
 package main;

@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.18 2004/01/23 07:12:48 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.19 2004/01/25 07:32:51 jaco Exp $
 #
 
 use threads;
@@ -227,6 +227,9 @@ sub timerEvent
 			tlCopy->setText("$elapsed_s Elapsed, $elapsed_s Remaining");
 		}
 		pbCopy->setProgress($pb_c_num, $pb_c_tot);
+	}
+	else {
+		tlInstInfo->setText($infotext);
 	}
 }
 
@@ -470,9 +473,10 @@ sub showInstall
 	print "$infotext\n";
 	writeFstab($devs) unless ($destroy);
 
-	$infotext = "Installation completed.";
+	$infotext = "Installation completed. Please press Next to continue.";
 	print "$infotext\n";
 	$this->setNextEnabled($page, 1) unless ($destroy);
+	sleep(1);
 
 	$isBusy = 0;
 
