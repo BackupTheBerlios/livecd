@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install-lang.pm.in,v 1.3 2004/01/25 10:20:08 jaco Exp $
+# $Id: livecd-install-lang.pm.in,v 1.4 2004/01/25 10:36:18 jaco Exp $
 #
 
 package fMain;
@@ -96,7 +96,7 @@ my %strings = (
 	
 
 	'scr_1_title'      => [ "Step 1 of 6: Welcome", undef ],
-	'src_1_text'       => [ "<p><b>Welcome</b> to the LiveCD installation program. This application will guide you through the steps of installing the LiveCD to your local disk.</p>\n<p>Navigation through the steps can be done with the <i>Back</i> and <i>Next</i> buttons, while you can exit/abort the process at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse (unintended) side effects on your current running system. These side-effects might include erasing of important data and/or rendering of your system in an unbootable state. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n", undef ],
+	'scr_1_text'       => [ "<p><b>Welcome</b> to the LiveCD installation program. This application will guide you through the steps of installing the LiveCD to your local disk.</p>\n<p>Navigation through the steps can be done with the <i>Back</i> and <i>Next</i> buttons, while you can exit/abort the process at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse (unintended) side effects on your current running system. These side-effects might include erasing of important data and/or rendering of your system in an unbootable state. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n", undef ],
 				
 
 	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", undef ],
