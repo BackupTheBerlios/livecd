@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.52 2003/10/31 07:05:13 jaco Exp $
+# $Id: mklivecd.in,v 1.53 2003/11/02 11:46:33 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -60,6 +60,7 @@ withtrans=
 isokeyboard=""
 isobootmsg=""
 isoimage=""
+bootopt=""
 isobootkeymsg=""
 resolution="@DEF_RESOLUTION@"
 vgamode="@DEF_VGAMODE@"
@@ -116,6 +117,8 @@ Compression options:
                                the created LiveCD. (default: cloop)
 
 Boot options:
+   --bootopt=<opt>[,<opt>]     List of comma-seperated extra options to add to
+                               the kernel boot command-line.
    --bootmsg=<msg>             Use 'msg' as the isolinux boot message
    --bootkey=<key>,<msg>       Display 'msg' on key 'key' from isolinux
    --bootimg=<img>             Use 'img' (LSS format) as the isolinux background
@@ -136,7 +139,7 @@ Boot options:
 
 Examples:
     `basename $0` --nodir=^/usr/src/RPM,^/root/tmp livecd.iso
-    `basename $0` --blocksize=224 livecd.iso
+    `basename $0` --blocksize=224 --bootopt=splash=quiet livecd.iso
 " >&2
 	exit 1
 }
@@ -423,12 +426,12 @@ create_isolinux() {
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo 'label livecd' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '    append livecd=livecd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard fstab=$fstabopt' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    append livecd=livecd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard $bootopt fstab=$fstabopt' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	if [ -z "$final" ]; then
 		do_cmd "echo 'label initrd' >>$ISOLINUXDIR/isolinux.cfg"
 		do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-		do_cmd "echo '    append livecd=initrd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard fstab=$fstabopt' >>$ISOLINUXDIR/isolinux.cfg"
+		do_cmd "echo '    append livecd=initrd initrd=initrd.gz devfs=mount fastboot=yes ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard $bootopt fstab=$fstabopt' >>$ISOLINUXDIR/isolinux.cfg"
 		do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	fi
 	do_cmd "echo 'label memtest' >>$ISOLINUXDIR/isolinux.cfg"
@@ -663,6 +666,18 @@ while [ $# -gt 0 ]; do
 					exit 1
 					;;
 			esac
+			;;
+
+		--bootopt*)
+			if echo $1 | grep '=' >/dev/null ; then
+				opts="${1#--bootopt=}"
+			else
+				opts=$2
+				shift
+			fi
+			for o in `echo $opts | sed -e 's/,/ /g'`; do
+				bootopt="$bootopt $o"
+			done
 			;;
 
 		--bootmsg*)
