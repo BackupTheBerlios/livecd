@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: halt.local.in,v 1.9 2003/12/07 13:18:20 jaco Exp $
+# $Id: halt.local.in,v 1.10 2003/12/07 13:22:39 jaco Exp $
 #
 
 # Variables
@@ -84,6 +84,4 @@ echo "Unmounting /proc"
 umount /proc 2>/dev/null
 
 # Hope this works ;-)
-# (We need to cater for reboots as well, currently we
-# shutdown/power-off everything...)
 $CMD -i -d -p >/dev/null 2>/dev/null
