@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.27 2004/09/22 00:28:48 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.28 2004/09/30 01:35:14 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -284,7 +284,8 @@ setupdir_root() {
 	if [ -n "$COW" ]; then
 		setupdir_cow "root"
 	else
-		cp -a $MNTLIVECD/root /
+		docmd "cp -a $MNTLIVECD/root /" \
+		"echo ''"
 	fi
 	
 	printok
@@ -449,6 +450,7 @@ setupinit() {
 	/etc/rc.d/rc.sysinit
 }
 echo -n "-------------- rcsysinit --------------"
+echo -n ""
 setuproot ""
 setupinit ""
 sleep 5
