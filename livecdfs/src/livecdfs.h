@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.h,v 1.3 2004/01/23 12:25:53 jaco Exp $
+ * $Id: livecdfs.h,v 1.4 2004/01/23 13:36:58 jaco Exp $
  */
 
 #ifndef _LIVECDFS_dot_H_
@@ -57,6 +57,9 @@ private:
 	Handles *handles;
 
 	static vector<t_active_livecdfs> activefs;
+	
+	static t_active_livecdfs *findActive(const string &, const string &);
+	static t_active_livecdfs *findActive(const LiveCDFS *);
 	
 public:
 	static LiveCDFS *create(struct list_head *, 

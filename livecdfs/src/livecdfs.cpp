@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.13 2004/01/23 13:00:35 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.14 2004/01/23 13:36:58 jaco Exp $
  */
 
 #include <dirent.h>
@@ -38,6 +38,44 @@
 #include "debug.h"
 
 vector<t_active_livecdfs> LiveCDFS::activefs;
+
+t_active_livecdfs *
+LiveCDFS::findActive(const string &root, 
+		     const string &tmp)
+{
+	FUNC("root='" << root << "', " <<
+	     "tmp='"  << tmp  << "'");
+	
+	for (vector<t_active_livecdfs>::iterator i = activefs.begin(); i != activefs.end(); ) {
+		TRACE("Testing LiveCDFS instance, i=" << &*i << ", root='" << i->root << "', tmp='" << i->tmp << "'");
+		if ((i->root == root) && (i->tmp == tmp)) {
+			TRACE("Found existing LiveCDFS at i=" << &*i << ", fs=" << i->fs << ", root='" << root << "', tmp='" << tmp << "'");
+			return &*i;
+		} 
+		i++;
+	}
+	TRACE("Existing LiveCDFS instance not found");
+	return NULL;
+}
+
+
+t_active_livecdfs *
+LiveCDFS::findActive(const LiveCDFS* fs)
+{
+	FUNC("fs=" << fs);
+	
+	for (vector<t_active_livecdfs>::iterator i = activefs.begin(); i != activefs.end(); ) {
+		TRACE("Testing LiveCDFS instance, i=" << &*i << ", fs=" << i->fs);
+		if (i->fs == fs) {
+			TRACE("Found existing LiveCDFS at i=" << &*i << ", fs=" << i->fs);
+			return &*i;
+		} 
+		i++;
+	}
+	TRACE("Existing LiveCDFS instance not found");
+	return NULL;
+}
+
 
 LiveCDFS *
 LiveCDFS::create(struct list_head *cfg, 
@@ -62,24 +100,17 @@ LiveCDFS::create(struct list_head *cfg,
 	}
 	string tmp = string(opt);
 
-	Path *path = NULL;
-	Whiteout *wo = NULL;
+	t_active_livecdfs *active = findActive(root, tmp);
 	LiveCDFS *fs = NULL;
-	
-	for (vector<t_active_livecdfs>::iterator i = activefs.begin(); (i != activefs.end()) && (fs == NULL);) {
-		TRACE("Testing LiveCDFS instance, i=" << &*i << ", root='" << i->root << "', tmp='" << i->tmp << "'");
-		if ((i->root == root) && (i->tmp == tmp)) {
-			fs = i->fs;
-			TRACE("Found existing LiveCDFS at fs=" << fs << ", root='" << root << "', tmp='" << tmp << "'");
-		} 
-		i++;
-	}
-	
-	if (fs == NULL) {
+	if (active == NULL) {
+		Path *path = NULL;
+		Whiteout *wo = NULL;
+		
 		if (((path = Path::create(root, tmp)) != NULL) && 
 		    ((wo = Whiteout::create(tmp)) != NULL)) {
 			fs = new LiveCDFS(cfg, cache, cred, path, wo);
 		}
+		
 		if (fs == NULL) {
 			if (path != NULL) {
 				delete path;
@@ -93,7 +124,10 @@ LiveCDFS::create(struct list_head *cfg,
 			activefs.push_back((t_active_livecdfs){root,tmp,fs});
 			TRACE("Created new LiveCDFS instance, fs=" << fs);
 		}
-	}    
+	}
+	else {
+		fs = active->fs;
+	}
 	return fs;
 }
 
@@ -127,6 +161,8 @@ LiveCDFS::~LiveCDFS()
 	delete path;
 	delete whiteout;
 	delete handles;
+	
+	activefs.erase((vector<t_active_livecdfs>::iterator)findActive(this));
 }
 
 
