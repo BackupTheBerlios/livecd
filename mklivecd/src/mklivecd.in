@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.92 2004/01/08 17:03:01 jaco Exp $
+# $Id: mklivecd.in,v 1.93 2004/01/09 08:22:05 jaco Exp $
 #
 
 use strict;
@@ -429,7 +429,7 @@ sub parse_options {
 	my $rhr = "$o_root/etc/redhat-release";
 	my $distro  = (-f $rhr) ? get_exec("gawk -F' ' '{ print \$1 \" \" \$2 }' $rhr") : "$PROG_NAME";
 	my $version = (-f $rhr) ? get_exec("gawk -F' ' '{ print \$4 \" \" \$5 }' $rhr") : "$PROG_VERSION";
-	my $date    = get_exec("date --utc");
+	my $date    = get_exec("date +\%Y\%m\%d");
 	$opts{volumeid} = "$date" unless (defined($opts{volumeid}));
 	$opts{application} = "$distro $version LiveCD" unless (defined($opts{application}));
 	$opts{preparer} = "$PROG_NAME $PROG_VERSION" unless (defined($opts{preparer}));
