@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.53 2003/12/30 20:19:51 jaco Exp $
+# $Id: linuxrc.in,v 1.54 2004/01/05 09:30:36 jaco Exp $
 #
 
 ### global variables
@@ -138,7 +138,8 @@ docmd() {
 
 ### load a module
 loadmod() {
-	MODULE="/lib/modules/$KERNELVER/kernel/$1"
+	EXT=".o"
+	MODULE="/lib/modules/$KERNELVER/kernel/$1$EXT"
 	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
 	[ ! -f $MODULE ] && return 1
 	#echo -n "$MODULE "

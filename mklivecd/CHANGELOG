@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.93 2004/01/05 05:45:40 jaco Exp $
+# $Id: CHANGELOG,v 1.94 2004/01/05 09:30:35 jaco Exp $
 
 * Mon, Jan 05, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -30,6 +30,7 @@
         actually providing it
       - Added loop.o and aes.o (dep. for loop) to be able to mount
         files (such as squashfs files) with the "-o loop" option
+      - Removed hardcoded module extension, .o, 2.6 has .ko
     [Rules.mk]:
       - Created list for default normal and SCSI modules
       - Created listing for optional modules

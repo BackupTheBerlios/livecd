@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.5 2003/12/30 20:19:51 jaco Exp $
+# $Id: rc.sysinit.in,v 1.6 2004/01/05 09:30:36 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -110,7 +110,8 @@ docmd() {
 
 ### load a module
 loadmod() {
-	MODULE="/lib/modules/$KERNELVER/kernel/$1"
+	EXT=".o"
+	MODULE="/lib/modules/$KERNELVER/kernel/$1$EXT"
 	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
 	[ ! -f $MODULE ] && return 1
 	insmod $MODULE $2 2>&1 >/dev/null && return 0 || return 1

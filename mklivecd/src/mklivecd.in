@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.71 2004/01/05 05:39:02 jaco Exp $
+# $Id: mklivecd.in,v 1.72 2004/01/05 09:30:36 jaco Exp $
 #
 
 use strict;
@@ -48,6 +48,7 @@ my $workdir        = undef;
 my $kernel26       = undef;
 my $dietarch       = undef;
 my $modfile        = "/etc/modules.conf";
+my $modext         = ".o";
 my $modules        = '@DEF_MODULES_PATH@ @DEF_MODULES_DEP_PATH@ @DEF_SCSI_MODULES_PATH@ @DEF_SCSI_MODULES_OPT_PATH@ @DEF_SCSI_MODULES_DEP_PATH@';
 my $modules_opt    = '@DEF_MODULES_OPT_PATH@ @DEF_SCSI_MODULES_OPT_PATH@';
 my $nodirs         = '^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/lock/subsys$ ^/var/run$ ^/var/tmp$';
@@ -459,6 +460,7 @@ sub check_kernel {
 		$kernel26 = 1;
 		$modfile = "/etc/modprobe.conf";
 		$opts{splash} = "no";
+		$modext = ".ko";
 	}
 }
 
@@ -568,9 +570,9 @@ sub create_initrd {
 
 	# copy modules
 	foreach my $mod (@allmods) {
-		my $modpath = $o_root."lib/modules/$o_kernel/kernel/$mod";
-		$mod = get_exec("basename $mod");
-		my $tomod = "$dir/lib/modules/$o_kernel/kernel/$mod";
+		my $modpath = $o_root."lib/modules/$o_kernel/kernel/$mod$modext";
+		$mod = get_exec("basename $mod$modext");
+		my $tomod = "$dir/lib/modules/$o_kernel/kernel/$mod$modext";
 		if (-f $modpath) {
 			do_copy($modpath, 644, $tomod, ++$pos);
 		}
