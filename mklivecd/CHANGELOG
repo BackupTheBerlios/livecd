@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.115 2004/01/24 09:54:04 jaco Exp $
+# $Id: CHANGELOG,v 1.116 2004/01/24 10:16:50 jaco Exp $
 
 * Wed, Jan 21, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@obsidian.co.za>:
@@ -88,6 +88,9 @@
       - Don't detect sound cards when 'nosound' is specified
       - Add 'xdrv' option to override detected X driver
       - Add 'xram' option to override detected VideoRam
+      - Split language strings into hwdetect-lang
+    [hwdetect-lang]:
+      - Added
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
