@@ -1,13 +1,15 @@
-# $Id: Makefile,v 1.6 2004/01/22 15:22:03 jaco Exp $
+# $Id: Makefile,v 1.7 2004/01/24 10:25:06 jaco Exp $
 
 include Rules.mk
 
 all: $(LIBRARY)
 
 $(LIBRARY): $(OBJECTS) 
-	$(CC) -shared -Wl,-soname -Wl,$(LIBRARY).0.0 -o $(LIBRARY).0.0.0 $(OBJECTS)
-	$(LN) -sf $(LIBRARY).0.0.0 $(LIBRARY).0.0
-	$(LN) -sf $(LIBRARY).0.0.0 $(LIBRARY)
+	$(CC) -shared -Wl,-soname \
+	      -Wl,$(LIBRARY).$(MINORVER).$(PATCHVER) \
+	      -o $(LIBRARY).$(MAJORVER).$(MINORVER).$(PATCHVER) $(OBJECTS)
+	$(LN) -sf $(LIBRARY).$(MAJORVER).$(MINORVER).$(PATCHVER) $(LIBRARY).$(MINORVER).$(PATCHVER)
+	$(LN) -sf $(LIBRARY).$(MAJORVER).$(MINORVER).$(PATCHVER) $(LIBRARY)
 
 test: $(SRCDIR)/test.o $(OBJECTS) $(LUFSOBJS)  
 	$(CXX) -o $@ $< $(OBJECTS) $(LUFSOBJS) 

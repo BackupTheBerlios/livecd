@@ -1,14 +1,25 @@
-# $Id: Rules.mk,v 1.7 2004/01/22 15:24:57 jaco Exp $
+# $Id: Rules.mk,v 1.8 2004/01/24 10:25:06 jaco Exp $
 
+# Version identifiers: These should only be changed by the release
+# manager as part of making a new release
+PKGNAME=livecdfs
+MAJORVER=0
+MINORVER=1
+PATCHVER=0
+RELVER=1
+CVSVER=yes
+
+# our flags
+CXXFLAGS=-Wall -DDEBUG -I$(LUFSDIR)/include
+CFLAGS=-Wall -I$(LUFSDIR)/include
+
+# our directories
 TOPDIR=$(shell pwd)
 SRCDIR=src
 LUFSDIR=$(TOPDIR)/lufs
 PREFIX=/usr
 LIBDIR=$(PREFIX)/lib
 DESTDIR=
-
-CXXFLAGS=-Wall -DDEBUG -I$(LUFSDIR)/include
-CFLAGS=-Wall -I$(LUFSDIR)/include
 
 CD=cd
 CP=cp
