@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.20 2004/09/22 00:28:47 tom_kelly33 Exp $
+# $Id: Modules.mk,v 1.21 2005/03/13 22:06:46 tom_kelly33 Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -52,7 +52,7 @@ DEF_MODULES_DEP_PATH_24=\
 
 DEF_MODULES_DEP_PATH_26=\
 	fs/isofs/isofs \
-	drivers/cdrom/cdrom \
+#	drivers/cdrom/cdrom \
 	drivers/ide/ide-cd \
 	drivers/block/loop
 
