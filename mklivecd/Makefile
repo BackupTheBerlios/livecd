@@ -1,4 +1,4 @@
-### $Id: Makefile,v 1.6 2003/09/30 08:21:32 jaco Exp $
+### $Id: Makefile,v 1.7 2003/10/01 07:52:37 jaco Exp $
 
 ### our version identifiers
 MAJORVER=0
@@ -59,7 +59,7 @@ mklivecd:
 	$(CP) $(MKLIVECDSRC)/isolinux.cfg $(MKLIVECDBUILD)
 	$(CP) $(MKLIVECDSRC)/init.d/hwdetect $(MKLIVECDBUILD)/init.d
 	$(CAT) $(MKLIVECDSRC)/hwdetect.in | \
-		$(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g' \
+		$(SED) -e 's/\@MKLIVECDVER/$(ARCHIVEVER)/g' \
 		>$(MKLIVECDBUILD)/hwdetect
 	$(CAT) $(MKLIVECDSRC)/linuxrc.in | \
 		$(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g;s/\@KERNELVER/$(KERNELVER)/g' \
