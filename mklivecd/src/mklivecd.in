@@ -22,20 +22,19 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.123 2004/10/19 14:07:01 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.124 2004/11/20 01:52:40 tom_kelly33 Exp $
 #
 
 use strict;
 
 ### dependancies
 use Getopt::Long;
-
-use threads;
+use MDK::Common;
 use threads::shared;
 
 ### useful functions
 sub get_exec { my $r = qx($_[0]); chomp($r); $r; };
-sub cat_ { local *F; open F, $_[0] or return; my @l = <F>; wantarray() ? @l : join('', @l); };
+#sub cat_ { local *F; open F, $_[0] or return; my @l = <F>; wantarray() ? @l : join('', @l); };
 
 ### global "constants"
 my $PROG_VERSION   = '@MKLIVECDVER@';
@@ -64,6 +63,7 @@ my $loopmod        = undef;
 my $loopcmp        = undef;
 my $blocksize      = 32;
 my $finaliso       = "livecd.iso";
+my $mkisofs_opts;
 
 ### command-line options
 my $o_verbose;
@@ -153,8 +153,8 @@ Image generation:
 Compression options:
    --blocksize <size>              Compression (if used) blocksize in K 
                                    (default: $blocksize)
-   --looptype <clp|sqfs|iso>       Create a cloop, squashfs or iso (non-
-                                   compressed) image. 
+   --looptype <clp|sqfs|iso|ziso>  Create a cloop, squashfs or iso (non-
+                                   compressed) image or compressed iso image. 
                                    (default: $o_looptype)
 
 Boot options:
@@ -419,7 +419,7 @@ sub parse_options {
 	$o_tmp =~ s|/$||;
 	$o_tmp .= "/";
 	die_("\nFATAL: Temporary directory (--tmp) '$o_tmp' does not exist\n") unless (-d $o_tmp);
-	die_("\nFATAL: Unknown loop type (--looptype) '$o_looptype'\n") unless ($o_looptype =~ /clp|bzlp|sqfs|iso/);
+	die_("\nFATAL: Unknown loop type (--looptype) '$o_looptype'\n") unless ($o_looptype =~ /clp|bzlp|sqfs|iso|ziso/);
 
 	# optional stuff
 	die_("\nFATAL: Specified sort file (--sort) '".$opts{sort}."' does not exist\n") if (defined($opts{sort}) && !(-f $opts{sort}));
@@ -471,6 +471,7 @@ opts{workdir}) && !(-d $opts{workdir}));
 		$loopcmp = undef;
 		$loopmod = undef;
 		$blocksize = 0;
+		$mkisofs_opts = "-z" if $o_looptype =~ /ziso/;
 	}
 	elsif ($o_looptype =~ /clp/) {
 		$loopcmp = "/usr/bin/create_compressed_fs";
@@ -793,9 +794,20 @@ sub create_compressed {
 		}
 		else {
 			start_progress("Creating loop image", 10001);
-			my $iso = "mkisofs -R -exclude-list $workdir/excludes.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v";
+			my $iso = "mkisofs $mkisofs_opts -R -exclude-list $workdir/excludes.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v";
 			$iso = "$iso -sort $workdir/sort.list" if (defined($opts{sort})); 
-			$iso = defined($loopcmp) ? "$iso $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype" : "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
+			#$iso = defined($loopcmp) ? "$iso $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype" : "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
+			if (defined($loopcmp)) {
+				$iso = "$iso $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype";
+			} elsif ($o_looptype =~ /ziso/) {
+				my $gzroot = "$workdir/gz/";
+				mkdir_p($gzroot);
+				system("mkzftree -z 3 $o_root $gzroot");
+				$o_root = $gzroot;
+				$iso = "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
+			} else {
+				$iso = "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
+			}
 			$iso = "($iso) 2>&1";
 			print "DEBUG: $iso\n" if (defined($opts{debug}));
 			open CMP, "$iso |" or die_("\nFATAL: Unable to execute '$iso'\n");
@@ -953,7 +965,8 @@ sub cleanup {
 
 ### signals
 sub die_ {
-	do_signal('DIE', join(' ', @_));
+	#do_signal('DIE', join(' ', @_));
+	die('DIE', join(' ', @_));
 }
 sub do_signal {
 	my ($signal, $text) = @_;

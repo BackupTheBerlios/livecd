@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.138 2004/11/16 20:56:27 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.139 2004/11/20 01:52:40 tom_kelly33 Exp $
 #
 
 use strict;
@@ -1175,7 +1175,7 @@ sub hwdetect_getdisks() {
 		unless ($disk->{media_type} =~ /^hd/) {
 			if ($disk->{media_type} =~ /^fd|^cdrom/) {
 				my $dev = $disk->{device};
-				my $extopts = "--,iocharset=iso8859-1,codepage=850,umask=0";
+				my $extopts = "iocharset=iso8859-1,codepage=850,umask=0";
 				$extopts = $extopts . ",nohide" if $disk->{media_type} =~ /^cdrom/;
 				$all_devs{$dev}{info}   = $disk->{media_type} . ": " . $disk->{info};
 				$all_devs{$dev}{dev}    = "/dev/" . $disk->{device};
@@ -1199,7 +1199,7 @@ sub hwdetect_getdisks() {
 					$all_devs{$dev}{opt} = $fsopt_fullrw;  ##### . "," . $fsopt_noauto;
 				}
 				$all_devs{$dev}{extopt} = $extopts;
-				$all_devs{$dev}{supermount} = 1;
+				$all_devs{$dev}{supermount} = 0;
 			}
 		}
 	}
@@ -1315,7 +1315,7 @@ sub hwdetect_writedisks() {
 		foreach my $dev (sort keys %all_devs) {
 			print $FSTAB "\n# " . $all_devs{$dev}{info};
 			if ($all_devs{$dev}{supermount}) {
-				my $entry = "\n";
+				my $entry = "";
 				$entry .= "none\t";
 				$entry .= $all_devs{$dev}{mount} . "\t";
 				$entry .= "supermount\t";
@@ -1328,7 +1328,7 @@ sub hwdetect_writedisks() {
 				print $FSTAB $entry;
 			}
 			else {
-				my $entry = "\n";
+				my $entry = "";
 				$entry .= $all_devs{$dev}{dev} . "\t";
 				$entry .= $all_devs{$dev}{mount} . "\t";
 				$entry .= $all_devs{$dev}{type} . "\t";
