@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.23 2003/10/22 18:18:06 bgmilne Exp $
+# $Id: linuxrc.in,v 1.24 2003/11/01 11:42:17 jaco Exp $
 #
 
 ### global variables
@@ -309,8 +309,7 @@ createramdisk() {
 							dev|proc|mnt|tmp) \
 								;;
 							*) \
-								mkdir -p /\$d || true ; \
-								mount -n -o bind /initrd$MNTLIVECD/\$d /\$d || true; \
+								ln -s /initrd$MNTLIVECD/\$d /\$d || true; \
 								;; \
 						esac \
 					fi \
@@ -318,12 +317,12 @@ createramdisk() {
 				"mkdir -p /mnt/cdrom && mount -n -o bind /initrd$MNTCDROM /mnt/cdrom" \
 				"mkdir -p /tmp && chmod 777 /tmp" \
 				"for t in etc home lib root usr var; do mkdir -p $ltmp/\$t ; done" \
-				"echo '/etc -> $ltmp/etc' >/proc/sys/translucency/0" \
-				"echo '/home -> $ltmp/home' >/proc/sys/translucency/1" \
-				"echo '/lib -> $ltmp/lib' >/proc/sys/translucency/2" \
-				"echo '/root -> $ltmp/root' >/proc/sys/translucency/3" \
-				"echo '/usr -> $ltmp/usr' >/proc/sys/translucency/4" \
-				"echo '/var -> $ltmp/var' >/proc/sys/translucency/5" \
+				"echo '/initrd$MNTLIVECD/etc -> $ltmp/etc' >/proc/sys/translucency/0" \
+				"echo '/initrd$MNTLIVECD/home -> $ltmp/home' >/proc/sys/translucency/1" \
+				"echo '/initrd$MNTLIVECD/lib -> $ltmp/lib' >/proc/sys/translucency/2" \
+				"echo '/initrd$MNTLIVECD/root -> $ltmp/root' >/proc/sys/translucency/3" \
+				"echo '/initrd$MNTLIVECD/usr -> $ltmp/usr' >/proc/sys/translucency/4" \
+				"echo '/initrd$MNTLIVECD/var -> $ltmp/var' >/proc/sys/translucency/5" \
 				"mkdir -p /var/lock/subsys" \
 				"mkdir -p /var/log && touch /var/log/wtmp" \
 				"mkdir -p /var/run && touch /var/run/utmp" \
@@ -332,10 +331,10 @@ createramdisk() {
 				"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
 				"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
 				"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
-				"echo '' >/etc/mtab" \
-				"echo '' >/etc/modules.conf" \
-				"echo '#!/bin/sh' >/etc/rc.d/init.d/harddrake" \
-				"echo 'exit 0' >>/etc/rc.d/init.d/harddrake"
+				"rm -rf /etc/mtab && touch /etc/mtab" \
+				"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
+				"echo '#!/bin/bash' >/usr/share/harddrake/service_harddrake" \
+				"echo 'exit 0' >>/usr/share/harddrake/service_harddrake"
 		else
 			docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
 				"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
