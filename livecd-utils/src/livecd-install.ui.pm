@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.11 2004/01/12 20:11:59 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.12 2004/01/13 05:30:18 jaco Exp $
 #
 
 use threads;
@@ -36,11 +36,11 @@ use threads::shared;
 
 use lib qw(/usr/lib/libDrakX);
 
-use common;
 use fs;
 use swap;
 
 my $debug   : shared = undef;
+my $nocopy  : shared = undef;
 
 my $destroy : shared = 0;
 my $isBusy  : shared = 0;
@@ -99,12 +99,8 @@ my %fsopts = (
 );
 
 
-sub do_system 
-{
-	my ($param) = @_;
-	print "EXEC: $param\n";
-	system($param);
-}
+sub cat_ { local *F; open F, $_[0] or return; my @l = <F>; wantarray() ? @l : join('', @l); };
+sub do_system  { my ($p) = @_; print "+ $p\n"; system($p); }
 
 sub pageSelected # SLOT: ( const QString & )
 {
@@ -254,7 +250,7 @@ sub scanPartitions
 
 	do_system("mkdir -p $prefix/etc/livecd/hwdetect");
 	do_system("/initrd/usr/sbin/hwdetect --prefix $prefix --fdisk >/dev/null");
-	foreach my $line (common::cat_("$prefix/etc/livecd/hwdetect/mounts.cfg")) {
+	foreach my $line (cat_("$prefix/etc/livecd/hwdetect/mounts.cfg")) {
 	    chomp($line);
 	    my ($dev, $info) = split(/=\|/, $line, 2);
 	    my $devlnk = "/dev/$dev";
@@ -464,10 +460,12 @@ sub showInstall
 		do_system("cd $mnt/var ; ln -s ../tmp") unless (-e "$mnt/var/tmp");
 	}
 	
-	doCopy($initrd, $devs, @dirs) unless ($destroy);
-	doCopy("/", $devs, @etcdirs) unless ($destroy);
-	doCopy("/", $devs, @homedirs) unless ($destroy);
-	doCopy("/", $devs, @rootdirs) unless ($destroy);
+	unless (defined($nocopy)) {
+		doCopy($initrd, $devs, @dirs) unless ($destroy);
+		doCopy("/", $devs, @etcdirs) unless ($destroy);
+		doCopy("/", $devs, @homedirs) unless ($destroy);
+		doCopy("/", $devs, @rootdirs) unless ($destroy);
+	}
 
 	$infotext = "Creating /etc/fstab";
 	print "$infotext\n";
@@ -701,10 +699,14 @@ sub writeFstab {
 		print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";
 		print FSTAB "\n";
 
+		print "DEBUG: rootpart=$rootpart\n";
+		print "DEBUG: homepart=$homepart\n";
+		print "DEBUG: varpart=$varpart\n";
+		print "DEBUG: tmppart=$tmppart\n";
 		foreach my $dev (sort keys %$devs) {
+			print "FSTAB: Adding $dev\n";
 			my $devpnt = $dev;
 			$devpnt =~ s|/dev/||;
-			do_system("mkdir -p $mnt/mnt/$devpnt 2>/dev/null");
 
 			my $mount = "";
 			my $opt = undef;
@@ -725,24 +727,29 @@ sub writeFstab {
 				$opt = $fsopts{$devs->{$dev}{type}};
 			}
 			else {
+				do_system("mkdir -p $mnt/mnt/$devpnt 2>/dev/null");
 				$mount = $devs->{$dev}{mount};
-				$opt = $devs->{$dev}{opt};
+				unless ($devs->{$dev}{supermount}) {
+					$opt = $devs->{$dev}{opt};
+				}
+				else {
+					$opt = "dev=".$devs->{$dev}{dev}.",fs=udf:iso9660,";
+					$opt .= $devs->{$dev}{opt} if ($devs->{$dev}{opt});
+				}
 			}
 
-			print FSTAB "\n# ".$devs->{$dev}{info};
-			my $entry = "\n";
-			$entry .= $devs->{$dev}{devfs}."\t";
+			my $entry = "\n# ".$devs->{$dev}{info}."\n";
+			$entry .= $devs->{$dev}{dev}."\t";
 			$entry .= $mount."\t";
 			$entry .= $devs->{$dev}{type}."\t";
 			$opt = "" unless ($opt);
-			if ($devs->{$dev}{extopt}) {
-				$opt .= "," ;
-				$opt .= $devs->{$dev}{extopt};
-			}
+			$opt .= "," if ($devs->{$dev}{opt} && $devs->{$dev}{extopt});
+			$opt .= $devs->{$dev}{extopt} if ($devs->{$dev}{extopt});
 			$entry .= $opt."\t"."0 0\n";
 			print FSTAB $entry;
-			close FSTAB;
+			print "FSTAB: $entry";
 		}
+		close FSTAB;
 	}
 }
 
