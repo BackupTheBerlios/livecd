@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.8 2004/01/12 17:58:41 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.9 2004/01/12 19:22:04 jaco Exp $
 #
 
 use threads;
@@ -428,8 +428,9 @@ sub showInstall
 		#threads->new(\&timeThread, this, $page, time, this->pbFormat, this->tlFormat) unless ($destroy);
 		$time_f_start = time;
 		$time_f_run = 1;
-		doFormat($devs) unless ($destroy);
+		doFormat($this, $devs) unless ($destroy);
 		$time_f_run = -1;
+		$destroy = 1;
 	}
 
 	#threads->new(\&timeThread, this, $page, time, this->pbCopy, this->tlCopy) unless ($destroy);
@@ -522,20 +523,20 @@ sub doEvents
 
 sub doFormat
 {
-	my ($devs) = @_;
+	my ($this, $devs) = @_;
 
 	system("umount $rootpart");
-	formatPart(this, $rootpart, $devs) if (this->cbRootFormat->isChecked());
-	if (this->cbSwapFormat->isChecked()) {
+	formatPart($rootpart, $devs) if ($this->cbRootFormat->isChecked());
+	if ($this->cbSwapFormat->isChecked()) {
 		system("umount $swappart");
 		formatPart($swappart, $devs);
 	}
 	system("umount $homepart") if (defined($homepart));
-	formatPart($homepart, $devs) if (defined($homepart) && (this->cbHomeFormat->isChecked()));
+	formatPart($homepart, $devs) if (defined($homepart) && ($this->cbHomeFormat->isChecked()));
 	system("umount $varpart") if (defined($varpart));
-	formatPart($varpart, $devs) if (defined($varpart) && (this->cbVarFormat->isChecked()));
+	formatPart($varpart, $devs) if (defined($varpart) && ($this->cbVarFormat->isChecked()));
 	system("umount $tmppart") if (defined($tmppart));
-	formatPart($tmppart, $devs) if (defined($tmppart) && (this->cbTmpFormat->isChecked()));
+	formatPart($tmppart, $devs) if (defined($tmppart) && ($this->cbTmpFormat->isChecked()));
 }
 
 
