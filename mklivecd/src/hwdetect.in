@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.6 2003/10/01 11:21:28 jaco Exp $
+# $Id: hwdetect.in,v 1.7 2003/10/01 12:18:05 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -60,8 +60,13 @@ my @detected_devices = ();
 
 sub rmws {
 	my ($str) = @_;
-	$str =~ s/\s+$//;
-	$str =~ s/^\s+//;
+	if (defined($str)) {
+		$str =~ s/\s+$//;
+		$str =~ s/^\s+//;
+	}
+	else {
+		$str = "";
+	}
 	$str;
 }
 
@@ -128,9 +133,10 @@ sub print_device {
 	my ($module, $vendor, $desc) = @_;
 	print "    ";
 	$vendor = rmws($vendor);
-	print $vendor.", " unless ($vendor eq "");
-	print rmws($desc);
-	#print " (".$module.")" unless ($module =~ /unknown/);
+	$desc = rmws($desc);
+	print $vendor unless ($vendor eq "");
+	print ", " unless (($vendor eq "") || ($desc eq ""));
+	print $desc;
 }
 
 sub hwdetect_init {
