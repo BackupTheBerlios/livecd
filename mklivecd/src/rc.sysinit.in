@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.9 2004/01/08 07:25:47 jaco Exp $
+# $Id: rc.sysinit.in,v 1.10 2004/01/13 12:22:44 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -266,25 +266,32 @@ setuproot() {
 			"mkdir -p /mnt && ln -sf $MNTCDROM /mnt/cdrom" \
 			"mkdir -p /tmp && chmod 777 /tmp"
 		set_progress
+		PREV=
 		docmd   "Creating /var structure" \
-			"rm -rf /var && mkdir -p /var" \
+			"rm -rf /var && mkdir -p /var ; " \
 			"for d in \`find $MNTLIVECD/var/ -type d\`; do \
-				d=\${d#$MNTLIVECD/var/} ; \
-				case \$d in \
-					lib/rpm*|lib/urpmi*|lib/samba*|lib/mysql*) \
-						[ ! -e /var/\$d ] && ln -sf $MNTLIVECD/var/\$d /var/\$d || true; \
-						;; \
-					cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|yp*) \
-						mkdir -p /var/\$d || true ; \
-						$MNTLIVECD/bin/chown --reference=$MNTLIVECD/var/\$d /var/\$d ; \
-						$MNTLIVECD/bin/chmod --reference=$MNTLIVECD/var/\$d /var/\$d ; \
-						;; \
-					tmp*) \
-						;; \
-					*) \
-						[ ! -e /var/\$d ] && ln -sf $MNTLIVECD/var/\$d /var/\$d || true; \
-						;; \
-				esac \
+				CURR=\${d#$MNTLIVECD/var/} ; \
+				[ -n \"\$PREV\" ] && CURR=\"\$PREV \$CURR\" ; \
+				if [ -e \"$MNTLIVECD/var/\$CURR\" ]; then \
+					d=\"\$CURR\" ; \
+					case \$d in \
+						lib/rpm*|lib/urpmi*|lib/samba*|lib/mysql*) \
+							[ ! -e \"/var/\$d\" ] && ln -sf \"$MNTLIVECD/var/\$d\" \"/var/\$d\" || true; \
+							;; \
+						cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|yp*) \
+							mkdir -p \"/var/\$d\" || true ; \
+							$MNTLIVECD/bin/chown --reference=\"$MNTLIVECD/var/\$d\" \"/var/\$d\" ; \
+							$MNTLIVECD/bin/chmod --reference=\"$MNTLIVECD/var/\$d\" \"/var/\$d\" ; \
+							;; \
+						tmp*) \
+							;; \
+						*) \
+							[ ! -e \"/var/\$d\" ] && ln -sf \"$MNTLIVECD/var/\$d\" \"/var/\$d\" || true; \
+							;; \
+					esac ; \
+					CURR=\"\" ; \
+				fi ; \
+				PREV=\"\$CURR\" ; \
 			done" \
 			"mkdir -p /var/lock/subsys" \
 			"mkdir -p /var/log && touch /var/log/wtmp" \
