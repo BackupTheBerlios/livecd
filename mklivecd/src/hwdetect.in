@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.128 2004/08/20 16:18:48 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.129 2004/08/23 23:29:09 tom_kelly33 Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -1116,10 +1116,12 @@ sub hwdetect_getdisks {
 				if ($disk->{media_type} =~ /^fd/) {
 					$all_devs{$dev}->{mount}  = "/mnt/floppy$numfloppy";
 					$numfloppy++;
+					if ($numfloppy eq "1") {$numfloppy++} # skip 1
 				}
 				else {
 					$all_devs{$dev}->{mount}  = "/mnt/cdrom$numcd";
 					$numcd++;
+					if ($numcd eq "1") {$numcd++}  # skip 1
 				}
 				$all_devs{$dev}->{type}   = "auto";
 				if ($disk->{media_type} =~ /^cdrom/) {
