@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.2 2004/01/18 17:54:04 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.3 2004/01/18 18:14:30 jaco Exp $
  */
 
 #include <dirent.h>
@@ -255,6 +255,10 @@ LiveCDFS::doOpen(char *file,
 				// doesn't already exist, copy-on-write
 				path->copyTmp(file);
 			}
+			openpath = tmppath;
+		}
+		else if (path->exists(tmppath.c_str(), S_IFREG) || path->exists(tmppath.c_str(), S_IFLNK)) {
+			openpath = tmppath;
 		}
 		else {
 			ERROR("File, file='" << file << "', is not a regular file nor symlink, cannot create copy on temp space.");
@@ -307,9 +311,9 @@ LiveCDFS::doRead(char *file,
 	     "count=" << DEC(count)  << ", " <<
 	     "buf="   << PTR(buf));
 	
-	t_handle *handle = handles->find(file, O_RDWR, 0);
+	t_handle *handle = handles->find(file, O_RDWR, 0xffff);
 	if (handle == NULL) {
-		if ((handle = handles->find(file, O_RDONLY, 0)) == NULL) {
+		if ((handle = handles->find(file, O_RDONLY, 0xffff)) == NULL) {
 			WARN("Redable handle for file='" << file << "' not found");
 			return -1;
 		}
@@ -335,9 +339,9 @@ LiveCDFS::doWrite(char *file,
 	     "count=" << DEC(count)  << ", " <<
 	     "buf="   << PTR(buf));
 	
-	t_handle *handle = handles->find(file, O_RDWR, 0);
+	t_handle *handle = handles->find(file, O_RDWR, 0xffff);
 	if (handle == NULL) {
-		if ((handle = handles->find(file, O_WRONLY, 0)) == NULL) {
+		if ((handle = handles->find(file, O_WRONLY, 0xffff)) == NULL) {
 			WARN("Writable handle for file='" << file << "' not found");
 			return -1;
 		}

@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: handles.cpp,v 1.1 2004/01/18 15:47:52 jaco Exp $
+ * $Id: handles.cpp,v 1.2 2004/01/18 18:14:30 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -49,15 +49,15 @@ Handles::find(const char *file,
 	     "modes="   << modes);
 
 	for (vector<t_handle>::iterator i = handles.begin(); i != handles.end(); ) {
-		if ((i->name == file) && 
-		    (((modes == 0xffff) && (flags == 0xffff)) || 
-		     ((i->modes != O_RDWR) && (i->modes == modes) && (i->flags == flags)))) {
-			TRACE("Found handle for file='" << file << "', fd=" << i->fd);
-			return &*i;
+		if (i->name == file) {
+			if ((modes == 0xffff) && 
+			    (((flags == 0xffff) || (i->flags == flags)) ||
+			     ((i->modes == modes) && (i->flags == flags)))) {
+				TRACE("Found handle for file='" << file << "', fd=" << i->fd);
+				return &*i;
+			}
 		} 
-		else {
-			i++;
-		}
+		i++;
 	}
 	
 	TRACE("Existing handle for file='" << file << "' not found");
