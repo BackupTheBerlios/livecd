@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.127 2004/12/21 19:31:01 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.128 2004/12/22 06:32:59 tom_kelly33 Exp $
 #
 
 use strict;
@@ -66,7 +66,7 @@ my $loopmod        = undef;
 my $loopcmp        = undef;
 my $blocksize      = 32;
 my $finaliso       = "livecd.iso";
-my $mkisofs_opts;
+my $mkisofs_opts   = "";	# Fix for concat of undef in iso looptype
 
 ### command-line options
 my $o_verbose;
@@ -172,6 +172,7 @@ Boot options:
    --timeout <sec>                 Specify the default ISO Linux prompt timeout
                                    in seconds. 
                                    (default: $o_timeout)
+   --noprompt                      Disable ISO Linux prompt (i.e. prompt 0).
    --keyboard <mapping>            Specify a different keyboard layout as 
                                    default for the LiveCD. 
                                    (default: $o_keyboard)
@@ -399,6 +400,7 @@ sub parse_options {
 		'bootimg=s',
 		'mdkboot',
 		'timeout=i',
+		'noprompt',
 		'keyboard=s',
 		'resolution=s',
 		'splash=s',
@@ -868,7 +870,7 @@ sub create_isolinux {
 	$appopt = "$appopt $_" foreach (@{$opts{bootopt}});
 	open CFG, '>', "$workdir/livecd/isolinux/isolinux.cfg";
 	print CFG "default livecd\n";
-	print CFG "prompt  1\n";
+	print CFG "prompt  ".(defined($opts{noprompt}) ? "0" : "1")."\n";
 	print CFG "timeout $o_timeout\n";
 	print CFG "display livecd.msg\n" if (-f "$workdir/livecd/isolinux/livecd.msg");
 	foreach my $k (keys %{$opts{bootkey}}) {
