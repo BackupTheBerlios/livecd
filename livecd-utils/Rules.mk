@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.4 2003/11/30 16:35:24 jaco Exp $
+# $Id: Rules.mk,v 1.5 2003/12/01 07:09:37 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -24,6 +24,7 @@ SPECDATE=$(shell LC_ALL=C date +"%a %b %e %Y")
 # Internal directories: don't edit
 DISTDIR=dist
 ICONDIR=icons
+IMGDIR=images
 SRCDIR=src
 UTILSDIST=$(PKGNAME)-$(ARCHIVEVER)
 ICONSDIST=$(PKGNAME).icons
