@@ -1,4 +1,4 @@
-# $Id: BOOTCODES,v 1.4 2004/01/10 08:33:08 jaco Exp $
+# $Id: BOOTCODES,v 1.5 2004/01/21 06:22:15 jaco Exp $
 
 LiveCD bootcodes: These codes allow you to override the LiveCD
 defaults to modify the boot process for your specific needs. The
@@ -13,7 +13,7 @@ The latest list will always be available from the LiveCD website
 
 http://livecd.berlios.de
 
-The following codes are available as of 10 January 2004:
+The following codes are available as of 21 January 2004:
 
 initrd                  Only boot the initrd, not the actual CD.
 			This option is (mostly) only useful to
@@ -155,10 +155,15 @@ livecd nousb            Disable the probing of USB devices at boot.
 			
 livecd nopcmcia         Disable the probing of PCMCVIA devices at boot.
 
+livecd safex		Don't allow our specified xbpp, xres result in
+			an invalid configuration. If the user-specified
+			resolution will not work for the current card, 
+			allow fallback to a safe detection default.
+
 livecd xbpp=<depth>     Specify the bitdepth for X. <depth> can
 			be one of 8, 15, 16, 24 or 32.
 
-livecd xres=<res>       Specify trhe resolution for X. <res> can
+livecd xres=<res>       Specify the resolution for X. <res> can
 			be one of 800x600, 1024x768, 1280x1024 or
 			1600x1400.
 

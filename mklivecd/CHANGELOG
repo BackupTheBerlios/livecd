@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.106 2004/01/20 13:43:13 jaco Exp $
+# $Id: CHANGELOG,v 1.107 2004/01/21 06:23:12 jaco Exp $
 
 * Tue, Jan 20, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -80,6 +80,8 @@
       - Don't run pcmcia, sound or network boot scripts if not 
         detected, i.e. remove the /etc/rc.d/rc?.d/ links
       - Reworked module loading to allow for 2.4 and 2.6 USB modules
+      - Make our xres, xbpp always override libDrakX unless "safex"
+        is specified
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules

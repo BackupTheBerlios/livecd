@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.93 2004/01/20 19:13:18 jaco Exp $
+# $Id: hwdetect.in,v 1.94 2004/01/21 06:22:15 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -628,17 +628,23 @@ sub hwdetect_getxfree {
 	# detect a resolution
 	print "Selecting resolution: ";
 	$rawX->{default_depth} = defined($cmdline{'xbpp'}) ? $cmdline{'xbpp'} : 16;
+	my $resolution_wanted = undef;
 	if (defined($cmdline{'xres'})) {
-		my $resolution_wanted;
 		$resolution_wanted->{Depth} = $rawX->{default_depth};
 		$resolution_wanted->{X} = $generic_res{$cmdline{'xres'}}[2] || 1024;
 		$resolution_wanted->{Y} = $generic_res{$cmdline{'xres'}}[3] || 768;
 		$rawX->{resolution_wanted} = $resolution_wanted;
 	}
+	
+	# set the desired res, and override if failed and we are not safe
 	my $resolution = undef;
 	eval { $resolution = Xconfig::resolution_and_depth::configure_auto_install($rawX, $def_card, $def_monitor, $rawX); };
+	if (!defined($resolution) && defined($resolution_wanted) && !defined($cmdline{'safex'})) {
+		eval { $rawX->set_resolution($resolution_wanted); };
+		eval { $resolution = $rawX->get_resolution; };
+	}
 
-	# try to make sure we get at least a valid 1024x768 before setting it
+	# try to make sure we have at least a valid 1024x768 before finally setting it
 	if (!defined($resolution) ||
 	    !defined($resolution->{X}) || !defined($resolution->{Y}) || !defined($resolution->{Depth}) ||
 	    (($resolution->{X} < 1024) && !defined($cmdline{'xres'}) && !defined($cmdline{'xbpp'}))) {
