@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.62 2003/11/24 13:33:46 jaco Exp $
+# $Id: hwdetect.in,v 1.63 2003/11/24 18:23:05 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -1070,8 +1070,18 @@ sub hwdetect_writedisks {
 		# create mountpoints
 		print "    Creating device mountpoints: ";
 		my $cmd;
-		foreach my $dev (keys %all_devs) {
+		my $drive = 'c';
+		foreach my $dev (sort keys %all_devs) {
 			my $mount = $all_devs{$dev}->{mount};
+			unless ($all_devs{$dev}->{persisted}) {
+				if ($all_devs{$dev}->{media} =~ /hd/ &&
+				    ($all_devs{$dev}->{persisted} =~ /ntfs/ ||
+				     $all_devs{$dev}->{persisted} =~ /vfat/)) {
+					$all_devs{$dev}->{mount} = "win_".$drive;
+					$drive++;
+					$mount = $all_devs{$dev}->{mount};
+				}
+			}
 			system("mkdir -p $prefix/$mount 2>/dev/null");
 		}
 		print_success();
