@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.26 2003/10/29 12:10:10 jaco Exp $
+# $Id: hwdetect.in,v 1.27 2003/10/30 19:00:58 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -691,8 +691,8 @@ my %fstypes = (
 );
 
 # these are default options for fstab
-my $fsopt         = 'noauto,user,ro,exec';
-my $fsopt_persist = 'user,rw,exec';
+my $fsopt_ro = 'noauto,user,ro,exec';
+my $fsopt_rw = 'user,rw,exec';
 
 # type => (allow persistent, ext. opts)
 my %fsopts = (
@@ -725,7 +725,7 @@ sub hwdetect_getpersistent {
 					} split(/ /, cat_($persist));
 					if ($popts{mount}) {
 						$devs{$dev}->{mount} = $popts{mount};
-						$devs{$dev}->{opt} = $fsopt_persist;
+						$devs{$dev}->{opt} = $fsopt_rw;
 						$devs{$dev}->{persisted} = 1;
 					}
 				}
@@ -772,7 +772,7 @@ sub hwdetect_getdisks {
 				$all_devs{$dev}->{media}  = $disk->{media_type};
 				$all_devs{$dev}->{mount}  = "/mnt/".$disk->{device};
 				$all_devs{$dev}->{type}   = "auto";
-				$all_devs{$dev}->{opt}    = $fsopt;
+				$all_devs{$dev}->{opt}    = $fsopt_ro;
 				$all_devs{$dev}->{extopt} = $extopts;
 			}
 		}
@@ -826,7 +826,7 @@ sub hwdetect_getdisks {
 					}
 					else {
 						$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
-						$all_devs{$dev}->{opt}     = $fsopt;
+						$all_devs{$dev}->{opt}     = $fsopt_ro;
 					}
 					$all_devs{$dev}->{type}    = $fstypes{$raw->{type}}[1];
 					$all_devs{$dev}->{extopt}  = $opts[1];
@@ -877,7 +877,7 @@ sub hwdetect_getdisks {
 						}
 						else {
 							$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
-							$all_devs{$dev}->{opt}     = $fsopt;
+							$all_devs{$dev}->{opt}   = $fsopt_ro;
 						}
 						$all_devs{$dev}->{type}    = $fstypes{$raw->{type}}[1];
 						$all_devs{$dev}->{extopt}  = $opts[1];
