@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.56 2004/01/05 13:14:33 jaco Exp $
+# $Id: linuxrc.in,v 1.57 2004/01/06 04:56:50 jaco Exp $
 #
 
 ### global variables
@@ -182,7 +182,7 @@ initialise() {
 	# some kernel specifics
 	KERNELVER=`uname -r`
 	KVMAJOR=`expr "$KERNELVER" : "\([^.]\+\)\..*"`
-	KVMINOR=`expr "$KERNELVER" : "[^.]\+\.\([^.]\+\)\..*"
+	KVMINOR=`expr "$KERNELVER" : "[^.]\+\.\([^.]\+\)\..*"`
 	if [ $KVMAJOR -eq 2 ] && [ $KVMINOR -gt 5 ]; then
 		KERNEL26=1
 		MODEXT=".ko"
