@@ -1,4 +1,4 @@
-# $Id: FAQ,v 1.4 2003/10/02 09:55:09 jaco Exp $
+# $Id: FAQ,v 1.5 2003/10/02 12:54:23 jaco Exp $
 
 Q: How do I create a tiny (truly minimal) bootable Mandrake
    LiveCD?
@@ -93,3 +93,31 @@ A: By default the script installs a keyboard layout for en_US.
       specific keyboard layout, specify '--keyboard=<language>' on
       the mklivecd command-line to automatically add a default
       option to the isolinux configuration.
+
+
+Q: What are these lss images that isolinux can display? How do I
+   generate them?
+A: Ahhh, you found the '--iso-bgimage' option. The LSS image
+   format is a run-length encoded format, chosen by the syslinux
+   author as a fast/easy way of diaplying boot images. Here is
+   how you create them:
+
+   1. Create a 16 colour (indexed palette) BMP file with a
+      resolution of
+   2. Convert the BMP to PPM format, using the "bmptoppm" utility.
+      (Part of the netpbm package.) An example of the usage is:
+      "bmptoppm -verbose mycd.bmp >mycd.ppm"
+   3. Convert the PPM format to LSS, using the "ppmtolss16"
+      utility. (Part of the syslinux package.) An example of the
+      usage is:
+      "ppmtolss16 \#3a3e6e=0 \#d0d0d0=7 <mycd.ppm >mycd.lss" (*)
+
+   (*) The command show the use of palette remapping, which might
+       be needed, depending on your original BMP image. ISOLinux
+       uses colour index 0 for the background and index 7 for the
+       foreground text. In the above example the remapping (using
+       the colour value) is done to get the correct effect. (The
+       utility expects colours to be indicated by #, in the above
+       example these are escaped as to not be identified as a
+       comment by the bash shell.)
+

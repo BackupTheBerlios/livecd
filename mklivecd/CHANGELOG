@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.26 2003/10/02 12:15:13 jaco Exp $
+# $Id: CHANGELOG,v 1.27 2003/10/02 12:54:23 jaco Exp $
 
 * Thu, Oct 02, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -12,11 +12,13 @@
         a CVS snapshot generated via 'make dist'
   + Jaco Greeff <jaco@linuxminicd.org>:
     [FAQ]:
-      - Updated FAQ to include some compression parameter
+      - Updated to include some compression parameter
         statistics (describes mklivecd '--blocksize' and
         '--looptype' options)
-      - Added a FAQ entry for the "keyb=<language>' isolinux boot
+      - Added an entry for the "keyb=<language>' isolinux boot
         option
+      - Added an Q/A for the creation of LSS images as used by
+        the 'mklivecd --iso-bgimage' command
     [Makefile]:
       - Combined piped sed commands into one
       - Removed non-existing busybox and cloop version
