@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.28 2003/10/04 19:02:19 jaco Exp $
+# $Id: mklivecd.in,v 1.29 2003/10/04 20:22:41 bgmilne Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -404,7 +404,7 @@ while [ $# -gt 0 ]; do
 	case $1 in
 		--cloop*)
 			if echo $1 | grep '=' >/dev/null ; then
-				cloopimg=`echo $1 | sed 's/^--cloop=//'`
+				cloopimg=${1#--cloop=}
 			else
 				cloopimg=$2
 				shift
@@ -413,7 +413,7 @@ while [ $# -gt 0 ]; do
 
 		--exclude-dir*)
 			if echo $1 | grep '=' >/dev/null ; then
-				excludes=`echo $1 | sed 's/^--exclude-dir=//'`
+				excludes=${1--exclude-dir=}
 			else
 				excludes=$2
 				shift
@@ -425,7 +425,7 @@ while [ $# -gt 0 ]; do
 
 		--exclude-file*)
 			if echo $1 | grep '=' >/dev/null ; then
-				excludes=`echo $1 | sed 's/^--exclude-file=//'`
+				excludes=${1#--exclude-file=}
 			else
 				excludes=$2
 				shift
@@ -437,7 +437,7 @@ while [ $# -gt 0 ]; do
 
 		--blocksize*)
 			if echo $1 | grep '=' >/dev/null ; then
-				blocksize=`echo $1 | sed 's/^--blocksize=//'`
+				blocksize=${1#--blocksize=}
 			else
 				blocksize=$2
 				shift
@@ -446,7 +446,7 @@ while [ $# -gt 0 ]; do
 
 		--kernel*)
 			if echo $1 | grep '=' >/dev/null ; then
-				kernel=`echo $1 | sed 's/^--kernel=//'`
+				kernel=${1#--kernel=}
 			else
 				kernel=$2
 				shift
@@ -455,7 +455,7 @@ while [ $# -gt 0 ]; do
 
 		--tmpdir*)
 			if echo $1 | grep '=' >/dev/null ; then
-				tmpdir=`echo $1 | sed 's/^--tmpdir=//'`
+				tmpdir=${1#--tmpdir=}
 			else
 				tmpdir=$2
 				shift
@@ -464,7 +464,7 @@ while [ $# -gt 0 ]; do
 
 		--rootdir*)
 			if echo $1 | grep '=' >/dev/null ; then
-				rootdir=`echo $1 | sed 's/^--rootdir=//'`
+				rootdir=${1#--rootdir=}
 			else
 				rootdir=$2
 				shift
@@ -473,7 +473,7 @@ while [ $# -gt 0 ]; do
 
 		--looptype*)
 			if echo $1 | grep '=' >/dev/null ; then
-				loopmod=`echo $1 | sed 's/^--looptype=//'`
+				loopmod=${1#--looptype=}
 			else
 				loopmod=$2
 				shift
@@ -504,12 +504,12 @@ while [ $# -gt 0 ]; do
 
 		--splash*)
 			if echo $1 | grep '=' >/dev/null ; then
-				yn=`echo $1 | sed 's/^--splash=//'`
+				yn=${1#--splash=}
 			else
 				yn=$2
 				shift
 			fi
-			if [ $yn == yes ]; then
+			if [ "$yn" == "yes" ]; then
 				bootsplash=1
 			else
 				bootsplash=
@@ -519,7 +519,7 @@ while [ $# -gt 0 ]; do
 
 		--keyboard*)
 			if echo $1 | grep '=' >/dev/null ; then
-				mapping=`echo $1 | sed 's/^--keyboard=//'`
+				mapping=${1#--keyboard=}
 			else
 				mapping=$2
 				shift
@@ -529,7 +529,7 @@ while [ $# -gt 0 ]; do
 
 		--resolution*)
 			if echo $1 | grep '=' >/dev/null ; then
-				resolution=`echo $1 | sed 's/^--resolution=//'`
+				resolution=${1#--resolution=}
 			else
 				resolution=$2
 				shift
@@ -565,7 +565,7 @@ while [ $# -gt 0 ]; do
 
 		--iso-bootmsg*)
 			if echo $1 | grep '=' >/dev/null ; then
-				isobootmsg=`echo $1 | sed 's/^--iso-bootmsg=//'`
+				isobootmsg=${1#--iso-bootmsg=}
 			else
 				isobootmsg=$2
 				shift
@@ -578,13 +578,13 @@ while [ $# -gt 0 ]; do
 
 		--iso-bootkey*)
 			if echo $1 | grep '=' >/dev/null ; then
-				isobootkey=`echo $1 | sed 's/^--iso-bootkey=//'`
+				isobootkey=${1#--iso-bootkey=}
 			else
 				isobootkey=$2
 				shift
 			fi
-			key=`echo $isobootkey | tr "," " " | awk '{ print $1 }'`
-			msg=`echo $isobootkey | tr "," " " | awk '{ print $2 }'`
+			key=`echo $isobootkey | awk -F',' '{ print $1 }'`
+			msg=`echo $isobootkey | awk -F',' '{ print $2 }'`
 			if [ -z "$key" -o -z "$msg" ]; then
 				echo "ERROR: You need to specify both the key and message for the '--iso-bootkey' parameter." >&2
 				exit 1
@@ -602,7 +602,7 @@ while [ $# -gt 0 ]; do
 
 		--iso-bgimage*)
 			if echo $1 | grep '=' >/dev/null ; then
-				isoimage=`echo $1 | sed 's/^--iso-bgimage=//'`
+				isoimage=${1#--iso-bgimage=}
 			else
 				isoimage=$2
 				shift
