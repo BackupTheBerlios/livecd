@@ -42,6 +42,23 @@
 					<tr><td bgcolor="#000000">
 						<table width=100% border=0 cellspacing=2 cellpadding=5 cols=2>
 							<tr><td bgcolor=#305080 nowrap>
+								<b><font color=#ffffff>f r i &nbsp; n o v &nbsp; 2 1 &nbsp; 2 0 0 3 &nbsp;</font></b>
+							</td>
+							<td bgcolor=#d0d0d0 nowrap>
+								<b>&nbsp;</b>
+							</td></tr>
+							<tr><td colspan=2 bgcolor=#d0d0d0>
+								<b>K h o i &nbsp; D o n g &nbsp; L a &nbsp; C h a y &nbsp; ( K D L C ) &nbsp; L i v e C D</b><br>
+								I've added the <a href="http://kdlc.vnlinux.org">KDLC</a> LiveCD to the <a href="links.php">links page</a>. This is a very exciting release, just aimed at Vietnamese Linux users, which even provides voice control to the Gnome desktop. Now if I could get that <a href="http://www.perlbox.org">Star Trek-like</a> interface on my LiveCD...
+							</td></tr>
+						</table>
+					</td></tr>
+				</table>
+				<table width="100%" border="0" cellspacing="0" cellpadding="0">
+					<tr><td height="10"></td></tr>
+					<tr><td bgcolor="#000000">
+						<table width=100% border=0 cellspacing=2 cellpadding=5 cols=2>
+							<tr><td bgcolor=#305080 nowrap>
 								<b><font color=#ffffff>t h u &nbsp; n o v &nbsp; 2 0 &nbsp; 2 0 0 3 &nbsp;</font></b>
 							</td>
 							<td bgcolor=#d0d0d0 nowrap>
