@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.26 2003/11/02 14:28:05 bgmilne Exp $
+# $Id: linuxrc.in,v 1.27 2003/11/03 07:02:42 jaco Exp $
 #
 
 ### global variables
@@ -50,6 +50,11 @@ CLOOPVER="@CLOOPVER@"
 MNTCDROM=/cdrom
 MNTLIVECD=/loopfs
 MNTRAMDISK=/ramfs
+
+### progress indicator
+progress_num=0
+progress_full=10
+progress_on=
 
 ### screen colors
 RES_COL=65
@@ -121,6 +126,17 @@ loadmod() {
 }
 
 
+### set progress bar
+set_progress() {
+	silent=`grep -i splash=silent /proc/cmdline`
+	if [ -e /proc/splash ] && [ -n "$silent" ]; then
+		progress_num=$(($progress_num+1));
+		progress=$((65534*($progress_num+1)/$progress_full));
+		[ -n "$progress_on" ] && echo $progress >/proc/splash
+	fi
+}
+
+
 ### initialise
 initialise() {
 	busybox mount -n -t proc none /proc
@@ -130,6 +146,7 @@ initialise() {
 		"echo '/sbin/modprobe' >/proc/sys/kernel/modprobe" \
 		"exec >/dev/console </dev/console 2>&1"
 	KERNELVER=`uname -r`
+	set_progress
 }
 
 
@@ -182,11 +199,14 @@ findcloop() {
 	for i in $OPT_MODULES; do
 		loadmod $i
 	done
+	set_progress
+
 	ALL_LOADED=1
 	for i in $DEP_MODULES; do
 		loadmod $i || ALL_LOADED=
 	done
 	[ -n "$ALL_LOADED" ] && printok || printfail
+	set_progress
 
 	# probe the SCSI devices
 	echo -n "Probing SCSI devices: "
@@ -195,6 +215,7 @@ findcloop() {
 		loadmod $i && SCSI_FOUND=1
 	done
 	[ -n "$SCSI_FOUND" ] && printok || printfail
+	set_progress
 
 	# do the loop
 	echo -n "Finding compressed loop image: "
@@ -261,6 +282,7 @@ findcloop() {
 		$SETCOLOR_NORMAL
 		execshell
 	fi
+	set_progress
 }
 
 
@@ -290,6 +312,7 @@ createramdisk() {
 			[ $kmin -gt 4 ] && kmin=5
 			/loopfs/sbin/insmod-2$kmin $transmod 2>&1 >/dev/null
 		fi
+		set_progress
 
 		if [ -d /proc/sys/translucency ]; then
 			ltmp="/tmp/livecd"
@@ -315,18 +338,24 @@ createramdisk() {
 					fi \
 				done" \
 				"mkdir -p /mnt/cdrom && mount -n -o bind /initrd$MNTCDROM /mnt/cdrom" \
-				"mkdir -p /tmp && chmod 777 /tmp" \
+				"mkdir -p /tmp && chmod 777 /tmp"
+			set_pogress
+			docmd   "Creating filesystem overlay" \
 				"for t in etc home lib root usr var; do mkdir -p $ltmp/\$t ; done" \
 				"echo '/initrd$MNTLIVECD/etc -> $ltmp/etc' >/proc/sys/translucency/0" \
 				"echo '/initrd$MNTLIVECD/home -> $ltmp/home' >/proc/sys/translucency/1" \
 				"echo '/initrd$MNTLIVECD/lib -> $ltmp/lib' >/proc/sys/translucency/2" \
 				"echo '/initrd$MNTLIVECD/root -> $ltmp/root' >/proc/sys/translucency/3" \
 				"echo '/initrd$MNTLIVECD/usr -> $ltmp/usr' >/proc/sys/translucency/4" \
-				"echo '/initrd$MNTLIVECD/var -> $ltmp/var' >/proc/sys/translucency/5" \
+				"echo '/initrd$MNTLIVECD/var -> $ltmp/var' >/proc/sys/translucency/5"
+			set_progress
+			docmd   "Creating /var structure" \
 				"mkdir -p /var/lock/subsys" \
 				"mkdir -p /var/log && touch /var/log/wtmp" \
 				"mkdir -p /var/run && touch /var/run/utmp" \
-				"mkdir -p /var/tmp" \
+				"mkdir -p /var/tmp"
+			set_progress
+			docmd   "Creating /etc structure" \
 				"mkdir -p /etc/livecd/hwdetect" \
 				"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
 				"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
@@ -335,6 +364,7 @@ createramdisk() {
 				"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
 				"echo '#!/bin/bash' >/usr/share/harddrake/service_harddrake" \
 				"echo 'exit 0' >>/usr/share/harddrake/service_harddrake"
+			set_progress
 		else
 			docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
 				"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
@@ -388,6 +418,7 @@ createramdisk() {
 				"mkdir -p /proc && mount -n --move /initrd/proc /proc" \
 				"mkdir -p /mnt && ln -sf /initrd$MNTCDROM /mnt/cdrom" \
 				"mkdir -p /tmp && chmod 777 /tmp"
+			set_progress
 			docmd   "Creating /var structure" \
 				"mkdir -p /var" \
 				"for d in \`find /initrd$MNTLIVECD/var/ -type d\`; do \
@@ -412,6 +443,7 @@ createramdisk() {
 				"mkdir -p /var/log && touch /var/log/wtmp" \
 				"mkdir -p /var/run && touch /var/run/utmp" \
 				"ln -s /tmp /var/tmp"
+			set_progress
 			docmd   "Creating /etc structure" \
 				"cp -a /initrd$MNTLIVECD/etc /" \
 				"mkdir -p /etc/livecd/hwdetect" \
@@ -424,9 +456,11 @@ createramdisk() {
 				"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
 				"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
 				"rm -rf /etc/rc.d/rc5.d/S05harddrake"
+			set_progress
 			docmd   "Creating user directories" \
 				"cp -a /initrd$MNTLIVECD/root /" \
 				"cp -a /initrd$MNTLIVECD/home /"
+			set_progress
 		fi
 	else
 		$SETCOLOR_FAIL
@@ -471,7 +505,7 @@ setupinit() {
 		sed -i.livecd -e "s/\(\S*HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network
 		sed -i.livecd -e "s/\(\S*DHCP_HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network-scripts/ifcfg-eth*
 	fi
-	
+
 	#clean up the shutdown sequence:
 	sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/initrd\\\/\.\*\/\3,' /etc/rc.d/init.d/halt
 
