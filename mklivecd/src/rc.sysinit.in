@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.11 2004/01/14 20:35:18 jaco Exp $
+# $Id: rc.sysinit.in,v 1.12 2004/01/20 13:40:11 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -151,12 +151,12 @@ execshell() {
 	# find the best shell available to us at this point
 	if [ -e /bin/bash ]; then
 		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
-		SHELL="/bin/bash"
-	elif [ -e /initrd/bin/ash ]; then
+		SHELL="/initrd/bin/ash"
+	else
 		export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
 		SHELL="/initrd/bin/ash"
 	fi
-	exec $SHELL
+	$SHELL
 }
 
 
@@ -372,15 +372,17 @@ setupinit() {
 	/bin/sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
 
 	# Do various other configuration tasks (now that /etc is available)
-	if hostname=`getbootoption hostname`
-	then
+	if hostname=`getbootoption hostname`; then
 		/bin/sed -i.livecd -e "s/\(\S*HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network
-		/bin/sed -i.livecd -e "s/\(\S*DHCP_HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network-scripts/ifcfg-eth*
+		for i in /etc/sysconfig/network-scripts/ifcfg-eth*; do
+			/bin/sed -i.livecd -e "s/\(\S*DHCP_HOSTNAME=\).*/\1${hostname}/g" $i
+		done
 	fi
 
 	#clean up the shutdown sequence:
-	/bin/sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/initrd\\\/\.\*\/\3,;s,/sbin/halt.local,/initrd/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /initrd/sbin/halt.local,   exec /initrd/sbin/halt.local \$command,g' /etc/rc.d/init.d/halt
-
+	/bin/sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/initrd\\\/\.\*\/\3,;s,/sbin/halt.local,/initrd/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /initrd/sbin/halt.local,   exec /initrd/sbin/halt.local \$command,g;s,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/halt
+	[ -f /etc/rc.d/init.d/netfs ] && /bin/sed -i.livecd -e 's,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/netfs
+	
 	# restart the splash before MDK init (this is very hacky)
 	silent=`/bin/grep -i splash=silent /proc/cmdline`
 	if [ $progress_max -eq 65534 ] && [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
@@ -393,23 +395,23 @@ setupinit() {
 
 	# do we just want to complete the initrd (debug)?
 	if `/bin/grep -iq livecd=initrd /proc/cmdline`; then
-		# exit, allowing us to debug
 		execshell
-	else
-		# clean up /proc (init mounts it via rc.sysinit)
-		docmd   "Unmounting /proc filesystem" \
-			"umount /proc"
-
-		# display some info
-		distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
-		echo "Starting $distro Linux init sequence ..."
-
-		# setup the full path as now available and start distro boot
-		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
-		bash -c /etc/rc.d/rc.sysinit
 	fi
+	
+	# clean up /proc (init mounts it via rc.sysinit)
+	docmd   "Unmounting /proc filesystem" \
+		"umount /proc"
+
+	# display some info
+	distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
+	echo "Starting $distro Linux init sequence ..."
+
+	# setup the full path as now available and start distro boot
+	export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
+	/etc/rc.d/rc.sysinit
 }
 
 setuproot ""
 setupinit ""
+sleep 5
 exit 0
