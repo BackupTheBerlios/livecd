@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.36 2004/10/25 05:16:53 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.37 2004/10/26 04:35:55 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -413,21 +413,20 @@ setuproot() {
 
 ### setup for init of the actual mdk image
 setupinit() {
-
 	# perform hwdetect if not disabled
-	if [ `/bin/grep -iqv hwdetect=no /proc/cmdline && /bin/grep -iqv nodetect /proc/cmdline` ]; then
-		OLDPATH=$PATH
-		export PATH=/sbin:/usr/sbin:/bin:/usr/bin
-
-		if [ -e "/initrd/usr/sbin/hwdetect" ]; then
-			echo  "  Starting hwdetect ----------------"
-			/initrd/usr/sbin/hwdetect 
-			echo  "  Done with hwdetect ---------------"
+	if [ `/bin/grep -iqv hwdetect=no /proc/cmdline` -a  `/bin/grep -iqv nodetect /proc/cmdline` ]; then
+		if [ -e /initrd/usr/sbin/hwdetect ]; then
+			echo "  -- Starting hwdetect ----------------"
+			OLDPATH=$PATH
+			export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+			/initrd/usr/sbin/hwdetect
+			export PATH=$OLDPATH
+			echo "  -- Done with hwdetect ---------------"
 		else
-			echo "  Skipping hwdetect ---"
+			echo "  -- Missing hwdetect -----------------"
 		fi
-
-		export PATH=$OLDPATH
+	else 
+		echo "  -- Skipping hwdetect ----------------"
 	fi
 
 	# Don't run depmod (must be run before imaging system)
@@ -483,5 +482,6 @@ echo "--- MKLIVECD RC.SYSINIT ------------"
 setuproot ""
 setupinit ""
 echo "--- Exiting MKLIVECD RC.SYSINIT ----"
+grep -v "^si" /etc/inittab >/inittab;mv /inittab /etc/inittab
 exec /etc/rc.d/rc.sysinit <dev/console >dev/console 2>&1
 exit 0
