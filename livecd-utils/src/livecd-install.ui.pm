@@ -28,10 +28,15 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.25 2004/04/19 15:42:30 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.26 2004/04/24 06:51:34 tom_kelly33 Exp $
 #
 
 #use LCDLang;
+
+use vars qw(
+	$opt_debug
+	$opt_nocopy
+);
 
 use threads;
 use threads::shared;
@@ -43,6 +48,9 @@ use swap;
 
 my $debug   : shared = undef;
 my $nocopy  : shared = undef;
+
+if ($opt_debug) {$debug = 1};
+if ($opt_nocopy) {$nocopy = 1};
 
 my $destroy : shared = 0;
 my $isBusy  : shared = 0;
@@ -101,7 +109,8 @@ my %fsopts = (
 );
 
 sub cat_ { local *F; open F, $_[0] or return; my @l = <F>; wantarray() ? @l : join('', @l); };
-sub do_system  { my ($p) = @_; print "+ $p {\n"; my $c = system($p); print "+ }=$c\n"; };
+sub do_system   { my ($p) = @_; print "+ $p {\n"; my $c = system($p); print "+ }=$c\n"; };
+sub do_system2  { my ($p) = @_; print "+ $p {\n"; my $c = system($p); print "+ }=$c\n"; return $c; };
 
 sub pageSelected # SLOT: ( const QString & )
 {
@@ -142,7 +151,7 @@ sub pageSelected # SLOT: ( const QString & )
 		showBootloader();
 	}
 	elsif ($title =~ m/ 6/) {
-		this->setBackEnabled($page, 0);
+		#this->setBackEnabled($page, 0);
 		this->setNextEnabled($page, 0);
 		this->setFinishEnabled($page, 1);
 		doEvents();
@@ -191,19 +200,37 @@ sub initLang
 	tlOverall->setText(trUtf8("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining')));
 	tlFormat->setText(trUtf8("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining')));
 	tlCopy->setText(trUtf8("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining')));
-	
+
+	# Page 5	
 	setTitle(page_5, trUtf8(getStr('scr_5_title')));
 	textLabel1_3_2_2->setText(trUtf8(getStr('scr_5_text')));
+        textLabel52->setText(trUtf8(getStr('scr_52')));
 	bInstall->setText(trUtf8(getStr('btn_inst')));
-	
+	bLogging_yes->setText(trUtf8(getStr('btn_logging_yes')));
+	bLogging_no->setText(trUtf8(getStr('btn_logging_no')));
+ 
+	# Page 6	
 	setTitle(page_6, trUtf8(getStr('scr_6_title')));
 	tlWelcome_2->setText(trUtf8(getStr('scr_6_text')));
-	buttonGroup2->setTitle( "" );
-	rbNoReboot->setText(trUtf8(getStr('scr_6_no')));
-	rbReboot->setText(trUtf8(getStr('scr_6_yes')));
-	textLabel1_4->setText(trUtf8(getStr('scr_6_typeroot')));
-	textLabel1_4_2->setText(trUtf8(getStr('scr_6_typeroot2')));
-	bWritePassword->setText(trUtf8(getStr('btn_writepw')));
+
+	textLabel611->setText(trUtf8(getStr('scr_6_typeroot')));
+	textLabel612->setText(trUtf8(getStr('scr_6_typeroot2')));
+	bWritePassword->setText(trUtf8(getStr('btn_write_pw')));
+
+        textLabel621->setText(trUtf8(getStr('scr_6_del_guest')));
+        bDeleteGuest->setText(trUtf8(getStr('btn_del_guest')));
+
+        textLabel631->setText(trUtf8(getStr('scr_6_add_user')));
+        textLabel632->setText(trUtf8(getStr('scr_6_au_login')));
+        textLabel633->setText(trUtf8(getStr('scr_6_au_real')));
+        textLabel634->setText(trUtf8(getStr('scr_6_au_pw')));
+        textLabel635->setText(trUtf8(getStr('scr_6_au_rpw')));
+        bCreateUser->setText(trUtf8(getStr('btn_cr_user')));
+
+        buttonGroup2->setTitle( "" );
+        rbNoReboot->setText(trUtf8(getStr('scr_6_no')));
+        rbReboot->setText(trUtf8(getStr('scr_6_yes')));
+
 }
 
 sub init
@@ -750,7 +777,7 @@ image=$kernel
 		do_system("umount $mnt/proc");
 	}
 
-	emit this->next();
+#	emit this->next();
 }
 
 
@@ -851,26 +878,173 @@ sub toggleReboot # SLOT: ( bool )
 	print "check: $check, reboot: $reboot\n";
 }
 
+
 sub diskPartition # SLOT: (  )
 {
         my ($check) = @_;
-        do_system("diskdrake");   # or other tool, e.g. parted
+        do_system("diskdrake");   # or another tool, e.g. parted
 }
+
+
+sub logging_yes # SLOT: ( )
+{
+        my ($check) = @_;
+	my $message = "";
+        my $result = do_system2("/bin/echo chkconfig --add syslog | chroot $mnt");
+	if ($result eq "0") {
+           Qt::MessageBox::information( this, "$distroname Installer", getStr('logging_yes'));
+        } else {
+           $message = getStr('function_error')."$result";
+           Qt::MessageBox::information (this, "$distroname Installer", $message);
+        }
+}
+
+
+sub logging_no # SLOT: ( );
+{
+        my ($check) = @_;
+	my $message = "";
+        my $result = do_system2("/bin/echo chkconfig --del syslog | chroot $mnt");
+        if ($result eq "0") {
+           Qt::MessageBox::information( this, "$distroname Installer", getStr('logging_no'));
+        } else {
+           $message = getStr('function_error')."$result";
+           Qt::MessageBox::information (this, "$distroname Installer", $message);
+        }
+}
+
 
 sub writeRootPW # SLOT: (  )
 {
 	my($check) = @_;
-
-	# Get both root passwords and test for sameness 
+	my $result = "";
+	my $message = "";
+	# Get both root passwords 
 	my $pw1 = lineEdit1->text();
 	my $pw2 = lineEdit2->text();
-	if ($pw1 ne $pw2) {
-           Qt::MessageBox::warning( undef, "$distroname Installer", getStr('pword_not_same'), getStr('btn_retry')); 
-        } else {
-            # Passwords ok - now write to disk
-	    print "DEBUG: Password\n";
-	    do_system("/bin/echo $pw1 | chroot $mnt /usr/bin/passwd --stdin root");
 
-	    Qt::MessageBox::information( this, "$distroname Installer", getStr('pword_ok'));
+	# Test - if not same ->reject, if null -> reject, if short -> warn and continue 
+        if ($pw1 ne $pw2) {
+           Qt::MessageBox::warning( undef, "$distroname Installer", getStr('pword_not_same'), getStr('btn_retry'));
+	   return;
+        }
+        if ($pw1 eq "") {
+           Qt::MessageBox::warning(undef, "$distroname Installer", getStr('pword_null'), getStr('btn_retry'));
+           return;
+        }
+	if (length($pw1)<8) {
+	   Qt::MessageBox::information(this, "$distroname Installer", getStr('pword_short'));
+	}
+
+	# Passwords ok - now write to disk
+	$result = do_system2("/bin/echo $pw1 | chroot $mnt /usr/bin/passwd --stdin root");
+        print "\nDEBUG: Password: $result\n";
+	if ($result eq "0") {	 
+	   Qt::MessageBox::information( this, "$distroname Installer", getStr('pword_ok'));
+	} else {
+           $message = getStr('function_error')."$result";
+           Qt::MessageBox::information (this, "$distroname Installer", $message);
 	}
 }
+
+
+sub deleteGuest # SLOT: ( )
+{
+	my($check)  = @_;
+	my $comm    = "";
+	my $message = "";
+	my $result  = "";
+
+	# Delete the guest account and report - not found, deleted ok, error
+	$comm="/usr/sbin/userdel -r guest";
+	my $result = do_system2("/bin/echo $comm | chroot $mnt");
+	print "\nDEBUG: Delete Guest result = $result\n";
+        if ($result eq "1536") {
+	   Qt::MessageBox::information (this, "$distroname Installer", getStr('guest_not_found'));
+        } elsif ($result eq "0") {
+           Qt::MessageBox::information (this, "$distroname Installer", getStr('guest_del_ok'))
+	} else { 
+           $message = getStr('function_error')."$result";
+           Qt::MessageBox::information (this, "$distroname Installer", $message);
+	}
+}
+
+
+sub createUser # SLOT: ( )
+{
+        my($check)  = @_;
+        my $message = "";
+        my $comm    = "";
+        my $error   = "";
+        my $result  = "";
+ 
+        # Get inputs (realname optional)
+	my $username = lineEditLogin->text();
+        my $realname = lineEditReal->text();
+        my $pw1      = lineEditUPW->text();
+        my $pw2      = lineEditUPW2->text();
+
+	## Validation - user/pw1/pw2 null->reject, pw1<>pw2->reject, pw short->warn and accept
+
+	if ( ($username eq "") || ($pw1 eq "") || ($pw2 eq "") ) {
+	   Qt::MessageBox::warning(undef, "$distroname Installer", getStr('missing_value'), getStr('btn_retry'));
+           return;
+	}
+	if ($pw1 ne $pw2) {
+	   Qt::MessageBox::warning(undef, "$distroname Installer", getStr('pword_not_same'), getStr('btn_retry'));
+	   return;
+	}
+	if ($pw1 eq "") {
+	   Qt::MessageBox::warning(undef, "$distroname Installer", getStr('pword_null'), getStr('btn_retry'));
+	   return;
+	} 
+	if (length($pw1)<8) {
+	   Qt::MessageBox::information(undef, "$distroname Installer", getStr('pword_short'));
+        }
+
+	## Data accepted, make the user
+
+	# Add the group
+	$result = do_system2("/bin/echo groupadd $username | chroot $mnt");
+	print "\nDEBUG add group result=$result\n";
+        if (($result ne "0") && ($result ne "2304")) {
+           $message = getStr('function_error')."$result";
+           Qt::MessageBox::information (this, "$distroname Installer", $message);
+        }
+
+	# Add the user
+	if ($realname eq "") {
+	   $comm = "useradd -g $username -d /home/$username -s /bin/bash  -m -k /etc/skel -p foo $username";
+	} else {
+	   $comm = "useradd -g $username -d /home/$username -s /bin/bash -c $realname -m -k /etc/skel -p foo $username";
+	}
+	$result = do_system2("/bin/echo $comm | chroot $mnt");
+	print "\nDEBUG add user result=$result\n";
+	if (($result ne "0") && ($result ne "2304")) {
+           $message = getStr('function_error')."$result";
+           Qt::MessageBox::information (this, "$distroname Installer", $message);
+	}
+	if ($result eq "2304") {
+	   $message = "update";
+	}
+
+	# Change the password
+	$result = do_system2("/bin/echo $pw1 | chroot $mnt /usr/bin/passwd --stdin $username");
+	print "\nDEBUG: change user password result =$result\n";
+        if ($result ne "0") {
+           $message = getStr('function_error')."$result";
+           Qt::MessageBox::information (this, "$distroname Installer", $message);
+	   return;
+	}
+	if ($message eq "update") {
+	   Qt::MessageBox::information (this, "$distroname Installer", getStr('pword_updated')); 
+        } else {
+	   $message = getStr('user')."$username".getStr('user_added');
+	   Qt::MessageBox::information (this, "$distroname Installer", $message);
+	}
+	lineEditLogin->clear();
+	lineEditReal->clear();
+	lineEditUPW->clear();
+	lineEditUPW2->clear();
+}
+

@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install-lang.pm.in,v 1.7 2004/04/19 15:42:30 tom_kelly33 Exp $
+# $Id: livecd-install-lang.pm.in,v 1.8 2004/04/24 06:51:34 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -63,7 +63,11 @@ my %strings = (
 	'btn_yes'          => [ "&Yes", undef ],
 	'btn_no'           => [ "&No", undef ],
 	'btn_inst'         => [ "&Install", undef ],
-        'btn_writepw'      => [ "&Write Password", undef ],
+        'btn_write_pw'     => [ "&Write Password", undef ],
+	'btn_del_guest'    => [ "&Delete Guest", undef ],
+	'btn_cr_user'      => [ "&Create User", undef ],
+	'btn_logging_yes'  => [ "&Activate Logging", undef ],
+	'btn_logging_no'   => [ "&Deactivate Logging", undef ],
 	
 	'yes'              => [ "Yes", undef ],
 
@@ -93,9 +97,21 @@ my %strings = (
 	'part_name_home'   => [ "/home", undef ],
 	'part_name_root'   => [ "/", undef ],
 
-	'pword_not_same'   => [ "Passwords are not the same. Please try again.", undef],
-	'pword_ok'         => [ "New root password has been written successfully.", undef],
+	'function_error'   => [ "System function error, return value:", undef ],
+        'missing_value'    => [ "A value is missing. Please include login and password twice.", undef ],
+	'logging_yes'	   => [ "Logging has been activated.", undef ],
+	'logging_no'	   => [ "Logging has been deactivated.", undef ],
 
+	'pword_null'       => [ "A null password is not permitted.", undef ],
+	'pword_not_same'   => [ "Passwords are not the same. Please try again.", undef ],
+	'pword_short'	   => [ "Caution: A short password (< 8 characters) may be unsafe.", undef ],
+	'pword_ok'         => [ "New root password has been written successfully.", undef ],
+	'pword_updated'	   => [ "User exists. Password has been updated.", undef ],
+
+	'user'		   => [ "User ", undef ],
+	'user_added'	   => [ " was added successfully.", undef ],
+	'guest_del_ok'     => [ "Guest account has been deleted.", undef ],
+	'guest_not_found'  => [ "Account 'guest' was not found.", undef ],
 	'inst_scan'        => [ "Scanning available directories", undef ],
 	'inst_fstab'       => [ "Creating /etc/fstab", undef ],
 	'inst_done'        => [ "Installation completed. Please press Next to continue.", undef ],
@@ -110,10 +126,10 @@ my %strings = (
 	'fstab_info'       => [ "Entries below this line were automatically added by $distroname install", undef ],
 
 	'scr_1_title'      => [ "Step 1 of 6: Welcome", undef ],
-	'scr_1_text'       => [ "<p><b>Welcome</b> to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk.</p>\n<p>Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can exit/abort at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse or unintended side effects on your current running system. These could include erasing of important data and/or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n<p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or $distroname\'s homepage: $distrohome.", undef ],
+	'scr_1_text'       => [ "<p><b>Welcome</b> to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can exit/abort at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing of important data or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n<p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.", undef ],
 
 	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", undef ],
-	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify devices for use by the <i>root</i> and <i>swap</i>, while a separate <i>home</i> partition is recommended.</p>\n", undef ],
+	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify the <i>root</i> and <i>swap</i> locations. A separate <i>home</i> partition is recommended, not required.</p>", undef ],
 	'scr_2_fmt'        => [ "Format", undef ],
 	'scr_2_req'        => [ "Required Partitions", undef ],
 	'scr_2_opt'        => [ "Optional Partitions", undef ],
@@ -125,7 +141,7 @@ my %strings = (
 	
 
 	'scr_3_title'      => [ "Step 3 of 6: Partition Verification", undef ],
-	'scr_3_text'       => [ "<p><b>Warning</b> The following changes will be made to your system to install $distroname. If you want to make changes, press the <i>Back</i> button or press <i>Next</i> to start the installation process.</p>", undef ],
+	'scr_3_text'       => [ "<p><b>Warning</b> The following changes will be made to your system to install $distroname. To correct your selections, press the <i>Back</i> button, otherwise press <i>Next</i> to start the installation process.</p>", undef ],
 	'scr_3_mnt'        => [ "Mount",  undef ],
 	'scr_3_dev'        => [ "Device", undef ],
 	'scr_3_fmt'        => [ "Format", undef ],
@@ -139,17 +155,24 @@ my %strings = (
 	'scr_4_progress'   => [ "Progress Information", undef ],
 
 
-	'scr_5_title'      => [ "Step 5 of 6: Bootloader Installation", undef ],
-	'scr_5_text'       => [ "<p><b>Installation</b> of the bootloader will now take place. Please select the drive or partition on which you would like to install it and press <i>Install</i> to install the bootloader, or <i>Next</i> to complete the installation.</p>", undef ],
+	'scr_5_title'      => [ "Step 5 of 6: Bootloader Installation and Logging", undef ],
+	'scr_5_text'       => [ "<p><b>Installation</b> of the bootloader will now take place. Please select the drive or partition on which you would like to install it and press <i>Install</i> to install the bootloader.</p>", undef ],
+	'scr_52'	   => [ "<p>System logging is disabled on the livecd. To enable logging on the installation, press the activate logging button.</p>", undef ],
 
 
-	'scr_6_title'      => [ "Step 6 of 6: Reboot", undef ],
-	'scr_6_text'       => [ "<p><b>Congratulations</b> you have completed the installation of $distroname to your local disk. Now select a new root password for the installation, to ensure the security of your system.</p><p>Remember to delete or change the password of the guest account when you reboot the system.", undef ],
-	'scr_6_typeroot'   => [ "Please type the new root password.", undef ],
-	'scr_6_typeroot2'  => [ "Please retype the new root password.", undef ],
+	'scr_6_title'      => [ "Step 6 of 6: Customize and Reboot", undef ],
+	'scr_6_text'       => [ "<p><b>Congratulations</b> you have installed $distroname to your local drive. Now you can customize it.", undef ],
+	'scr_6_typeroot'   => [ "Type the root password.", undef ],
+	'scr_6_typeroot2'  => [ "Please retype to confirm.", undef ],
 	'scr_6_chooserb'   => [ "Choose to reboot or not and press <i>Finish</i> to exit the installer.", undef],
 	'scr_6_no'         => [ "No, I will reboot my system later.", undef ],
-	'scr_6_yes'        => [ "Yes, reboot my system automatically now.", undef ]
+	'scr_6_yes'        => [ "Yes, reboot my system automatically now.", undef ],
+	'scr_6_del_guest'  => [ "Delete the guest user account (optional, if present).", undef ],
+	'scr_6_add_user'   => [ "Add user(s) (optional and repeatable):", undef ],
+	'scr_6_au_login'   => [ "Login name:", undef ],
+	'scr_6_au_real'    => [ "Real name:", undef ],
+	'scr_6_au_pw'      => [ "Password:", undef ],
+	'scr_6_au_rpw'     => [ "Repeat password:", undef ]
 ); 
 
 sub getMyLang {
