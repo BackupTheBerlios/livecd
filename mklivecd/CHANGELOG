@@ -1,5 +1,10 @@
-# $Id: CHANGELOG,v 1.127 2005/01/01 20:35:34 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.128 2005/01/02 01:11:14 tom_kelly33 Exp $
 
+* 2005-01-01
+	[mklivecd]
+	- added syslinux >= 1.76-15mdk as a requirement
+	- commented out halt file copy 
+	- readjusted step count for progress bar
 * 2004-12-29,30,31
 	[mklivecd]
 	- adjusted step counter for initrd progress

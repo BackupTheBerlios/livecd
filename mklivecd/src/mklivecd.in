@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.131 2005/01/01 20:35:34 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.132 2005/01/02 01:11:14 tom_kelly33 Exp $
 #
 
 use strict;
@@ -607,7 +607,7 @@ sub create_initrd {
 
 	# start progress bar
 	my $pos = 0;
-	start_progress("Creating initrd", 43+scalar(@allmods)); #ZZ
+	start_progress("Creating initrd", 42+scalar(@allmods)); 
 
 	# create directories
 	my $dir = $workdir."/initrd.dir";
