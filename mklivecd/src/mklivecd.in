@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.96 2004/01/10 17:56:41 jaco Exp $
+# $Id: mklivecd.in,v 1.97 2004/01/11 18:09:20 jaco Exp $
 #
 
 use strict;
@@ -733,7 +733,7 @@ sub create_compressed {
 				chomp;
 				$ex .= " $_";
 			}
-			my $iso = "nice -n 19 $loopcmp $o_root $workdir/livecd/livecd.$o_looptype -info -e $ex 2>&1";
+			my $iso = "$loopcmp $o_root $workdir/livecd/livecd.$o_looptype -info -e $ex 2>&1";
 			open CMP, "$iso |";
 			my $line;
 			my $linep = "";
@@ -753,7 +753,7 @@ sub create_compressed {
 			start_progress("Creating loop image", 10001);
 			my $iso = "mkisofs -R -exclude-list $workdir/excludes.list -sort $workdir/sort.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v";
 			$iso = defined($loopcmp) ? "$iso $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype" : "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
-			$iso = "(nice -n 19 $iso) 2>&1";
+			$iso = "($iso) 2>&1";
 			open CMP, "$iso |";
 			my $line;
 			while ($line = <CMP>) {
@@ -857,7 +857,7 @@ sub create_finaliso {
 
 	# create actual iso
 	$opts{isoextrafiles} = "" unless (defined($opts{isoextrafiles}));
-	my $cmd="nice -n 19 mkisofs -pad -l -R -J -v -v \\\
+	my $cmd="mkisofs -pad -l -R -J -v -v \\\
 		-V '".$opts{volumeid}."' \\\
 		-A '".$opts{application}."' \\\
 		-p '".$opts{preparer}."' \\\
