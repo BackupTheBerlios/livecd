@@ -18,8 +18,9 @@
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
+# The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.57 2003/11/03 14:13:40 jaco Exp $
+# $Id: mklivecd.in,v 1.58 2003/11/05 12:51:18 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -518,7 +519,7 @@ restore_theme() {
 }
 
 
-echo "$PROGNAME, version $VERSION, http://www.linuxminicd.org/mklivecd/" >&2
+echo "$PROGNAME, version $VERSION, http://livecd.berlios.de" >&2
 echo "Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>" >&2
 while [ $# -gt 0 ]; do
 	case $1 in

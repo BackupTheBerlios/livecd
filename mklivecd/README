@@ -1,7 +1,7 @@
 The latest stable version of the package can alway be found at
 the following URL:
 
-    http://www.linuxminicd.org/mklivecd/
+    http://livecd.berlios.de
 
 The package naming tries to follow the Linux kernel approach to
 versioning, i.e. versions are in the format "major.minor.patch"

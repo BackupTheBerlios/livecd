@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.67 2003/11/05 12:38:10 jaco Exp $
+# $Id: CHANGELOG,v 1.68 2003/11/05 12:51:18 jaco Exp $
 
 * Wed, Nov 05, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -33,6 +33,7 @@
       - Add support for ATI GLX drivers
       - Detect USB Flash devices and mount them rw
       - s/LIVECD.MNT/.livecd.mnt/
+      - Updated URL: http://livecd.berlios.de
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
@@ -40,6 +41,7 @@
       - Added support for translucency kernel module
       - Utilise the fstab option as passed on the iso commandline
         to automatically mount partitions rw if specified
+      - Updated URL: http://livecd.berlios.de
     [mklivecd]:
       - Be verbose in depmod command
       - Copy SCSI and optinal modules in addition to normal
@@ -55,6 +57,7 @@
         options to identify iso uniquely
       - Add --usbhome option to always use connected USB flash
         devices as a persistent home
+      - Updated URL: http://livecd.berlios.de
 
 
 * Mon, Oct 06, 2003, 0.5.6
