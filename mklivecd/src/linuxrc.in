@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.24 2003/11/01 11:42:17 jaco Exp $
+# $Id: linuxrc.in,v 1.25 2003/11/02 13:34:42 jaco Exp $
 #
 
 ### global variables
@@ -390,40 +390,21 @@ createramdisk() {
 				"mkdir -p /tmp && chmod 777 /tmp"
 			docmd   "Creating /var structure" \
 				"mkdir -p /var" \
-				"cd /initrd$MNTLIVECD/var ; \
-				for d in *; do \
-					if [ -d /initrd$MNTLIVECD/var/\$d ]; then \
-						case \$d in \
-							cache|db|local|lock|log|mail|nis|opt|preserve|run|spool|yp) \
-								mkdir -p /var/\$d || true ; \
-								for s in \$d/*; do \
-									[ -d /initrd$MNTLIVECD/var/\$s ] && mkdir -p /var/\$s || true; \
-								done \
-								;; \
-							tmp|lib)
-								;;
-							*) \
-								ln -sf /initrd$MNTLIVECD/var/\$d /var/\$d || true; \
-								;; \
-						esac \
-					fi \
-				done" \
-				"mkdir -p /var/lib" \
-				"cd /initrd$MNTLIVECD/var/lib ;
-				for d in *; do \
-					if [ -d /initrd$MNTLIVECD/var/lib/\$d ]; then \
-						case \$d in \
-							rpm|urpmi) \
-								ln -sf /initrd$MNTLIVECD/var/lib/\$d /var/lib/\$d || true; \
-								;; \
-							*) \
-								mkdir -p /var/lib/\$d || true ; \
-								for s in \$d/*; do \
-									[ -d /initrd$MNTLIVECD/var/lib/\$s ] && mkdir -p /var/lib/\$s || true; \
-								done \
-								;; \
-						esac \
-					fi \
+				"for d in \`find /initrd$MNTLIVECD/var/ -type d\`; do \
+					d=\${d#/initrd$MNTLIVECD/var/} ; \
+					case \$d in \
+						lib/rpm*|lib/urpmi*) \
+							[ ! -e /var/\$d ] && ln -sf /initrd$MNTLIVECD/var/\$d /var/\$d || true; \
+							;; \
+						cache*|db*|lib*|local*|lock*|log*|mail*|nis*|opt*|preserve*|run*|spool*|yp*) \
+							mkdir -p /var/\$d || true ; \
+							;; \
+						tmp*) \
+							;; \
+						*) \
+							[ ! -e /var/\$d ] && ln -sf /initrd$MNTLIVECD/var/\$d /var/\$d || true; \
+							;; \
+					esac \
 				done" \
 				"mkdir -p /var/lock/subsys" \
 				"mkdir -p /var/log && touch /var/log/wtmp" \
