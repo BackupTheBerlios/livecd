@@ -357,11 +357,13 @@ sub showInstall
     system("mount -t ".$devs->{$tmppart}{type}." $tmppart $mnt/tmp") if (defined($tmppart));
 
     system("mkdir -p $mnt/initrd ; chmod 755 $mnt/initrd");
+    system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
     system("mkdir -p $mnt/dev ; chmod 755 $mnt/dev");
     system("mkdir -p $mnt/proc ; chmod 755 $mnt/proc");
+    system("mkdir -p $mnt/root/tmp ; chmod -R 755 $mnt/root/tmp");
     system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
-    system("mkdir -p $mnt/var/lock/subsys ; chmod 755 -R $mnt/var/lock/subsys");
-    system("mkdir -p $mnt/var/run/netreport ; chmod 755 -R $mnt/var/run/netreport ; touch $mnt/var/run/utmp");
+    system("mkdir -p $mnt/var/lock/subsys ; chmod -R 755 $mnt/var/lock/subsys");
+    system("mkdir -p $mnt/var/run/netreport ; chmod -R 755 $mnt/var/run/netreport ; touch $mnt/var/run/utmp");
     system("cd $mnt/var ; ln -s ../tmp");
 
     doCopy($this, $initrd, $devs, @dirs);
@@ -592,6 +594,7 @@ image=$kernel
     system("mount -t proc none $mnt/proc");
     system("mount -t devfs none $mnt/dev");
     system("rm -rf $mnt/$initrd");
+    system("mkdir -p $mnt/root/tmp");
     my $with = "";
     system("chroot $mnt /sbin/mkinitrd -v $with $initrd $kernelver");
     system("/sbin/lilo -v -r $mnt");
