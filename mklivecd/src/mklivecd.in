@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.107 2004/02/10 05:00:21 jaco Exp $
+# $Id: mklivecd.in,v 1.108 2004/02/10 05:23:14 jaco Exp $
 #
 
 use strict;
@@ -136,7 +136,7 @@ Image generation:
                                    according to the mkisofs-style sort specifier
                                    as detailed in file.
    --kernel <kernel>               Kernel to use as default for the LiveCD
-                                   image. 
+                                   image. (Output of uname -r)
                                    (default: $o_kernel)
    --experimental                  Enable experimental LiveCD feautures. 
                                    Currently this option enables overlay 
@@ -413,7 +413,7 @@ sub parse_options {
 	# optional stuff
 	die_("\nFATAL: Specified sort file (--sort) '".$opts{sort}."' does not exist\n") if (defined($opts{sort}) && !(-f $opts{sort}));
 	#print STDERR "\nWARNING: Sort option ignored for 'sqfs' (squashfs) looptype" if (defined($opts{sort}) && ($o_looptype =~ /sqfs/));
-	die_("\nFATAL: Kernel (--kernel) '".$o_kernel."' not installed on the root image\n") if (!(-d $o_root."/lib/modules/".$o_kernel));
+	die_("\nFATAL: Kernel (--kernel) '".$o_kernel."' not installed on the root image. (Directory '".$o_root."/lib/modules/".$o_kernel."' does not exist.)\n") if (!(-d $o_root."/lib/modules/".$o_kernel));
 	die_("\nFATAL: Extra ISO directory (--isoextrafiles) '".$opts{isoextrafiles}."' does not exist\n") if (defined($opts{isoextrafiles}) && !(-d $opts{isoextrafiles}));
 	die_("\nFATAL: Unknown splash (--splash) option '$o_splash'\n") unless ($o_splash =~ /yes|no/);
 	
