@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: handles.cpp,v 1.4 2004/01/25 14:28:11 jaco Exp $
+ * $Id: handles.cpp,v 1.5 2004/01/25 17:09:59 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -29,13 +29,15 @@
 
 Handles::Handles() 
 {
-	FUNC("");
+	FUNC_START("");
+	FUNC_END();
 }
 
 
 Handles::~Handles()
 {
-	FUNC("~destructor");
+	FUNC_START("~destructor");
+	FUNC_END();
 }
 
 
@@ -44,7 +46,7 @@ Handles::find(const char *file,
 	      unsigned flags, 
 	      unsigned modes)
 {
-	FUNC("file='%s', flags=%u, modes=%u", file, flags, modes);
+	FUNC_START("file='%s', flags=%u, modes=%u", file, flags, modes);
 
 	for (vector<t_handle>::iterator i = handles.begin(); i != handles.end(); ) {
 		if (i->name == file) {
@@ -52,14 +54,14 @@ Handles::find(const char *file,
 			    (((flags == 0xffff) || (i->flags == flags)) ||
 			     ((i->modes == modes) && (i->flags == flags)))) {
 				TRACE("Found handle for file='%s', fd=%d", file, i->fd);
-				return &*i;
+				FUNC_RET("%p", &*i, &*i);
 			}
 		} 
 		i++;
 	}
 	
 	TRACE("Existing handle for file='%s' not found", file);
-	return NULL;
+	FUNC_RET("%p", NULL, NULL);
 }
 
 void 
@@ -68,16 +70,16 @@ Handles::add(string name,
 	    unsigned flags, 
 	    unsigned modes)
 {
-	FUNC("name='%s', fd=%d, flags=%u, modes=%u", name.c_str(), fd, flags, modes);
-	     
+	FUNC_START("name='%s', fd=%d, flags=%u, modes=%u", name.c_str(), fd, flags, modes);
 	handles.push_back((t_handle){name, fd, flags, modes});
+	FUNC_END();
 }
 
 
 void
 Handles::erase(vector<t_handle>::iterator it)
 {
-	FUNC("it=(iterator)");
-	
+	FUNC_START("it=(iterator)");
 	handles.erase(it);
+	FUNC_END();
 }

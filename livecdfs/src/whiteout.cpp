@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: whiteout.cpp,v 1.7 2004/01/25 14:28:11 jaco Exp $
+ * $Id: whiteout.cpp,v 1.8 2004/01/25 17:09:59 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -36,58 +36,60 @@
 Whiteout *
 Whiteout::create(const string &tmp)
 {
-	FUNC("tmp='%s'", tmp.c_str());
+	FUNC_START("tmp='%s'", tmp.c_str());
 	     
 	if (!Path::exists(tmp.c_str(), S_IFDIR)) {
 		ERROR("FATAL: The path specified by 'rw_tmp='%s' does not exist as a directory.", tmp.c_str());
-		return NULL;
+		FUNC_RET("%p", NULL, NULL);
 	}
 	
 	int fd = open(Path::join(tmp, WHITEOUT).c_str(), O_RDWR | O_CREAT, 0644);
 	if (fd > 0) {
 		close(fd);
-		return new Whiteout(tmp);
+		Whiteout *wo = new Whiteout(tmp);
+		FUNC_RET("%p", wo, wo);
 	}
 	else {
 		ERROR("FATAL: Unable to create/read '.whiteout' in rw_tmp='%s'", tmp.c_str());
-		return NULL;
+		FUNC_RET("%p", NULL, NULL);
 	}
 }
 
 
 Whiteout::Whiteout(const string &tmp)
 {
-	FUNC("tmp='%s'", tmp.c_str());
-	
+	FUNC_START("tmp='%s'", tmp.c_str());
 	this->tmp = tmp;
-	
 	this->load("");
+	FUNC_END();
 }
 
 
 Whiteout::~Whiteout()
 {
-	FUNC("~destructor");
+	FUNC_START("~destructor");
+	FUNC_END();
 }
 
 
 bool 
 Whiteout::isVisible(const string &path)
 {
-	FUNC("path='%s'", path.c_str());
+	FUNC_START("path='%s'", path.c_str());
 
 	if (!(path.rfind(WHITEOUT) < path.length())) {
 		t_whiteout *entry = find(path);
-		return (entry == NULL) ? true : false;
+		bool ret = (entry == NULL) ? true : false;
+		FUNC_RET("%i", ret, ret);
 	}
-	return false;
+	FUNC_RET("%i", false, false);
 }
 
 
 void
 Whiteout::setVisible(const string &path, bool visible)
 {
-	FUNC("path='%s', visible='", path.c_str(), visible);
+	FUNC_START("path='%s', visible='", path.c_str(), visible);
 	     
 	t_whiteout *entry = find(path);
 	if (visible) {
@@ -98,55 +100,58 @@ Whiteout::setVisible(const string &path, bool visible)
 	else if (entry == NULL) {
 		add(path);
 	}
-	
+	FUNC_END();
 }
 
 
 t_whiteout *
 Whiteout::find(const string &path)
 {
-	FUNC("path='%s'", path.c_str());
+	FUNC_START("path='%s'", path.c_str());
 	
 	TRACE("Number of whiteout entries=%u", entries.size());
 	for (vector<t_whiteout>::iterator i = entries.begin(); i != entries.end(); ) {
 		if (i->path == path) {
 			TRACE("Found whiteout path='%s'", path.c_str());
-			return &*i;
+			FUNC_RET("%p", &*i, &*i);
 		} 
 		i++;
 	}
 	TRACE("Could not find whiteout path='%s'", path.c_str());
-	return NULL;
+	FUNC_RET("%p", NULL, NULL);
 }
 
 void 
 Whiteout::add(const string &path) 
 {
-	FUNC("path='%s'", path.c_str());
+	FUNC_START("path='%s'", path.c_str());
 	     
 	entries.push_back((t_whiteout){path});
 	TRACE("Number of whiteout entries=%u", entries.size());
-	
 	store("");
+	
+	FUNC_END();
 }
 
 
 void
 Whiteout::erase(vector<t_whiteout>::iterator it)
 {
-	FUNC("it=(iterator)");
+	FUNC_START("it=(iterator)");
 	
 	entries.erase(it);
 	TRACE("Number of whiteout entries=%u", entries.size());
 	
 	store("");
+	
+	FUNC_END();
 }
 
 
 void 
 Whiteout::load(const string &path)
 {
-	FUNC("path='%s'", path.c_str());
+	FUNC_START("path='%s'", path.c_str());
 	
 	string file = Path::join(Path::join(tmp, path), WHITEOUT);
 	int fd = open(file.c_str(), O_RDWR | O_CREAT, 0644);
@@ -170,13 +175,14 @@ Whiteout::load(const string &path)
 		ERROR("Unable to open/read '.whiteout' in rw_tmp='%s'", tmp.c_str());
 	}
 	TRACE("Number of whiteout entries=%u", entries.size());
+	FUNC_END();
 }
 
 
 void 
 Whiteout::store(const string &path)
 {
-	FUNC("path='%s'", path.c_str());
+	FUNC_START("path='%s'", path.c_str());
 	
 	string file = Path::join(Path::join(tmp, path), WHITEOUT);
 	int fd = open(file.c_str(), O_RDWR | O_TRUNC | O_CREAT, 0644);
@@ -192,4 +198,5 @@ Whiteout::store(const string &path)
 		ERROR("Unable to create/write '.whiteout' in rw_tmp='%s'", tmp.c_str());
 	}
 	TRACE("Number of whiteout entries=%u", entries.size());
+	FUNC_END();
 }

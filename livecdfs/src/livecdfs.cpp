@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.19 2004/01/25 14:28:11 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.20 2004/01/25 17:09:59 jaco Exp $
  */
 
 #include <dirent.h>
@@ -43,36 +43,36 @@ t_active_livecdfs *
 LiveCDFS::findActive(const string &root, 
 		     const string &tmp)
 {
-	FUNC("root='%s', tmp='%s'", root.c_str(), tmp.c_str());
+	FUNC_START("root='%s', tmp='%s'", root.c_str(), tmp.c_str());
 	
 	for (vector<t_active_livecdfs>::iterator i = activefs.begin(); i != activefs.end(); ) {
 		TRACE("Testing LiveCDFS instance, i=%p, root='%s', tmp='%s'", &*i, i->root.c_str(), i->tmp.c_str());
 		if ((i->root == root) && (i->tmp == tmp)) {
 			TRACE("Found existing LiveCDFS at i=%p, fs=%p, root='%s', tmp='%s'", &*i, i->fs, root.c_str(), tmp.c_str());
-			return &*i;
+			FUNC_RET("%p", &*i, &*i);
 		} 
 		i++;
 	}
 	TRACE("Existing LiveCDFS instance not found");
-	return NULL;
+	FUNC_RET("5p", NULL, NULL);
 }
 
 
 t_active_livecdfs *
 LiveCDFS::findActive(const LiveCDFS* fs)
 {
-	FUNC("fs=%p", fs);
+	FUNC_START("fs=%p", fs);
 	
 	for (vector<t_active_livecdfs>::iterator i = activefs.begin(); i != activefs.end(); ) {
 		TRACE("Testing LiveCDFS instance, i=%p, fs=%p", &*i, i->fs);
 		if (i->fs == fs) {
 			TRACE("Found existing LiveCDFS at i=%p, fs=%p", &*i, i->fs);
-			return &*i;
+			FUNC_RET("%p", &*i, &*i);
 		} 
 		i++;
 	}
 	TRACE("Existing LiveCDFS instance not found");
-	return NULL;
+	FUNC_RET("%p", NULL, NULL);
 }
 
 
@@ -81,19 +81,19 @@ LiveCDFS::create(struct list_head *cfg,
 		 struct dir_cache *cache, 
 		 struct credentials *cred)
 {
-	FUNC("cfg=%p, cache=%p, cred=%p", cfg, cache, cred);
+	FUNC_START("cfg=%p, cache=%p, cred=%p", cfg, cache, cred);
 	
 	const char *opt = lu_opt_getchar(cfg, "MOUNT", "ro_root");
 	if (opt == NULL) {
 		ERROR("FATAL: Please specify '-o ro_root=<point>', defining the ro root (underlay) as a mount option");
-		return NULL;
+		FUNC_RET("%p", NULL, NULL);
 	}
 	string root = string(opt);
 	
 	opt = lu_opt_getchar(cfg, "MOUNT", "rw_tmp");
 	if (opt == NULL) {
 		ERROR("FATAL: Please specify '-o rw_tmp=<point>', defining the temporary rw workspace, as a mount option");
-		return NULL;
+		FUNC_RET("%p", NULL, NULL);
 	}
 	string tmp = string(opt);
 
@@ -126,14 +126,14 @@ LiveCDFS::create(struct list_head *cfg,
 		fs = active->fs;
 		active->count++;
 	}
-	return fs;
+	FUNC_RET("%p", fs, fs);
 }
 
 
 void
 LiveCDFS::destroy(LiveCDFS *fs) 
 {
-	FUNC("fs=", fs);
+	FUNC_START("fs=", fs);
 	
 	t_active_livecdfs *active = findActive(fs);
 	if (active != NULL) {
@@ -150,6 +150,7 @@ LiveCDFS::destroy(LiveCDFS *fs)
 	else {
 		ERROR("fs=%p not found, cannot destroy", fs);
 	}
+	FUNC_END();
 }
 
 
@@ -159,7 +160,7 @@ LiveCDFS::LiveCDFS(struct list_head *cfg,
 		   Path *path,
 		   Whiteout *whiteout) 
 {
-	FUNC("cfg=%p, cache=%p, cred=%p, path=%p, whiteout=%p", cfg, cache, cred, path, whiteout);
+	FUNC_START("cfg=%p, cache=%p, cred=%p, path=%p, whiteout=%p", cfg, cache, cred, path, whiteout);
 	
 	this->cfg = cfg;
 	this->cache = cache;
@@ -169,32 +170,36 @@ LiveCDFS::LiveCDFS(struct list_head *cfg,
 	this->whiteout = whiteout;
 	
 	this->handles = new Handles();
+	
+	FUNC_END();
 }
 
 
 LiveCDFS::~LiveCDFS() 
 {
-	FUNC("~destructor");
+	FUNC_START("~destructor");
 	
 	delete path;
 	delete whiteout;
 	delete handles;
+	
+	FUNC_END();
 }
 
 
 int 
 LiveCDFS::doMount()
 {
-	FUNC("");
-	
-	return 1;
+	FUNC_START("");
+	FUNC_RET("%d", 1, 1);
 }
 
 
 void 
 LiveCDFS::doUmount()
 {
-	FUNC("");
+	FUNC_START("");
+	FUNC_END();
 }
 
 
@@ -202,10 +207,10 @@ int
 LiveCDFS::doReaddir(const char *name, 
 		    struct directory *dir)
 {
-	FUNC("name='%s', dir=%p", name, dir);
+	FUNC_START("name='%s', dir=%p", name, dir);
 	
 	if (!whiteout->isVisible(name)) {
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 	
 	DIR *rdir, *tdir;
@@ -222,7 +227,7 @@ LiveCDFS::doReaddir(const char *name,
 				if ((doStat(subpath.c_str(), &attr)) < 0) {
 					ERROR("Could not stat file='%s'", ent->d_name);
 					closedir(rdir);
-					return -1;
+					FUNC_RET("%d", -1, -1);
 				}
 				lu_cache_add2dir(dir, ent->d_name, NULL, &attr);
 			}
@@ -253,7 +258,7 @@ LiveCDFS::doReaddir(const char *name,
 				if ((doStat(subpath.c_str(), &attr)) < 0) {
 					ERROR("could not stat file='%s'", ent->d_name);
 					closedir(rdir);
-					return -1;
+					FUNC_RET("%d", -1, -1);
 				}
 				lu_cache_add2dir(dir, ent->d_name, NULL, &attr);
 			}
@@ -264,7 +269,7 @@ LiveCDFS::doReaddir(const char *name,
 		WARN("could not open directory, name='%s'", name);
 	}
 	
-	return 0;
+	FUNC_RET("%d", 0, 0);
 }
 
 
@@ -272,17 +277,17 @@ int
 LiveCDFS::doStat(const char *name, 
 		 struct lufs_fattr *attr)
 {
-	FUNC("name='%s', attr=%p", name, attr);
+	FUNC_START("name='%s', attr=%p", name, attr);
 	
 	if (!whiteout->isVisible(name)) {
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 	
 	string fullpath = path->mkpath(name);
 	struct stat buf;
 	if (lstat(fullpath.c_str(), &buf) < 0) {
 		WARN("Could not perform lstat on file='%s'", fullpath.c_str());
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 
 	TRACE("name='%s', buf.st_uid=%u, buf.st_gid=%u, buf.st_size=%u", name, buf.st_uid, buf.st_gid, buf.st_size);
@@ -296,7 +301,7 @@ LiveCDFS::doStat(const char *name,
 	attr->f_mtime = buf.st_mtime;
 	attr->f_ctime = buf.st_ctime;
 	
-	return 0;
+	FUNC_RET("%d", 0, 0);
 }
 
 
@@ -305,14 +310,14 @@ LiveCDFS::doReadlink(const char *link,
 		     char *buf, 
 		     int buflen)
 {
-	FUNC("link='%s', buf=%p, buflen=%u", link, buf, buflen);
+	FUNC_START("link='%s', buf=%p, buflen=%u", link, buf, buflen);
 	
 	if (!whiteout->isVisible(link)) {
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 	
-	string fullpath = path->mkpath(link);
-	return readlink(fullpath.c_str(), buf, buflen);
+	int ret = readlink(path->mkpath(link).c_str(), buf, buflen);
+	FUNC_RET("%d", ret, ret);
 }
 
 
@@ -323,15 +328,15 @@ LiveCDFS::doOpen(const char *file,
 	unsigned flags = mode ^ O_ACCMODE;
 	unsigned modes = mode & O_ACCMODE;
 	
-	FUNC("file='%s', mode=%u (modes=%u, flags=%u)", file, mode, modes, flags);
+	FUNC_START("file='%s', mode=%u (modes=%u, flags=%u)", file, mode, modes, flags);
 	
 	if (!whiteout->isVisible(file)) {
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 	
 	if (handles->find(file, flags, modes)) {
 		TRACE("file='%s' already open", file);
-		return 0;
+		FUNC_RET("%d", 0, 0);
 	}
 	
 	bool created = false;
@@ -361,7 +366,7 @@ LiveCDFS::doOpen(const char *file,
 		}
 		else {
 			ERROR("File='%s', is not a regular file nor symlink, cannot create copy on temp space", file);
-			return -1;
+			FUNC_RET("%d", -1, -1);
 		}
 	}
 	else {
@@ -372,7 +377,7 @@ LiveCDFS::doOpen(const char *file,
 	int fd = open(openpath.c_str(), flags, modes);
 	if (fd <= 0) {
 		WARN("Unable to open file='%s', flags=%u, modes=%u", file, flags, modes);
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 	else if (created) {
 		whiteout->setVisible(file, true);
@@ -390,14 +395,14 @@ LiveCDFS::doOpen(const char *file,
 	handles->add(string(file), fd, flags, modes);
 	TRACE("%u files currently open", handles->size());
 	
-	return 0;
+	FUNC_RET("%d", 0, 0);
 }
 
 
 int 
 LiveCDFS::doRelease(const char *file)
 {
-	FUNC("file='%s'", file);
+	FUNC_START("file='%s'", file);
 	
 	t_handle *handle;
 	if ((handle = handles->find(file, 0xffff, 0xffff)) != NULL) {
@@ -410,7 +415,7 @@ LiveCDFS::doRelease(const char *file)
 	}
 	
 	TRACE("%u files currently open.", handles->size());
-	return 0;
+	FUNC_RET("%d", 0, 0);
 }
 
 
@@ -420,24 +425,24 @@ LiveCDFS::doRead(const char *file,
 		 unsigned long count, 
 		 char *buf)
 {
-	FUNC("file='%s', offset=%l, count=%ul, buf=%p", file, offset, count, buf);
+	FUNC_START("file='%s', offset=%l, count=%ul, buf=%p", file, offset, count, buf);
 	
 	int fd = open(path->mkpath(file).c_str(), O_RDWR);
 	if (fd <= 0) {
 		WARN("Cannot open file='%s' O_RDWR", file);
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 	
 	if (lseek(fd, offset, SEEK_SET) < 0) {
 		WARN("Seek for file='%s', fd=%d failed", file, fd);
 		close(fd);
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 
 	int res = read(fd, buf, count);
 	close(fd);
 	TRACE("Read count=%ul, res=%d", count, res);
-	return res;
+	FUNC_RET("%d", res, res);
 }
 
 
@@ -447,24 +452,24 @@ LiveCDFS::doWrite(const char *file,
 		  unsigned long count, 
 		  char *buf)
 {
-	FUNC("file='%s', offset=%l, count=%ul, buf=%p", file, offset, count, buf);
+	FUNC_START("file='%s', offset=%l, count=%ul, buf=%p", file, offset, count, buf);
 	
 	int fd = open(path->mkpath(file).c_str(), O_RDWR);
 	if (fd <= 0) {
 		WARN("Cannot open file='%s' O_RDWR", file);
-		return fd;
+		FUNC_RET("%d", fd, fd);
 	}
 	
 	if (lseek(fd, offset, SEEK_SET) < 0) {
 		WARN("Seek for file='%s', fd=%d failed", file, fd);
 		close(fd);
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 	
 	int res = write(fd, buf, count);
 	close(fd);
 	TRACE("Write count=%ul, res=%d", count, res);
-	return res;
+	FUNC_RET("%d", res, res);
 }
 
 
@@ -472,7 +477,7 @@ int
 LiveCDFS::doMkdir(const char *dir, 
 		  int mode)
 {
-	FUNC("dir='%s', mode=%d", dir, mode);
+	FUNC_START("dir='%s', mode=%d", dir, mode);
 	
 	int res = mkdir(path->mktmp(dir).c_str(), mode);
 	if (res >= 0) {
@@ -481,14 +486,14 @@ LiveCDFS::doMkdir(const char *dir,
 	else {
 		ERROR("Could not create directory, dir='%s'", dir);
 	}
-	return res;
+	FUNC_RET("%d", res, res);
 }
 
 
 int 
 LiveCDFS::doRmdir(const char *dir)
 {
-	FUNC("dir='%s'", dir);
+	FUNC_START("dir='%s'", dir);
 
 	int res = 0;
 	if (path->isTmp(dir)) {
@@ -499,14 +504,14 @@ LiveCDFS::doRmdir(const char *dir)
 	if (path->isRoot(dir)) {
 		whiteout->setVisible(dir, false);
 	}
-	return res;
+	FUNC_RET("%d", res, res);
 }
 
 
 int 
 LiveCDFS::doUnlink(const char *file)
 {
-	FUNC("file='%s'", file);
+	FUNC_START("file='%s'", file);
 	
 	int res = 0;
 	if (path->isTmp(file)) {
@@ -517,7 +522,8 @@ LiveCDFS::doUnlink(const char *file)
 	if (path->isRoot(file)) {
 		whiteout->setVisible(file, false);
 	}
-	return res;
+	
+	FUNC_RET("%d", res, res);
 }
 
 
@@ -525,7 +531,7 @@ int
 LiveCDFS::doCreate(const char *file, 
 		   int mode)
 {
-	FUNC("file='%s', mode=%d", file, mode);
+	FUNC_START("file='%s', mode=%d", file, mode);
 	
 	string dir = path->getDir(file);
 	if ((dir.length() != 0) && !path->isTmp(dir)) {
@@ -541,7 +547,8 @@ LiveCDFS::doCreate(const char *file,
 	else {
 		ERROR("Could not create file='%s', mode=%d", file, mode);
 	}
-	return fd;
+	
+	FUNC_RET("%d", fd, fd);
 }
 
 
@@ -549,10 +556,10 @@ int
 LiveCDFS::doRename(const char *oldname, 
 		   const char *newname)
 {
-	FUNC("old='%s', new='%s'", oldname, newname);
+	FUNC_START("old='%s', new='%s'", oldname, newname);
 	
 	if (!whiteout->isVisible(oldname)) {
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 	
 	if (path->isDir(oldname)) {
@@ -563,7 +570,7 @@ LiveCDFS::doRename(const char *oldname,
 		// easy if it is on the root directory... (Amd we don't
 		// really want to copy all the contents over, now do we?)
 		ERROR("Rename of directories is currently not implemented");
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 	
 	string sold = path->mktmp(oldname);
@@ -581,7 +588,7 @@ LiveCDFS::doRename(const char *oldname,
 		ERROR("Could not rename old='%s' to new='%s', ret=%d", oldname, newname, ret);
 	}
 	
-	return ret;
+	FUNC_RET("%d", ret, ret);
 }
 
 
@@ -589,10 +596,10 @@ int
 LiveCDFS::doLink(const char *target, 
 		 const char *newlink)
 {
-	FUNC("target='%s', link='%s'", target, newlink);
+	FUNC_START("target='%s', link='%s'", target, newlink);
 	
 	if (!whiteout->isVisible(target)) {
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 	
 	string dir = path->getDir(newlink);
@@ -612,7 +619,8 @@ LiveCDFS::doLink(const char *target,
 	}
 	
 	TRACE("Creating link, target='%s', link='%s'", target, newlink);
-	return link(target, path->mktmp(newlink).c_str());
+	int ret = link(target, path->mktmp(newlink).c_str());
+	FUNC_RET("%d", ret, ret);
 }
 
 
@@ -620,10 +628,10 @@ int
 LiveCDFS::doSymlink(const char *target, 
 		    const char *newlink)
 {
-	FUNC("target='%s', link='%s'", target, newlink);
+	FUNC_START("target='%s', link='%s'", target, newlink);
 	     
 	if (!whiteout->isVisible(target)) {
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 	
 	string dir = path->getDir(newlink);
@@ -644,7 +652,8 @@ LiveCDFS::doSymlink(const char *target,
 	}
 	
 	TRACE("Creating link, target='%s', link='%s'", target, newlink);
-	return symlink(target, path->mktmp(newlink).c_str());
+	int ret = symlink(target, path->mktmp(newlink).c_str());
+	FUNC_RET("%d", ret, ret);
 }
 
 
@@ -652,10 +661,10 @@ int
 LiveCDFS::doSetattr(const char *file, 
 		    struct lufs_fattr *attr)
 {
-	FUNC("file='%s', attr=%p", file, attr);
+	FUNC_START("file='%s', attr=%p", file, attr);
 	
 	if (!whiteout->isVisible(file)) {
-		return -1;
+		FUNC_RET("%d", -1, -1);
 	}
 	
 	if (!path->isTmp(file)) {
@@ -667,14 +676,14 @@ LiveCDFS::doSetattr(const char *file,
 	int res;
 	if ((res = lstat(tmppath.c_str(), &buf)) < 0) {
 		ERROR("Could not perform lstat on file='%s', res=", file, res);
-		return res;
+		FUNC_RET("%d", res, res);
 	}
 	
 	if (buf.st_size > attr->f_size) {
 		TRACE("Truncating file to %u bytes", attr->f_size);
 		if ((res = truncate(tmppath.c_str(), attr->f_size)) < 0) {
 			ERROR("Unable to truncate, res=%u", res);
-			return res;
+			FUNC_RET("%d", res, res);
 		}
 	}
 	
@@ -682,7 +691,7 @@ LiveCDFS::doSetattr(const char *file,
 		TRACE("Set mode=%u, old=%u", attr->f_mode, buf.st_mode);
 		if ((res = chmod(tmppath.c_str(), attr->f_mode)) < 0) {
 			ERROR("Unable to chmod, res=%u", res);
-			return res;
+			FUNC_RET("%d", res, res);
 		}
 	}
 	
@@ -691,9 +700,9 @@ LiveCDFS::doSetattr(const char *file,
 		struct utimbuf utim = {attr->f_atime, attr->f_mtime};
 		if ((res = utime(tmppath.c_str(), &utim)) < 0) {
 			ERROR("Unable to utime, res=%u", res);
-			return res;
+			FUNC_RET("%d", res, res);
 		}
 	}
 	
-	return 0;
+	FUNC_RET("%d", 0, 0);
 }

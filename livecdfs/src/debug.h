@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: debug.h,v 1.10 2004/01/25 15:43:03 jaco Exp $
+ * $Id: debug.h,v 1.11 2004/01/25 17:09:59 jaco Exp $
  */
  
 #ifndef _DEBUG_dot_H_
@@ -34,27 +34,30 @@
 	
 #ifdef DEBUG 
 
-#define HDR(x)			fprintf(stdout, "%5s:%17s(%3u): %s", x, __FILE__, __LINE__, __func__)
+extern int _debug;
 
-#define FUNC(x...)		HDR("FUNC"); fprintf(stdout, "("); fprintf(stdout, x); fprintf(stdout, ")\n")
-#define TRACE(x...) 		HDR("INFO"); fprintf(stdout, ": "); fprintf(stdout, x); fprintf(stdout, "\n")
-#define TRACE_START(x...)	HDR("TRACE"); fprintf(stdout, "("); fprintf(stdout, x); fprintf(stdout, ") {\n")
-#define TRACE_END()		fprintf(stdout, "TRACE:%17s(%3u): }\n", __FILE__, __LINE__)
-#define TRACE_RET(x)		TRACE_END(); return x
+#define SPACE()			for (int _i = 0; _i < _debug; _i++) { printf("    "); }
+#define HDR(x)			printf("%5s:%17s(%3u): ", x, __FILE__, __LINE__); SPACE()
+#define HDR_F(x)		HDR(x); printf("%s", __func__)
 
-#define WARN(x...)		HDR("WARN"); fprintf(stdout, ": "); fprintf(stdout, x); fprintf(stdout, "\n")
-#define ERROR(x...)		HDR("ERROR"); fprintf(stdout, ": "); fprintf(stdout, x); fprintf(stdout, "\n")
+#define TRACE(x...) 		HDR_F("INFO"); printf(": "); printf(x); printf("\n")
+#define FUNC_START(x...)	HDR_F("FUNC"); printf("("); printf(x); printf(") {\n"); _debug++
+#define FUNC_END()		_debug--; HDR("FUNC"); printf("}\n"); return
+#define FUNC_RET(x,y,z)		_debug--; HDR("FUNC"); printf("} = "); printf(x,y); printf("\n"); return z
+
+#define WARN(x...)		HDR_F("WARN"); printf(": "); printf(x); printf("\n")
+#define ERROR(x...)		HDR_F("ERROR"); printf(": "); printf(x); printf("\n")
 
 #else
 
-#define FUNC(x...)		if (0) { fprintf(stdout, x); }
-#define TRACE(x...) 		if (0) { fprintf(stdout, x); }
-#define TRACE_START()		if (0) { fprintf(stdout, ""); }
-#define TRACE_END()		if (0) { fprintf(stdout, ""); }
-#define TRACE_RET(x)		return x
+#define FUNC(x...)		if (0) { printf(x); }
+#define TRACE(x...) 		if (0) { printf(x); }
+#define TRACE_START()		if (0) { printf(""); }
+#define TRACE_END()		return
+#define TRACE_RET(x,y,z)	return z
 
-#define WARN(x...)		if (0) { fprintf(stdout, x); }
-#define ERROR(x...)		if (0) { fprintf(stdout, x); }
+#define WARN(x...)		if (0) { printf(x); }
+#define ERROR(x...)		if (0) { printf(x); }
 
 #endif
 

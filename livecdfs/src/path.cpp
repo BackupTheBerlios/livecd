@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.cpp,v 1.10 2004/01/25 14:28:11 jaco Exp $
+ * $Id: path.cpp,v 1.11 2004/01/25 17:09:59 jaco Exp $
  */
 
 #include <errno.h>
@@ -38,50 +38,53 @@ Path *
 Path::create(const string &root, 
 	     const string &tmp)
 {
-	FUNC("root='%s', tmp='%s'", root.c_str(), tmp.c_str());
+	FUNC_START("root='%s', tmp='%s'", root.c_str(), tmp.c_str());
 	     
 	if (!exists(tmp, S_IFDIR)) {
 		ERROR("FATAL: The path specified by 'rw_tmp='%s' does not exist as a directory.", tmp.c_str());
-		return NULL;
+		FUNC_RET("%p", NULL, NULL);
 	}
 	
-	return new Path(root, tmp);
+	Path *path = new Path(root, tmp);
+	FUNC_RET("%p", path, path);
 }
 
 
 Path::Path(const string &root, 
 	   const string &tmp)
 {
-	FUNC("root='%s', tmp='%s'", root.c_str(), tmp.c_str());
+	FUNC_START("root='%s', tmp='%s'", root.c_str(), tmp.c_str());
 	     
 	this->root = root;
 	this->tmp = tmp;
+	FUNC_END();
 }
 
 
 Path::~Path()
 {
-	FUNC("~destructor");
+	FUNC_START("~destructor");
+	FUNC_END();
 }
 
 
 string
 Path::mkpath(const string &path)
 {
-	FUNC("path='%s'", path.c_str());
+	FUNC_START("path='%s'", path.c_str());
 	
 	string retpath = mktmp(path);
 	if (!exists(retpath, 0)) {
 		retpath = mkroot(path);
 	}
-	return retpath;
+	FUNC_RET("%s", retpath.c_str(), retpath);
 }
 
 
 bool
 Path::copyTmp(const string &path)
 {
-	FUNC("path='%s'", path.c_str());
+	FUNC_START("path='%s'", path.c_str());
 	
 	string dir = getDir(path);
 	if ((dir.length() != 0) && !isTmp(dir)) {
@@ -120,7 +123,7 @@ Path::copyTmp(const string &path)
 		}
 	}
 	
-	return ret;
+	FUNC_RET("%i", ret, ret);
 }
 
 
@@ -128,7 +131,7 @@ string
 Path::join(const string &s1, 
 	   const string &s2)
 {
-	FUNC("s1='%s', s2='%s'", s1.c_str(), s2.c_str());
+	FUNC_START("s1='%s', s2='%s'", s1.c_str(), s2.c_str());
 	 
 	size_t len1 = s1.length();
 	while (len1 && s1[len1 - 1] == '/') {
@@ -146,9 +149,7 @@ Path::join(const string &s1,
 		}
 		ret = string(s1.c_str(), len1) + string("/") + string(s2.c_str(), pos2, s2.length());
 	}
-	
-	TRACE("ret='%s'", ret.c_str());
-	return ret;
+	FUNC_RET("%s", ret.c_str(), ret);
 }
 
 
@@ -156,66 +157,63 @@ bool
 Path::exists(const string &path, 
 	     int flags = 0)
 {
-	FUNC("path='%s', flags=", path.c_str(), flags);
+	FUNC_START("path='%s', flags=%d", path.c_str(), flags);
 	
 	struct stat buf;
 	if (lstat(path.c_str(), &buf) == 0) {
 		TRACE("buf.st_mode=%u", buf.st_mode);
 		if ((buf.st_mode & flags) == (unsigned int)flags) {
-			return true;
+			FUNC_RET("%i", true, true);
 		}
 	}
 	else {
 		ERROR("strerror(errno)='%s' on lstat('%s', &buf)", strerror(errno), path.c_str());
 	}
 	
-	return false;
+	FUNC_RET("%i", false, false);
 }
 
 
 bool 
 Path::isDir(const string &path)
 {
-	FUNC("path='%s'", path.c_str());
+	FUNC_START("path='%s'", path.c_str());
 	
 	string full = mkpath(path);
 	if (!exists(full, S_IFDIR)) {
 		if (!exists(full, S_IFLNK)) {
 			WARN("path='%s' is not a directory", path.c_str());
-			return false;
+			FUNC_RET("%i", false, false);
 		}
 		
 		char buf[2048];
 		int num = readlink(full.c_str(), buf, 2048);
 		if (num < 0) {
 			WARN("path='%s' is not a directory", path.c_str());
-			return false;
+			FUNC_RET("%i", false, false);
 		}
 		buf[num] = '\0';
 		string link = mkpath(buf);
 		if (!exists(link, S_IFDIR)) {
 			WARN("path='%s' is not a directory", path.c_str());
-			return false;
+			FUNC_RET("%i", false, false);
 		}
 		TRACE("path='%s' is a directory (link)", path.c_str());
 	}
-	
-	TRACE("path='%s' is a directory", path.c_str());
-	return true;
+	FUNC_RET("%i", true, true);
 }
 
 
 string
 Path::getDir(const string &path) 
 {
-	FUNC("path='%s'", path.c_str());
+	FUNC_START("path='%s'", path.c_str());
 	
 	string dir = path;
 	if (!isDir(path)) {
 		dir = string(path, 0, path.rfind("/"));
 	}
-	TRACE("dir='%s'", dir.c_str());
-	return dir;
+	FUNC_RET("%s", dir.c_str(), dir);
 }
 
 
@@ -223,18 +221,18 @@ void
 Path::recurseMkdir(const string &path,
 		   const string &root) 
 {
-	FUNC("path='%s', root='%s'", path.c_str(), root.c_str());
+	FUNC_START("path='%s', root='%s'", path.c_str(), root.c_str());
 	
 	if (exists(mktmp(join(root, path)), 0)) {
 		TRACE("Already existing (tmp) root='%s', path='%s'", root.c_str(), path.c_str());
-		return;
+		FUNC_END();
 	}
 	
 	if (!exists(mktmp(root), 0)) {
 		TRACE("Making root='%s'", root.c_str());
 		if (mkdir(mktmp(root).c_str(), 0666) != 0) {
 			ERROR("Creation of root='%s' failed", root.c_str());
-			return;
+			FUNC_END();
 		}
 	}
 	else {
@@ -255,4 +253,5 @@ Path::recurseMkdir(const string &path,
 	}
 	
 	TRACE("Recurse path='%s', root='%s' completed", path.c_str(), root.c_str());
+	FUNC_END();
 }
