@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: debug.h,v 1.12 2004/01/25 17:16:34 jaco Exp $
+ * $Id: debug.h,v 1.13 2004/01/28 06:27:40 jaco Exp $
  */
  
 #ifndef _DEBUG_dot_H_
@@ -50,11 +50,10 @@ extern int _debug;
 
 #else
 
-#define FUNC(x...)		if (0) { printf(x); }
 #define TRACE(x...) 		if (0) { printf(x); }
-#define TRACE_START()		if (0) { printf(""); }
-#define TRACE_END()		return
-#define TRACE_RET(x,y,z)	return z
+#define FUNC_START(x...)	if (0) { printf(x); }
+#define FUNC_END()		return
+#define FUNC_RET(x,y,z)		return z
 
 #define WARN(x...)		if (0) { printf(x); }
 #define ERROR(x...)		if (0) { printf(x); }
