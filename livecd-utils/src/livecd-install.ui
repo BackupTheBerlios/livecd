@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
 <class>fMain</class>
 <widget class="QWizard">
     <property name="name">
@@ -1111,50 +1111,6 @@
         </widget>
         <widget class="QLabel">
             <property name="name">
-                <cstring>textLabel611</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>325</x>
-                    <y>40</y>
-                    <width>180</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Create the root password:</string>
-            </property>
-            <property name="scaledContents">
-                <bool>true</bool>
-            </property>
-            <property name="alignment">
-                <set>WordBreak|AlignVCenter|AlignRight</set>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel612</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>305</x>
-                    <y>65</y>
-                    <width>200</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Please retype to confirm:</string>
-            </property>
-            <property name="scaledContents">
-                <bool>true</bool>
-            </property>
-            <property name="alignment">
-                <set>AlignVCenter|AlignRight</set>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
                 <cstring>textLabel621</cstring>
             </property>
             <property name="geometry">
@@ -1281,25 +1237,6 @@
         </widget>
         <widget class="QLineEdit">
             <property name="name">
-                <cstring>lineEdit1</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>40</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-            <property name="maxLength">
-                <number>32</number>
-            </property>
-            <property name="echoMode">
-                <enum>Password</enum>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
                 <cstring>lineEdit2</cstring>
             </property>
             <property name="geometry">
@@ -1385,6 +1322,69 @@
             </property>
             <property name="maxLength">
                 <number>32</number>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel612</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>305</x>
+                    <y>65</y>
+                    <width>200</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Please retype to confirm:</string>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+            <property name="alignment">
+                <set>AlignVCenter|AlignRight</set>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEdit1</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>40</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="maxLength">
+                <number>32</number>
+            </property>
+            <property name="echoMode">
+                <enum>Password</enum>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel611</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>325</x>
+                    <y>40</y>
+                    <width>180</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Create root password:</string>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+            <property name="alignment">
+                <set>WordBreak|AlignVCenter|AlignRight</set>
             </property>
         </widget>
     </widget>
@@ -1518,5 +1518,5 @@
     <function language="Perl">showBootloader()</function>
     <function language="Perl">writeFstab()</function>
 </functions>
-<layoutdefaults spacing="6" margin="11"/>
+<layoutdefaults spacing="6" margin="8"/>
 </UI>

@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.77 2004/10/12 19:57:30 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.78 2004/10/12 20:34:17 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -240,7 +240,7 @@ sub getStr {
 }
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Tue Oct 12 14:55:56 2004
+# Created: Tue Oct 12 15:23:52 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -332,20 +332,20 @@ use Qt::attributes qw(
     textLabel9_2
     textLabel9_2_2
     textLabel9_2_2_2
-    textLabel611
-    textLabel612
     textLabel621
     textLabel631
     textLabel632
     textLabel633
     textLabel634
     textLabel635
-    lineEdit1
     lineEdit2
     lineEditUPW
     lineEditUPW2
     lineEditLogin
     lineEditReal
+    textLabel612
+    lineEdit1
+    textLabel611
 );
 
 
@@ -3617,16 +3617,6 @@ sub NEW
     textLabel9_2_2_2 = Qt::Label(page_6, "textLabel9_2_2_2");
     textLabel9_2_2_2->setGeometry( Qt::Rect(305, 345, 17, 21) );
 
-    textLabel611 = Qt::Label(page_6, "textLabel611");
-    textLabel611->setGeometry( Qt::Rect(325, 40, 180, 20) );
-    textLabel611->setScaledContents( 1 );
-    textLabel611->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
-
-    textLabel612 = Qt::Label(page_6, "textLabel612");
-    textLabel612->setGeometry( Qt::Rect(305, 65, 200, 20) );
-    textLabel612->setScaledContents( 1 );
-    textLabel612->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
-
     textLabel621 = Qt::Label(page_6, "textLabel621");
     textLabel621->setGeometry( Qt::Rect(330, 120, 375, 30) );
     textLabel621->setScaledContents( 1 );
@@ -3655,11 +3645,6 @@ sub NEW
     textLabel635->setScaledContents( 1 );
     textLabel635->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
 
-    lineEdit1 = Qt::LineEdit(page_6, "lineEdit1");
-    lineEdit1->setGeometry( Qt::Rect(505, 40, 200, 24) );
-    lineEdit1->setMaxLength( int(32) );
-    lineEdit1->setEchoMode( &Qt::LineEdit::Password() );
-
     lineEdit2 = Qt::LineEdit(page_6, "lineEdit2");
     lineEdit2->setGeometry( Qt::Rect(505, 70, 200, 24) );
     lineEdit2->setMaxLength( int(32) );
@@ -3682,6 +3667,21 @@ sub NEW
     lineEditReal = Qt::LineEdit(page_6, "lineEditReal");
     lineEditReal->setGeometry( Qt::Rect(505, 230, 200, 24) );
     lineEditReal->setMaxLength( int(32) );
+
+    textLabel612 = Qt::Label(page_6, "textLabel612");
+    textLabel612->setGeometry( Qt::Rect(305, 65, 200, 20) );
+    textLabel612->setScaledContents( 1 );
+    textLabel612->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
+
+    lineEdit1 = Qt::LineEdit(page_6, "lineEdit1");
+    lineEdit1->setGeometry( Qt::Rect(505, 40, 200, 24) );
+    lineEdit1->setMaxLength( int(32) );
+    lineEdit1->setEchoMode( &Qt::LineEdit::Password() );
+
+    textLabel611 = Qt::Label(page_6, "textLabel611");
+    textLabel611->setGeometry( Qt::Rect(325, 40, 180, 20) );
+    textLabel611->setScaledContents( 1 );
+    textLabel611->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
     addPage( page_6, "" );
     languageChange();
     my $resize = Qt::Size(727, 494);
@@ -3802,14 +3802,14 @@ sub languageChange
     textLabel9_2->setText( trUtf8("<b>2)</b>") );
     textLabel9_2_2->setText( trUtf8("<b>3)</b>") );
     textLabel9_2_2_2->setText( trUtf8("<b>4)</b>") );
-    textLabel611->setText( trUtf8("Create the root password:") );
-    textLabel612->setText( trUtf8("Please retype to confirm:") );
     textLabel621->setText( trUtf8("Delete the guest user account (optional, if present).") );
     textLabel631->setText( trUtf8("Add user(s) (optional and repeatable):") );
     textLabel632->setText( trUtf8("Login name:") );
     textLabel633->setText( trUtf8("Real name:") );
     textLabel634->setText( trUtf8("Password:") );
     textLabel635->setText( trUtf8("Repeat Password:") );
+    textLabel612->setText( trUtf8("Please retype to confirm:") );
+    textLabel611->setText( trUtf8("Create root password:") );
     setTitle( page_6, trUtf8("Step 6 of 6: Customize and Reboot") );
 }
 
@@ -3835,7 +3835,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.77 2004/10/12 19:57:30 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.78 2004/10/12 20:34:17 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -5027,7 +5027,7 @@ sub cbLanguage_act # SLOT: ( const QString & )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.77 2004/10/12 19:57:30 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.78 2004/10/12 20:34:17 tom_kelly33 Exp $
 #
 
 package main;
