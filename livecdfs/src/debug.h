@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: debug.h,v 1.8 2004/01/25 14:28:11 jaco Exp $
+ * $Id: debug.h,v 1.9 2004/01/25 15:27:53 jaco Exp $
  */
  
 #ifndef _DEBUG_dot_H_
@@ -33,15 +33,15 @@
 #define PTR(x)		(void *)x
 	
 #ifdef DEBUG 
-	#define HDR(x)		fprintf(stdout, "%s: %s(%u): %s", x, __FILE__, __LINE__, __func__)
+	#define HDR(x)		fprintf(stdout, "%5s:%17s(%3u): %s", x, __FILE__, __LINE__, __func__)
 
-	#define FUNC(x...)	HDR(" FUNC"); fprintf(stdout, "("); fprintf(stdout, x); fprintf(stdout, ")\n")
-	#define TRACE(x...) 	HDR(" INFO"); fprintf(stdout, ": "); fprintf(stdout, x); fprintf(stdout, "\n")
-	#define TRACE_START()	HDR(" INFO"); fprintf(stdout, "{\n")
-	#define TRACE_END()	HDR(" INFO"); fprintf(stdout, "}\n")
+	#define FUNC(x...)	HDR("FUNC"); fprintf(stdout, "("); fprintf(stdout, x); fprintf(stdout, ")\n")
+	#define TRACE(x...) 	HDR("INFO"); fprintf(stdout, ": "); fprintf(stdout, x); fprintf(stdout, "\n")
+	#define TRACE_START()	fprintf(stdout, "TRACE:%17s(%3u): {\n", __FILE__, __LINE__)
+	#define TRACE_END()	fprintf(stdout, "TRACE:%17s(%3u): }\n", __FILE__, __LINE__)
 	#define TRACE_RET(x)	TRACE_END(); return x
 	
-	#define WARN(x...)	HDR(" WARN"); fprintf(stdout, ": "); fprintf(stdout, x); fprintf(stdout, "\n")
+	#define WARN(x...)	HDR("WARN"); fprintf(stdout, ": "); fprintf(stdout, x); fprintf(stdout, "\n")
 	#define ERROR(x...)	HDR("ERROR"); fprintf(stdout, ": "); fprintf(stdout, x); fprintf(stdout, "\n")
 #else
 	#define FUNC(x...)	if (0) { fprintf(stdout, x); }
