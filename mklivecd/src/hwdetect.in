@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.32 2003/11/01 09:37:26 jaco Exp $
+# $Id: hwdetect.in,v 1.33 2003/11/01 09:47:17 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -451,24 +451,29 @@ sub hwdetect_getvideo {
 	my $probed_card = undef;
 	foreach my $card (@probed_cards) {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
-		hwdetect_loadmod('unknown', $probed_vendor, $card->{card_name});
-		$probed_card = $card unless ($probed_card); # one card only :(
+		my $module = 'unknown';
+		unless ($probed_card) { # one card only :(
+			$probed_card = $card;
+			if ($probed_card->{Driver2} eq 'nvidia' &&
+			    -e "/usr/X11R6/lib/modules/drivers/nvidia_drv.o" &&
+			    -e "/usr/X11R6/lib/modules/extensions/libglx.so" &&
+			    -e "/lib/modules/$kernel_ver/kernel/drivers/char/nvidia.o.gz") {
+				$probed_card->{Driver} = 'nvidia';
+				$probed_card->{DRI_GLX_SPECIAL} = 1;
+				#modules::add_alias("/dev/nvidia*", "nvidia") unless ($probe);
+				#print "modules::add_alias('/dev/nvidia*', 'nvidia')\n" if ($debug);
+				$module = 'nvidia';
+			}
+			elsif ($probed_card->{Driver2} eq 'fglrx' &&
+			       -e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
+			       -e "/usr/X11R6/lib/modules/drivers/fglrx_drv.o" &&
+			       -e "/lib/modules/$kernel_ver/kernel/drivers/char/fglrx.o.gz") {
+				$probed_card->{Driver} = 'fglrx';
+				$module = 'fglrx';
+			}
+		}
+		hwdetect_loadmod($module, $probed_vendor, $card->{card_name});
 		print_hash($card) if ($debug);
-	}
-	if ($probed_card->{Driver2} eq 'nvidia' &&
-	    -e "/usr/X11R6/lib/modules/drivers/nvidia_drv.o" &&
-	    -e "/usr/X11R6/lib/modules/extensions/libglx.so" &&
-	    -e "/lib/modules/$kernel_ver/kernel/drivers/char/nvidia.o.gz") {
-		$probed_card->{Driver} = 'nvidia';
-		$probed_card->{DRI_GLX_SPECIAL} = 1;
-		modules::add_alias("/dev/nvidia*", "nvidia") unless ($probe);
-		print "modules::add_alias('/dev/nvidia*', 'nvidia')\n" if ($debug);
-	}
-	elsif ($probed_card->{Driver2} eq 'fglrx' &&
-	       -e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
-	       -e "/usr/X11R6/lib/modules/drivers/fglrx_drv.o" &&
-	       -e "/lib/modules/$kernel_ver/kernel/drivers/char/fglrx.o.gz") {
-		$probed_card->{Driver} = 'fglrx';
 	}
 	$probed_card;
 }
