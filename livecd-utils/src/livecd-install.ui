@@ -920,27 +920,25 @@
     <include location="local" impldecl="in implementation">livecd-install.ui.pm</include>
 </includes>
 <slots>
-    <slot language="Perl">pageSelected(const QString &amp;)</slot>
-    <slot language="Perl">toggleReboot(bool)</slot>
-    <slot language="Perl">doLoaderInstall( )</slot>
+    <slot access="" language="Perl" returnType="">pageSelected(const QString &amp;)</slot>
+    <slot access="" language="Perl" returnType="">toggleReboot(bool)</slot>
+    <slot access="" language="Perl" returnType="">doLoaderInstall( )</slot>
 </slots>
 <functions>
-    <function language="Perl">init()</function>
-    <function language="Perl">destroy()</function>
-    <function language="Perl">setBusy()</function>
-    <function language="Perl">scanPartitions()</function>
-    <function language="Perl">showVerify()</function>
-    <function language="Perl">showInstall()</function>
-    <function language="Perl">timeThread()</function>
-    <function language="Perl">fmtTime()</function>
-    <function language="Perl">doEvents()</function>
-    <function language="Perl">doFormat()</function>
-    <function language="Perl">formatPart()</function>
-    <function language="Perl">doCopy()</function>
-    <function language="Perl">copyDir()</function>
-    <function language="Perl">showBootloader()</function>
-    <function language="Perl">logThread()</function>
-    <function language="Perl">writeFstab()</function>
+    <function access="" language="Perl" returnType="">init()</function>
+    <function access="" language="Perl" returnType="">destroy()</function>
+    <function access="" language="Perl" returnType="">scanPartitions()</function>
+    <function access="" language="Perl" returnType="">showVerify()</function>
+    <function access="" language="Perl" returnType="">showInstall()</function>
+    <function access="" language="Perl" returnType="">timeThread()</function>
+    <function access="" language="Perl" returnType="">fmtTime()</function>
+    <function access="" language="Perl" returnType="">doEvents()</function>
+    <function access="" language="Perl" returnType="">doFormat()</function>
+    <function access="" language="Perl" returnType="">formatPart()</function>
+    <function access="" language="Perl" returnType="">doCopy()</function>
+    <function access="" language="Perl" returnType="">copyDir()</function>
+    <function access="" language="Perl" returnType="">showBootloader()</function>
+    <function access="" language="Perl" returnType="">writeFstab()</function>
 </functions>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>
