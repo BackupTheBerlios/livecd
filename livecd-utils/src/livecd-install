@@ -1,5 +1,4 @@
 #!/usr/bin/perl
- 
 #
 # LiveCD install script language strings
 #
@@ -21,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.61 2004/05/04 22:28:59 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.62 2004/05/13 21:12:24 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -56,151 +55,160 @@ my %languages = (
 	'en'    => 0,
 	'en_US' => 0,
 	'en_GB' => 0,
-	'it'	=> 1,
+	'it'	=> 1,	# Thanks to Pietro Cesana
 	'it_IT' => 1,
-	'de'	=> 2,
-	'de_DE' => 2
+	'de'	=> 2,	# Thanks to Dieter Schutze
+	'de_DE' => 2,
+	'fr'	=> 3,	# Thanks to Pierre Laloum
+	'fr_FR' => 3
 );
 
 my %strings = (
-	'caption'          => [ "$distroname Installation", "Installazione di $distroname", "$distroname Installation", undef ],
-	'script_init'      => [ "Initialising... ", "Inizializzazione...", "Initialisierung...", undef ],
-	'script_destroy'   => [ "Destroying... ", "Sto distruggendo...", "Zerstören...", undef ],
-	'done'             => [ "Done.", "Fatto.", "Erledigt", undef ],
-	'reboot'           => [ "Rebooting...", "Sto riavviando...", "Neustarten", undef ],
+	'caption'          => [ "$distroname Installation", "Installazione di $distroname", "$distroname Installation", "$distroname Installation", undef ],
+	'script_init'      => [ "Initialising... ", "Inizializzazione...", "Initialisierung...", "Initialisation...", undef ],
+	'script_destroy'   => [ "Destroying... ", "Sto distruggendo...", "Zerstören...","Destruction...", undef ],
+	'done'             => [ "Done.", "Fatto.", "Erledigt", "effectué", undef ],
+	'reboot'           => [ "Rebooting...", "Sto riavviando...", "Neustarten", "Redemarrer", undef ],
 
-        'btn_disk_part'    => [ "&Disk Partitioner\n(for advanced users)", "Utilità di partizionamento &disco\n(per utenti esperti)", "&Partitionierung\n(für fortgeschrittene Benutzer)", undef ],
-	'btn_retry'        => [ "&Retry", "&Riprova", "&Wiederholen", undef ],
-	'btn_help'         => [ "&Help", "&Aiuto", "&Hilfe", undef ],
-	'btn_cancel'       => [ "&Cancel", "&Annulla", "&Abbruch", undef ],
-	'btn_next'         => [ "&Next &gt;", "&Avanti &gt;", "&Weiter", undef ],
-	'btn_back'         => [ "&lt; &Back", "&lt; &Indietro", "&Zurück", undef ],
-	'btn_finish'       => [ "&Finish", "&Finito", "&Fertig", undef ],
-	'btn_yes'          => [ "&Yes", "&Sì", "&Ja", undef ],
-	'btn_no'           => [ "&No", "&No", "&Nein", undef ],
-	'btn_inst'         => [ "&Install", "&Installa", "&Installieren", undef ],
-        'btn_write_pw'     => [ "&Write Password", "&Inserisci password", "&schreibe Kennwort", undef ],
-	'btn_del_guest'    => [ "&Delete Guest", "&Rimuovi Guest", "&lösche Gast", undef ],
-	'btn_cr_user'      => [ "&Create User", "&Aggungi Utente",  "&erstelle Benutzer", undef ],
-	'btn_logging_yes'  => [ "&Activate Logging", "&Attiva Log", "&aktiviere Protokoll", undef ],
-	'btn_logging_no'   => [ "&Deactivate Logging", "&Disattiva Log", "&deaktiviere Protokoll", undef ],
+        'btn_disk_part'    => [ "&Disk Partitioner\n(for advanced users)", "&Utilità di partizionamento &disco\n(per utenti esperti)", "&Partitionierung\n(für fortgeschrittene Benutzer)", "&Programme de partition de disque\n(pour utilisateur avançé)", undef ],
+	'btn_retry'        => [ "&Retry", "&Riprova", "&Wiederholen", "&Rééssayer", undef ],
+	'btn_help'         => [ "&Help", "&Aiuto", "&Hilfe", "Aide", undef ],
+	'btn_cancel'       => [ "&Cancel", "&Annulla", "&Abbruch", "&Annulé", undef ],
+	'btn_next'         => [ "&Next &gt;", "&Avanti &gt;", "&Weiter", "&Suivant", undef ],
+	'btn_back'         => [ "&lt; &Back", "&lt; &Indietro", "&Zurück", "&Retour", undef ],
+	'btn_finish'       => [ "&Finish", "&Finito", "&Fertig", "&Terminé", undef ],
+	'btn_yes'          => [ "&Yes", "&Sì", "&Ja", "&Oui", undef ],
+	'btn_no'           => [ "&No", "&No", "&Nein", "&Non", undef ],
+	'btn_inst'         => [ "&Install", "&Installa", "&Installieren", "&Installer", undef ],
+        'btn_write_pw'     => [ "&Write Password", "&Inserisci password", "&schreibe Kennwort","&Saisir le mot de passe",  undef ],
+	'btn_del_guest'    => [ "&Delete Guest", "&Rimuovi Guest", "&lösche Gast", "Supprimer l'invité", undef ],
+	'btn_cr_user'      => [ "&Create User", "&Aggungi Utente",  "&erstelle Benutzer", "&Créer un utilisateur", undef ],
+	'btn_logging_yes'  => [ "&Activate Logging", "&Attiva Log", "&aktiviere Protokoll","&Activer le chargement",  undef ],
+	'btn_logging_no'   => [ "&Deactivate Logging", "&Disattiva Log", "&deaktiviere Protokoll", "&Desactiver le chargement", undef ],
 	
-	'yes'              => [ "Yes", "Sì", "Ja",undef ],
+	'yes'              => [ "Yes", "Sì", "Ja", "Oui", undef ],
 
-	'time_elapsed'     => [ "Elapsed", "Trascorso", "Abgelaufen", undef ],
-	'time_remaining'   => [ "Remaining", "Rimanente","Verbleibend", undef ],
+	'time_elapsed'     => [ "Elapsed", "Trascorso", "Abgelaufen", "Elapsed", undef ],
+	'time_remaining'   => [ "Remaining", "Rimanente","Verbleibend", "Restant", undef ],
+	'part_none'	   => [ "(X)", "(X)", "(X)", "(X)", undef ],
+	'part_no_root_t'   => [ "Missing root", "Manca root", "Vermisse root", undef ],
+	'part_no_root'     => [ "You have to specify a root (/) partition.", "Devi specificare una partizione di root (/).", "Es muss eine root (/) Partition spezifiziert werden.", "Manque administrateur.", undef ],
+	'part_no_swap_t'   => [ "Missing swap", "Manca swap", "Vermisse swap", "Vous devez specifier une partition administrateur", undef ],
+	'part_no_swap'     => [ "You have to specify a swap partition", "Devi pecificare una partizione di swap", "Es muss eine swap Partition spezifiziert werden.", "Vous devez specifier une partition swap", undef ],
+	'part_o_home_t'    => [ "Overlapping home", "Sovrapposizione di home", "Überschneidung mit home", "Imbrication home", undef ],
+	'part_o_home'      => [ "The home (/home) partition is the same as the root (/) partition.", "La partizione home (/home) è la stessa di root (/).", "Die home (/home) Partition ist die gleiche wie die root (/) Partition", "La partition home (/home) est identique a la partition root (/root)", undef ],
+	'part_o_var_t'     => [ "Overlapping var", "Sovrapposizione di var", "Überschneidung mit var",  "Imbrication var", undef ],
+	'part_o_var'       => [ "The var (/var) partition is the same as the root (/) partition.", "La partizione var (/var) è la stessa di root (/).",  "Die var (/var) Partition ist gleiche wie die root (/) Partition", "La partition var (/var) est identique a la partition root (/root)", undef ],
+	'part_o_varhome_t' => [ "Overlapping var/home", "Sovrapposizione di var/home", "Überschneidung mit var/home", "Imbrication var/home", undef ],
+	'part_o_varhome'   => [ "The var (/var) partition is the same as the home (/home) partition.","La partizione var (/var) è la stessa di home (/home).", "Die var (/var) Partition ist gleiche wie die home (/home) Partition",  "La partition var (/var) est identique a la partition home (/home)", undef ],
+	'part_o_tmp_t'     => [ "Overlapping temp", "Sovrapposizione di temp", "Überschneidung mit temp", "Imbrication temp", undef ],
+	'part_o_tmp'       => [ "The temp (/tmp) partition is the same as the root (/) partition.", "La partizione temp (/tmp) è la stessa di root (/).", "Die temp (/tmp) Partition ist gleiche wie die root (/) Partition.", "La partition temp (/tmp) est identique � la partition root (/root)", undef ],
+	'part_o_tmphome_t' => [ "Overlapping temp/home", "Sovrapposizione di temp/home", "Überschneidung temp/home", "Imbrication temp/home", undef ],
+	'part_o_tmphome'   => [ "The temp (/tmp) partition is the same as the home (/home) partition.", "La partizione temp (/tmp) è la stessa di home (/home).",  "Die temp (/tmp) Partition ist die gleiche wie die home (/home) Partition.", "La partiton temp (/tmp) est identique a la partition home (/home)", undef ],
+	'part_o_tmpvar_t'  => [ "Overlapping temp/var", "Sovrapposizione di temp/var", "Überschneidung temp/var", "Imbrication temp/var", undef ],
+	'part_o_tmpvar'    => [ "The temp (/tmp) partition is the same as the var (/var) partition.", "La partizione temp (/tmp) è la stessa di var (/var).", "Die temp (/tmp) Partition ist die gleiche wie die (/var) Partition", "La partition temp (/tmp) est identique � la partition var (/var)", undef ],
+	'part_name_swap'   => [ "(swap)", "(swap)", "(swap)", "(swap)", undef ],
+	'part_name_tmp'    => [ "/tmp", "/tmp", "/tmp", "/tmp", undef ],
+	'part_name_var'    => [ "/var", "/var", "/var", "/var", undef ],
+	'part_name_home'   => [ "/home", "/home", "/home", "/home", undef ],
+	'part_name_root'   => [ "/", "/", "/", "/", undef ],
 
-	'part_none'        => [ "(none)", "(nessuna)", "(keine)", undef ],
-	'part_no_root_t'   => [ "Missing root", "Manca root", "vermisse root", undef ],
-	'part_no_root'     => [ "You have to specify a root (/) partition", "Devi specificare una partizione di root (/)", "Es muss eine root (/) Partition spezifiziert werden.", undef ],
-	'part_no_swap_t'   => [ "Missing swap", "Manca swap", "vermisse swap", undef ],
-	'part_no_swap'     => [ "You have to specify a swap partition", "Devi pecificare una partizione di swap", "Es muss eine swap Partition spezifiziert werden.", undef ],
-	'part_o_home_t'    => [ "Overlapping home", "Sovrapposizione di home", "Überschneidung mit home", undef ],
-	'part_o_home'      => [ "The home (/home) partition is the same as the root (/) partition.", "La partizione home (/home) è la stessa di root (/).", "Die home (/home) Partition ist die gleiche wie die root (/) Partition", undef ],
-	'part_o_var_t'     => [ "Overlapping var", "Sovrapposizione di var", "Überschneidung mit var", undef ],
-	'part_o_var'       => [ "The var (/var) partition is the same as the root (/) partition.", "La partizione var (/var) è la stessa di root (/).",  "Die var (/var) Partition ist gleiche wie die root (/) Partition", undef ],
-	'part_o_varhome_t' => [ "Overlapping var/home", "Sovrapposizione di var/home", "Überschneidung mit var/home", undef ],
-	'part_o_varhome'   => [ "The var (/var) partition is the same as the home (/home) partition.","La partizione var (/var) è la stessa di home (/home).", "Die var (/var) Partition ist gleiche wie die home (/home) Partition", undef ],
-	'part_o_tmp_t'     => [ "Overlapping temp", "Sovrapposizione di temp", "Überschneidung mit temp", undef ],
-	'part_o_tmp'       => [ "The temp (/tmp) partition is the same as the root (/) partition.", "La partizione temp (/tmp) è la stessa di root (/).", "Die temp (/tmp) Partition ist gleiche wie die root (/) Partition.", undef ],
-	'part_o_tmphome_t' => [ "Overlapping temp/home", "Sovrapposizione di temp/home", "Überschneidung temp/home", undef ],
-	'part_o_tmphome'   => [ "The temp (/tmp) partition is the same as the home (/home) partition.", "La partizione temp (/tmp) è la stessa di home (/home).",  "Die temp (/tmp) Partition ist die gleiche wie die home (/home) Partition.", undef ],
-	'part_o_tmpvar_t'  => [ "Overlapping temp/var", "Sovrapposizione di temp/var", "Überschneidung temp/var", undef ],
-	'part_o_tmpvar'    => [ "The temp (/tmp) partition is the same as the var (/var) partition.", "La partizione temp (/tmp) è la stessa di var (/var).", "Die temp (/tmp) Partition ist die gleiche wie die (/var) Partition", undef ],
-	'part_name_swap'   => [ "(swap)", "swap", "(swap)", undef ],
-	'part_name_tmp'    => [ "/tmp", "/tmp", "/tmp", undef ],
-	'part_name_var'    => [ "/var", "/var", "/var", undef ],
-	'part_name_home'   => [ "/home", "/home", "/home", undef ],
-	'part_name_root'   => [ "/", "/", "/", undef ],
+	'function_error'   => [ "System function error, return value:", "Errore di sistema, valore restituito:", "Systemfunktionsfehler, Fehlerrückgabe:", "Erreur fonction systeme, retourner la valeur:", undef ],
+        'missing_value'    => [ "A value is missing. Please include login and password twice.", "Manca un valore. Per favore inserisci login e password due volte.", "Ein Wert fehlt. Bitte geben sie login und Kennwort zweimal an.", "Il manque une valeur. Inserer svp une deuxieme fois votre nom utilisateur et votre mot de passe.", undef ],
+	'logging_yes'	   => [ "Logging has been activated.", "Log è stato attivato", "Protokoll wurde aktiviert.", "L'utilisateur a été activé", undef ],
+	'logging_no'	   => [ "Logging has been deactivated.", "Log è stato disattivato", "Protokoll wurde deaktiviert.", "L'utilisateur a été desactivé.", undef ],
 
-	'function_error'   => [ "System function error, return value:", "Errore di sistema, valore restituito:", "Systemfunktionsfehler, Fehlerrückgabe:", undef ],
-        'missing_value'    => [ "A value is missing. Please include login and password twice.", "Manca un valore. Per favore inserisci login e password due volte.", "Ein Wert fehlt. Bitte geben sie login und Kennwort zweimal an.", undef ],
-	'logging_yes'	   => [ "Logging has been activated.", "Log è stato attivato", "Protokoll wurde aktiviert.", undef ],
-	'logging_no'	   => [ "Logging has been deactivated.", "Log è stato disattivato", "Protokoll wurde deaktiviert.", undef ],
+	'pword_null'       => [ "A null password is not permitted.", "La password vuota non è permessa", "Ein leeres Kennwort ist nicht erlaubt.", "Un mot de passe � blanc n'est pas permis.", undef ],
+	'pword_not_same'   => [ "Passwords are not the same. Please try again.", " Le password sono diverse, per favore riprova", "Kennwörter sind nicht gleich. Bitte nochmal.", "les mots de passe sont identiques. Reessayer svp.", undef ],
+	'pword_short'	   => [ "Caution: A short password (< 8 characters) may be unsafe.", "Attenzione: Una password corta (< 8 caratteri) può essere poco sicura", "Achtung: Ein kurzes Kennwort (< 8 Zeichen) ist unsicher.", "Attention: un mot de passe court (< 8 caracteres ) ne sera pas sauvegardé.", undef ],
+	'pword_ok'         => [ "New root password has been written successfully.", "La password di root è stata cambiata con successo", "Neues root Kennwort wurde erfolgreich angelegt.", "Nouveau mot de passe administrateur a été saisi avec succés.", undef ],
+	'pword_updated'	   => [ "User exists. Password has been updated.", "Utente già esistente. La password è stata modificata", "Benutzer existiert. Kennwort wurde erneuert.", "Utilisateur existant. Le mot de passe a été mise a jour.", undef ],
 
-	'pword_null'       => [ "A null password is not permitted.", "La password vuota non è permessa", "Ein leeres Kennwort ist nicht erlaubt.", undef ],
-	'pword_not_same'   => [ "Passwords are not the same. Please try again.", " Le password sono diverse, per favore riprova", "Kennwörter sind nicht gleich. Bitte nochmal.", undef ],
-	'pword_short'	   => [ "Caution: A short password (< 8 characters) may be unsafe.", "Attenzione: Una password corta (< 8 caratteri) può essere poco sicura", "Achtung: Ein kurzes Kennwort (< 8 Zeichen) ist unsicher.", undef ],
-	'pword_ok'         => [ "New root password has been written successfully.", "La password di root è stata cambiata con successo", "Neues root Kennwort wurde erfolgreich angelegt.", undef ],
-	'pword_updated'	   => [ "User exists. Password has been updated.", "Utente già esistente. La password è stata modificata", "Benutzer existiert. Kennwort wurde erneuert.", undef ],
-
-	'user'		   => [ "User ", "Utente ", "Benutzer ", undef ],
-	'user_added'	   => [ " was added successfully.", " é stato aggiunto con successo", " wurde erfolgreich hinzugef�gt.", undef ],
-	'guest_del_ok'     => [ "Guest account has been deleted.", "L'account Guest è stato rimosso", "Guest Zugang wurde gelöscht.", undef ],
-	'guest_not_found'  => [ "Account 'guest' was not found.", "L'account 'guest' non p stato trovato", "Zugang 'Guest' wurde nicht gefunden.", undef ],
-	'inst_scan'        => [ "Scanning available directories", "Analisi delle cartelle disponibili", "Durchsuche verf�gbare Verzeichnisse.", undef ],
-	'inst_fstab'       => [ "Creating /etc/fstab", "Creazione di /etc/fstab", "Erstelle /etc/fstab", undef ],
-	'inst_done'        => [ "Installation completed. Please press Next to continue.",  "Installazione completata. Premi Avanti per continuare", "Installation abgeschlossen. Zum fortfahren bitte Weiter ausw�hlen.", undef ],
+	'user'		   => [ "User ", "Utente ", "Benutzer ", "Utilisateur ", undef ],
+	'user_added'	   => [ " was added successfully.", " é stato aggiunto con successo", " wurde erfolgreich hinzugef�gt.", " a été ajouté avec succes", undef ],
+	'guest_del_ok'     => [ "Guest account has been deleted.", "L'account Guest è stato rimosso", "Guest Zugang wurde gelöscht.", "Le compte invité (guest) a été supprimé", undef ],
+	'guest_not_found'  => [ "Account 'guest' was not found.", "L'account 'guest' non p stato trovato", "Zugang 'Guest' wurde nicht gefunden.", "Le compte invité 'guest' n'a pas été trouvé", undef ],
+	'inst_scan'        => [ "Scanning available directories", "Analisi delle cartelle disponibili", "Durchsuche verf�gbare Verzeichnisse.", "Recherche le repertoire disponible", undef ],
+	'inst_fstab'       => [ "Creating /etc/fstab", "Creazione di /etc/fstab", "Erstelle /etc/fstab", "Crée /etc/fstab", undef ],
+	'inst_done'        => [ "Installation completed. Please press Next to continue.",  "Installazione completata. Premi Avanti per continuare", "Installation abgeschlossen. Zum fortfahren bitte Weiter ausw�hlen.", "Installation complète. Svp cliquer sur Suivant pour continuer", undef ],
 				
-	'fmt_title'        => [ "Formatting", "Formattazione in corso", "Formatiere", undef ],
+	'fmt_title'        => [ "Formatting", "Formattazione in corso", "Formatiere", "En train de formater", undef ],
 	
-	'copy_title'       => [ "Copying from", "Sto copiando da", "Kopieren von", undef ],
+	'copy_title'       => [ "Copying from", "Sto copiando da", "Kopieren von", "Copie � partir de", undef ],
 	
-	'boot_bs'          => [ "(Bootsector of partition)", "(Settore di boot della partizione", "(Bootsektor der Partition)", undef ],
-	'boot_mbr'         => [ "(Master boot record of drive)", "Master boot record del disco", "(Master boot rekord des Laufwerks)", undef ],
-	'bl_written'	   => [ "Bootloader written", "Bootloader scritto", "Bootlader geschrieben", undef ],	
-	'fstab_info'       => [ "Automatically added by livecd-install", "Aggiunto automaticamente da livecd-istall", "Automatisch von livecd-install hinzugefügt", undef ],
+	'boot_bs'          => [ "(Bootsector of partition)", "(Settore di boot della partizione", "(Bootsektor der Partition)", "(Secteur de demarrage de la partition)", undef ],
+	'boot_mbr'         => [ "(Master boot record of drive)", "Master boot record del disco", "(Master boot rekord des Laufwerks)", "(Enregistrement du demarrage principal du Disque)", undef ],
+	'bl_written'	   => [ "Bootloader written", "Bootloader scritto", "Bootlader geschrieben", "Fichier chargement demarrage ecrit", undef ],	
+	'fstab_info'       => [ "Automatically added by livecd-install", "Aggiunto automaticamente da livecd-istall", "Automatisch von livecd-install hinzugefügt", "Automatiquement ajouté par l'installation du livecd", undef ],
 
-	'scr_1_title'      => [ "Step 1 of 6: Welcome", "Passo 1 di 6: Benvenuto", "Schritt 1 von 6: Willkommen", undef ],
+	'scr_1_title'      => [ "Step 1 of 6: Welcome", "Passo 1 di 6: Benvenuto", "Schritt 1 von 6: Willkommen", "Etape 1 sur 6: Bienvenue",  undef ],
 	'scr_1_text'       => [ "<p><b>Welcome</b> to the LiveCD installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can exit / abort at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing of important data or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n<p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.", 
 "<p><b>Benvenuto</b> nel LiveCD installer. Questo programma ti guiderà attraverso i passi dell'installazione di $distroname sul tuo hard disk. La navigazione può essere effettuata attraverso i pulsanti <i>Avanti</i> e <i>Indietro</i>. Puoi uscire / annullare in ogni momento con il pulsante <i>Annulla</i>.</p>\n<p>Questo software è in fase BETA e può avere effetti sul tuo sistema inattesi o avversi tra cui la cancellazione di dati importanti o rendere il tuo sistema non avviabile. Usalo con attenzione!</p><p>Questo programma è distribuito con il desiderio che possa essere utile ma SENZA ALCUNA GARANZIA; senza inoltre la garanzia implicita di COMMERCIABILITA' o UTILIZZABILITA' PER UN PARTICOLARE SCOPO. Leggi la GNU General Public License per ulteriori dettagli.</p>\n<p>Per maggiori informazioni visita la home page di LiveCD: http://livecd.berlios.de/ o la homepage di $distroname: $distrohome.",  
-"<p><b>Willkommen</b> zum LiveCD Installationsprogramm. Dieses Programm wird schrittweise durch die Installation führen um $distroname auf das lokale Laufwerk zu installieren. Navigiert wird über die <i>Zurück</i> und <i>Weiter</i> Schaltflächen. Die Installation kann jederzeit mit der <i>Abbruch</i> Schaltfläche verlassen werden.</p>\n<p>Diese Software befindet sich im Betastadium und kann unerwünschte Effekte auf dem System hinterlassen. Dies beinhaltet auch das löschen von Daten oder unbrauchbar werden des Systems. Diese Software sollte mit äußerster Vorsicht benutzt werden !</p><p>Dieses Programm wir in der Hoffnung entwickelt vielen nützlich zu sein. Es wird OHNE JEDE GEWÄHRLEISTUNG weitergegeben, weiterhin gibt es keine Garantie auf MARKTGÄNGIGKEIT oder der EIGNUNG ZU EINEM BESTIMMTEN ZWECK. Weitere Details sind in der GNU General Public License nachzulesen. Mehr Informationen über dieses Produkt findet man auf der LiveCD Homepage: http://livecd.berlios.de/ oder der $distroname Homepage: $distrohome.",
+"<p><b>Willkommen</b> zum LiveCD Installationsprogramm. Dieses Programm wird schrittweise durch die Installation führen um $distroname auf das lokale Laufwerk zu installieren. Navigiert wird über die <i>Zurück</i> und <i>Weiter</i> Schaltflächen. Die Installation kann jederzeit mit der <i>Abbruch</i> Schaltfläche verlassen werden.</p>\n<p>Diese Software befindet sich im Betastadium und kann unerwünschte Effekte auf dem System hinterlassen. Dies beinhaltet auch das löschen von Daten oder unbrauchbar werden des Systems. Diese Software sollte mit äußerster Vorsicht benutzt werden !</p><p>Dieses Programm wir in der Hoffnung entwickelt vielen nützlich zu sein. Es wird OHNE JEDE GEWÄHRLEISTUNG weitergegeben, weiterhin gibt es keine Garantie auf MARKTGÄNGIGKEIT oder der EIGNUNG ZU EINEM BESTIMMTEN ZWECK. Weitere Details sind in der GNU General Public License nachzulesen. </p><p>Mehr Informationen über dieses Produkt findet man auf der LiveCD: http://livecd.berlios.de/ oder der $distroname: $distrohome.",
+"<p><b>Bienvenue</b> à l'installation du livecd. Ce programme vous guidera à travers les etapes d'installation de la distribution sur votre disque dur local. La navigation peut s'effectuer avec les boutons <i>Retour</i> et <i>Suivant</i>. Vous pouvez sortir/abandonner a tout moment avec le bouton <i>Annnuler</i>.</p><p>C'est un logiciel en version qualité Beta, ce qui pourrait avoir des effets imprevues sur votre systeme courant. Cela pourrait inclure l'effacement de donnés importantes, et faire que votre systeme ne puisse redemarrer. Utiliser avec prudence. </p><p>Ce programme est distribué dans l'espoir d'être utilisable, mais sans garantie. Sans même la garantie supposée d'une negociation ou d'une intention particuliere. Voir le GNU license publique generale pour de plus amples details.</p><p> Pour plus d'informations, allez a la page d'accueil du LiveCD: http://livecd.berlios.de/ ou la page d'accueil de la distribution: $distrohome.",
 undef ],
-	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", "Passo 2 di 6: Selezione delle Partizioni", "Schritt 2 von 6: Auswahl der Partition", undef ],
-	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify the <i>root</i> and <i>swap</i> locations. A separate <i>home</i> partition is recommended, not required.</p>", 
-"<p><b>Scegli</b> le partizioni da associare ai diversi punti di mount. Devi specificare le posizioni di <i>root</i> e di <i>swap</i>. Una partizione separate per <i>home</i> è raccomandata, non richiesta.</p>", 
-"<p><b>Wähle</b> die Partitionen die mit unterschiedlichen Einhängepunkte verbunden werden sollen. Es sind sowohl die <i>root</i> als auch die <i>swap</i> Partition zu bestimmen. Eine extra <i>home</i> Partition ist sinnvoll jedoch nicht erforderlich.</p>", undef ],
-	'scr_2_fmt'        => [ "Format", "Formatta", "Format", undef ],
-	'scr_2_req'        => [ "Required Partitions", "Partizioni Richieste", "Erforderliche Partitionen", undef ],
-	'scr_2_opt'        => [ "Optional Partitions", "Partizioni Opzionali", "Optionale Partitionen", undef ],
-	'scr_2_swap'       => [ "Swap device:", "Dispositivo di Swap:", "Swap Vorrichtung", undef ],
-	'scr_2_root'       => [ "Root (/) device:", "Dispositivo di Root (/):", "Root (/) Vorrichtung", undef ],
-	'scr_2_home'       => [ "Home (/home) device:", "Dispositivo di Home (/home):", "Home (/home) Vorrichtung", undef ],
-	'scr_2_var'        => [ "Var (/var) device:", "Dispositivo di Var (/var):",  "Var (/var) Vorrichtung", undef ],
-	'scr_2_tmp'        => [ "Temp (/tmp) device:", "Dispositivo di Temp (/tmp):", "Temp (/tmp) Vorrichtung", undef ],
+	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", "Passo 2 di 6: Selezione delle Partizioni", "Schritt 2 von 6: Auswahl der Partition", "Etape 2 sur 6: Selectionner une partition", undef ],
+	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify the <i>root</i> and <i>swap</i> locations. A separate <i>home</i> partition is recommended, not required. X = none.</p>", 
+"<p><b>Scegli</b> le partizioni da associare ai diversi punti di mount. Devi specificare le posizioni di <i>root</i> e di <i>swap</i>. Una partizione separate per <i>home</i> è raccomandata, non richiesta. X = nessuna.</p>", 
+"<p><b>Wähle</b> die Partitionen die mit unterschiedlichen Einhängepunkte verbunden werden sollen. Es sind sowohl die <i>root</i> als auch die <i>swap</i> Partition zu bestimmen. Eine extra <i>home</i> Partition ist sinnvoll jedoch nicht erforderlich. X = keine.</p>", 
+"Choisissez les partitions qui seront associées aux differents points de montage.  Vous devez specifier l'endroit ou sera créé root et swap . Une partition home separée est recommandé, non requise. X = Jamais."
+, undef ],
+	'scr_2_fmt'        => [ "Format", "Formatta", "Format", "Formater", undef ],
+	'scr_2_req'        => [ "Required Partitions", "Partizioni Richieste", "Erforderliche Partitionen", "partition requise", undef ],
+	'scr_2_opt'        => [ "Optional Partitions", "Partizioni Opzionali", "Optionale Partitionen", "parition optionelle", undef ],
+	'scr_2_swap'       => [ "Swap device:", "Dispositivo di Swap:", "Swap Vorrichtung", "Swap device:", undef ],
+	'scr_2_root'       => [ "Root (/) device:", "Dispositivo di Root (/):", "Root (/) Vorrichtung", "Root / device", undef ],
+	'scr_2_home'       => [ "Home (/home) device:", "Dispositivo di Home (/home):", "Home (/home) Vorrichtung", "Home /home device", undef ],
+	'scr_2_var'        => [ "Var (/var) device:", "Dispositivo di Var (/var):",  "Var (/var) Vorrichtung", "Var /var device", undef ],
+	'scr_2_tmp'        => [ "Temp (/tmp) device:", "Dispositivo di Temp (/tmp):", "Temp (/tmp) Vorrichtung", "Temp /tmp device", undef ],
 	
 
-	'scr_3_title'      => [ "Step 3 of 6: Partition Verification", "Passo 3 di 6: Verifica delle partizioni", "Schritt 3 von 6: Partitionsüberprüfung", undef ],
+	'scr_3_title'      => [ "Step 3 of 6: Partition Verification", "Passo 3 di 6: Verifica delle partizioni", "Schritt 3 von 6: Partitionsüberprüfung", "Etape 3 sur 6: Verification de la partition", undef ],
 	'scr_3_text'       => [ "<p><b>Warning</b> The following changes will be made to your system to install $distroname. To correct your selections, press the <i>Back</i> button, otherwise press <i>Next</i> to start the installation process.</p>", 
 "<p><b>Attenzione</b> Saranno applicate le seguenti modifiche al tuo sistema per installare $distroname. Per correggere le selezione premi il tasto <i>Indietro</i>, altrimenti premi <i>Avanti</i> per iniziare il processo di installazione.</p>", 
 "<p><b>Warnung</b> Die folgenden Änderungen werden auf dem System durchgeführt um $distroname zu installieren. Um die Auswahl zu ändern bitte die <i>Zurück</i> Schaltfläche benutzen, zum Start der Installation bitte die Schaltfläche <i>Weiter</i> benutzen.", 
+"<p><b>Attention,</b> la modification suivante sera effectuée sur votre systeme pour installer la distribution. Pour modifier votre selection, cliquer sur <i>Back</i>, autrement cliquer sur <i>Next</i> pour debuter la procedure d'installation.</p>",
 undef ],
-	'scr_3_mnt'        => [ "Mount", "Punto di mount", "Einbindung", undef ],
-	'scr_3_dev'        => [ "Device", "Dispositivo", "Vorrichtung", undef ],
-	'scr_3_fmt'        => [ "Format", "Da formattare", "Format", undef ],
+	'scr_3_mnt'        => [ "Mount", "Punto di mount", "Einbindung", "Monter", undef ],
+	'scr_3_dev'        => [ "Device", "Dispositivo", "Vorrichtung", "Peripherique", undef ],
+	'scr_3_fmt'        => [ "Format", "Da formattare", "Format", "Formatter", undef ],
     
 
-	'scr_4_title'      => [ "Step 4 of 6: $distroname Installation", "Passo 4 di 6: Installazione di $distroname", "Schritt 4 von 6: $distroname Installation", undef ],
+	'scr_4_title'      => [ "Step 4 of 6: $distroname Installation", "Passo 4 di 6: Installazione di $distroname", "Schritt 4 von 6: $distroname Installation", "Etape 4 sur 6: Installation de la distribution", undef ],
 	'scr_4_text'       => [ "<p><b>Installation</b> of $distroname to your hard disk is currently in progress. Please be patient as this process does take some time.</p>", 
 "<p><b>Installazione</b></p> di $distroname sul tuo hard disk è in corso. Per favore attendi poichè il processo richiede del tempo.</p>", 
-"<p><b>Die Installation</b> von $distroname auf die Festplatte wird ausgeführt. Bitte um etwas Geduld die Installation kann etwas Zeit in Anspruch nehmen.</p>", undef ],
-	'scr_4_copy'       => [ "Data copy progress:", "Avanzamento copia dati:", "Datenkopierstatus:", undef ],
-	'scr_4_fmt'        => [ "Disk format:", "Formattazione disco:", "Diskformat:", undef ],
-	'scr_4_overall'    => [ "Overall progress:", "Avanzamento globale", "Gesammtstatus:", undef ],
-	'scr_4_progress'   => [ "Progress Information", "Informazione sull'Avanzamento", "Status information", undef ],
+"<p><b>Die Installation</b> von $distroname auf die Festplatte wird ausgeführt. Bitte um etwas Geduld die Installation kann etwas Zeit in Anspruch nehmen.</p>", 
+"<p><b>L'installation</b></p> de la distribution $distroname sur votre Disque dur est en cours. Veuillez patienter, cette procedure peut être assez longue",
+undef ],
+	'scr_4_copy'       => [ "Data copy progress:", "Avanzamento copia dati:", "Datenkopierstatus:", "Copie d'informations en cours",  undef ],
+	'scr_4_fmt'        => [ "Disk format:", "Formattazione disco:", "Diskformat:", "Formattage du disque", undef ],
+	'scr_4_overall'    => [ "Overall progress:", "Avanzamento globale", "Gesammtstatus:", "Overall en cours", undef ],
+	'scr_4_progress'   => [ "Progress Information", "Informazione sull'Avanzamento", "Status information", "information en cours", undef ],
 
 
-	'scr_5_title'      => [ "Step 5 of 6: Bootloader Installation and Logging", "Passo 5 di 6: Installazione del Bootloader e Log", "Schritt 5 von 6: Bootlader Installation und Protokoll", undef ],
+	'scr_5_title'      => [ "Step 5 of 6: Bootloader Installation and Logging", "Passo 5 di 6: Installazione del Bootloader e Log", "Schritt 5 von 6: Bootlader Installation und Protokoll", "Etape 5 sur 6: Installation du secterur de demarrage et du logging.", undef ],
 	'scr_5_text'       => [ "<p><b>Installation</b> of the bootloader will now take place. Please select the drive or partition on which you would like to install it and press <i>Install</i> to install the bootloader.</p>", 
 "<p><b>L'Installazione</b> del bootloader ha ora inizio. Seleziona il disco o la patizione sulla quale vuoi installarlo e premi <i>Installa</i> per installare il bootloader.</p>", 
 "<p><b>Die Installation</b> des Bootladers wird nun durchgeführt. Bitte das Laufwerk oder die Partition wählen auf die der Bootlader installiert werden soll. Zur Installation des Bootladers bitte die Schaltfläche <i>Installieren</i> verwenden.</p>",
-undef ],
-	'scr_52'	   => [ "<p>System logging is disabled on the livecd. To enable logging on the installation, press the activate logging button.</p>", "<p>Il Log del sistema è disabilitato nel livecd. Per abilitarlo permi il tasto di attivazione.</p>",  "<p>Das Systemprotokoll ist deaktiviert auf der livecd. Zum aktivieren des Protokolls bitte die <i>aktiviere Protokoll</i> Schaltfläche verwenden.</p>", undef ],
+"<p><b>L'installation</b> du secteur de demarrage va être crée . Svp selectionner la partition du disque sur laquelle vous voulez l'installer et cliquer sur <i>Install</i> pour installer le secteur de demarrage.</p>",
+ undef ],
+	'scr_52'	   => [ "<p>System logging is disabled on the livecd. To enable logging on the installation, press the activate logging button.</p>", "<p>Il Log del sistema è disabilitato nel livecd. Per abilitarlo permi il tasto di attivazione.</p>",  "<p>Das Systemprotokoll ist deaktiviert auf der livecd. Zum aktivieren des Protokolls bitte die <i>aktiviere Protokoll</i> Schaltfläche verwenden.</p>", "Le systeme de logging n'est pas disponible sur le livecd. Pour l'activer, cliquer sur activation du logging.", undef ],
 
 
-	'scr_6_title'      => [ "Step 6 of 6: Customize and Reboot", "Passo 6 di 6, Personalizzazione e Riavvio", "Schritt 6 von 6: Personalisierung und Neustart", undef ],
-	'scr_6_text'       => [ "<p><b>Congratulations</b> you have installed $distroname to your local drive. Now you can customize it.", "<p><b>Congratulazioni</b> hai istallato $distroname sul tuo sistema. Ora puoi personalizzarlo.", "<p><b>Glückwunsch</b> das System $distroname wurde auf dem lokalen Laufwerk installiert. Jetzt kann es personalisiert werden.", undef ],
-	'scr_6_typeroot'   => [ "Type the root password.", "Digita la password di root.", "Bitte root Kennwort eingeben.", undef ],
-	'scr_6_typeroot2'  => [ "Please retype to confirm.", "Ridigitala per conferma", "Wiederholen der Eingabe zur Prüfung.", undef ],
-	'scr_6_chooserb'   => [ "Choose to reboot or not and press <i>Finish</i> to exit the installer.", "Scegli di riavviare o meno e premi <i>Finito</i> per uscire dal programma di installazione.",  "Auswahl zwischen Neustart oder kein Neustart und zum verlassen des Installationsprogramms die Schaltfläche <i>Fertig</i> benutzen.", undef],
-	'scr_6_no'         => [ "No, I will reboot my system later.", "No, riavvierò in un secondo momento.", "Nein, das System wird später neugestartet.", undef ],
-	'scr_6_yes'        => [ "Yes, reboot my system automatically now.", "Sì, riavvia il sistema automaticamente adesso.", "Ja, das System wird jetzt automatisch neugestartet.", undef ],
-	'scr_6_del_guest'  => [ "Delete the guest user account (optional, if present).", "Rimuovi l'account guest (opzionale, se presente).", "Löschen des Gastzugangs (Option, falls eine existiert).", undef ],
-	'scr_6_add_user'   => [ "Add user(s) (optional and repeatable):", "Aggiungi un utente (opzionale e ripetibile)", "hinzufügen hinzuf�gen (Option und wiederholbar):", undef ],
-	'scr_6_au_login'   => [ "Login name:", "Nome di accesso:", "Benutzername:", undef ],
-	'scr_6_au_real'    => [ "Real name:", "Vero nome:", "Echter Name:", undef ],
-	'scr_6_au_pw'      => [ "Password:", "Password:", "Kennwort:", undef ],
-	'scr_6_au_rpw'     => [ "Repeat password:", "Ripeti la password:", "Kennwort wiederholen:", undef ]
+	'scr_6_title'      => [ "Step 6 of 6: Customize and Reboot", "Passo 6 di 6, Personalizzazione e Riavvio", "Schritt 6 von 6: Personalisierung und Neustart", "Etape 6 sur 6: Modofier et redemarrer ", undef ],
+	'scr_6_text'       => [ "<p><b>Congratulations</b> you have installed $distroname to your local drive. Now you can customize it.", "<p><b>Congratulazioni</b> hai istallato $distroname sul tuo sistema. Ora puoi personalizzarlo.", "<p><b>Glückwunsch</b> das System $distroname wurde auf dem lokalen Laufwerk installiert. Jetzt kann es personalisiert werden.", "Felicitations, Vous venez d'installer la distribution sur votre disque local. Vous pouvez a present la modifier ", undef ],
+	'scr_6_typeroot'   => [ "Type the root password.", "Digita la password di root.", "Bitte root Kennwort eingeben.", "Saisir le mot de passe de l'admin.", undef ],
+	'scr_6_typeroot2'  => [ "Please retype to confirm.", "Ridigitala per conferma.", "Wiederholen der Eingabe zur Prüfung.", "de nouveau pour confirmer.", undef ],
+	'scr_6_chooserb'   => [ "Choose to reboot or not and press <i>Finish</i> to exit the installer.", "Scegli di riavviare o meno e premi <i>Finito</i> per uscire dal programma di installazione.",  "Auswahl zwischen Neustart oder kein Neustart und zum verlassen des Installationsprogramms die Schaltfläche <i>Fertig</i> benutzen.", "Choisissez de de redemmarrer ou non et cliquer Terminer pour quitter l'installation",
+undef],
+	'scr_6_no'         => [ "No, I will reboot my system later.", "No, riavvierò in un secondo momento.", "Nein, das System wird später neugestartet.", "Non, je redemarrerai mon systeme plus tard", undef ],
+	'scr_6_yes'        => [ "Yes, reboot my system automatically now.", "Sì, riavvia il sistema automaticamente adesso.", "Ja, das System wird jetzt automatisch neugestartet.", "Oui, redemarre � present mon systeme automatiquement", undef ],
+	'scr_6_del_guest'  => [ "Delete the guest user account (optional, if present).", "Rimuovi l'account guest (opzionale, se presente).", "Löschen des Gastzugangs (Option, falls eine existiert).", "Supprimer le compte de invité 'guest' (optionel, si existant)", undef ],
+	'scr_6_add_user'   => [ "Add user(s) (optional and repeatable):", "Aggiungi un utente (opzionale e ripetibile)", "hinzufügen hinzuf�gen (Option und wiederholbar):", "Ajouter utilisateur(s) (optionel)", undef ],
+	'scr_6_au_login'   => [ "Login name:", "Nome di accesso:", "Benutzername:", "Nom d'utilisateur", undef ],
+	'scr_6_au_real'    => [ "Real name:", "Vero nome:", "Echter Name:", "Nom", undef ],
+	'scr_6_au_pw'      => [ "Password:", "Password:", "Kennwort:", "Mot de passe", undef ],
+	'scr_6_au_rpw'     => [ "Repeat password:", "Ripeti la password:", "Kennwort wiederholen:", "Resaisir le mot de passe", undef ]
 ); 
 
 sub getMyLang {
@@ -226,7 +234,7 @@ sub getStr {
 }
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Tue May 4 13:04:36 2004
+# Created: Thu May 13 10:41:33 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -251,12 +259,14 @@ use Qt::slots
     logging_yes => [],
     logging_no => [],
     lbLang => ['QListBoxItem*'],
-    Partition => ['const QString&'];
+    Partition => ['const QString&'],
+    cbLanguage_act => ['const QString&'];
 use Qt::attributes qw(
     page
     pixmapLabel2
     bDiskPartitioner
     tbWelcome
+    cbLanguage
     page_2
     pixmapLabel3
     groupBox16
@@ -269,7 +279,6 @@ use Qt::attributes qw(
     tlWelcome_2_3
     groupBox16_2
     cbVar
-    cbHome
     cbTmpFormat
     cbVarFormat
     cbHomeFormat
@@ -277,6 +286,7 @@ use Qt::attributes qw(
     textLabel5_2_2
     textLabel5_2
     cbTmp
+    cbHome
     page_3
     pixmapLabel4
     textLabel1_3
@@ -304,32 +314,32 @@ use Qt::attributes qw(
     bInstall
     lbBootloader
     page_6
-    textLabel9
-    textLabel9_2
-    textLabel9_2_2
-    textLabel9_2_2_2
-    pixmapLabel7
-    textLabel631
-    textLabel621
-    textLabel611
-    textLabel612
     tlWelcome_2
-    lineEdit1
-    lineEdit2
-    lineEditLogin
-    lineEditReal
-    lineEditUPW
-    lineEditUPW2
-    textLabel632
-    textLabel633
-    textLabel634
-    textLabel635
     buttonGroup2
     rbNoReboot
     rbReboot
     bWritePassword
     bDeleteGuest
     bCreateUser
+    lineEditLogin
+    lineEditReal
+    lineEditUPW
+    lineEditUPW2
+    lineEdit1
+    lineEdit2
+    pixmapLabel7
+    textLabel9
+    textLabel9_2
+    textLabel9_2_2
+    textLabel9_2_2_2
+    textLabel611
+    textLabel612
+    textLabel621
+    textLabel631
+    textLabel632
+    textLabel633
+    textLabel634
+    textLabel635
 );
 
 
@@ -3386,12 +3396,15 @@ sub NEW
     pixmapLabel2->setScaledContents( 1 );
 
     bDiskPartitioner = Qt::PushButton(page, "bDiskPartitioner");
-    bDiskPartitioner->setGeometry( Qt::Rect(415, 350, 210, 35) );
+    bDiskPartitioner->setGeometry( Qt::Rect(475, 350, 225, 35) );
 
     tbWelcome = Qt::TextBrowser(page, "tbWelcome");
     tbWelcome->setGeometry( Qt::Rect(310, 0, 390, 345) );
     tbWelcome->setPaletteBackgroundColor( Qt::Color(230, 231, 230) );
     tbWelcome->setLineWidth( int(1) );
+
+    cbLanguage = Qt::ComboBox(0, page, "cbLanguage");
+    cbLanguage->setGeometry( Qt::Rect(310, 350, 145, 35) );
     addPage( page, "" );
 
     page_2 = Qt::Widget(this, "page_2");
@@ -3435,9 +3448,6 @@ sub NEW
     cbVar = Qt::ComboBox(0, groupBox16_2, "cbVar");
     cbVar->setGeometry( Qt::Rect(10, 90, 370, 26) );
 
-    cbHome = Qt::ComboBox(0, groupBox16_2, "cbHome");
-    cbHome->setGeometry( Qt::Rect(10, 40, 370, 26) );
-
     cbTmpFormat = Qt::CheckBox(groupBox16_2, "cbTmpFormat");
     cbTmpFormat->setGeometry( Qt::Rect(260, 120, 110, 20) );
 
@@ -3458,6 +3468,9 @@ sub NEW
 
     cbTmp = Qt::ComboBox(0, groupBox16_2, "cbTmp");
     cbTmp->setGeometry( Qt::Rect(10, 140, 370, 26) );
+
+    cbHome = Qt::ComboBox(0, groupBox16_2, "cbHome");
+    cbHome->setGeometry( Qt::Rect(10, 40, 370, 26) );
     addPage( page_2, "" );
 
     page_3 = Qt::Widget(this, "page_3");
@@ -3556,48 +3569,30 @@ sub NEW
 
     page_6 = Qt::Widget(this, "page_6");
 
-    textLabel9 = Qt::Label(page_6, "textLabel9");
-    textLabel9->setGeometry( Qt::Rect(305, 35, 17, 21) );
-
-    textLabel9_2 = Qt::Label(page_6, "textLabel9_2");
-    textLabel9_2->setGeometry( Qt::Rect(305, 120, 17, 21) );
-
-    textLabel9_2_2 = Qt::Label(page_6, "textLabel9_2_2");
-    textLabel9_2_2->setGeometry( Qt::Rect(305, 175, 17, 21) );
-
-    textLabel9_2_2_2 = Qt::Label(page_6, "textLabel9_2_2_2");
-    textLabel9_2_2_2->setGeometry( Qt::Rect(305, 345, 17, 21) );
-
-    pixmapLabel7 = Qt::Label(page_6, "pixmapLabel7");
-    pixmapLabel7->setGeometry( Qt::Rect(0, 0, 300, 380) );
-    pixmapLabel7->setPixmap( $image0 );
-    pixmapLabel7->setScaledContents( 1 );
-
-    textLabel631 = Qt::Label(page_6, "textLabel631");
-    textLabel631->setGeometry( Qt::Rect(330, 180, 380, 20) );
-
-    textLabel621 = Qt::Label(page_6, "textLabel621");
-    textLabel621->setGeometry( Qt::Rect(330, 130, 375, 20) );
-
-    textLabel611 = Qt::Label(page_6, "textLabel611");
-    textLabel611->setGeometry( Qt::Rect(325, 40, 180, 20) );
-    textLabel611->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
-
-    textLabel612 = Qt::Label(page_6, "textLabel612");
-    textLabel612->setGeometry( Qt::Rect(305, 65, 200, 20) );
-    textLabel612->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
-
     tlWelcome_2 = Qt::Label(page_6, "tlWelcome_2");
     tlWelcome_2->setGeometry( Qt::Rect(310, 0, 380, 40) );
     tlWelcome_2->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignTop | &Qt::Label::AlignLeft) );
 
-    lineEdit1 = Qt::LineEdit(page_6, "lineEdit1");
-    lineEdit1->setGeometry( Qt::Rect(505, 40, 200, 24) );
-    lineEdit1->setEchoMode( &Qt::LineEdit::Password() );
+    buttonGroup2 = Qt::ButtonGroup(page_6, "buttonGroup2");
+    buttonGroup2->setGeometry( Qt::Rect(330, 340, 375, 40) );
+    buttonGroup2->setPaletteBackgroundColor( Qt::Color(230, 231, 230) );
+    buttonGroup2->setFrameShape( &Qt::ButtonGroup::NoFrame() );
 
-    lineEdit2 = Qt::LineEdit(page_6, "lineEdit2");
-    lineEdit2->setGeometry( Qt::Rect(505, 70, 200, 24) );
-    lineEdit2->setEchoMode( &Qt::LineEdit::Password() );
+    rbNoReboot = Qt::RadioButton(buttonGroup2, "rbNoReboot");
+    rbNoReboot->setGeometry( Qt::Rect(0, 20, 360, 20) );
+    rbNoReboot->setChecked( 1 );
+
+    rbReboot = Qt::RadioButton(buttonGroup2, "rbReboot");
+    rbReboot->setGeometry( Qt::Rect(0, 0, 360, 20) );
+
+    bWritePassword = Qt::PushButton(page_6, "bWritePassword");
+    bWritePassword->setGeometry( Qt::Rect(325, 90, 170, 26) );
+
+    bDeleteGuest = Qt::PushButton(page_6, "bDeleteGuest");
+    bDeleteGuest->setGeometry( Qt::Rect(325, 150, 170, 26) );
+
+    bCreateUser = Qt::PushButton(page_6, "bCreateUser");
+    bCreateUser->setGeometry( Qt::Rect(325, 310, 170, 26) );
 
     lineEditLogin = Qt::LineEdit(page_6, "lineEditLogin");
     lineEditLogin->setGeometry( Qt::Rect(505, 200, 200, 24) );
@@ -3613,42 +3608,68 @@ sub NEW
     lineEditUPW2->setGeometry( Qt::Rect(505, 290, 200, 24) );
     lineEditUPW2->setEchoMode( &Qt::LineEdit::Password() );
 
+    lineEdit1 = Qt::LineEdit(page_6, "lineEdit1");
+    lineEdit1->setGeometry( Qt::Rect(505, 40, 200, 24) );
+    lineEdit1->setEchoMode( &Qt::LineEdit::Password() );
+
+    lineEdit2 = Qt::LineEdit(page_6, "lineEdit2");
+    lineEdit2->setGeometry( Qt::Rect(505, 70, 200, 24) );
+    lineEdit2->setEchoMode( &Qt::LineEdit::Password() );
+
+    pixmapLabel7 = Qt::Label(page_6, "pixmapLabel7");
+    pixmapLabel7->setGeometry( Qt::Rect(0, 0, 300, 380) );
+    pixmapLabel7->setPixmap( $image0 );
+    pixmapLabel7->setScaledContents( 1 );
+
+    textLabel9 = Qt::Label(page_6, "textLabel9");
+    textLabel9->setGeometry( Qt::Rect(305, 35, 17, 21) );
+
+    textLabel9_2 = Qt::Label(page_6, "textLabel9_2");
+    textLabel9_2->setGeometry( Qt::Rect(305, 120, 17, 21) );
+
+    textLabel9_2_2 = Qt::Label(page_6, "textLabel9_2_2");
+    textLabel9_2_2->setGeometry( Qt::Rect(305, 175, 17, 21) );
+
+    textLabel9_2_2_2 = Qt::Label(page_6, "textLabel9_2_2_2");
+    textLabel9_2_2_2->setGeometry( Qt::Rect(305, 345, 17, 21) );
+
+    textLabel611 = Qt::Label(page_6, "textLabel611");
+    textLabel611->setGeometry( Qt::Rect(325, 40, 180, 20) );
+    textLabel611->setScaledContents( 1 );
+    textLabel611->setAlignment( int(&Qt::Label::WordBreak | &Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
+
+    textLabel612 = Qt::Label(page_6, "textLabel612");
+    textLabel612->setGeometry( Qt::Rect(305, 65, 200, 20) );
+    textLabel612->setScaledContents( 1 );
+    textLabel612->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
+
+    textLabel621 = Qt::Label(page_6, "textLabel621");
+    textLabel621->setGeometry( Qt::Rect(330, 120, 375, 30) );
+    textLabel621->setScaledContents( 1 );
+
+    textLabel631 = Qt::Label(page_6, "textLabel631");
+    textLabel631->setGeometry( Qt::Rect(330, 180, 380, 20) );
+    textLabel631->setScaledContents( 1 );
+
     textLabel632 = Qt::Label(page_6, "textLabel632");
     textLabel632->setGeometry( Qt::Rect(330, 200, 170, 20) );
+    textLabel632->setScaledContents( 1 );
     textLabel632->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
 
     textLabel633 = Qt::Label(page_6, "textLabel633");
     textLabel633->setGeometry( Qt::Rect(330, 230, 170, 20) );
+    textLabel633->setScaledContents( 1 );
     textLabel633->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
 
     textLabel634 = Qt::Label(page_6, "textLabel634");
     textLabel634->setGeometry( Qt::Rect(330, 260, 170, 20) );
+    textLabel634->setScaledContents( 1 );
     textLabel634->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
 
     textLabel635 = Qt::Label(page_6, "textLabel635");
     textLabel635->setGeometry( Qt::Rect(330, 290, 170, 20) );
+    textLabel635->setScaledContents( 1 );
     textLabel635->setAlignment( int(&Qt::Label::AlignVCenter | &Qt::Label::AlignRight) );
-
-    buttonGroup2 = Qt::ButtonGroup(page_6, "buttonGroup2");
-    buttonGroup2->setGeometry( Qt::Rect(330, 340, 375, 40) );
-    buttonGroup2->setPaletteBackgroundColor( Qt::Color(230, 231, 230) );
-    buttonGroup2->setFrameShape( &Qt::ButtonGroup::NoFrame() );
-
-    rbNoReboot = Qt::RadioButton(buttonGroup2, "rbNoReboot");
-    rbNoReboot->setGeometry( Qt::Rect(10, 20, 360, 20) );
-    rbNoReboot->setChecked( 1 );
-
-    rbReboot = Qt::RadioButton(buttonGroup2, "rbReboot");
-    rbReboot->setGeometry( Qt::Rect(10, 0, 360, 20) );
-
-    bWritePassword = Qt::PushButton(page_6, "bWritePassword");
-    bWritePassword->setGeometry( Qt::Rect(325, 90, 170, 26) );
-
-    bDeleteGuest = Qt::PushButton(page_6, "bDeleteGuest");
-    bDeleteGuest->setGeometry( Qt::Rect(325, 150, 170, 26) );
-
-    bCreateUser = Qt::PushButton(page_6, "bCreateUser");
-    bCreateUser->setGeometry( Qt::Rect(325, 310, 170, 26) );
     addPage( page_6, "" );
     languageChange();
     my $resize = Qt::Size(718, 465);
@@ -3665,6 +3686,7 @@ sub NEW
     Qt::Object::connect(bCreateUser, SIGNAL "clicked()", this, SLOT "createUser()");
     Qt::Object::connect(bLogging_yes, SIGNAL "clicked()", this, SLOT "logging_yes()");
     Qt::Object::connect(bLogging_no, SIGNAL "clicked()", this, SLOT "logging_no()");
+    Qt::Object::connect(cbLanguage, SIGNAL "activated(const QString&)", this, SLOT "cbLanguage_act(const QString&)");
 
     setTabOrder(bDiskPartitioner, cbRoot);
     setTabOrder(cbRoot, cbRootFormat);
@@ -3712,6 +3734,12 @@ sub languageChange
     "(for advanced users)") );
     bDiskPartitioner->setAccel( Qt::KeySequence( trUtf8("Alt+D") ) );
     tbWelcome->setText( trUtf8("<p><b>Welcome</b> to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the <i>Back</i> and <i>Next</i> buttons. You can stop at any time with the <i>Cancel</i> button.</p><p>This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing important data or making your system unbootable. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p><p>For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.") );
+    cbLanguage->clear();
+    cbLanguage->insertItem( trUtf8("       Language") );
+    cbLanguage->insertItem( trUtf8("Deutsch - de") );
+    cbLanguage->insertItem( trUtf8("English - en") );
+    cbLanguage->insertItem( trUtf8("français - fr") );
+    cbLanguage->insertItem( trUtf8("italiano - it") );
     setTitle( page, trUtf8("Step 1 of 6: Welcome") );
     groupBox16->setTitle( trUtf8("Required Partitions") );
     textLabel5->setText( trUtf8("Swap device:") );
@@ -3754,19 +3782,7 @@ sub languageChange
     bInstall->setText( trUtf8("&Install") );
     bInstall->setAccel( Qt::KeySequence( trUtf8("Alt+I") ) );
     setTitle( page_5, trUtf8("Step 5 of 6: Bootloader Installation and Logging") );
-    textLabel9->setText( trUtf8("<b>1)</b>") );
-    textLabel9_2->setText( trUtf8("<b>2)</b>") );
-    textLabel9_2_2->setText( trUtf8("<b>3)</b>") );
-    textLabel9_2_2_2->setText( trUtf8("<b>4)</b>") );
-    textLabel631->setText( trUtf8("Add user(s) (optional and repeatable):") );
-    textLabel621->setText( trUtf8("Delete the guest user account (optional, if present).") );
-    textLabel611->setText( trUtf8("Create the root password:") );
-    textLabel612->setText( trUtf8("Please retype to confirm:") );
     tlWelcome_2->setText( trUtf8("<p><b>Congratulations</b> you have installed $distroname to your local drive. Now you can customize it.") );
-    textLabel632->setText( trUtf8("Login name:") );
-    textLabel633->setText( trUtf8("Real name:") );
-    textLabel634->setText( trUtf8("Password:") );
-    textLabel635->setText( trUtf8("Repeat Password:") );
     buttonGroup2->setTitle( "" );
     rbNoReboot->setText( trUtf8("No, I will reboot my system later.") );
     rbReboot->setText( trUtf8("Yes, reboot my system automatically now.") );
@@ -3776,6 +3792,18 @@ sub languageChange
     bDeleteGuest->setAccel( Qt::KeySequence( trUtf8("Alt+D") ) );
     bCreateUser->setText( trUtf8("&Create the User.") );
     bCreateUser->setAccel( Qt::KeySequence( trUtf8("Alt+C") ) );
+    textLabel9->setText( trUtf8("<b>1)</b>") );
+    textLabel9_2->setText( trUtf8("<b>2)</b>") );
+    textLabel9_2_2->setText( trUtf8("<b>3)</b>") );
+    textLabel9_2_2_2->setText( trUtf8("<b>4)</b>") );
+    textLabel611->setText( trUtf8("Create the root password:") );
+    textLabel612->setText( trUtf8("Please retype to confirm:") );
+    textLabel621->setText( trUtf8("Delete the guest user account (optional, if present).") );
+    textLabel631->setText( trUtf8("Add user(s) (optional and repeatable):") );
+    textLabel632->setText( trUtf8("Login name:") );
+    textLabel633->setText( trUtf8("Real name:") );
+    textLabel634->setText( trUtf8("Password:") );
+    textLabel635->setText( trUtf8("Repeat Password:") );
     setTitle( page_6, trUtf8("Step 6 of 6: Customize and Reboot") );
 }
 
@@ -3801,7 +3829,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.61 2004/05/04 22:28:59 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.62 2004/05/13 21:12:24 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -4007,7 +4035,8 @@ sub init
  	$| = 1;
 
 	# initialise our languages
-	$lang = getMyLang();
+	#$lang = getMyLang();
+	if ($lang eq '') {$lang = getMyLang() };
 	print getStr('script_init')."\n";
 	initLang();
 	do_system("mkdir -p $mnt");
@@ -4820,6 +4849,15 @@ sub createUser # SLOT: ( )
 	lineEditUPW2->clear();
 }
 
+sub cbLanguage_act # SLOT: ( const QString & )
+{
+	my($check)  = @_;
+	$lang = substr($check, -2);   #e.g. French - fr 
+	if ($lang ne 'ge') {    # Langua'ge'
+		init();
+	}
+
+}
 
 1;
 
@@ -4843,7 +4881,7 @@ sub createUser # SLOT: ( )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.61 2004/05/04 22:28:59 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.62 2004/05/13 21:12:24 tom_kelly33 Exp $
 #
 
 package main;

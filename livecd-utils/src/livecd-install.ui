@@ -47,9 +47,9 @@
             </property>
             <property name="geometry">
                 <rect>
-                    <x>415</x>
+                    <x>475</x>
                     <y>350</y>
-                    <width>210</width>
+                    <width>225</width>
                     <height>35</height>
                 </rect>
             </property>
@@ -85,6 +85,44 @@
             </property>
             <property name="text">
                 <string>&lt;p&gt;&lt;b&gt;Welcome&lt;/b&gt; to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the &lt;i&gt;Back&lt;/i&gt; and &lt;i&gt;Next&lt;/i&gt; buttons. You can stop at any time with the &lt;i&gt;Cancel&lt;/i&gt; button.&lt;/p&gt;&lt;p&gt;This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing important data or making your system unbootable. Use it with care!&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.</string>
+            </property>
+        </widget>
+        <widget class="QComboBox">
+            <item>
+                <property name="text">
+                    <string>       Language</string>
+                </property>
+            </item>
+            <item>
+                <property name="text">
+                    <string>Deutsch - de</string>
+                </property>
+            </item>
+            <item>
+                <property name="text">
+                    <string>English - en</string>
+                </property>
+            </item>
+            <item>
+                <property name="text">
+                    <string>français - fr</string>
+                </property>
+            </item>
+            <item>
+                <property name="text">
+                    <string>italiano - it</string>
+                </property>
+            </item>
+            <property name="name">
+                <cstring>cbLanguage</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>310</x>
+                    <y>350</y>
+                    <width>145</width>
+                    <height>35</height>
+                </rect>
             </property>
         </widget>
     </widget>
@@ -276,19 +314,6 @@
                     </rect>
                 </property>
             </widget>
-            <widget class="QComboBox">
-                <property name="name">
-                    <cstring>cbHome</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>40</y>
-                        <width>370</width>
-                        <height>26</height>
-                    </rect>
-                </property>
-            </widget>
             <widget class="QCheckBox">
                 <property name="name">
                     <cstring>cbTmpFormat</cstring>
@@ -393,6 +418,19 @@
                     <rect>
                         <x>10</x>
                         <y>140</y>
+                        <width>370</width>
+                        <height>26</height>
+                    </rect>
+                </property>
+            </widget>
+            <widget class="QComboBox">
+                <property name="name">
+                    <cstring>cbHome</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>40</y>
                         <width>370</width>
                         <height>26</height>
                     </rect>
@@ -878,159 +916,6 @@
         </attribute>
         <widget class="QLabel">
             <property name="name">
-                <cstring>textLabel9</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>305</x>
-                    <y>35</y>
-                    <width>17</width>
-                    <height>21</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&lt;b&gt;1)&lt;/b&gt;</string>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel9_2</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>305</x>
-                    <y>120</y>
-                    <width>17</width>
-                    <height>21</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&lt;b&gt;2)&lt;/b&gt;</string>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel9_2_2</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>305</x>
-                    <y>175</y>
-                    <width>17</width>
-                    <height>21</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&lt;b&gt;3)&lt;/b&gt;</string>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel9_2_2_2</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>305</x>
-                    <y>345</y>
-                    <width>17</width>
-                    <height>21</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>&lt;b&gt;4)&lt;/b&gt;</string>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>pixmapLabel7</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>0</x>
-                    <y>0</y>
-                    <width>300</width>
-                    <height>380</height>
-                </rect>
-            </property>
-            <property name="pixmap">
-                <pixmap>image0</pixmap>
-            </property>
-            <property name="scaledContents">
-                <bool>true</bool>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel631</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>330</x>
-                    <y>180</y>
-                    <width>380</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Add user(s) (optional and repeatable):</string>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel621</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>330</x>
-                    <y>130</y>
-                    <width>375</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Delete the guest user account (optional, if present).</string>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel611</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>325</x>
-                    <y>40</y>
-                    <width>180</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Create the root password:</string>
-            </property>
-            <property name="alignment">
-                <set>WordBreak|AlignVCenter|AlignRight</set>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel612</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>305</x>
-                    <y>65</y>
-                    <width>200</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Please retype to confirm:</string>
-            </property>
-            <property name="alignment">
-                <set>AlignVCenter|AlignRight</set>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
                 <cstring>tlWelcome_2</cstring>
             </property>
             <property name="geometry">
@@ -1046,172 +931,6 @@
             </property>
             <property name="alignment">
                 <set>WordBreak|AlignTop|AlignLeft</set>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>lineEdit1</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>40</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-            <property name="echoMode">
-                <enum>Password</enum>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>lineEdit2</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>70</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-            <property name="echoMode">
-                <enum>Password</enum>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>lineEditLogin</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>200</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>lineEditReal</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>230</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>lineEditUPW</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>260</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-            <property name="echoMode">
-                <enum>Password</enum>
-            </property>
-        </widget>
-        <widget class="QLineEdit">
-            <property name="name">
-                <cstring>lineEditUPW2</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>505</x>
-                    <y>290</y>
-                    <width>200</width>
-                    <height>24</height>
-                </rect>
-            </property>
-            <property name="echoMode">
-                <enum>Password</enum>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel632</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>330</x>
-                    <y>200</y>
-                    <width>170</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Login name:</string>
-            </property>
-            <property name="alignment">
-                <set>AlignVCenter|AlignRight</set>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel633</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>330</x>
-                    <y>230</y>
-                    <width>170</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Real name:</string>
-            </property>
-            <property name="alignment">
-                <set>AlignVCenter|AlignRight</set>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel634</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>330</x>
-                    <y>260</y>
-                    <width>170</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Password:</string>
-            </property>
-            <property name="alignment">
-                <set>AlignVCenter|AlignRight</set>
-            </property>
-        </widget>
-        <widget class="QLabel">
-            <property name="name">
-                <cstring>textLabel635</cstring>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>330</x>
-                    <y>290</y>
-                    <width>170</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="text">
-                <string>Repeat Password:</string>
-            </property>
-            <property name="alignment">
-                <set>AlignVCenter|AlignRight</set>
             </property>
         </widget>
         <widget class="QButtonGroup">
@@ -1245,7 +964,7 @@
                 </property>
                 <property name="geometry">
                     <rect>
-                        <x>10</x>
+                        <x>0</x>
                         <y>20</y>
                         <width>360</width>
                         <height>20</height>
@@ -1264,7 +983,7 @@
                 </property>
                 <property name="geometry">
                     <rect>
-                        <x>10</x>
+                        <x>0</x>
                         <y>0</y>
                         <width>360</width>
                         <height>20</height>
@@ -1332,6 +1051,349 @@
                 <string>Alt+C</string>
             </property>
         </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEditLogin</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>200</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEditReal</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>230</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEditUPW</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>260</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="echoMode">
+                <enum>Password</enum>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEditUPW2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>290</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="echoMode">
+                <enum>Password</enum>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEdit1</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>40</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="echoMode">
+                <enum>Password</enum>
+            </property>
+        </widget>
+        <widget class="QLineEdit">
+            <property name="name">
+                <cstring>lineEdit2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>505</x>
+                    <y>70</y>
+                    <width>200</width>
+                    <height>24</height>
+                </rect>
+            </property>
+            <property name="echoMode">
+                <enum>Password</enum>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>pixmapLabel7</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>300</width>
+                    <height>380</height>
+                </rect>
+            </property>
+            <property name="pixmap">
+                <pixmap>image0</pixmap>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel9</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>305</x>
+                    <y>35</y>
+                    <width>17</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&lt;b&gt;1)&lt;/b&gt;</string>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel9_2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>305</x>
+                    <y>120</y>
+                    <width>17</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&lt;b&gt;2)&lt;/b&gt;</string>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel9_2_2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>305</x>
+                    <y>175</y>
+                    <width>17</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&lt;b&gt;3)&lt;/b&gt;</string>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel9_2_2_2</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>305</x>
+                    <y>345</y>
+                    <width>17</width>
+                    <height>21</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>&lt;b&gt;4)&lt;/b&gt;</string>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel611</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>325</x>
+                    <y>40</y>
+                    <width>180</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Create the root password:</string>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+            <property name="alignment">
+                <set>WordBreak|AlignVCenter|AlignRight</set>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel612</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>305</x>
+                    <y>65</y>
+                    <width>200</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Please retype to confirm:</string>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+            <property name="alignment">
+                <set>AlignVCenter|AlignRight</set>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel621</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>330</x>
+                    <y>120</y>
+                    <width>375</width>
+                    <height>30</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Delete the guest user account (optional, if present).</string>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel631</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>330</x>
+                    <y>180</y>
+                    <width>380</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Add user(s) (optional and repeatable):</string>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel632</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>330</x>
+                    <y>200</y>
+                    <width>170</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Login name:</string>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+            <property name="alignment">
+                <set>AlignVCenter|AlignRight</set>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel633</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>330</x>
+                    <y>230</y>
+                    <width>170</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Real name:</string>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+            <property name="alignment">
+                <set>AlignVCenter|AlignRight</set>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel634</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>330</x>
+                    <y>260</y>
+                    <width>170</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Password:</string>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+            <property name="alignment">
+                <set>AlignVCenter|AlignRight</set>
+            </property>
+        </widget>
+        <widget class="QLabel">
+            <property name="name">
+                <cstring>textLabel635</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>330</x>
+                    <y>290</y>
+                    <width>170</width>
+                    <height>20</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Repeat Password:</string>
+            </property>
+            <property name="scaledContents">
+                <bool>true</bool>
+            </property>
+            <property name="alignment">
+                <set>AlignVCenter|AlignRight</set>
+            </property>
+        </widget>
     </widget>
 </widget>
 <images>
@@ -1394,6 +1456,12 @@
         <receiver>fMain</receiver>
         <slot>logging_no()</slot>
     </connection>
+    <connection>
+        <sender>cbLanguage</sender>
+        <signal>activated(const QString&amp;)</signal>
+        <receiver>fMain</receiver>
+        <slot>cbLanguage_act(const QString&amp;)</slot>
+    </connection>
 </connections>
 <tabstops>
     <tabstop>bDiskPartitioner</tabstop>
@@ -1425,7 +1493,6 @@
 </tabstops>
 <includes>
     <include location="local" impldecl="in implementation">livecd-install.ui.pm</include>
-    <include location="local" impldecl="in implementation">livecd-install.ui.h</include>
 </includes>
 <slots>
     <slot language="Perl">pageSelected( const QString &amp; )</slot>
@@ -1440,6 +1507,7 @@
     <slot>logging_no()</slot>
     <slot>lbLang( QListBoxItem * )</slot>
     <slot>Partition( const QString &amp; )</slot>
+    <slot>cbLanguage_act( const QString &amp; )</slot>
 </slots>
 <functions>
     <function language="Perl">init()</function>

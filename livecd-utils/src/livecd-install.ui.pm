@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.29 2004/05/04 22:29:00 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.30 2004/05/13 21:12:24 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -234,7 +234,8 @@ sub init
  	$| = 1;
 
 	# initialise our languages
-	$lang = getMyLang();
+	#$lang = getMyLang();
+	if ($lang eq '') {$lang = getMyLang() };
 	print getStr('script_init')."\n";
 	initLang();
 	do_system("mkdir -p $mnt");
@@ -1047,3 +1048,12 @@ sub createUser # SLOT: ( )
 	lineEditUPW2->clear();
 }
 
+sub cbLanguage_act # SLOT: ( const QString & )
+{
+	my($check)  = @_;
+	$lang = substr($check, -2);   #e.g. French - fr 
+	if ($lang ne 'ge') {    # Langua'ge'
+		init();
+	}
+
+}
