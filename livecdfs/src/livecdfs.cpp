@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.24 2004/01/31 11:49:37 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.25 2004/01/31 16:18:54 jaco Exp $
  */
 
 #include <dirent.h>
@@ -97,6 +97,13 @@ LiveCDFS::create(struct list_head *cfg,
 		FUNC_RET("%p", NULL, NULL);
 	}
 	string tmp = string(opt);
+	
+	opt = lu_opt_getchar(cfg, "MOUNT", "mount");
+	if (opt == NULL) {
+		ERROR("FATAL: Please specify '-o mount=<point>', defining the final mountpoint, as a mount option");
+		FUNC_RET("%p", NULL, NULL);
+	}
+	string mount = string(opt);
 
 	t_active_livecdfs *active = findActive(root, tmp);
 	LiveCDFS *fs = NULL;
@@ -106,7 +113,7 @@ LiveCDFS::create(struct list_head *cfg,
 		
 		if (((path = Path::create(root, tmp)) != NULL) && 
 		    ((wo = Whiteout::create(tmp)) != NULL)) {
-			fs = new LiveCDFS(cfg, cache, cred, path, wo);
+			fs = new LiveCDFS(cfg, cache, cred, mount, path, wo);
 		}
 		
 		if (fs == NULL) {
@@ -119,7 +126,7 @@ LiveCDFS::create(struct list_head *cfg,
 			ERROR("Could not create new LiveCDFS instance");
 		}
 		else {
-			activefs.push_back((t_active_livecdfs){root,tmp,1,fs});
+			activefs.push_back((t_active_livecdfs){mount,root,tmp,1,fs});
 			TRACE("Created new LiveCDFS instance, fs=%p", fs);
 		}
 	}
@@ -158,15 +165,17 @@ LiveCDFS::destroy(LiveCDFS *fs)
 LiveCDFS::LiveCDFS(struct list_head *cfg, 
 		   struct dir_cache *cache, 
 		   struct credentials *cred,
+		   const string &mount,
 		   Path *path,
 		   Whiteout *whiteout) 
 {
-	FUNC_START("cfg=%p, cache=%p, cred=%p, path=%p, whiteout=%p", cfg, cache, cred, path, whiteout);
+	FUNC_START("cfg=%p, cache=%p, cred=%p, mount='%s', path=%p, whiteout=%p", cfg, cache, cred, mount.c_str(), path, whiteout);
 	
 	this->cfg = cfg;
 	this->cache = cache;
 	this->cred = cred;
 	
+	this->mount = mount;
 	this->path = path;
 	this->whiteout = whiteout;
 	
@@ -317,7 +326,34 @@ LiveCDFS::doReadlink(const char *link,
 		FUNC_RET("%d", -1, -1);
 	}
 	
-	int ret = readlink(path->mkpath(link).c_str(), buf, buflen);
+	string linkpath = path->mkpath(link);
+	TRACE("Reading linkpath='%s'", linkpath.c_str());
+	int ret = readlink(linkpath.c_str(), buf, buflen);
+	if (ret < 0) {
+		ERROR("strerror(errno)='%s' on readlink(link='%s', &buf, buflen=%d)", strerror(errno), linkpath.c_str(), buflen);
+	}
+	else {
+		buf[ret] = '\0';
+		TRACE("After readlink, ret=%d, buf='%s'", ret, buf);
+		if (buf[0] == '/') {
+			string relpath = string("../");
+			int pos = 0;
+			while ((pos = string(link).find("/", pos+1)) > 0) {
+				relpath = path->join(relpath, "../");
+			}
+			
+			pos = 0;
+			while ((pos = mount.find("/", pos+1)) > 0) {
+				relpath = path->join(relpath, "../");
+			}
+			
+			relpath = path->join(relpath, string(buf)); 
+			memset(buf, 0, 256);
+			strncpy(buf, relpath.c_str(), 255);
+			ret = strlen(buf);
+			TRACE("Translated relpath='%s'", buf);
+		}
+	}
 	FUNC_RET("%d", ret, ret);
 }
 

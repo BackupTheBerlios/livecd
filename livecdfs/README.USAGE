@@ -1,4 +1,4 @@
-# $Id: README.USAGE,v 1.4 2004/01/31 11:27:52 jaco Exp $
+# $Id: README.USAGE,v 1.5 2004/01/31 16:18:54 jaco Exp $
 
 Usage: 
     lufsd.livecdfs <mount> -o rw_tmp=<tmp>,ro_root=<root>[,option,...] 
@@ -7,11 +7,11 @@ Usage:
     daemon (LUFSD), with either of the following commands: (This requires a
     working installation of LUFS.)
     
-    lufsd none <mount> -o fs=livecdfs,rw_tmp=<tmp>,ro_root=<root>[,option,...] 
+    lufsd none <mount> -o fs=livecdfs,mount=<mount>,rw_tmp=<tmp>,ro_root=<root>[,option,...] 
     
         or (via mount)
     
-    mount -t lufs none <mount> -o fs=livecdfs,rw_tmp=<tmp>,ro_root=<root>[,option,...] 
+    mount -t lufs none <mount> -o fs=livecdfs,mount=<mount>,rw_tmp=<tmp>,ro_root=<root>[,option,...] 
 
 
 Required Options:
