@@ -1,4 +1,4 @@
-# $Id: mklivecd.spec.in,v 1.15 2003/11/01 10:05:10 bgmilne Exp $
+# $Id: mklivecd.spec.in,v 1.16 2003/11/05 12:53:01 jaco Exp $
 
 %define name		mklivecd
 %define version		@MKLIVECDVER@
@@ -12,7 +12,7 @@ Version:		%{version}
 Release:		%{release}
 License:		GPL
 Group:			System/Configuration/Boot and Init
-URL:			http://www.linuxminicd.org/mklivecd/
+URL:			http://livecd.berlios.de/
 Source0:		%{name}-@ARCHIVEVER@.tar.bz2
 Requires:		busybox, cloop-utils, mkisofs
 BuildRoot:		%{_tmppath}/%{name}-root
