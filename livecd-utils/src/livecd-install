@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.19 2003/11/22 20:34:01 jaco Exp $
+# $Id: livecd-install,v 1.20 2003/11/22 20:48:55 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -237,6 +237,9 @@ sub make_fstab {
 	fs::write_fstab($hdds, $mnt);
 	open FSTAB, '>', "$mnt/etc/fstab";
 	print FSTAB "\n### entries below this line were automatically added by $PROG_NAME v$PROG_VER\n";
+	print FSTAB "\nnone"."\t"."/proc"."\t"."proc"."\t"."defaults"."\t"."0 0";
+	print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";
+	print FSTAB "\n";
 	foreach my $dev (sort keys %devs) {
 		my $devpnt = $dev;
 		$devpnt =~ s|/dev/||;
