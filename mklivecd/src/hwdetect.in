@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.87 2004/01/13 18:13:54 jaco Exp $
+# $Id: hwdetect.in,v 1.88 2004/01/14 06:15:52 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -909,8 +909,8 @@ sub hwdetect_getpersistent {
 					}
 					elsif ($popts{loop} && (-e $loopimg)) {
 						if ($popts{link}) {
-							system("(mount -o loop -t ext2 $loopimg $loopmnt) 2>/dev/null");
-							system("(cd $loopmnt ; ln -sf ".$devs{$dev}->{mount}." ".$popts{link}.") 2>/dev/null");
+							system("(mount -o loop -t ext2 $loopimg $loopmnt) 2>&1 >/dev/null");
+							system("(cd $loopmnt ; ln -sf ".$devs{$dev}->{mount}." ".$popts{link}.") 2>&1 >/dev/null");
 							umount(undef, $loopmnt);
 						}
 
