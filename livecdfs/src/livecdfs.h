@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.h,v 1.5 2004/01/23 17:56:05 jaco Exp $
+ * $Id: livecdfs.h,v 1.6 2004/01/31 11:49:37 jaco Exp $
  */
 
 #ifndef _LIVECDFS_dot_H_
@@ -91,6 +91,7 @@ public:
 	int doCreate(const char *, int);
 	int doRename(const char *, const char *);
 	int doSetattr(const char *, struct lufs_fattr *);
+	int doLinkAll(const char *, const char *, bool);
 	int doLink(const char *, const char *);
 	int doSymlink(const char *, const char *);
 };

@@ -18,10 +18,11 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.23 2004/01/31 07:30:39 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.24 2004/01/31 11:49:37 jaco Exp $
  */
 
 #include <dirent.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -485,11 +486,11 @@ LiveCDFS::doMkdir(const char *dir,
 	FUNC_START("dir='%s', mode=%d", dir, mode);
 	
 	int res = mkdir(path->mktmp(dir).c_str(), mode);
-	if (res >= 0) {
-		whiteout->setVisible(dir, true);
+	if (res < 0) {
+		ERROR("strerror(errno)='%s' on mkdir(dir='%s', mode=%d)", strerror(errno), dir, mode);
 	}
 	else {
-		ERROR("Could not create directory, dir='%s'", dir);
+		whiteout->setVisible(dir, true);
 	}
 	FUNC_RET("%d", res, res);
 }
@@ -536,7 +537,7 @@ int
 LiveCDFS::doCreate(const char *file, 
 		   int mode)
 {
-	FUNC_START("file='%s', mode=%d", file, mode);
+	FUNC_START("file='%s', mode=%d(0x%x)", file, mode, mode);
 	
 	string dir = path->getDir(file);
 	if ((dir.length() != 0) && !path->isTmp(dir)) {
@@ -545,11 +546,11 @@ LiveCDFS::doCreate(const char *file,
 	}
 	
 	int ret = mknod(path->mktmp(file).c_str(), mode, 0);
-	if (ret > 0) {
-		whiteout->setVisible(file, true);
+	if (ret < 0) {
+		ERROR("strerror(errno)='%s' on mknod(file='%s', mode=%d, 0)", strerror(errno), file, mode);
 	}
 	else {
-		ERROR("Could not create file='%s', mode=%d", file, mode);
+		whiteout->setVisible(file, true);
 	}
 	
 	FUNC_RET("%d", ret, ret);
@@ -584,21 +585,22 @@ LiveCDFS::doRename(const char *oldname,
 	}
 	
 	int ret = rename(sold.c_str(), snew.c_str());
-	if (ret > 0) {
+	if (ret < 0) {
+		ERROR("strerror(errno)='%s' on rename(old='%s', new='%s')", strerror(errno), sold.c_str(), snew.c_str());
+	}
+	else {
 		whiteout->setVisible(oldname, false);
 		whiteout->setVisible(newname, true);
 	}
-	else {
-		ERROR("Could not rename old='%s' to new='%s', ret=%d", oldname, newname, ret);
-	}
 	
 	FUNC_RET("%d", ret, ret);
 }
 
 
-int 
-LiveCDFS::doLink(const char *target, 
-		 const char *newlink)
+int
+LiveCDFS::doLinkAll(const char *target, 
+		    const char *newlink, 
+		    bool issymlink = false)
 {
 	FUNC_START("target='%s', link='%s'", target, newlink);
 	
@@ -607,38 +609,8 @@ LiveCDFS::doLink(const char *target,
 	}
 	
 	string dir = path->getDir(newlink);
-	if ((dir.length() != 0) && !path->isTmp(dir)) {
-		TRACE("Creating directory dir='%s' (link)", dir.c_str());
-		path->recurseMkdir(dir); 
-	}
-	
-	if (!path->isDir(target)) {
-		if ((dir.length() != 0) && !path->isTmp(dir)) {
-			TRACE("Creating directory dir='%s' (target)", dir.c_str());
-			path->recurseMkdir(dir); 
-		}
-	}
-	else if (!path->exists(path->mktmp(target), 0)) {
-		path->copyTmp(target);
-	}
-	
-	TRACE("Creating link, target='%s', link='%s'", target, newlink);
-	int ret = link(target, path->mktmp(newlink).c_str());
-	FUNC_RET("%d", ret, ret);
-}
-
-
-int 
-LiveCDFS::doSymlink(const char *target, 
-		    const char *newlink)
-{
-	FUNC_START("target='%s', link='%s'", target, newlink);
-	     
-	if (!whiteout->isVisible(target)) {
-		FUNC_RET("%d", -1, -1);
-	}
-	
-	string dir = path->getDir(newlink);
+	string starget = string(target);
+	string slink = path->mktmp(newlink);
 	if ((dir.length() != 0) && !path->isTmp(dir)) {
 		TRACE("Creating directory dir='%s' (link)", dir.c_str());
 		path->recurseMkdir(dir); 
@@ -651,12 +623,41 @@ LiveCDFS::doSymlink(const char *target,
 			path->recurseMkdir(dir); 
 		}
 	}
-	else if (!path->exists(path->mktmp(target), 0)) {
-		path->copyTmp(target);
+	
+	if (!path->exists(path->mktmp(target), 0)) {
+		if (path->exists(path->mkroot(target), 0)) {
+			path->copyTmp(target);
+			starget = path->mktmp(starget);
+		}
+	}
+	else if (starget.find("/") == 0) {
+		starget = path->mktmp(starget);
 	}
 	
-	TRACE("Creating link, target='%s', link='%s'", target, newlink);
-	int ret = symlink(target, path->mktmp(newlink).c_str());
+	TRACE("Creating link, target='%s', link='%s'", starget.c_str(), slink.c_str());
+	int ret = issymlink ? symlink(starget.c_str(), slink.c_str()) : link(starget.c_str(), slink.c_str());
+	if (ret < 0) {
+		ERROR("strerror(errno)='%s' on link(target='%s', link='%s')", strerror(errno), starget.c_str(), slink.c_str());
+	}
+	FUNC_RET("%d", ret, ret);
+}
+
+int 
+LiveCDFS::doLink(const char *target, 
+		 const char *link)
+{
+	FUNC_START("target='%s', link='%s'", target, link);
+	int ret = doLinkAll(target, link, false);
+	FUNC_RET("%d", ret, ret);
+}
+
+
+int 
+LiveCDFS::doSymlink(const char *target, 
+		    const char *link)
+{
+	FUNC_START("target='%s', link='%s'", target, link);
+	int ret = doLinkAll(target, link, true);
 	FUNC_RET("%d", ret, ret);
 }
 
