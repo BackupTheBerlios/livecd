@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install-lang.pm.in,v 1.15 2004/05/20 03:03:07 tom_kelly33 Exp $
+# $Id: livecd-install-lang.pm.in,v 1.16 2004/06/05 13:11:29 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -89,7 +89,7 @@ my %strings = (
 
 	'time_elapsed'     => [ "Elapsed", "Trascorso", "Abgelaufen", "Elapsed", undef ],
 	'time_remaining'   => [ "Remaining", "Rimanente","Verbleibend", "Restant", undef ],
-	'part_none'	   => [ "(X)", "(X)", "(X)", "(X)", undef ],
+	'part_none'	   => [ "(XX)", "(XX)", "(XX)", "(XX)", undef ],
 	'part_no_root_t'   => [ "Missing root", "Manca root", "Vermisse root", undef ],
 	'part_no_root'     => [ "You have to specify a root (/) partition.", "Devi specificare una partizione di root (/).", "Es muss eine root (/) Partition spezifiziert werden.", "Manque administrateur.", undef ],
 	'part_no_swap_t'   => [ "Missing swap", "Manca swap", "Vermisse swap", "Vous devez specifier une partition administrateur", undef ],

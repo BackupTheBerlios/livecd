@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.33 2004/05/23 05:17:39 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.34 2004/06/05 13:11:29 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -322,7 +322,14 @@ sub scanPartitions
     this->setBackEnabled($page, 0);
     this->setNextEnabled($page, 0);
 
-    if (this->cbRoot->count() eq 0) {
+    # Clear old values, if any
+	%devs = ();
+	this->cbRoot->clear();
+	this->cbSwap->clear();
+	this->cbHome->clear();
+	this->cbVar->clear();
+	this->cbTmp->clear();
+
 	this->cbRoot->insertItem(getStr('part_none'));
 	this->cbRoot->setCurrentItem(0);
 	this->cbSwap->insertItem(getStr('part_none'));
@@ -370,7 +377,6 @@ sub scanPartitions
 		}
 	    }
 	}
-    }
 
     this->setBackEnabled($page, 1);
     this->setNextEnabled($page, 1);

@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.65 2004/05/23 05:17:39 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.66 2004/06/05 13:11:29 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -90,7 +90,7 @@ my %strings = (
 
 	'time_elapsed'     => [ "Elapsed", "Trascorso", "Abgelaufen", "Elapsed", undef ],
 	'time_remaining'   => [ "Remaining", "Rimanente","Verbleibend", "Restant", undef ],
-	'part_none'	   => [ "(X)", "(X)", "(X)", "(X)", undef ],
+	'part_none'	   => [ "(XX)", "(XX)", "(XX)", "(XX)", undef ],
 	'part_no_root_t'   => [ "Missing root", "Manca root", "Vermisse root", undef ],
 	'part_no_root'     => [ "You have to specify a root (/) partition.", "Devi specificare una partizione di root (/).", "Es muss eine root (/) Partition spezifiziert werden.", "Manque administrateur.", undef ],
 	'part_no_swap_t'   => [ "Missing swap", "Manca swap", "Vermisse swap", "Vous devez specifier une partition administrateur", undef ],
@@ -235,7 +235,7 @@ sub getStr {
 }
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Sat May 22 23:03:25 2004
+# Created: Sat Jun 5 01:13:23 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -3836,7 +3836,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.65 2004/05/23 05:17:39 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.66 2004/06/05 13:11:29 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -4130,7 +4130,14 @@ sub scanPartitions
     this->setBackEnabled($page, 0);
     this->setNextEnabled($page, 0);
 
-    if (this->cbRoot->count() eq 0) {
+    # Clear old values, if any
+	%devs = ();
+	this->cbRoot->clear();
+	this->cbSwap->clear();
+	this->cbHome->clear();
+	this->cbVar->clear();
+	this->cbTmp->clear();
+
 	this->cbRoot->insertItem(getStr('part_none'));
 	this->cbRoot->setCurrentItem(0);
 	this->cbSwap->insertItem(getStr('part_none'));
@@ -4178,7 +4185,6 @@ sub scanPartitions
 		}
 	    }
 	}
-    }
 
     this->setBackEnabled($page, 1);
     this->setNextEnabled($page, 1);
@@ -4906,7 +4912,7 @@ sub cbLanguage_act # SLOT: ( const QString & )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.65 2004/05/23 05:17:39 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.66 2004/06/05 13:11:29 tom_kelly33 Exp $
 #
 
 package main;
