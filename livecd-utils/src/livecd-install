@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.27 2003/11/24 05:56:40 jaco Exp $
+# $Id: livecd-install,v 1.28 2003/11/24 18:59:15 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -265,9 +265,10 @@ sub make_fstab {
 # create the lilo.conf
 sub make_lilo {
 	my ($dev, $mnt) = @_;
-	my $kernel = qx(uname -r);
+	my $kernelver = qx(uname -r);
 	chomp($kernel);
-	$kernel = "vmlinuz-$kernel";
+	my $kernel = "/boot/vmlinuz-".$kernelver;
+	my $initrd = "/boot/initrd-".$kernelver.".img";
 
 	my $mbr = $dev;
 	$mbr =~ s/[0-9]//;
@@ -297,17 +298,21 @@ nowarn
 timeout=100
 message=/boot/message
 menu-scheme=wb:bw:wb:bw
-image=/boot/$kernel
+image=$kernel
 	label=\"$distro\"
 	root=$disk
+	initrd=$initrd
 	append=\"devfs=mount splash=silent\"
 	vga=791
 	read-only
 ";
 				close LILO;
+				system("mount -t proc none $mnt/proc");
 				system("mount -t devfs none $mnt/dev");
+				system("chroot $mnt /sbin/mkinitrd $initrd $kernelver");
 				system("/sbin/lilo -v -r $mnt");
 				system("umount $mnt/dev");
+				system("umount $mnt/proc");
 			}
 		}
 	}
