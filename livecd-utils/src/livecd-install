@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.14 2003/11/22 18:17:28 jaco Exp $
+# $Id: livecd-install,v 1.15 2003/11/22 18:21:10 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -277,13 +277,9 @@ sub make_lilo {
 		elsif (($ret eq $dskstr) || ($ret eq $mbrstr)) {
 			$done = 1;
 			open LILO, '>', "$mnt/etc/lilo.conf";
-			if ($ret eq $dskstr) {
-				print LILO "boot=$disk\n";
-			}
-			else {
-				print LILO "boot=$mbr\n";
-			}
-			print LILO "map=/boot/map
+			my $bootdev = ($ret eq $dskstr) ? $disk : $mbr;
+			print LILO "boot=$bootdev
+map=/boot/map
 default=\"$distro\"
 keytable=/boot/us.klt
 prompt
