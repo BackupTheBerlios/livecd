@@ -2,7 +2,7 @@
 #
 # LiveCD hardware detection script
 #
-# Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>
+# Copyright (C) 2002-2004, Jaco Greeff <jaco@linuxminicd.org>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.72 2004/01/07 05:52:49 jaco Exp $
+# $Id: hwdetect.in,v 1.73 2004/01/07 07:03:01 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -78,6 +78,7 @@ my $owndevfsd     = 1;
 my $ownprocusb    = 1;
 my $haveswap      = 0;
 my $haveusb       = 0;
+my $usbfstab      = 0;
 my $havepcmcia    = 0;
 my $kernel_ver    = qx(uname -r);
 chomp($kernel_ver);
@@ -407,6 +408,7 @@ sub hwdetect_initusb() {
 			else {
 				mount("    Mounting USB filesystem: ", "-n", "usbdevfs", "none", "/proc/bus/usb");
 			}
+			$usbfstab = 1 if (is_mounted('/proc/bus/usb'));
 
 			### load the usb modules that are not loaded automatically
 			# "printer" should be in as well? (does cups stuff :(
@@ -1132,6 +1134,7 @@ sub hwdetect_writedisks {
 		open FSTAB, '>>', "$prefix/etc/fstab";
 		print FSTAB "\n### entries below this line were automatically added by $SCRIPT_NAME v$SCRIPT_VER\n";
 		open INFO, '>', "$prefix/etc/livecd/hwdetect/mounts.cfg";
+		print FSTAB "\n# USB\nnone /proc/bus/usb usbdevfs defaults 0 0\n" if ($usbfstab);
 		foreach my $dev (sort keys %all_devs) {
 			print FSTAB "\n# ".$all_devs{$dev}->{info};
 			if ($all_devs{$dev}->{supermount}) {
