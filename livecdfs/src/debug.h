@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: debug.h,v 1.6 2004/01/24 20:20:44 jaco Exp $
+ * $Id: debug.h,v 1.7 2004/01/24 20:28:50 jaco Exp $
  */
  
 #ifndef _DEBUG_dot_H_
@@ -49,9 +49,9 @@ using namespace std;
 #else
 	#define FUNC(x)		if (0) { cout << x; }
 	#define TRACE(x) 	if (0) { cout << x; }
-	#define TRACE_START()	if (0) { cout << x; }
-	#define TRACE_END()	if (0) { cout << x; }
-	#define TRACE_RET(x)	if (0) { cout << x; }
+	#define TRACE_START()	if (0) { cout << "0"; }
+	#define TRACE_END()	if (0) { cout << "0"; }
+	#define TRACE_RET(x)	return x;
 	
 	#define WARN(x)		if (0) { cout << x; }
 	#define ERROR(x)	if (0) { cout << x; }
