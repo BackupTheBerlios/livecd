@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.106 2004/01/30 20:36:57 jaco Exp $
+# $Id: mklivecd.in,v 1.107 2004/02/10 05:00:21 jaco Exp $
 #
 
 use strict;
@@ -412,7 +412,7 @@ sub parse_options {
 
 	# optional stuff
 	die_("\nFATAL: Specified sort file (--sort) '".$opts{sort}."' does not exist\n") if (defined($opts{sort}) && !(-f $opts{sort}));
-	print STDERR "\nWARNING: Sort option ignored for 'sqfs' (squashfs) looptype" if (defined($opts{sort}) && ($o_looptype =~ /sqfs/));
+	#print STDERR "\nWARNING: Sort option ignored for 'sqfs' (squashfs) looptype" if (defined($opts{sort}) && ($o_looptype =~ /sqfs/));
 	die_("\nFATAL: Kernel (--kernel) '".$o_kernel."' not installed on the root image\n") if (!(-d $o_root."/lib/modules/".$o_kernel));
 	die_("\nFATAL: Extra ISO directory (--isoextrafiles) '".$opts{isoextrafiles}."' does not exist\n") if (defined($opts{isoextrafiles}) && !(-d $opts{isoextrafiles}));
 	die_("\nFATAL: Unknown splash (--splash) option '$o_splash'\n") unless ($o_splash =~ /yes|no/);
@@ -490,7 +490,7 @@ sub check_kernel {
 		$modext = ".ko";
 		$modules = $modules_26;
 		$modules_opt = $modules_opt_26;
-		print STDERR "\nWARNING: Using a 2.6.x kernel for the LiveCD is currently not recommended";
+		#print STDERR "\nWARNING: Using a 2.6.x kernel for the LiveCD is currently not recommended";
 	}
 	else {
 		$depmod = "/sbin/depmod";
@@ -724,7 +724,9 @@ sub create_compressed {
 			my @files = qx(find $o_root -type f 2>/dev/null);
 			my $total = scalar(@files);
 			start_progress("Creating compressed image", $total+2);
-			my $iso = "$loopcmp $o_root $workdir/livecd/livecd.$o_looptype -info -ef $workdir/excludes.list 2>&1";
+			my $iso = "$loopcmp $o_root $workdir/livecd/livecd.$o_looptype -info -ef $workdir/excludes.list";
+			$iso = "$iso -sort $workdir/sort.list" if (defined($opts{sort})); 
+			$iso = "$iso 2>&1";
 			open CMP, "$iso |" or die_("\nFATAL: Unable to execute '$iso'\n");
 			my $line;
 			my $linep = "";
@@ -742,7 +744,8 @@ sub create_compressed {
 		}
 		else {
 			start_progress("Creating loop image", 10001);
-			my $iso = "mkisofs -R -exclude-list $workdir/excludes.list -sort $workdir/sort.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v";
+			my $iso = "mkisofs -R -exclude-list $workdir/excludes.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v";
+			$iso = "$iso -sort $workdir/sort.list" if (defined($opts{sort})); 
 			$iso = defined($loopcmp) ? "$iso $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype" : "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
 			$iso = "($iso) 2>&1";
 			open CMP, "$iso |" or die_("\nFATAL: Unable to execute '$iso'\n");
