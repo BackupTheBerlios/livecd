@@ -56,7 +56,7 @@
 				</table>
 			</td>
 			<td width="10"></td>
-			<td width="300" valign="top">
+			<td width="200" valign="top">
 				<table width="100%" border="0" cellspacing="0" cellpadding="0">
 					<tr><td bgcolor="#000000">
 						<table width=100% border=0 cellspacing=2 cellpadding=5 cols=2>
@@ -67,7 +67,16 @@
 								<b>&nbsp;</b>
 							</td></tr>
 							<tr><td colspan=2 bgcolor=#d0d0d0>
-								<?php include('/home/users/jaco/livecd-stats.cache'); ?>
+<?php
+	$filename = "/home/users/jaco/livecd-stats.cache";
+	$fp = fopen($filename, "r");
+	$stats = fread($fp, filesize($filename));
+	fclose($fp);
+	$stats = str_replace(" (", "<br>(", $stats);
+	$stats = str_replace("<HR SIZE=\"1\" NoShade>", "<p>", $stats);
+	$stats = str_replace("<p><A href=\"http://developer.berlios.de/bugs/?group_id=1149", "<A href=\"http://developer.berlios.de/bugs/?group_id=1149", $stats);
+	print $stats;
+?>
 							</td></tr>
 						</table>
 					</td></tr>
