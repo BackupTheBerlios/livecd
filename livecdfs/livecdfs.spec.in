@@ -1,4 +1,4 @@
-# $Id: livecdfs.spec.in,v 1.8 2004/01/28 06:37:20 jaco Exp $
+# $Id: livecdfs.spec.in,v 1.9 2004/01/30 18:22:56 jaco Exp $
 
 %define name	livecdfs
 %define version	@LIVECDFSVER@
@@ -46,6 +46,7 @@ rm -rf %buildroot
 %files
 %defattr(-,root,root)
 %doc AUTHORS CHANGELOG COPYING CREDITS README README.USAGE
+%{_bindir}/lufsd.livecdfs
 %{_libdir}/liblufs-%{name}.so.0.1.0
 %{_libdir}/liblufs-%{name}.so.0.1
 %{_libdir}/liblufs-%{name}.so

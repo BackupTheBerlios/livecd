@@ -1,8 +1,8 @@
-# $Id: Makefile,v 1.9 2004/01/28 06:40:34 jaco Exp $
+# $Id: Makefile,v 1.10 2004/01/30 18:22:56 jaco Exp $
 
 include Rules.mk
 
-all: $(LIBRARY)
+all: $(LIBRARY) $(LUFSDLIVECDFS)
 
 $(LIBRARY): $(OBJECTS) 
 	$(CC) -shared -Wl,-soname \
@@ -12,12 +12,17 @@ $(LIBRARY): $(OBJECTS)
 	$(LN) -sf $(LIBRARY).$(MAJORVER).$(MINORVER).$(PATCHVER) $(LIBRARY).$(MAJORVER).$(MINORVER)
 	$(LN) -sf $(LIBRARY).$(MAJORVER).$(MINORVER).$(PATCHVER) $(LIBRARY)
 
+$(LUFSDLIVECDFS): $(OBJECTS) $(LUFSDOBJS)
+	$(CXX) -static -o $@ $(OBJECTS) $(LUFSDOBJS) -lpthread 
+	$(STRIP) --strip-debug --strip-unneeded $(LUFSDLIVECDFS)
+
 test: $(SRCDIR)/test.o $(OBJECTS) $(LUFSOBJS)  
 	$(CXX) -o $@ $< $(OBJECTS) $(LUFSOBJS) 
 
 install: $(LIBRARY)
-	$(MKDIR) -p $(DESTDIR)/$(LIBDIR)
-	$(CP) -a $(LIBRARY)* $(DESTDIR)/$(LIBDIR)
+	$(MKDIR) -p $(DESTDIR)$(LIBDIR) $(DESTDIR)$(BINDIR)
+	$(CP) -a $(LIBRARY)* $(DESTDIR)$(LIBDIR)
+	$(INSTALL) -m 755 $(LUFSDLIVECDFS) $(DESTDIR)$(BINDIR)
 	
 .cpp.o: $(INCLUDES)
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -51,8 +56,8 @@ rpm: dist
 	$(RPMBUILD) -ta $(DISTDIR)/$(LIVECDFSDIST).tar.bz2
 
 clean:
-	$(RM) -rf $(SRCDIR)/*.o
-	$(RM) -rf $(LIBRARY)* test
+	$(RM) -rf $(OBJECTS) $(LUFSOBJS) $(LUFSDOBJS) 
+	$(RM) -rf $(LIBRARY)* test $(LUFSDLIVECDFS)
 	$(FIND) $(LUFSDIR) -type f | $(GREP) .o$$ | $(XARGS) $(RM) -rf
 	$(FIND) $(TOPDIR) -type f | $(GREP) ~$$ | $(XARGS) $(RM) -rf
 	$(RM) -rf $(DISTDIR)

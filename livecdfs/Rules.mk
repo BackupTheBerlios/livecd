@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.19 2004/01/28 06:40:34 jaco Exp $
+# $Id: Rules.mk,v 1.20 2004/01/30 18:22:56 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -38,6 +38,7 @@ TOPDIR=$(shell pwd)
 # external directories
 PREFIX=/usr
 LIBDIR=$(PREFIX)/lib
+BINDIR=$(PREFIX)/bin
 DESTDIR=
 
 # cour commands
@@ -47,6 +48,7 @@ CD=cd
 CP=cp
 FIND=find
 GREP=grep
+INSTALL=install
 LN=ln
 MD5SUM=md5sum
 MKDIR=mkdir
@@ -98,4 +100,14 @@ EXTDIST=$(LUFSDIR)
 
 LIBRARY=liblufs-livecdfs.so
 
+LUFSDLIVECDFS=lufsd.livecdfs
+
 LUFSOBJS=$(LUFSDIR)/lufsd/options.o
+
+LUFSDOBJS=\
+	$(LUFSDIR)/lufsd/daemon.o \
+	$(LUFSDIR)/lufsd/filesystem.o \
+	$(LUFSDIR)/lufsd/fsctl.o \
+	$(LUFSDIR)/lufsd/message.o \
+	$(LUFSDIR)/lufsd/options.o
+	
