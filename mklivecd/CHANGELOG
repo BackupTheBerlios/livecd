@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.122 2004/02/25 06:49:00 jaco Exp $
+# $Id: CHANGELOG,v 1.123 2004/02/27 05:35:35 jaco Exp $
 
-* Wed, Feb 25, 2004, 0.5.7-cvs
+* Fri, Feb 27, 2004, 0.5.7-cvs
   + Buchan Milne <bgmilne@obsidian.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
@@ -93,6 +93,8 @@
       - Split language strings into hwdetect-lang
       - Floppy mountpoint named /mnt/floppy[0123...]
       - CDROM mountpoint named /mnt/cdrom[0123...]
+      - Floppies aren't mounted with CDROM fs (Thanks to Michael N. Filippov
+        <michael-pclinuxos@idisys.iae.nsk.su>)
     [hwdetect-lang]:
       - Added
     [linuxrc]:
