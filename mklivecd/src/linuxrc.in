@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.13 2003/10/04 22:00:37 jaco Exp $
+# $Id: linuxrc.in,v 1.14 2003/10/06 08:39:04 jaco Exp $
 #
 
 ### global variables
@@ -369,6 +369,7 @@ createramdisk() {
 			"ln -s /tmp /var/tmp"
 		docmd   "Creating /etc structure" \
 			"cp -a /initrd$MNTLIVECD/etc /" \
+			"mkdir -p /etc/livecd/hwdetect" \
 			"chmod a+rw /etc" \
 			"rm -rf /etc/fstab && touch /etc/fstab" \
 			"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \

@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.39 2003/10/06 05:31:50 jaco Exp $
+# $Id: mklivecd.in,v 1.40 2003/10/06 08:39:04 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -183,7 +183,7 @@ is_dietlibc_arch() {
 create_initrdimg() {
 	### create initrd
 	echo "* Creating initrd structure..." >&2
-	do_cmd "mkdir -p $INITRDDIR/{bin,dev,etc,lib/modules,proc,sbin,usr/{bin,sbin}}"
+	do_cmd "mkdir -p $INITRDDIR/{bin,dev,etc/livecd/hwdetect,lib/modules,proc,sbin,usr/{bin,sbin}}"
 	do_cmd "mkdir -p $INITRDDIR/{cdrom,loopfs,ramfs}"
 	if is_dietlibc_arch; then
 		if [[ -n "$kernel26" ]]; then
