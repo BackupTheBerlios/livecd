@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.17 2003/10/07 06:34:13 jaco Exp $
+# $Id: linuxrc.in,v 1.18 2003/10/07 09:06:59 jaco Exp $
 #
 
 ### global variables
@@ -184,7 +184,7 @@ findcloop() {
 	[ $ALL_LOADED -gt 0 ] && printok || printfail
 
 	# probe the SCSI devices
-	echo -n "Finding SCSI devices: "
+	echo -n "Probing SCSI devices: "
 	SCSI_FOUND=
 	for i in $SCSI_MODULES; do
 		loadmod $i && SCSI_FOUND=1
