@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.109 2004/01/24 14:23:53 jaco Exp $
+# $Id: hwdetect.in,v 1.110 2004/01/24 15:58:10 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -985,11 +985,12 @@ sub hwdetect_getpersistent {
 		if ((-e $mymnt) && $devs{$dev}->{persist}) {
 			if (mount(undef, "", $devs{$dev}->{type}, $devs{$dev}->{devfs}, $mymnt)) {
 				if (-e $persist) {
-					my %popts = map {
-						chomp;
-						my ($name, $value) = split(/=/);
-						$name => $value || 1;
-					} split(/ /, cat_($persist));
+					my %popts;
+					foreach my $opt (cat_($persist)) {
+						chomp($opt);
+						my ($name, $value) = split(/=/, $opt);
+						$popts{$name} = $value || 1;
+					}
 					if ($popts{mount}) {
 						$devs{$dev}->{opt} = $fsopt_fullrw;
 						$devs{$dev}->{persisted} = 1;
@@ -997,8 +998,8 @@ sub hwdetect_getpersistent {
 					}
 					elsif ($popts{loop} && (-e $loopimg)) {
 						if ($popts{link}) {
-							system("(mount -o loop -t ext2 $loopimg $loopmnt) 2>&1 >/dev/null");
-							system("(cd $loopmnt ; ln -sf ".$devs{$dev}->{mount}." ".$popts{link}.") 2>&1 >/dev/null");
+							mount(undef, "-o loop", "ext2", $loopimg, $loopmnt);
+							system("(cd $loopmnt ; ln -sf ".$devs{$dev}->{mount}." ".$popts{link}." ; cd /) 2>&1 >/dev/null");
 							umount(undef, $loopmnt);
 						}
 
