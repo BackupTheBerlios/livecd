@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.36 2003/10/05 08:09:03 jaco Exp $
+# $Id: mklivecd.in,v 1.37 2003/10/05 12:17:46 bgmilne Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -410,7 +410,7 @@ check_theme() {
 			do
 				[ "$i" == "$theme" ] && have_requested_theme=1 || :
 			done
-			if [ -z "$have_request_theme" ]
+			if [ -z "$have_requested_theme" ]
 			then
 				echo "ERROR: The specified bootsplash theme, '$theme', is not available" >&2
 				exit 1
