@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.35 2003/11/14 06:43:42 jaco Exp $
+# $Id: linuxrc.in,v 1.36 2003/11/16 07:06:44 jaco Exp $
 #
 
 ### global variables
@@ -530,8 +530,9 @@ setupinit() {
 		docmd   "Unmounting /proc filesystem" \
 			"umount /proc"
 
-		# go to mdk init
-		echo "Starting Mandrake Linux init sequence ..."
+		# go to init
+		distro=`cat /etc/redhat-release | awk '{ print $1 }'`
+		echo "Starting $distro Linux init sequence ..."
 		exit 0
 	fi
 }
