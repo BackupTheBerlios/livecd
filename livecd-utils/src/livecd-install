@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.16 2003/11/22 18:27:35 jaco Exp $
+# $Id: livecd-install,v 1.17 2003/11/22 18:44:41 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -262,16 +262,19 @@ sub make_lilo {
 	my $kernel = qx(uname -r);
 	chomp($kernel);
 	$kernel = "vmlinuz-$kernel";
+
 	my $mbr = $dev;
-	$mbr =~ s/[0-9]/;
+	$mbr =~ s/[0-9]//;
+
 	my $disk = $dev;
-	my $dskstr = "$str{'LILO_DSK_STR'}[$lang] ($disk)";
-	my $mbrstr = "$str{'LILO_MBR_STR'}[$lang] ($mbr)";
-	my $done = 0;
-	while (!$done) {
+	my $dskstr = $str{'LILO_DSK_STR'}[$lang]." ($disk)";
+	my $mbrstr = $str{'LILO_MBR_STR'}[$lang]." ($mbr)";
+
+	my $done = undef;
+	while (!defined($done)) {
 		my $ret = qx($dlg --list --radiolist --width 300 --height 200 --title "$str{'LILO_TIT'}[$lang]" --column "" --column "" '' "$mbrstr" '' "$dskstr" || echo nolilo);
 		chomp($ret);
-		if ($ret =~ /nolilo/ ) {
+		if ($ret =~ /nolilo/) {
 			$done = 1;
 		}
 		elsif (($ret eq $dskstr) || ($ret eq $mbrstr)) {
