@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.4 2003/09/26 06:59:47 jaco Exp $
+# $Id: mklivecd.in,v 1.5 2003/09/29 00:32:32 bgmilne Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -163,6 +163,10 @@ create_initrdimg() {
 	do_cmd "(cd $INITRDDIR; tar cf - .) | (cd $INITRDMNT; tar xf -)"
 	do_cmd "umount $INITRDMNT"
 	do_cmd  "(cd $ISOLINUXDIR ; gzip -9 initrd)"
+	if [ -x /usr/share/bootsplash/scripts/make-boot-splash -a "$rootdir" -ne "/" ]
+	then 
+		do_cmd "(cd $ISOLINUXDIR; /usr/share/bootsplash/scripts/make-boot-splash initrd.gz)"
+	fi
 }
 
 ### create the compressed iso image
@@ -220,7 +224,7 @@ $e"
 create_isolinux() {
 	do_cp /usr/lib/syslinux/isolinux.bin $ISOLINUXDIR/isolinux.bin
 	do_cp /usr/share/mklivecd/isolinux.cfg $ISOLINUXDIR/isolinux.cfg
-	do_cp /boot/vmlinuz-$kernel $ISOLINUXDIR/vmlinuz
+	do_cp ${rootdir}/boot/vmlinuz-$kernel $ISOLINUXDIR/vmlinuz
 	do_cmd "dd if=/dev/zero of=$ISOLINUXDIR/boot.cat bs=1k count=2 2> /dev/null"
 }
 
@@ -229,7 +233,7 @@ create_liveiso() {
 	DISTRO=`gawk -F' ' '{ print $1 " " $2 }' $rootdir/etc/mandrake-release`
 	VERSION=`gawk -F' ' '{ print $4 " " $5 }' $rootdir/etc/mandrake-release`
 	VERSION_DATE=`date --utc`
-	do_cmd "nice -n 19 mkisofs -pad -l -r -J -v \
+	do_cmd "nice -n 19 mkisofs -pad -l -R -J -v \
                 -V '$DISTRO LiveCD' -A '$VERSION $VERSION_DATE' \
                 -b isolinux/isolinux.bin -c isolinux/boot.cat \
                 -hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table \
@@ -475,23 +479,23 @@ do_cmd "chmod 755 $INITRDDIR/usr/sbin/hwdetect"
 do_cmd "mkdir -p $INITRDDIR$MODULESDIR/kernel"
 modules="$loopmod $modules"
 for m in $modules; do
-	modpath=`(cd /lib/modules/$kernel; find -type f -name $m.o.gz | grep -v build)`
+	modpath=`(cd ${rootdir}/lib/modules/$kernel; find -type f -name $m.o.gz | grep -v build)`
 	if [ -n "$modpath" ]; then
-		do_cmd "gzip -dc /lib/modules/$kernel/$modpath >$INITRDDIR$MODULESDIR/kernel/$m.o"
+		do_cmd "gzip -dc ${rootdir}/lib/modules/$kernel/$modpath >$INITRDDIR$MODULESDIR/kernel/$m.o"
 	else
-		modpath=`(cd /lib/modules/$kernel; find -type f -name $m.o | grep -v build)`
+		modpath=`(cd ${rootdir}/lib/modules/$kernel; find -type f -name $m.o | grep -v build)`
 		if [ -z "$modpath" ]; then
 			echo "ERROR: unable to find kernel module $m.o" >&2
 			exit 1
 		fi
-		do_cp /lib/modules/$kernel/$modpath $INITRDDIR/$MODULESDIR/kernel/$m.o
+		do_cp ${rootdir}/lib/modules/$kernel/$modpath $INITRDDIR/$MODULESDIR/kernel/$m.o
 	fi
 done
 do_cmd ":> $INITRDDIR$modulefile"
 if [ `uname -r` == "$kernel" ]; then
 	do_cmd "depmod -a --basedir $INITRDDIR --config $INITRDDIR$modulefile"
 else
-	do_cp /lib/modules/$kernel/modules.* $INITRDDIR/$MODULESDIR/
+	do_cp ${rootdir}/lib/modules/$kernel/modules.* $INITRDDIR/$MODULESDIR/
 fi
 
 ### devices
