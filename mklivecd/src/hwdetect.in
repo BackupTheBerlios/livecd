@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.91 2004/01/16 05:14:26 jaco Exp $
+# $Id: hwdetect.in,v 1.92 2004/01/20 13:33:12 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -80,14 +80,20 @@ my $haveswap      = 0;
 my $haveusb       = 0;
 my $usbfstab      = 0;
 my $havepcmcia    = 0;
-my $kernel_ver    = qx(uname -r);
-chomp($kernel_ver);
+my $kernel26      = 0;
+my $kernel_ver    = "x.x.x";
 
 ### progress stuff
 my $progress_now  = @VAL_SPLASH_LINUXRC@+@VAL_SPLASH_SYSINIT@;
 my $progress_full = @VAL_SPLASH_FULL@;
 my $progress_max  = @MAX_SPLASH@;
 my $progress_on   = 1;
+
+sub get_exec { 
+	my $ret = qx($_[0]); 
+	chomp($ret); 
+	$ret; 
+}
 
 sub rmws {
 	my ($str) = @_;
@@ -212,6 +218,14 @@ sub hwdetect_init {
 		$name => $value || 1;
 	} split(/ /, cat_('/proc/cmdline'));
 
+	# get kernel version
+	$kernel_ver = get_exec("uname -r");
+	my $major = get_exec("expr \"$kernel_ver\" : \"\\([^.]\\+\\)\\..*\"");
+	my $minor = get_exec("expr \"$kernel_ver\" : \"[^.]\\+\\.\\([^.]\\+\\)\\..*\"");
+	if (($major == 2) && ($minor >= 5)) {
+		$kernel26 = 1;
+	}
+
 	# start devfsd (if not already running)
 	my @devfspid = fuzzy_pidofs(qr/\bdevfsd\b/);
 	$owndevfsd = 0 if (scalar(@devfspid) > 0);
@@ -250,8 +264,12 @@ sub mount {
 	my $mounted = is_mounted($point);
 
 	print $text if ($text);
-	$res = system("(mount $opt -t $type $dev $point) 2>/dev/null >/dev/null") if (!$mounted);
-	if ($text) { $res ? print_failed() : print_success(); }
+	if (!$mounted) {
+		system("(mount $opt -t $type $dev $point) 2>/dev/null >/dev/null") ;
+		$mounted = is_mounted($point);
+	}
+	if ($text) { $mounted ? print_success() : print_failed(); }
+	$mounted;
 }
 
 sub umount {
@@ -267,20 +285,31 @@ sub umount {
 sub is_loaded {
 	my ($module) = @_;
 	my $umodule = $module;
-	$umodule =~ s/-/_/g;
+	$umodule =~ s/\-/\_/g;
+	
+	# for 2.4.x we probe usb_?hci, but ?hci is loaded
+	# for 2.6.x we probe usb_?hci, but ?hci_hcd is loaded
+	my $usbmod = undef;
+	if (($umodule =~ m/^usb\_/) && ($umodule =~ m/ehci|ohci|uhci/)) {
+		$usbmod = $umodule;
+		$usbmod =~ s/^usb\_//;
+		$usbmod .= "_hcd" if ($kernel26);
+	}
+	
 	my $loaded = 0;
 	foreach my $modline (cat_('/proc/modules')) {
-		my ($mod, @mode) = split(/ /, $modline);
-		$loaded = 1 if (($mod eq $module) || ($mod eq $umodule));
+		unless ($loaded) {
+			my ($mod, @mode) = split(/ /, $modline);
+			$loaded = 1 if (($mod eq $module) || ($mod eq $umodule) || (defined($usbmod) && ($mod eq $usbmod)));
+		}
 	}
 	$loaded;
 }
 
 sub modprobe {
 	my ($opt, $module) = @_;
-	my $res = 1;
-	$res = system("(/sbin/modprobe $opt $module) 2>/dev/null >/dev/null") unless ($probe);
-	$res;
+	system("(/sbin/modprobe $opt $module) 2>/dev/null >/dev/null") unless ($probe);
+	is_loaded($module);
 }
 
 sub hwdetect_get_mediatype {
@@ -306,14 +335,9 @@ sub hwdetect_loadmod {
 	my $done = 0;
 	print_device($module, $vendor, $desc);
 	unless ($module =~ /unknown/) {
-		if (is_loaded($module)) {
-			print_loaded();
-		}
-		else {
-			my $res = modprobe("", $module);
-			sleep($delay) if (defined($delay) && $delay);
-			$res ? $probe ? print_warning : print_failed() : print_loaded();
-		}
+		my $num = modprobe("", $module);
+		sleep($delay) if (defined($delay) && $delay);
+		!$num ? $probe ? print_warning : print_failed() : print_loaded();
 		$done++;
 	}
 	print "\n" unless($done);
@@ -412,10 +436,10 @@ sub hwdetect_initpcmcia() {
 		print "Initialising PCMCIA controllers: ";
 		print_success();
 		print "    Loading base PCMCIA modules: ";
-		my $res = 0;
+		my $num = 0;
 		my @modules = ('ds');
-		$res += modprobe("-q", $_) foreach (@modules);
-		$res ? $probe ? print_warning() : print_failed() : print_loaded();
+		$num += modprobe("-q", $_) foreach (@modules);
+		!$num ? $probe ? print_warning() : print_failed() : print_loaded();
 	}
 	else {
 		system("rm -rf /etc/rc.d/rc?.d/*pcmcia");
@@ -430,19 +454,19 @@ sub hwdetect_initusb() {
 			print_success();
 			if (is_mounted('/proc/bus/usb')) {
 				$ownprocusb = 0;
+				$usbfstab = 1;
 			}
 			else {
-				mount("    Mounting USB filesystem: ", "-n", "usbdevfs", "none", "/proc/bus/usb");
+				$usbfstab = mount("    Mounting USB filesystem: ", "-n", "usbdevfs", "none", "/proc/bus/usb");
 			}
-			$usbfstab = 1 if (is_mounted('/proc/bus/usb'));
 
 			### load the usb modules that are not loaded automatically
 			# "printer" should be in as well? (does cups stuff :(
 			print "    Loading base USB modules: ";
-			my $res = 0;
-			my @modules = ('mousedev', 'keybdev', 'usb-storage', 'visor');
-			$res += modprobe("-q", $_) foreach (@modules);
-			$res ? $probe ? print_warning() : print_failed() : print_loaded();
+			my $num = 0;
+			my @modules = $kernel26 ? ('input', 'usb-storage', 'visor') : ('input', 'mousedev', 'keybdev', 'usb-storage', 'visor');
+			$num += modprobe("-q", $_) foreach (@modules);
+			!$num ? $probe ? print_warning() : print_failed() : print_loaded();
 		}
 		else {
 			print_failure();
@@ -908,8 +932,7 @@ sub hwdetect_getpersistent {
 	system("mkdir -p $mymnt $loopmnt 2>/dev/null");
 	foreach my $dev (keys %devs) {
 		if ((-e $mymnt) && $devs{$dev}->{persist}) {
-			mount(undef, "", $devs{$dev}->{type}, $devs{$dev}->{devfs}, $mymnt);
-			if (is_mounted($mymnt)) {
+			if (mount(undef, "", $devs{$dev}->{type}, $devs{$dev}->{devfs}, $mymnt)) {
 				if (-e $persist) {
 					my %popts = map {
 						chomp;
