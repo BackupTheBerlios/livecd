@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.42 2004/09/18 15:24:54 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.43 2004/09/19 17:00:32 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -686,23 +686,23 @@ sub formatPart
 		#push @options, "-c";
 		if ($devs->{$dev}{type} =~ /ext2/) {
 			push @options, "-m", "0" if ($dev eq $homepart);
-			fs::format_ext2($dev, @options);
+			format_ext2($dev, @options);
 		}
 		elsif ($devs->{$dev}{type} =~ /ext3/) {
 			push @options, "-m", "0" if ($dev eq $homepart);
-			fs::format_ext3($dev, @options);
+			format_ext3($dev, @options);
 		}
 			elsif ($devs->{$dev}{type} =~ /jfs/) {
-			fs::format_jfs($dev, @options);
+			format_jfs($dev, @options);
 		}
 			elsif ($devs->{$dev}{type} =~ /reiserfs/) {
-			fs::format_reiserfs($dev, @options);
+			format_reiserfs($dev, @options);
 		}
 			elsif ($devs->{$dev}{type} =~ /reiser4/) {
 			# fs::format_reiser4($dev, @options);
 		}
 			elsif ($devs->{$dev}{type} =~ /xfs/) {
-			fs::format_xfs($dev, @options);
+			format_xfs($dev, @options);
 		}
 	}
 
@@ -711,6 +711,28 @@ sub formatPart
     }
 }
 
+sub format_ext2($@) {
+    my ($dev, @options) = @_;
+    $dev =~ m,(rd|ida|cciss)/, and push @options, qw(-b 4096 -R stride=16); #- For RAID only.
+    run_program::raw({ timeout => 60 * 60 }, 'mke2fs', '-F', @options, devices::make($dev)) or die N("%s formatting of %s failed", (any { $_ eq '-j' } @options) ? "ext3" : "ext2", $dev);
+}
+sub format_ext3 {
+    my ($dev, @options) = @_;
+    format_ext2($dev, "-j", @options);
+    run_program::run("tune2fs", "-c0", "-i0", devices::make($dev));
+}
+sub format_reiserfs {
+    my ($dev, @options) = @_;
+    run_program::raw({ timeout => 60 * 60 }, "mkreiserfs", "-ff", @options, devices::make($dev)) or die N("%s formatting of %s failed", "reiserfs", $dev);
+}
+sub format_xfs {
+    my ($dev, @options) = @_;
+    run_program::raw({ timeout => 60 * 60 }, "mkfs.xfs", "-f", "-q", @options, devices::make($dev)) or die N("%s formatting of %s failed", "xfs", $dev);
+}
+sub format_jfs {
+    my ($dev, @options) = @_;
+    run_program::raw({ timeout => 60 * 60 }, "mkfs.jfs", "-f", @options, devices::make($dev)) or die N("%s formatting of %s failed", "jfs", $dev);
+}
 
 sub doCopy
 {
