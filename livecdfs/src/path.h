@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.h,v 1.2 2004/01/21 19:21:03 jaco Exp $
+ * $Id: path.h,v 1.3 2004/01/23 12:39:49 jaco Exp $
  */
  
 #ifndef _PATH_dot_H_
@@ -60,6 +60,9 @@ public:
 	
 	bool isRoot(const string &path, int flags = 0) { return exists(join(root, path), flags); }
 	bool isRoot(const char *path, int flags = 0) { return isRoot(string(path), flags); }
+	
+	string getDir(const string &);
+	string getDir(const char *path) { return getDir(string(path)); }
 	
 public:
 	static string join(const string &, 

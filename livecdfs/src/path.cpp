@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.cpp,v 1.4 2004/01/22 08:40:22 jaco Exp $
+ * $Id: path.cpp,v 1.5 2004/01/23 12:39:49 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -164,4 +164,16 @@ Path::exists(const string &path,
 	}
 	
 	return false;
+}
+
+
+string
+Path::getDir(const string &path) 
+{
+	FUNC("path='" << path << "'");
+	
+	int pos = path.rfind("/");
+	string dir = string(path, 0, pos);
+	TRACE("dir='" << dir << "'");
+	return dir;
 }
