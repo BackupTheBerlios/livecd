@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.20 2003/10/10 04:52:17 jaco Exp $
+# $Id: linuxrc.in,v 1.21 2003/10/10 05:13:55 jaco Exp $
 #
 
 ### global variables
@@ -284,9 +284,12 @@ createramdisk() {
 		# setup translucency (if available)
 		# Note: for some obscure reason the static insmod cannot
 		#       insert the module, the dynamic version can
-		kmin=`echo $KERNELVER | awk -F'.' '{ print $2 }'`
-		[ $kmin -gt 4 ] && kmin=5
-		/loopfs/sbin/insmod-2$kmin /lib/modules/$KERNELVER/kernel/translucency.o 2>&1 >/dev/null
+		transmod="/lib/modules/$KERNELVER/kernel/translucency.o"
+		if [ -f $transmod ]; then
+			kmin=`echo $KERNELVER | awk -F'.' '{ print $2 }'`
+			[ $kmin -gt 4 ] && kmin=5
+			/loopfs/sbin/insmod-2$kmin $transmod 2>&1 >/dev/null
+		fi
 
 		if [ -d /proc/sys/translucency ]; then
 			docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
