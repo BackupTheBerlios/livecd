@@ -1,0 +1,150 @@
+# $Id: BOOTCODES,v 1.1 2003/12/07 17:11:11 jaco Exp $
+
+LiveCD bootcodes: These codes allow you to override the LiveCD
+defaults to modify the boot process for your specific needs. The
+codes can be used on their own (as specified) on the syslinux
+(initial) boot command-line or can be combined to specify more
+than one listed option, eg.
+
+livecd xres=800x600 keyb=de
+
+The latest list will always be available from the LiveCD website
+(CVS) which can be accessed from:
+
+http://livecd.berlios.de
+
+The following codes are available as of 07 December 2003:
+
+initrd                  Only boot the initrd, not the actual CD.
+			This option is (mostly) only useful to
+			LiveCD developers.
+
+livecd fstab=<opts>     Override the default generation of the
+			fstab. Valid options, combined with ","
+			are the following: auto or noauto and
+			ro or rw.
+
+livecd home=usb         Copy the user's home directory to a USB
+			memory stick/pen device when attached.
+			Once done, the option does not need to
+			be specified on subsequent boots.
+
+livecd hostname=<host>  Sets the hostname for the machine, as
+			specified by <host>, eg. myboz.cool.com
+
+livecd hwdetect=no      Don't run the hardware detection script,
+			booting with the default hardware
+			configuration as stored on the LiveCD.
+
+livecd keyb=<mapping>   Use a different keyboard layout mapping
+			from the one the LiveCD was built with.
+			Valid values for mapping can be found in
+			the first column of the following table:
+			al              Albanian
+			am              Armenian (typewriter)
+			am_old          Armenian (old)
+			am_phonetic     Armenian (phonetic)
+			ar              Arabic
+			az              Azerbaidjani (latin)
+			be              Belgian
+			ben             Bengali
+			bg              Bulgarian (BDS)
+			bg_phonetic     Bulgarian (phonetic)
+			br              Brazilian (ABNT-2)
+			bs              Bosnian
+			by              Belarusian
+			ch_de           Swiss (German layout)
+			ch_fr           Swiss (French layout)
+			cz              Czech (QWERTZ)
+			cz_qwerty       Czech (QWERTY)
+			de              German
+			de_nodeadkeys   German (no dead keys)
+			dev             Devanagari
+			dk              Danish
+			dvorak          Dvorak (US)
+			dvorak_no       Dvorak (Norwegian)
+			dvorak_se       Dvorak (Swedish)
+			ee              Estonian
+			es              Spanish
+			fi              Finnish
+			fr              French
+			ge_la           Georgian ("Latin" layout)
+			ge_ru           Georgian ("Russian" layout)
+			gr              Greek
+			gr_pl           Greek (polytonic)
+			guj             Gujarati
+			gur             Gurmukhi
+			hr              Croatian
+			hu              Hungarian
+			ie              Irish
+			il              Israeli
+			il_phonetic     Israeli (Phonetic)
+			ir              Iranian
+			is              Icelandic
+			it              Italian
+			iu              Inuktitut
+			jp              Japanese 106 keys
+			kan             Kannada
+			kr              Korean keyboard
+			la              Latin American
+			lao             Laotian
+			lt_b            Lithuanian "number row" QWERTY
+			lt              Lithuanian AZERTY (old)
+			lt_new          Lithuanian AZERTY (new)
+			lt_p            Lithuanian "phonetic" QWERTY
+			lv              Latvian
+			mal             Malayalam
+			mk              Macedonian
+			mm              Myanmar (Burmese)
+			mng             Mongolian (cyrillic)
+			mt              Maltese (UK)
+			mt_us           Maltese (US)
+			nl              Dutch
+			no              Norwegian
+			ori             Oriya
+			pl2             Polish (qwertz layout)
+			pl              Polish (qwerty layout)
+			pt              Portuguese
+			qc              Canadian (Quebec)
+			ro2             Romanian (qwertz)
+			ro              Romanian (qwerty)
+			ru              Russian
+			ru_yawerty      Russian (Phonetic)
+			sapmi           Saami (norwegian)
+			sapmi_sefi      Saami (swedish/finnish)
+			se              Swedish
+			si              Slovenian
+			sk_qwerty       Slovakian (QWERTY)
+			sk              Slovakian (QWERTZ)
+			sr              Serbian (cyrillic)
+			syr_p           Syriac (phonetic)
+			syr             Syriac
+			tel             Telugu
+			th              Thai keyboard
+			tj              Tajik keyboard
+			tml             Tamil (ISCII-layout)
+			tr_f            Turkish (traditional "F" model)
+			tr_q            Turkish (modern "Q" model)
+			tscii           Tamil (Typewriter-layout)
+			ua              Ukrainian
+			uk              UK keyboard
+			us_intl         US keyboard (international)
+			us              US keyboard
+			uz              Uzbek (cyrillic)
+			vn              Vietnamese "numeric row" QWERTY
+			yu              Yugoslavian (latin)
+
+livecd noeject          Disable the ejection of the CD on
+			shutdown (power-down) or reboot.
+
+livecd noscsi           Disable the probing of SCSI devices. Do
+			not use this option when booting from a
+			SCSI device since the boot will fail.
+
+livecd xbpp=<depth>     Specify the bitdepth for X. <depth> can
+			be one of 8, 15, 16, 24 or 32.
+
+livecd xres=<res>       Specify trhe resolution for X. <res> can
+			be one of 800x600, 1024x768, 1280x1024 or
+			1600x1400.
+

@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.19 2003/12/07 11:24:54 jaco Exp $
+# $Id: Rules.mk,v 1.20 2003/12/07 17:11:11 jaco Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -66,6 +66,7 @@ TOUCH=$(shell which touch)
 # these are files in the root dir
 DOCDIST=\
 	AUTHORS \
+	BOOTCODES \
 	CHANGELOG \
 	COPYING \
 	FAQ \
