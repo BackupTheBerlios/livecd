@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.82 2004/01/07 09:31:57 jaco Exp $
+# $Id: mklivecd.in,v 1.83 2004/01/07 09:35:48 jaco Exp $
 #
 
 use strict;
@@ -428,7 +428,7 @@ sub parse_options {
 	$workdir = $o_tmp."mklivecd.$$";
 	system("mkdir -p $workdir");
 	die_("\nFATAL: Unable to create working directory, '$workdir'\n") unless (-e $workdir);
-	print STDERR "\nWARNING: The temporary directory '$o_workdir' will not be removed at exit, please do so manually" if (defined($opts{noclean}));
+	print STDERR "\nWARNING: The temporary directory '$workdir' will not be removed at exit, please do so manually" if (defined($opts{noclean}));
 
 	# massage where we might have options csv
 	@{$opts{nofile}} = split(/,/, join(',', @{$opts{nofile}})) if (defined($opts{nofile}));
