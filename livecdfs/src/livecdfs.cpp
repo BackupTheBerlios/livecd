@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.6 2004/01/21 19:21:03 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.7 2004/01/22 07:51:50 jaco Exp $
  */
 
 #include <dirent.h>
@@ -197,6 +197,11 @@ LiveCDFS::doStat(const char *name,
 		return -1;
 	}
 
+	TRACE("name='"        << name         << "', " << std::dec <<
+	      "stat.st_uid="  << stat.st_uid  << ", " <<
+	      "stat.st_uid="  << stat.st_uid  << ", " <<
+	      "stat.st_size=" << stat.st_size);
+	      
 	attr->f_mode = stat.st_mode;
 	attr->f_nlink = stat.st_nlink;
 	attr->f_uid = stat.st_uid; 
@@ -218,6 +223,10 @@ LiveCDFS::doReadlink(char *link,
 	FUNC("link='"  << link       << "', " <<
 	     "buf="    << PTR(buf)   << ", " <<
 	     "buflen=" << DEC(buflen));
+	
+	if (!whiteout->isVisible(link)) {
+		return -1;
+	}
 	
 	string fullpath = path->mkpath(link);
 	return readlink(fullpath.c_str(), buf, buflen);
@@ -396,7 +405,13 @@ LiveCDFS::doRmdir(char *dir)
 {
 	FUNC("dir='" << dir << "'");
 
-	return -1;
+	if (path->isTmp(dir)) {
+		rmdir(path->mktmp(file).c_str());
+	}
+	if (path->isRoot(dir)) {
+		whiteout->setVisible(dir, false);
+	}
+	return 0;
 }
 
 
@@ -405,7 +420,13 @@ LiveCDFS::doUnlink(char *file)
 {
 	FUNC("file='" << file << "'");
 	
-	return -1;
+	if (path->isTmp(file)) {
+		unlink(path->mktmp(file).c_str());
+	}
+	if (path->isRoot(file)) {
+		whiteout->setVisible(file, false);
+	}
+	return 0;
 }
 
 
@@ -431,6 +452,10 @@ LiveCDFS::doRename(char *oldname,
 {
 	FUNC("old='" << oldname << "', " <<
 	     "new='" << newname << "'");
+	
+	if (!whiteout->isVisible(oldname)) {
+		return -1;
+	}
 	
 	return -1;
 }
@@ -464,6 +489,10 @@ LiveCDFS::doSetattr(char *file,
 {
 	FUNC("file='" << file << "', " <<
 	     "attr=" << attr);
+	
+	if (!whiteout->isVisible(file)) {
+		return -1;
+	}
 	
 	return -1;
 }

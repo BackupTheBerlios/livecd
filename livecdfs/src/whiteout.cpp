@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: whiteout.cpp,v 1.1 2004/01/21 19:19:11 jaco Exp $
+ * $Id: whiteout.cpp,v 1.2 2004/01/22 07:51:50 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -90,12 +90,12 @@ Whiteout::setVisible(const string &path, bool visible)
 	     
 	t_whiteout *entry = find(path);
 	if (visible) {
-		if (entry == NULL) {
-			add(path);
+		if (entry != NULL) {
+			erase((vector<t_whiteout>::iterator)entry);
 		}
 	}
-	else if (entry != NULL) {
-		erase((vector<t_whiteout>::iterator)entry);
+	else if (entry == NULL) {
+		add(path);
 	}
 	
 }
@@ -176,6 +176,7 @@ Whiteout::store(const string &path)
 		for (vector<t_whiteout>::iterator i = entries.begin(); i != entries.end(); ) {
 			string line = i->path + string("\n");
 			write(fd, line.c_str(), line.length());
+			i++;
 		}
 		close(fd);
 	}
