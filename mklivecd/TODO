@@ -1,11 +1,5 @@
-# $Id: TODO,v 1.16 2003/11/24 13:39:14 jaco Exp $
+# $Id: TODO,v 1.17 2003/12/06 20:41:00 jaco Exp $
 
-- Persistent home (This is now easier since we do partition
-  detection in hwdetect - as part of this we should check for
-  a livecd file on the disk and mount at the correct place)
-- Install to HDD. This is possible now that the LiveCD is a direct
-  copy of a MDK image insted of a hacked-up version to fit on a
-  MiniCD
 - Add profiles to allow for build of various types of CD's, eg.
   minicd
 - Cleanup of mklivecd script (some functions exists, creation of
