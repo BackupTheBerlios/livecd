@@ -1,0 +1,505 @@
+/*
+ * fsctl.c
+ * Copyright (C) 2002 Florin Malita <mali@go.ro>
+ *
+ * This file is part of LUFS, a free userspace filesystem implementation.
+ * See http://lufs.sourceforge.net/ for updates.
+ *
+ * LUFS is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * LUFS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <signal.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <dlfcn.h>
+#include <pthread.h>
+#include <errno.h>
+#ifndef __USE_GNU
+#define __USE_GNU
+#endif
+#include <string.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/wait.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+#include <lufs/proto.h>
+#include <lufs/fs.h>
+
+#include "list.h"
+#include "message.h"
+#include "fsctl.h"
+#include "filesystem.h"
+#include "dircache.h"
+
+char sock_name[MAX_LEN];
+
+static void
+usr1Handler(int sig){
+
+    TRACE("unmounting filesystem...");
+    TRACE("socket name: %s", sock_name);
+    unlink(sock_name);
+
+    exit(0);
+}
+
+static void
+sig_handler(int sig){
+    TRACE("got a signal: %d", sig);
+
+    signal(sig, sig_handler);
+}
+
+static void*
+thread_launcher(void *params){
+    struct thread_info *p = (struct thread_info*)params;
+    struct file_system *fs = p->fs;
+    int sock = p->sock;
+    pid_t ppid = p->ppid;
+
+    TRACE("thread created");
+    
+    free(p);
+
+    if(fs) {
+	handle_fs(fs, sock, ppid);
+
+	if(fs->fs_ops->umount)
+	    fs->fs_ops->umount(fs->fs_context);
+	fs->fs_ops->free(fs->fs_context);
+
+	free(fs);
+    }else{
+	WARN("could not instantiate filesystem (out of mem?) !");
+    }
+
+    close(sock);
+    TRACE("thread exiting...");
+
+    return NULL;
+}
+
+#define BUF_SIZE	1024
+#define PASSWD		"/etc/passwd"
+#define GROUP		"/etc/group"
+
+static int
+load_credentials(struct fs_ctl *ctl, struct file_system *fs){
+    static char buf[BUF_SIZE];
+    char srch_str[MAX_LEN + 4];
+    long int uid, gid;
+    int res, offset, chunk, readlen;
+    char *c;
+
+    TRACE("loading remote credentials for %s", ctl->cred.user);
+
+    if((!ctl->fs_ops->open) || (!ctl->fs_ops->read) || (!ctl->fs_ops->release)){
+	WARN("unsupported operation");
+	return -1;;
+    }
+
+    ctl->cred.uid = ctl->cred.gid = -1;
+
+    if(ctl->fs_ops->open(fs->fs_context, PASSWD, O_RDONLY) < 0){
+	TRACE("could not open %s", PASSWD);
+	return -1;
+    }
+
+    sprintf(srch_str, "\n%s:", ctl->cred.user);
+    chunk = strlen(srch_str) + 64;
+    readlen = BUF_SIZE - chunk - 1;
+
+    memset(buf, 32, chunk);
+    offset = 0;
+
+    do{
+	res = ctl->fs_ops->read(fs->fs_context, PASSWD, offset, readlen, (buf + chunk));
+	if(res > 0){
+	    *(buf + chunk + res) = 0;
+
+	    if((c = strstr(buf, srch_str))){
+		TRACE("username found!");
+		if(!(c = strchr(c + strlen(srch_str), ':'))){
+		    TRACE("separator not found!");
+		}else{ 
+		    if(sscanf(c , ":%li:%li:", &uid, &gid) != 2){
+			TRACE("uid/gid not found!");
+		    }else{
+			TRACE("uid: %li, gid: %li", uid, gid);
+
+			ctl->cred.uid = uid;
+			ctl->cred.gid = gid;
+
+			break;
+		    }
+		}
+	    }
+
+	    memcpy(buf, buf + BUF_SIZE - chunk - 1, chunk);
+	    offset += res;
+	}
+    }while(res == readlen);
+
+    ctl->fs_ops->release(fs->fs_context, PASSWD);
+
+    if(res <= 0){
+	TRACE("read failed");
+	return -1;
+    }
+
+    
+    if(ctl->fs_ops->open(fs->fs_context, GROUP, O_RDONLY) < 0){
+	TRACE("could not open %s", GROUP);
+	return -1;
+    }
+
+    sprintf(srch_str, ":%li:", (long)ctl->cred.gid);
+    chunk = strlen(srch_str) + 64;
+    readlen = BUF_SIZE - chunk - 1;
+
+    memset(buf, 32, chunk);
+    offset = 0;
+
+    do{
+	res = ctl->fs_ops->read(fs->fs_context, GROUP, offset, readlen, (buf + chunk));
+	if(res > 0){
+	    *(buf + chunk + res) = 0;
+
+	    if((c = strstr(buf, srch_str))){
+		TRACE("group found!");
+		if(!(c = (char*)memrchr(buf, '\n', (c - buf)))){
+		    TRACE("separator not found!");
+		}else{ 
+		    *(strchr(c, ':')) = 0;
+		    if(strlen(c + 1) >= MAX_LEN){
+			TRACE("groupname too long");
+		    }else{
+			strcpy(ctl->cred.group, c + 1);
+			TRACE("group: %s", ctl->cred.group);
+			break;
+		    }
+		}
+	    }
+
+	    memcpy(buf, buf + BUF_SIZE - chunk - 1, chunk);
+	    offset += res;
+	}
+    }while(res == readlen);
+
+    ctl->fs_ops->release(fs->fs_context, GROUP);
+
+    if(res <= 0){
+	TRACE("read failed");
+	return -1;
+    }
+
+    return 0;
+}
+
+
+static struct fs_operations*
+get_filesystem(struct fs_ctl *ctl, char *fs){
+    struct fs_operations *fops;
+    char *buf;
+    void *dlhandle;
+
+    if(!(buf = (char*)malloc(strlen(fs) + 32)))
+	return NULL;
+
+    sprintf(buf, "liblufs-%s.so", fs);
+    TRACE("trying to load %s", buf);
+
+    if(!(dlhandle = dlopen(buf, RTLD_LAZY))){
+	ERROR(dlerror());
+	goto fail;
+    }
+
+    TRACE("lib opened");
+	
+    if(!(fops = (struct fs_operations*)malloc(sizeof(struct fs_operations))))
+	goto fail_dl;
+
+    memset(fops, 0, sizeof(struct fs_operations));
+
+    sprintf(buf, "%s_init", fs);
+    if(!(fops->init = (void*(*)(struct list_head*, struct dir_cache*, struct credentials*, void**))dlsym(dlhandle, buf))){
+	ERROR(dlerror());
+	goto fail_fops;
+    }
+
+    sprintf(buf, "%s_free", fs);
+    if(!(fops->free = (void(*)(void*))dlsym(dlhandle, buf))){
+	ERROR(dlerror());
+	goto fail_fops;
+    }
+
+    sprintf(buf, "%s_mount", fs);
+    if(!(fops->mount = (int(*)(void*))dlsym(dlhandle, buf))){
+	ERROR(dlerror());
+	goto fail_fops;
+    }
+
+    sprintf(buf, "%s_umount", fs);
+    if(!(fops->umount = (void(*)(void*))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_readdir", fs);
+    if(!(fops->readdir = (int(*)(void*, char*, struct directory*))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_stat", fs);
+    if(!(fops->stat = (int(*)(void*, char*, struct lufs_fattr*))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_mkdir", fs);
+    if(!(fops->mkdir = (int(*)(void*, char*, int))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_rmdir", fs);
+    if(!(fops->rmdir = (int(*)(void*, char*))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_create", fs);
+    if(!(fops->create = (int(*)(void*, char*, int))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_unlink", fs);
+    if(!(fops->unlink = (int(*)(void*, char*))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_rename", fs);
+    if(!(fops->rename = (int(*)(void*, char*, char*))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_open", fs);
+    if(!(fops->open = (int(*)(void*, char*, unsigned))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_release", fs);
+    if(!(fops->release = (int(*)(void*, char*))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_read", fs);
+    if(!(fops->read = (int(*)(void*, char*, long long, unsigned long, char*))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_write", fs);
+    if(!(fops->write = (int(*)(void*, char*, long long, unsigned long, char*))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_readlink", fs);
+    if(!(fops->readlink = (int(*)(void*, char*, char*, int))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_link", fs);
+    if(!(fops->link = (int(*)(void*, char*, char*))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_symlink", fs);
+    if(!(fops->symlink = (int(*)(void*, char*, char*))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    sprintf(buf, "%s_setattr", fs);
+    if(!(fops->setattr = (int(*)(void*, char*, struct lufs_fattr*))dlsym(dlhandle, buf)))
+	ERROR(dlerror());
+
+    TRACE("file system loaded");
+
+    ctl->dlhandle = dlhandle;
+    free(buf);
+    return fops;
+
+  fail_fops:
+    free(fops);
+  fail_dl:
+    dlclose(dlhandle);
+    dlhandle = NULL;
+  fail:  
+    free(buf);
+    return NULL;
+}
+
+static struct file_system*
+new_fsinstance(struct fs_ctl *ctl){
+    struct file_system *fs;
+    
+    if(!(fs = (struct file_system*)malloc(sizeof(struct file_system))))
+	return NULL;
+
+    memset(fs, 0, sizeof(struct file_system));
+
+    fs->fs_ops = ctl->fs_ops;
+    fs->fs_credentials = &ctl->cred;
+    fs->fs_cache = ctl->cache;
+    fs->fs_config = ctl->cfg;
+
+    if(!(fs->fs_context = ctl->fs_ops->init(ctl->cfg, ctl->cache, fs->fs_credentials, &ctl->global_ctx))){
+	ERROR("could not initialize file system!");
+	free(fs);
+	return NULL;
+    }
+
+    return fs;
+}
+
+int
+lu_fsctl_mount(struct fs_ctl *ctl){
+    int res;
+    struct file_system *fs;
+
+    if(!ctl->fs_ops)
+	return 0;
+
+    if(!(fs = new_fsinstance(ctl)))
+	return 0;
+	
+    res = ctl->fs_ops->mount(fs->fs_context);
+
+    if(res){
+	ctl->fs_available = fs;
+	fs->fs_mounted = 1;
+	if(load_credentials(ctl, fs) < 0)
+	    TRACE("could not load credentials.");
+	else
+	    TRACE("credentials loaded.");
+
+    }else{
+	WARN("fs mount failed...");
+	free(fs);
+    }
+
+    return res;
+}
+
+
+void
+lu_fsctl_run(struct fs_ctl *ctl, int ssock, char *sn){
+    pthread_t th_id;
+    socklen_t len;
+    struct sockaddr_un addr;
+    int sock;
+    struct thread_info *info;
+
+    if(strlen(sn) >= MAX_LEN){
+	WARN("socket name too long!");
+	return;
+    }
+    
+    strcpy(sock_name, sn);
+
+    signal(SIGUSR1, usr1Handler);
+
+    signal(SIGPIPE, sig_handler);
+    signal(SIGTERM, sig_handler);
+    signal(SIGINT, sig_handler);
+    
+    while(1){
+	len = sizeof(struct sockaddr_un);
+
+	if((sock = accept(ssock, (struct sockaddr*)&addr, &len)) < 0){
+	    if(errno != EINTR){
+		WARN("accept failed: %d(%s)", errno, strerror(errno));
+	    }
+	}else{
+	    TRACE("a client process connected.");
+
+	    if((info = (struct thread_info*)malloc(sizeof(struct thread_info)))){
+
+		if(ctl->fs_available){
+		    TRACE("using already mounted filesystem...");
+		    info->fs = ctl->fs_available;
+		    ctl->fs_available = NULL;
+		}else
+		    info->fs = new_fsinstance(ctl);
+
+		info->sock = sock;
+		info->ppid = getpid();
+		if(!pthread_create(&th_id, NULL, &thread_launcher, (void*)info)){
+		    pthread_detach(th_id);
+		}else{
+		    WARN("could not create thread!");
+		    free(info);
+		}
+	    }else{
+		WARN("out of memory?!");
+	    }
+	}
+    }
+
+}
+
+struct fs_ctl*
+lu_fsctl_create(struct list_head *conf){
+    struct fs_ctl *ctl;
+    const char *fs_name, *user_name;
+
+    TRACE("creating fs_ctl");
+    
+    if(!(ctl = (struct fs_ctl*)malloc(sizeof(struct fs_ctl))))
+	return NULL;
+
+    memset(ctl, 0, sizeof(struct fs_ctl));
+
+    ctl->cache = lu_cache_create(conf);
+    ctl->cfg = conf;
+
+    if(!(fs_name = lu_opt_getchar(conf, "MOUNT", "fs"))){
+	ERROR("you need to specify a file system!");
+	free(ctl);
+	return NULL;
+    }
+
+     if(!(ctl->fs_ops = get_filesystem(ctl, (char*)fs_name))){ 
+ 	ERROR("unsupported file system: %s", fs_name); 
+ 	free(ctl); 
+ 	return NULL; 
+     }
+
+    if((user_name = lu_opt_getchar(conf, "MOUNT", "username")))
+	strcpy(ctl->cred.user, user_name);
+
+    return ctl;
+}
+
+void
+lu_fsctl_destroy(struct fs_ctl *ctl){
+    TRACE("destroying fs_ctl");
+
+    lu_cache_destroy(ctl->cache);
+
+    if(ctl->dlhandle)
+	dlclose(ctl->dlhandle);
+
+    if(ctl->fs_available)
+	free(ctl->fs_available);
+
+    free(ctl);
+}
+
+
+
+

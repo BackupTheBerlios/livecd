@@ -1,6 +1,11 @@
 This is a very, very minimal version of lufs-0.9.7, just
 enough to provide the extra files we need to build livecdfs.
 
+The daemon (lufsd) source code is also provided, this has been
+altered slightly to allow the building of a lufsd.livecdfs 
+daemon, only utilising the livecdfs filesystem without loading
+additional libraries.
+
 	Jaco Greeff <jaco@linuxminicd.org>
-	Sun, Jan 18, 2004
+	Fri, Jan 30, 2004
 	
