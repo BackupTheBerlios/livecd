@@ -1,4 +1,4 @@
-# $Id: README.USAGE,v 1.3 2004/01/31 11:26:03 jaco Exp $
+# $Id: README.USAGE,v 1.4 2004/01/31 11:27:52 jaco Exp $
 
 Usage: 
     lufsd.livecdfs <mount> -o rw_tmp=<tmp>,ro_root=<root>[,option,...] 
@@ -18,7 +18,6 @@ Required Options:
     <mount>            The final mountpoint where the fs is to be visible
     rw_tmp=<tmp>       The writable space (for new files, appends, etc.)
     ro_root=<root>     The read-only root to be visible at <mount>
-    fs=livecdfs        We are using the livecdfs
 
 General Options:
     own_fs             The executing user owns the filesystem
