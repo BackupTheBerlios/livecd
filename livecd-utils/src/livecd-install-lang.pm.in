@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install-lang.pm.in,v 1.2 2004/01/25 09:33:40 jaco Exp $
+# $Id: livecd-install-lang.pm.in,v 1.3 2004/01/25 10:20:08 jaco Exp $
 #
 
 package fMain;
@@ -41,19 +41,21 @@ my %languages = (
 );
 
 my %strings = (
+	'caption'          => [ "LiveCD Installation", undef ],
 	'script_init'      => [ "Initialising ... ", undef ],
 	'script_destroy'   => [ "Destroying ... ", undef ],
 	'done'             => [ "Done.", undef ],
 	'reboot'           => [ "Rebooting...", undef ],
 
-	'btn_retry'        => [ "Retry", undef ],
-	'btn_help'         => [ "Help", undef ],
-	'btn_cancel'       => [ "Cancel", undef ],
-	'btn_next'         => [ "Next", undef ],
-	'btn_back'         => [ "Back", undef ],
-	'btn_finish'       => [ "Finish", undef ],
-	'btn_yes'          => [ "Yes", undef ],
-	'btn_no'           => [ "No", undef ],
+	'btn_retry'        => [ "&Retry", undef ],
+	'btn_help'         => [ "&Help", undef ],
+	'btn_cancel'       => [ "&Cancel", undef ],
+	'btn_next'         => [ "&Next &gt;", undef ],
+	'btn_back'         => [ "&lt; &Back", undef ],
+	'btn_finish'       => [ "&Finish", undef ],
+	'btn_yes'          => [ "&Yes", undef ],
+	'btn_no'           => [ "&No", undef ],
+	'btn_inst'         => [ "&Install", undef ],
 
 	'time_elapsed'     => [ "Elapsed", undef ],
 	'time_remaining'   => [ "Remaining", undef ],
@@ -111,9 +113,9 @@ my %strings = (
 
 	'scr_3_title'      => [ "Step 3 of 6: Partition Verification", undef ],
 	'scr_3_text'       => [ "<p><b>Warning</b> The following changes will be made to your system to install the LiveCD. If you want to make changes, press the <i>Back</i> button or press <i>Next</i> to start the installation process.</p>", undef ],
-	'scr_3_tbl_mnt'    => [ "Mount",  undef ],
-	'scr_3_tbl_dev'    => [ "Device", undef ],
-	'scr_3_tbl_fmt'    => [ "Format", undef ],
+	'scr_3_mnt'        => [ "Mount",  undef ],
+	'scr_3_dev'        => [ "Device", undef ],
+	'scr_3_fmt'        => [ "Format", undef ],
     
 
 	'scr_4_title'      => [ "Step 4 of 6: LiveCD Installation", undef ],
@@ -121,6 +123,7 @@ my %strings = (
 	'scr_4_copy'       => [ "Data copy progress:", undef ],
 	'scr_4_fmt'        => [ "Disk format:", undef ],
 	'scr_4_overall'    => [ "Overall progress:", undef ],
+	'scr_4_progress'   => [ "Progress Information", undef ],
 
 
 	'scr_5_title'      => [ "Step 5 of 6: Bootloader Installation", undef ],
