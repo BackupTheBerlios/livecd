@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.117 2004/01/25 06:51:40 jaco Exp $
+# $Id: CHANGELOG,v 1.118 2004/01/26 05:25:31 jaco Exp $
 
 * Wed, Jan 21, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@obsidian.co.za>:
@@ -91,6 +91,8 @@
       - Add 'xdrv' option to override detected X driver
       - Add 'xram' option to override detected VideoRam
       - Split language strings into hwdetect-lang
+      - Floppy mountpoint named /mnt/floppy[0123...]
+      - CDROM mountpoint named /mnt/cdrom[0123...]
     [hwdetect-lang]:
       - Added
     [linuxrc]:
