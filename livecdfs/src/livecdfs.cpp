@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.3 2004/01/18 18:14:30 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.4 2004/01/19 06:43:08 jaco Exp $
  */
 
 #include <dirent.h>
@@ -275,6 +275,16 @@ LiveCDFS::doOpen(char *file,
 		WARN("Unable to open file='" << file << "', flags=" << flags << ", modes=" << modes);
 		return -1;
 	}
+	
+	// We don't really use the opened handle since lufs currently doesn't
+	// describe the concept of a handle. This creates problems in doRead, 
+	// doWrite and doRelease where the only information passed is the 
+	// actual filename (what happens if multiples are open???) So, we take
+	// the completely unoptimal (slow) approach in opening the file again in 
+	// doRead and doWrite (When an elegant work-around is in place, we can
+	// use the handles infrastructure, currently it only indicates the number
+	// of files we are budy with.)
+	close(fd);
 	handles->add(string(file), fd, flags, modes);
 	TRACE(handles->size() << " files currently open.");
 	
@@ -288,11 +298,13 @@ LiveCDFS::doRelease(char *file)
 	FUNC("file='" << file << "'");
 	
 	t_handle *handle;
-	while ((handle = handles->find(file, 0xffff, 0xffff)) != NULL) {
+	if ((handle = handles->find(file, 0xffff, 0xffff)) != NULL) {
 		int fd = handle->fd;
 		handles->erase((vector<t_handle>::iterator)handle);
-		close(fd);
-		TRACE("fd=" << fd << " for file='" << file << "' closed");
+		TRACE("fd=" << fd << " for file='" << file << "' released");
+	}
+	else {
+		WARN("Unable to find open handle for file='" << file << "'");
 	}
 	
 	TRACE(handles->size() << " files currently open.");
@@ -311,20 +323,21 @@ LiveCDFS::doRead(char *file,
 	     "count=" << DEC(count)  << ", " <<
 	     "buf="   << PTR(buf));
 	
-	t_handle *handle = handles->find(file, O_RDWR, 0xffff);
-	if (handle == NULL) {
-		if ((handle = handles->find(file, O_RDONLY, 0xffff)) == NULL) {
-			WARN("Redable handle for file='" << file << "' not found");
-			return -1;
-		}
+	int fd = open(path->mkpath(file).c_str(), O_RDWR);
+	if (fd <= 0) {
+		WARN("Cannot open file='" << file << "' O_RDWR");
+		return -1;
 	}
 	
-	if (lseek(handle->fd, offset, SEEK_SET) < 0) {
-		WARN("Seek for file='" << file << "', fd=" << handle->fd << " failed");
+	if (lseek(fd, offset, SEEK_SET) < 0) {
+		WARN("Seek for file='" << file << "', fd=" << fd << " failed");
+		close(fd);
 		return -1;
 	}
 
-	return read(handle->fd, buf, count);
+	int res = read(fd, buf, count);
+	close(fd);
+	return res;
 }
 
 
@@ -339,20 +352,21 @@ LiveCDFS::doWrite(char *file,
 	     "count=" << DEC(count)  << ", " <<
 	     "buf="   << PTR(buf));
 	
-	t_handle *handle = handles->find(file, O_RDWR, 0xffff);
-	if (handle == NULL) {
-		if ((handle = handles->find(file, O_WRONLY, 0xffff)) == NULL) {
-			WARN("Writable handle for file='" << file << "' not found");
-			return -1;
-		}
-	}
-	
-	if (lseek(handle->fd, offset, SEEK_SET) < 0) {
-		WARN("Seek for file='" << file << "', fd=" << handle->fd << " failed");
+	int fd = open(path->mkpath(file).c_str(), O_RDWR);
+	if (fd <= 0) {
+		WARN("Cannot open file='" << file << "' O_RDWR");
 		return -1;
 	}
 	
-	return write(handle->fd, buf, count);
+	if (lseek(fd, offset, SEEK_SET) < 0) {
+		WARN("Seek for file='" << file << "', fd=" << handle << " failed");
+		close(fd);
+		return -1;
+	}
+	
+	int res = write(fd, buf, count);
+	close(fd);
+	return res;
 }
 
 
