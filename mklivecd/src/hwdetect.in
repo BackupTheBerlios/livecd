@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.23 2003/10/06 11:36:37 jaco Exp $
+# $Id: hwdetect.in,v 1.24 2003/10/06 12:30:35 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -924,17 +924,19 @@ sub hwdetect_getdisks {
 				$entry .= $opt."\t"."0 0\n";
 				print FSTAB $entry;
 
-				print INFO "$dev.info=".$all_devs{$dev}->{info}."\n";
-				print INFO "$dev.dev=".$all_devs{$dev}->{dev}."\n";
-				print INFO "$dev.devfs=".$all_devs{$dev}->{devfs}."\n";
-				print INFO "$dev.mount=".$all_devs{$dev}->{mount}."\n";
-				print INFO "$dev.media=".$all_devs{$dev}->{media}."\n";
-				print INFO "$dev.size=".$all_devs{$dev}->{size}."\n" if ($all_devs{$dev}->{size});
-				print INFO "$dev.type=".$all_devs{$dev}->{type}."\n";
-				print INFO "$dev.persist=".$all_devs{$dev}->{persist}."\n" if ($all_devs{$dev}->{persist});
-				print INFO "$dev.persisted=".$all_devs{$dev}->{persisted}."\n" if ($all_devs{$dev}->{persisted});
-				print INFO "$dev.opt=".$all_devs{$dev}->{opt}."\n" if ($all_devs{$dev}->{opt});
-				print INFO "$dev.extopt=".$all_devs{$dev}->{extopt}."\n" if ($all_devs{$dev}->{extopt});
+				print INFO "$dev=";
+				print INFO "|info=".$all_devs{$dev}->{info};
+				print INFO "|dev=".$all_devs{$dev}->{dev};
+				print INFO "|devfs=".$all_devs{$dev}->{devfs};
+				print INFO "|mount=".$all_devs{$dev}->{mount};
+				print INFO "|media=".$all_devs{$dev}->{media};
+				print INFO "|size=".$all_devs{$dev}->{size} if ($all_devs{$dev}->{size});
+				print INFO "|type=".$all_devs{$dev}->{type};
+				print INFO "|persist=".$all_devs{$dev}->{persist} if ($all_devs{$dev}->{persist});
+				print INFO "|persisted=".$all_devs{$dev}->{persisted} if ($all_devs{$dev}->{persisted});
+				print INFO "|opt=".$all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
+				print INFO "|extopt=".$all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
+				print INFO "\n";
 			}
 			print FSTAB "\n";
 			close FSTAB;
