@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.40 2003/11/18 23:53:50 bgmilne Exp $
+# $Id: linuxrc.in,v 1.41 2003/11/19 13:56:29 jaco Exp $
 #
 
 ### global variables
@@ -438,7 +438,7 @@ createramdisk() {
 				"for d in \`find /initrd$MNTLIVECD/var/ -type d\`; do \
 					d=\${d#/initrd$MNTLIVECD/var/} ; \
 					case \$d in \
-						lib/rpm*|lib/urpmi*) \
+						lib/rpm*|lib/urpmi*|lib/samba*) \
 							[ ! -e /var/\$d ] && ln -sf /initrd$MNTLIVECD/var/\$d /var/\$d || true; \
 							;; \
 						cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|yp*) \
