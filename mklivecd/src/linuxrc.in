@@ -22,16 +22,22 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.55 2004/01/05 09:31:30 jaco Exp $
+# $Id: linuxrc.in,v 1.56 2004/01/05 13:14:33 jaco Exp $
 #
 
 ### global variables
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
 umask 022
 FOUND_MDKISO=""
-OPT_MODULES="@DEF_MODULES_OPT@"
-DEP_MODULES="@DEF_MODULES_DEP@ @DEF_SCSI_MODULES_DEP@"
-SCSI_MODULES="@DEF_SCSI_MODULES@ @DEF_SCSI_MODULES_OPT@" # these are for the SCSI drivers
+OPT_MODULES_24="@DEF_MODULES_OPT_24@"
+DEP_MODULES_24="@DEF_MODULES_DEP_24@ @DEF_SCSI_MODULES_DEP_24@"
+SCSI_MODULES_24="@DEF_SCSI_MODULES_24@ @DEF_SCSI_MODULES_OPT_24@" # these are for the SCSI drivers
+OPT_MODULES_26="@DEF_MODULES_OPT_26@"
+DEP_MODULES_26="@DEF_MODULES_DEP_26@ @DEF_SCSI_MODULES_DEP_26@"
+SCSI_MODULES_26="@DEF_SCSI_MODULES_26@ @DEF_SCSI_MODULES_OPT_26@" # these are for the SCSI drivers
+OPT_MODULES="$OPT_MODULES_24"
+DEP_MODULES="$DEP_MODULES_24"
+SCSI_MODULES="$SCSI_MODULES_24" # these are for the SCSI drivers
 FOUND_SCSI=""
 BASEIMG="livecd"          # name of the base cloop image, with a .clp (cloop), .bzlp (bzloop)
                           # or .sqfs (squashfs) extension, this is the compressed loop image
@@ -56,6 +62,8 @@ CLOOPVER="@CLOOPVER@"
 MNTCDROM=/cdrom
 MNTLIVECD=/loopfs
 MNTRAMDISK=/ramfs
+KERNEL26=
+MODEXT=".o"
 
 ### progress indicator
 progress_num=0
@@ -138,8 +146,7 @@ docmd() {
 
 ### load a module
 loadmod() {
-	EXT=".o"
-	MODULE="/lib/modules/$KERNELVER/kernel/$1$EXT"
+	MODULE="/lib/modules/$KERNELVER/kernel/$1$MODEXT"
 	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
 	[ ! -f $MODULE ] && return 1
 	#echo -n "$MODULE "
@@ -171,7 +178,19 @@ initialise() {
 		"echo '0' >/proc/sys/kernel/printk" \
 		"echo '/sbin/modprobe' >/proc/sys/kernel/modprobe" \
 		"exec >/dev/console </dev/console 2>&1"
+
+	# some kernel specifics
 	KERNELVER=`uname -r`
+	KVMAJOR=`expr "$KERNELVER" : "\([^.]\+\)\..*"`
+	KVMINOR=`expr "$KERNELVER" : "[^.]\+\.\([^.]\+\)\..*"
+	if [ $KVMAJOR -eq 2 ] && [ $KVMINOR -gt 5 ]; then
+		KERNEL26=1
+		MODEXT=".ko"
+		OPT_MODULES="$OPT_MODULES_26"
+		DEP_MODULES="$DEP_MODULES_26"
+		SCSI_MODULES="$SCSI_MODULES_26"
+	fi
+
 	set_progress
 }
 
