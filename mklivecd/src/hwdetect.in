@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+# -*- cperl -*-
 #
 # LiveCD hardware detection script
 #
@@ -22,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.137 2004/10/29 04:47:24 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.138 2004/11/16 20:56:27 tom_kelly33 Exp $
 #
 
 use strict;
@@ -61,25 +62,25 @@ my $DEF_KEYBOARD   = "@DEF_KEYBOARD@";
 ### screen constants
 my $RES_COL        = 65;
 my $ESC            = "\x1B[";
-my $MOVE_TO_COL    = $ESC.$RES_COL."G";
-my $COLOR_GREEN    = $ESC."1;32m";
-my $COLOR_RED      = $ESC."1;31m";
-my $COLOR_YELLOW   = $ESC."1;33m";
-my $COLOR_NORMAL   = $ESC."0;39m";
+my $MOVE_TO_COL    = $ESC . $RES_COL . "G";
+my $COLOR_GREEN    = $ESC . "1;32m";
+my $COLOR_RED      = $ESC . "1;31m";
+my $COLOR_YELLOW   = $ESC . "1;33m";
+my $COLOR_NORMAL   = $ESC . "0;39m";
 
 ### global variables
-my @all_devices  = ();
+my @all_devices;
 
-my %all_devs = ();
+my %all_devs;
 my %cmdline;
 my %languages;
 my %strings;
 
 my $card;
 my $debug         = 0;
-my $disk	  = undef;
+my $disk;
 my $probe         = 0;
-my $fdisk         = undef;
+my $fdisk;
 my $prefix        = "";
 my $cmdline;
 my $owndevfsd     = 1;
@@ -96,9 +97,7 @@ my $num;
 my $numusb	  = 0;
 my $numwin	  = 'c';
 my $old_X;
-my $rawkey;
 my $usbfstab	  = 0;
-my $verbose	  = 0;
 
 ### progress stuff
 my $progress_now  = @VAL_SPLASH_LINUXRC@+@VAL_SPLASH_SYSINIT@;
@@ -107,7 +106,7 @@ my $progress_max  = @MAX_SPLASH@;
 my $progress_on = 1;
 
 sub get_exec { 
-	my $ret = qx($_[0]); 
+	my $ret = `$_[0]`; 
 	chomp($ret); 
 	$ret; 
 }
@@ -126,62 +125,62 @@ sub rmws {
 
 sub move_up_lines {
 	my ($lines) = @_;
-	print $ESC.$lines."A" if (!$debug);
+	print $ESC . $lines . "A" if !$debug;
 }
 
 sub move_down_lines {
 	my ($lines) = @_;
 	while ($lines) {
-		print "\n" if (!$debug);
+		print "\n" if !$debug;
 		$lines--;
 	}
 }
 
-sub print_success {
-	print $MOVE_TO_COL if (!$debug);
+sub print_success() {
+	print $MOVE_TO_COL if !$debug;
 	print "[";
-	print $COLOR_GREEN if (!$debug);
+	print $COLOR_GREEN if !$debug;
 	print getStr('OK');
-	print $COLOR_NORMAL if (!$debug);
+	print $COLOR_NORMAL if !$debug;
 	print "]\n";
 }
 
-sub print_loaded {
-	print $MOVE_TO_COL if (!$debug);
+sub print_loaded() {
+	print $MOVE_TO_COL if !$debug;
 	print "[";
-	print $COLOR_GREEN if (!$debug);
+	print $COLOR_GREEN if !$debug;
 	print getStr('LOADED');
-	print $COLOR_NORMAL if (!$debug);
+	print $COLOR_NORMAL if !$debug;
 	print "]\n";
 }
 
-sub print_warning {
-	print $MOVE_TO_COL if (!$debug);
+sub print_warning() {
+	print $MOVE_TO_COL if !$debug;
 	print "[";
-	print $COLOR_YELLOW if (!$debug);
+	print $COLOR_YELLOW if !$debug;
 	print getStr('WARN');
-	print $COLOR_NORMAL if (!$debug);
+	print $COLOR_NORMAL if !$debug;
 	print "]\n";
 }
 
-sub print_failed {
-	print $MOVE_TO_COL if (!$debug);
+sub print_failed() {
+	print $MOVE_TO_COL if !$debug;
 	print "[";
-	print $COLOR_RED if (!$debug);
+	print $COLOR_RED if !$debug;
 	print getStr('FAILED');
-	print $COLOR_NORMAL if (!$debug);
+	print $COLOR_NORMAL if !$debug;
 	print "]\n";
 }
 
 sub print_hash {
 	my ($hash, $pre, $in) = @_;
-	$pre = "" unless (defined($pre));
-	print "$pre<device>\n" unless (defined($in));
+	$pre = "" unless defined($pre);
+	print "$pre<device>\n" unless defined($in);
 	foreach my $key (keys %$hash) {
 		my $value = $hash->{$key};
 		print "$pre\t<$key>";
 		if (defined($value)) {
-			print "$value";
+			print $value;
 			if (ref($value) eq "HASH") {
 				print_hash($value, "$pre\t", 1);
 				print "$pre\t";
@@ -189,7 +188,7 @@ sub print_hash {
 			elsif (ref($value) eq "ARRAY") {
 				if (scalar(@$value) > 0) {
 					print "\n";
-					foreach my $elem (@{$value}) {
+					foreach my $elem (@$value) {
 						print "$pre\t$elem\n";
 						if (ref($elem) eq "HASH") {
 							print_hash($elem, "$pre\t", 1);
@@ -201,29 +200,29 @@ sub print_hash {
 		}
 		print "</$key>\n";
 	}	
-	print "$pre</device>\n" unless (defined($in));
+	print "$pre</device>\n" unless defined($in);
 }
 
 sub print_device {
-	my ($module, $vendor, $desc) = @_;
+	my ($_module, $vendor, $desc) = @_;
 	print "    ";
 	$vendor = rmws($vendor);
 	$desc = rmws($desc);
-	print $vendor unless ($vendor eq "");
-	print ", " unless (($vendor eq "") || ($desc eq ""));
+	print $vendor unless $vendor eq "";
+	print ", " unless $vendor eq "" || $desc eq "";
 	print $desc;
 }
 
-sub set_progress {
+sub set_progress() {
 	if ($progress_on &&
 	    -e '/proc/splash'  &&
-	    $cmdline{'splash'} =~ /silent/) {
+	    $cmdline{splash} =~ /silent/) {
 		my $pos = ($progress_max*(++$progress_now+1))/$progress_full;
 		system("echo 'show $pos' >/proc/splash");
 	}
 }
 
-sub hwdetect_init {
+sub hwdetect_init() {
 	select(STDOUT);
 	$| = 1;
 	open STDERR, '>', "/dev/null";
@@ -241,20 +240,20 @@ sub hwdetect_init {
 	$lang = getMyLang();
 	
 	# start now
-	print getStr('script_start')." ($SCRIPT_NAME v$SCRIPT_VER): ";
+	print getStr('script_start') . " ($SCRIPT_NAME v$SCRIPT_VER): ";
 
 	# get kernel version
 	$kernel_ver = get_exec("uname -r");
-	my $major = get_exec("expr \"$kernel_ver\" : \"\\([^.]\\+\\)\\..*\"");
-	my $minor = get_exec("expr \"$kernel_ver\" : \"[^.]\\+\\.\\([^.]\\+\\)\\..*\"");
-	if (($major == 2) && ($minor >= 5)) {
+	my $major = get_exec(qq(expr "$kernel_ver" : "\\([^.]\\+\\)\\..*"));
+	my $minor = get_exec(qq(expr "$kernel_ver" : "[^.]\\+\\.\\([^.]\\+\\)\\..*"));
+	if ($major == 2 && $minor >= 5) {
 		$kernel26 = 1;
 	}
 
 	# start devfsd (if not already running)
 	my @devfspid = fuzzy_pidofs(qr/\bdevfsd\b/);
-	$owndevfsd = 0 if (scalar(@devfspid) > 0);
-	if ((-e '/dev/.devfsd') && (-e '/sbin/devfsd') && ($owndevfsd > 0)) {
+	$owndevfsd = 0 if scalar(@devfspid) > 0;
+	if (-e '/dev/.devfsd' && -e '/sbin/devfsd' && $owndevfsd > 0) {
 		system("PATH=/sbin devfsd /dev 2>/dev/null"); # funny arrangement to allow us to kill it later
 	}
 
@@ -262,12 +261,12 @@ sub hwdetect_init {
 	set_progress();
 }
 
-sub hwdetect_deinit {
+sub hwdetect_deinit() {
 	# kill devfsd (if we started it), it is to be started again
 	# the in init scripts
 	my @devfspid = fuzzy_pidofs(qr/\bdevfsd\b/);
-	if (($owndevfsd > 0) && (scalar(@devfspid) > 0)) {
-		system("kill -TERM ".$devfspid[0]." 2>/dev/null");
+	if ($owndevfsd > 0 && scalar(@devfspid) > 0) {
+		system("kill -TERM " . $devfspid[0] . " 2>/dev/null");
 	}
 	#print "Completing detection routines: ";
 	set_progress();
@@ -277,23 +276,22 @@ sub is_mounted {
 	my ($point) = @_;
 	my $mounted = 0;
 	foreach my $mountline (cat_('/proc/mounts')) {
-		my ($md, $mp, $mt, $mo, @me) = split(/ /, $mountline);
-		$mounted = 1 if ($mp eq $point);
+		my ($_md, $mp, $_mt, $_mo, @_me) = split(/ /, $mountline);
+		$mounted = 1 if $mp eq $point;
 	}
 	$mounted;
 }
 
 sub mount {
 	my ($text, $opt, $type, $dev, $point) = @_;
-	my $res = 0;
 	my $mounted = is_mounted($point);
 
-	print $text if ($text);
+	print $text if $text;
 	if (!$mounted) {
-		system("(mount $opt -t $type $dev $point) 2>/dev/null >/dev/null") ;
+		system("(mount $opt -t $type $dev $point) 2>/dev/null >/dev/null");
 		$mounted = is_mounted($point);
 	}
-	if ($text) { $mounted ? print_success() : print_failed(); }
+	if ($text) { $mounted ? print_success() : print_failed() }
 	$mounted;
 }
 
@@ -302,9 +300,9 @@ sub umount {
 	my $res = 0;
 	my $mounted = is_mounted($point);
 
-	print $text if ($text);
-	$res = system("(umount $point) 2>/dev/null >/dev/null") if ($mounted);
-	if ($text) { $res ? print_failed() : print_success(); }
+	print $text if $text;
+	$res = system("(umount $point) 2>/dev/null >/dev/null") if $mounted;
+	if ($text) { $res ? print_failed() : print_success() }
 }
 
 sub is_loaded {
@@ -314,18 +312,18 @@ sub is_loaded {
 	
 	# for 2.4.x we probe usb_?hci, but ?hci is loaded
 	# for 2.6.x we probe usb_?hci, but ?hci_hcd is loaded
-	my $usbmod = undef;
-	if (($umodule =~ m/^usb\_/) && ($umodule =~ m/ehci|ohci|uhci/)) {
+	my $usbmod;
+	if ($umodule =~ m/^usb\_/ && $umodule =~ m/ehci|ohci|uhci/) {
 		$usbmod = $umodule;
 		$usbmod =~ s/^usb\_//;
-		$usbmod .= "_hcd" if ($kernel26);
+		$usbmod .= "_hcd" if $kernel26;
 	}
 	
 	my $loaded = 0;
 	foreach my $modline (cat_('/proc/modules')) {
 		unless ($loaded) {
-			my ($mod, @mode) = split(/ /, $modline);
-			$loaded = 1 if (($mod eq $module) || ($mod eq $umodule) || (defined($usbmod) && ($mod eq $usbmod)));
+			my ($mod) = split(/ /, $modline);
+			$loaded = 1 if $mod eq $module || $mod eq $umodule || defined$usbmod && $mod eq $usbmod;
 		}
 	}
 	$loaded;
@@ -333,24 +331,24 @@ sub is_loaded {
 
 sub modprobe {
 	my ($opt, $module) = @_;
-	system("(/sbin/modprobe $opt $module) 2>/dev/null >/dev/null") unless ($probe);
+	system("(/sbin/modprobe $opt $module) 2>/dev/null >/dev/null") unless $probe;
 	is_loaded($module);
 }
 
 sub hwdetect_get_mediatype {
 	my ($media_type) = @_;
-	my @rets = ();
+	my @rets;
 	foreach my $device (@all_devices) {
-		push(@rets, $device) if ($device->{media_type} =~ /$media_type/);
+		push(@rets, $device) if $device->{media_type} =~ /$media_type/;
 	}
 	@rets;
 }
 
 sub hwdetect_get_bustype {
 	my ($bus_type) = @_;
-	my @rets = ();
+	my @rets;
 	foreach my $device (@all_devices) {
-		push(@rets, $device) if ($device->{bus} =~ /$bus_type/);
+		push(@rets, $device) if $device->{bus} =~ /$bus_type/;
 	}
 	@rets;
 }
@@ -360,82 +358,84 @@ sub hwdetect_loadmod {
 	my $done = 0;
 	print_device($module, $vendor, $desc);
 	unless ($module =~ /unknown/ || $module =~ /\:/) {
-		$delay = undef if (defined($delay) && is_loaded($module));
+		$delay = undef if defined($delay) && is_loaded($module);
 		my $num = modprobe("", $module);
-		sleep($delay) if (defined($delay) && $delay);
-		!$num ? $probe ? print_warning : print_failed() : print_loaded();
+		sleep($delay) if defined($delay) && $delay;
+		!$num ? $probe ? print_warning() : print_failed() : print_loaded();
 		$done++;
 	}
-	print "\n" unless($done);
+	print "\n" unless $done;
 }
 
-sub read_proc_cpu {
+sub read_proc_cpu() {
 	my (@cpus, $cpu);
 	foreach (cat_("/proc/cpuinfo")) {
 		if (/^processor/) { # ix86 specific
 			push @cpus, $cpu if $cpu;
 			$cpu = {};
 		}
-		/^([^\t]*).*:\s(.*)$/;
-		$cpu->{$1} = $2 if $1;
+		if (/^([^\t]*).*:\s(.*)$/) {
+              $cpu->{$1} = $2 if $1;
+          }
 	}
 	push @cpus, $cpu;
 	@cpus;
 }
 
-sub read_proc_mem {
+sub read_proc_mem() {
 	my ($mem);
 	foreach (cat_("/proc/meminfo")) {
 		if (/\:/) {
-			/^([^\t]*).*:\s(.*)$/;
-			$mem->{$1} = $2 if $1;
+              if (/^([^\t]*).*:\s(.*)$/) {
+                  $mem->{$1} = $2 if $1;
+              }
 		}
 	}
 	$mem;
 }
 
-sub hwdetect_getmachine {
-	print getStr('arch_probe').": ";
-	my @probed_cpus = ();
-	my $probed_mem = ();
+sub hwdetect_getmachine() {
+	print getStr('arch_probe') . ": ";
+	my @probed_cpus;
+	my $probed_mem;
 	eval { @probed_cpus = read_proc_cpu() };
 	eval { $probed_mem = read_proc_mem() };
-	print scalar(@probed_cpus)." ".getStr('arch_cpus').", ".rmws($probed_mem->{MemTotal})." ".getStr('arch_mem_found');
+	print scalar(@probed_cpus) . " " . getStr('arch_cpus') . ", " . rmws($probed_mem->{MemTotal}) . " " . getStr('arch_mem_found');
 	scalar @probed_cpus && $probed_mem ? print_success() : print_failed();
 	foreach my $cpu (@probed_cpus) {
-		hwdetect_loadmod('unknown', $cpu->{vendor_id}, $cpu->{'model name'}." ".$cpu->{'cpu MHz'}."MHz ".$cpu->{'cache size'});
-		print_hash($cpu) if ($debug);
+		hwdetect_loadmod('unknown', $cpu->{vendor_id}, $cpu->{'model name'} . " " . $cpu->{'cpu MHz'} . "MHz " . $cpu->{'cache size'});
+		print_hash($cpu) if $debug;
 	}
 	if ($probed_mem) {
-		hwdetect_loadmod('unknown', getStr('avail_mem'), rmws($probed_mem->{MemFree})." ".getStr('of_mem')." ".rmws($probed_mem->{MemTotal}));
-		hwdetect_loadmod('unknown', getStr('avail_swap'), rmws($probed_mem->{SwapFree})." ".getStr('of_mem')." ".rmws($probed_mem->{SwapTotal})) if ($haveswap > 0);
-		print_hash($probed_mem) if ($debug);
+		hwdetect_loadmod('unknown', getStr('avail_mem'), rmws($probed_mem->{MemFree}) . " " . getStr('of_mem') . " " .  rmws($probed_mem->{MemTotal}));
+		hwdetect_loadmod('unknown', getStr('avail_swap'), rmws($probed_mem->{SwapFree}) . " " . getStr('of_mem') . " " .  rmws($probed_mem->{SwapTotal})) if $haveswap > 0;
+		print_hash($probed_mem) if $debug;
 	}
 	set_progress();
 }
 
 sub hwdetect_probepci() {
-	print getStr('pci_probe').": ";
-	my @all_pci = ();
-	my @all_bridge = ();
+	print getStr('pci_probe') . ": ";
+	my @all_pci;
+	my @all_bridge;
 	my %pciid;
-	eval { @all_pci = detect_devices::pci_probe() and print_success(); } or print_failed();
+	eval { @all_pci = detect_devices::pci_probe() and print_success() } or print_failed();
 	foreach my $pci (@all_pci) {
 		# make sure we display a single type only once
 		unless (defined($pciid{$pci->{id}})) {
 			$pciid{$pci->{id}} = 1;
 			my ($probed_vendor, $probed_desc) = split(/\|/, $pci->{description});
-			if ($pci->{media_type} =~ /SERIAL_USB/ && !defined($cmdline{'nousb'})) {
+			if ($pci->{media_type} =~ /SERIAL_USB/ && !defined($cmdline{nousb})) {
 				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc, 5);
-				$modules_conf->add_probeall("usb-interface", $pci->{driver}) unless ($probe);
-				print "$modules_conf->add_probeall('usb-interface', '".$pci->{driver}."')\n" if ($debug);
+				$modules_conf->add_probeall("usb-interface", $pci->{driver}) unless $probe;
+				print "\$modules_conf->add_probeall('usb-interface', '" . $pci->{driver} . "')\n" if $debug;
 			}
-			elsif ($pci->{media_type} =~ /STORAGE_SCSI/ && !defined($cmdline{'noscsi'})) {
+			elsif ($pci->{media_type} =~ /STORAGE_SCSI/ && !defined($cmdline{noscsi})) {
 				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
-				$modules_conf->add_probeall("scsi_hostadapter", $pci->{driver}) unless ($probe);
-				print "$modules_conf->add_probeall('scsi_hostadapter', '".$pci->{driver}."')\n" if ($debug);
+				$modules_conf->add_probeall("scsi_hostadapter", $pci->{driver}) unless $probe;
+				print "\$modules_conf->add_probeall('scsi_hostadapter', '" . $pci->{driver} . "')\n" if $debug;
 			}
-			elsif ($pci->{media_type} =~ /BRIDGE_CARDBUS/ && !defined($cmdline{'nopcmcia'})) {
+			elsif ($pci->{media_type} =~ /BRIDGE_CARDBUS/ && !defined($cmdline{nopcmcia})) {
 				unless (is_loaded($pci->{driver})) {
 					my %popts;
 					foreach my $opt (cat_("/etc/sysconfig/pcmcia")) {
@@ -449,7 +449,7 @@ sub hwdetect_probepci() {
 					# this should be decent file operations!
 					system(":> /etc/sysconfig/pcmcia");
 					foreach my $opt (sort keys %popts) {
-						system("echo '".$opt."=".$popts{$opt}."' >>/etc/sysconfig/pcmcia");
+						system("echo '" . $opt . "=" . $popts{$opt} . "' >>/etc/sysconfig/pcmcia");
 					}
 				}
 				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
@@ -458,7 +458,7 @@ sub hwdetect_probepci() {
 				push(@all_bridge, $pci);
 			}
 		}
-		print_hash($pci) if ($debug);
+		print_hash($pci) if $debug;
 	}
 
 	# display all the bridges for which we are not loading drivers
@@ -468,19 +468,19 @@ sub hwdetect_probepci() {
 	}
 
 	# determine the type of busses we need to initialise now
-	$havepcmcia = 1 if (is_loaded('pcmcia_core'));
-	$haveusb = 1 if (is_loaded('usbcore'));
+	$havepcmcia = 1 if is_loaded('pcmcia_core');
+	$haveusb = 1 if is_loaded('usbcore');
 	set_progress();
 }
 
 sub hwdetect_initpcmcia() {
-	if (($havepcmcia > 0) && !defined($cmdline{'nopcmcia'})) {
-		print getStr('pcmcia_init').": ";
+	if ($havepcmcia > 0 && !defined($cmdline{nopcmcia})) {
+		print getStr('pcmcia_init') . ": ";
 		print_success();
-		print "    ".getStr('pcmcia_load').": ";
+		print "    " . getStr('pcmcia_load') . ": ";
 		my $num = 0;
 		my @modules = ('ds');
-		$num += modprobe("-q", $_) foreach (@modules);
+		$num += modprobe("-q", $_) foreach @modules;
 		!$num ? $probe ? print_warning() : print_failed() : print_loaded();
 	}
 	else {
@@ -490,8 +490,8 @@ sub hwdetect_initpcmcia() {
 }
 
 sub hwdetect_initusb() {
-	if (($haveusb > 0) && !defined($cmdline{'nousb'})) {
-		print getStr('usb_init').": ";
+	if ($haveusb > 0 && !defined($cmdline{nousb})) {
+		print getStr('usb_init') . ": ";
 		if (-e '/proc/bus/usb') {
 			print_success();
 			if (is_mounted('/proc/bus/usb')) {
@@ -499,15 +499,15 @@ sub hwdetect_initusb() {
 				$usbfstab = 1;
 			}
 			else {
-				$usbfstab = mount("    ".getStr('usb_mount').": ", "-n", "usbdevfs", "none", "/proc/bus/usb");
+				$usbfstab = mount("    " . getStr('usb_mount') . ": ", "-n", "usbdevfs", "none", "/proc/bus/usb");
 			}
 
 			### load the usb modules that are not loaded automatically
 			# "printer" should be in as well? (does cups stuff :(
-			print "    ".getStr('usb_load').": ";
+			print "    " . getStr('usb_load') . ": ";
 			my $num = 0;
 			my @modules = $kernel26 ? ('input', 'usb-storage', 'visor') : ('input', 'mousedev', 'keybdev', 'usb-storage', 'visor');
-			$num += modprobe("-q", $_) foreach (@modules);
+			$num += modprobe("-q", $_) foreach @modules;
 			!$num ? $probe ? print_warning() : print_failed() : print_loaded();
 		}
 		else {
@@ -518,25 +518,25 @@ sub hwdetect_initusb() {
 }
 
 sub hwdetect_deinitusb() {
-	if (($haveusb > 0) &&
-		-e '/proc/bus/usb' && !defined($cmdline{'nousb'})) {
-		umount(getStr('usb_umount'), "/proc/bus/usb") if ($ownprocusb > 0);
+	if ($haveusb > 0 &&
+		-e '/proc/bus/usb' && !defined($cmdline{nousb})) {
+		umount(getStr('usb_umount'), "/proc/bus/usb") if $ownprocusb > 0;
 	}
 	set_progress();
 }
 
-sub hwdetect_probeall {
-	print getStr('all_probe').": ";
+sub hwdetect_probeall() {
+	print getStr('all_probe') . ": ";
 	@all_devices = ();
-	eval { detect_devices::probeSerialDevices(); };
-	eval { @all_devices = detect_devices::probeall(); };
+	eval { detect_devices::probeSerialDevices() };
+	eval { @all_devices = detect_devices::probeall() };
 	scalar @all_devices ? print_success() : print_failed();
 	set_progress();
 }
 
-sub hwdetect_getkeyb {
-	print getStr('keyboard_probe').": ";
-	my $probed_keyb = { KEYBOARD => $cmdline{'keyb'} };
+sub hwdetect_getkeyb() {
+	print getStr('keyboard_probe') . ": ";
+	my $probed_keyb = { KEYBOARD => $cmdline{keyb} };
 	my $probed_desc = keyboard::keyboard2text($probed_keyb);
 	unless (defined($probed_desc)) {
 		$probed_keyb = { KEYBOARD => $DEF_KEYBOARD };
@@ -544,17 +544,17 @@ sub hwdetect_getkeyb {
 	}
 	print_success();
 	hwdetect_loadmod('unknown', "", $probed_desc);
-	print_hash($probed_keyb) if ($debug);
+	print_hash($probed_keyb) if $debug;
 	$probed_keyb;
 }
 
-sub hwdetect_getmouse {
-	print getStr('mouse_probe').": ";
+sub hwdetect_getmouse() {
+	print getStr('mouse_probe') . ": ";
 	my $probed_vendor = "";
 	my $probed_desc = "";
-	my $device = undef;
-	my $probed_mouse = undef;
-	eval { $probed_mouse = mouse::detect($modules_conf) and print_success(); } or print_failed();
+	my $device;
+	my $probed_mouse;
+	eval { $probed_mouse = mouse::detect($modules_conf) and print_success() } or print_failed();
 	if ($probed_mouse->{device} =~ /usbmouse/) {
 		my @probed_mice = hwdetect_get_mediatype('Mouse');
 		if (scalar @probed_mice) {
@@ -569,26 +569,26 @@ sub hwdetect_getmouse {
 	#		$probed_mouse->{nbuttons} = 4;  # get ZAxisMapping right (needed for wheel)
 	#	}
 	#}
-	hwdetect_loadmod('unknown', $probed_vendor, $probed_mouse->{type}." ".$probed_mouse->{name}." ".$probed_desc);
-	print_hash($probed_mouse) if ($debug);
+	hwdetect_loadmod('unknown', $probed_vendor, $probed_mouse->{type} . " " . $probed_mouse->{name} . " " . $probed_desc);
+	print_hash($probed_mouse) if $debug;
 	$probed_mouse;
 }
 
-sub hwdetect_getvideo {
-	print getStr('video_probe').": ";
-	my @probed_cards = ();
-	eval { @probed_cards = Xconfig::card::probe(); };
-	print scalar(@probed_cards)." ".getStr('found');
-	my $probed_card = undef;
+sub hwdetect_getvideo() {
+	print getStr('video_probe') . ": ";
+	my @probed_cards;
+	eval { @probed_cards = Xconfig::card::probe() };
+	print scalar(@probed_cards) . " " . getStr('found');
+	my $probed_card;
 	if (scalar @probed_cards) {
 		print_success();
 		foreach my $card (@probed_cards) {
-			my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
+			my ($probed_vendor, $_probed_desc) = split(/\|/, $card->{description});
 			my $module = 'unknown';
 			unless ($probed_card) { # one card only :(
 				$probed_card = $card;
-				if (defined($cmdline{'xdrv'})) {
-					$probed_card->{Driver} = $cmdline{'xdrv'};
+				if (defined($cmdline{xdrv})) {
+					$probed_card->{Driver} = $cmdline{xdrv};
 					$probed_card->{Driver2} = $probed_card->{Driver};
 				}
 				if ($probed_card->{Driver2} eq 'nvidia' &&
@@ -610,9 +610,9 @@ sub hwdetect_getvideo {
 					$module = $probed_card->{Driver2};
 				}
 			}
-			$card->{VideoRam} = $cmdline{'xram'} if (defined($cmdline{'xram'}));
+			$card->{VideoRam} = $cmdline{xram} if defined($cmdline{xram});
 			hwdetect_loadmod($module, $probed_vendor, $card->{card_name});
-			print_hash($card) if ($debug);
+			print_hash($card) if $debug;
 		}
 	}
 	else {
@@ -623,9 +623,9 @@ sub hwdetect_getvideo {
 			VideoRam    => 4096
 		};
 		
-		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
-		$probed_card->{Driver} = $cmdline{'xdrv'} if (defined($cmdline{'xdrv'}));
-		$probed_card->{VideoRam} = $cmdline{'xram'} if (defined($cmdline{'xram'}));
+		my ($probed_vendor, $_probed_desc) = split(/\|/, $card->{description});
+		$probed_card->{Driver} = $cmdline{xdrv} if defined($cmdline{xdrv});
+		$probed_card->{VideoRam} = $cmdline{xram} if defined($cmdline{xram});
 			hwdetect_loadmod($module, $probed_vendor, $card->{card_name});
 	}
 	$probed_card;
@@ -633,18 +633,18 @@ sub hwdetect_getvideo {
 
 # res => [ laptop (monitor), generic (monitor), x, y ]
 my %generic_res = (
-	'640x480'   => ['Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 60 Hz',  640,  480 ],
-	'800x600'   => ['Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 60 Hz',  800,  600 ],
-	'1024x768'  => ['Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 60 Hz',  1024, 768 ],
-	'1280x1024' => ['Generic|Flat Panel 1280x1024', 'Generic|1280x1024 @ 60 Hz', 1280, 1024],
-	'1400x1050' => ['Generic|Flat Panel 1400x1050', 'Generic|1280x1024 @ 60 Hz', 1400, 1050],
-	'1600x1400' => ['Generic|Flat Panel 1600x1200', 'Generic|1600x1200 @ 70 Hz', 1600, 1400]
+	'640x480'   => [ 'Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 60 Hz',  640,  480  ],
+	'800x600'   => [ 'Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 60 Hz',  800,  600  ],
+	'1024x768'  => [ 'Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 60 Hz',  1024, 768  ],
+	'1280x1024' => [ 'Generic|Flat Panel 1280x1024', 'Generic|1280x1024 @ 60 Hz', 1280, 1024 ],
+	'1400x1050' => [ 'Generic|Flat Panel 1400x1050', 'Generic|1280x1024 @ 60 Hz', 1400, 1050 ],
+	'1600x1400' => [ 'Generic|Flat Panel 1600x1200', 'Generic|1600x1200 @ 70 Hz', 1600, 1400 ]
 );
 
 sub hwdetect_getmonitors {
 	my ($rawX) = @_;
-	print getStr('monitor_probe').": ";
-	my $probed_monitors = undef;
+	print getStr('monitor_probe') . ": ";
+	my $probed_monitors;
 
         # try to get a monitor via DDC
 	eval { 
@@ -657,12 +657,12 @@ sub hwdetect_getmonitors {
 	}
 	foreach my $monitor (@$probed_monitors) {
 		hwdetect_loadmod('unknown', $monitor->{VendorName}, $monitor->{ModelName}, 0);
-		print_hash($monitor) if ($debug);
+		print_hash($monitor) if $debug;
 	}
 	$probed_monitors;
 }
 
-sub hwdetect_getxfree {
+sub hwdetect_getxfree() {
 	my $def_keyboard = hwdetect_getkeyb();
 	my $def_mouse = hwdetect_getmouse();
 	my $def_card = hwdetect_getvideo();
@@ -682,177 +682,177 @@ sub hwdetect_getxfree {
 	Xconfig::screen::configure($rawX, $def_card);
 
 	# detect a resolution
-	print getStr('resolution_probe').": ";
-	$old_X->{default_depth} = defined($cmdline{'xbpp'}) ? $cmdline{'xbpp'} : 16;
-	my $resolution_wanted = undef;
-	if (defined($cmdline{'xres'})) {
+	print getStr('resolution_probe') . ": ";
+	$old_X->{default_depth} = defined($cmdline{xbpp}) ? $cmdline{xbpp} : 16;
+	my $resolution_wanted;
+	if (defined($cmdline{xres})) {
 		$resolution_wanted->{Depth} = $old_X->{default_depth};
-		$resolution_wanted->{X} = $generic_res{$cmdline{'xres'}}[2] || 1024;
-		$resolution_wanted->{Y} = $generic_res{$cmdline{'xres'}}[3] || 768;
+		$resolution_wanted->{X} = $generic_res{$cmdline{xres}}[2] || 1024;
+		$resolution_wanted->{Y} = $generic_res{$cmdline{xres}}[3] || 768;
 		$old_X->{resolution_wanted} = $resolution_wanted;
 	}
         
 	# set the desired res, and override if failed and we are not safe
-	my $resolution = undef;
-	eval { $resolution = Xconfig::resolution_and_depth::configure_auto_install($rawX, $def_card, $def_monitors, $old_X); };
-	if (!defined($resolution) && defined($resolution_wanted) && !defined($cmdline{'safex'})) {
-		eval { $rawX->set_resolution($resolution_wanted); };
-		eval { $resolution = $rawX->get_resolution; };
+	my $resolution;
+	eval { $resolution = Xconfig::resolution_and_depth::configure_auto_install($rawX, $def_card, $def_monitors, $old_X) };
+	if (!defined($resolution) && defined($resolution_wanted) && !defined($cmdline{safex})) {
+		eval { $rawX->set_resolution($resolution_wanted) };
+		eval { $resolution = $rawX->get_resolution };
 	}
 
 	# try to make sure we have at least a valid 800x600 before finally setting it
 	if (!defined($resolution) ||
 	    !defined($resolution->{X}) || !defined($resolution->{Y}) || !defined($resolution->{Depth}) ||
-	    (($resolution->{X} < 800) && !defined($cmdline{'xres'}) && !defined($cmdline{'xbpp'}))) {
+	    ($resolution->{X} < 800 && !defined($cmdline{xres}) && !defined($cmdline{xbpp}))) {
 		$resolution->{X} = 800;
 		$resolution->{Y} = 600;
 		$resolution->{Depth} = 16;
 	}
-	eval { $rawX->set_resolution($resolution); };
-	eval { $resolution = $rawX->get_resolution and print_success(); } or print_failed();
-	hwdetect_loadmod('unknown', $resolution->{X}."x".$resolution->{Y}, $resolution->{Depth}." bpp", 0);
+	eval { $rawX->set_resolution($resolution) };
+	eval { $resolution = $rawX->get_resolution and print_success() } or print_failed();
+	hwdetect_loadmod('unknown', $resolution->{X} . "x" . $resolution->{Y}, $resolution->{Depth} . " bpp", 0);
 
 	unless ($probe) {
-		print getStr('x_write').": ";
-		eval { mouse::write(undef, $def_mouse); };
-		eval { keyboard::write($def_keyboard); };
-		eval { $rawX->write() and print_success(); } or print_failed();
+		print getStr('x_write') . ": ";
+		eval { mouse::write(undef, $def_mouse) };
+		eval { keyboard::write($def_keyboard) };
+		eval { $rawX->write and print_success() } or print_failed();
 	}
 	set_progress();
 }
 
-sub hwdetect_getsound {
-	my @probed_cards = ();
-	unless (defined($cmdline{'nosound'})) {
-		print getStr('sound_probe').": ";
-		eval { @probed_cards = hwdetect_get_mediatype('MULTIMEDIA_AUDIO'); };
-		print scalar(@probed_cards)." ".getStr('found');
+sub hwdetect_getsound() {
+	my @probed_cards;
+	unless (defined($cmdline{nosound})) {
+		print getStr('sound_probe') . ": ";
+		eval { @probed_cards = hwdetect_get_mediatype('MULTIMEDIA_AUDIO') };
+		print scalar(@probed_cards) . " " . getStr('found');
 		scalar @probed_cards ? print_success() : print_failed();
 		my $num = 0;
 		foreach my $card (@probed_cards) {
 			my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
 			my $sndnum = "sound$num";
 			my $driver = $card->{driver};
-			$driver = $cmdline{'sound'} if (defined($cmdline{'sound'}));
-			$driver = $cmdline{$sndnum} if (defined($cmdline{$sndnum}));
+			$driver = $cmdline{sound} if defined($cmdline{sound});
+			$driver = $cmdline{$sndnum} if defined($cmdline{$sndnum});
 			$modules_conf->set_alias("sound-slot-$num", $driver);
-			print "$modules_conf->set_alias('sound-slot-$num', '$driver')\n" if ($debug);
-			if ($card->{options} && ($driver eq $card->{driver})) {
+			print "\$modules_conf->set_alias('sound-slot-$num', '$driver')\n" if $debug;
+			if ($card->{options} && $driver eq $card->{driver}) {
 				$modules_conf->set_options($driver, $card->{options}); 
-				print "$modules_conf->set_options($driver, ".$card->{options}.")\n" if ($debug);
+				print "\$modules_conf->set_options($driver, " . $card->{options} . ")\n" if $debug;
 			}
 			
 			# sound card specifics not defaulted in MDK
-			$modules_conf->set_options('snd-via82xx', 'index=0 dxs_support=2') if ($driver =~ /via82xx/);
-			$modules_conf->set_options('snd-card-intel8x0', 'snd_ac97_clock=41194') if ($driver =~ /intel8x0/);
+			$modules_conf->set_options('snd-via82xx', 'index=0 dxs_support=2') if $driver =~ /via82xx/;
+			$modules_conf->set_options('snd-card-intel8x0', 'snd_ac97_clock=41194') if $driver =~ /intel8x0/;
 			
 			$num++;
 			# hwdetect_loadmod($card->{driver}, ...) makes alsa break since the init scripts
 			# want to load the correct module.
 			hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
-			print_hash($card) if ($debug);
+			print_hash($card) if $debug;
 		}
 	}
-	system("rm -rf /etc/rc.d/rc?.d/*alsa /etc/rc.d/rc?.d/sound") unless (scalar(@probed_cards) || $probe);
+	system("rm -rf /etc/rc.d/rc?.d/*alsa /etc/rc.d/rc?.d/sound") unless scalar(@probed_cards) || $probe;
 	set_progress();
 }
 
-sub hwdetect_getnetwork {
-	my @probed_cards = ();
-	unless (defined($cmdline{'nonetwork'})) {
-		print getStr('network_probe').": ";
-		eval { @probed_cards = hwdetect_get_mediatype('NETWORK_ETHERNET|NETWORK_OTHER'); };
-		print scalar(@probed_cards)." ".getStr('found');
+sub hwdetect_getnetwork() {
+	my @probed_cards;
+	unless (defined($cmdline{nonetwork})) {
+		print getStr('network_probe') . ": ";
+		eval { @probed_cards = hwdetect_get_mediatype('NETWORK_ETHERNET|NETWORK_OTHER') };
+		print scalar(@probed_cards) . " " . getStr('found');
 		scalar @probed_cards ? print_success() : print_failed();
 		my $num = 0;
 		foreach my $card (@probed_cards) {
 			my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
 			my $ethnum = "eth$num";
 			my $driver = $card->{driver};
-			$driver = $cmdline{'eth'} if (defined($cmdline{'eth'}));
-			$driver = $cmdline{$ethnum} if (defined($cmdline{$ethnum}));
+			$driver = $cmdline{eth} if defined($cmdline{eth});
+			$driver = $cmdline{$ethnum} if defined($cmdline{$ethnum});
 			
-			$modules_conf->set_alias("eth$num", $driver) unless ($probe);
-			print "$modules_conf->set_alias('eth$num', '$driver')\n" if ($debug);
+			$modules_conf->set_alias("eth$num", $driver) unless $probe;
+			print "\$modules_conf->set_alias('eth$num', '$driver')\n" if $debug;
 			
 			$num++;
 			# don't load driver, only add to /etc/modules.conf (as with sound)
 			hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
-			print_hash($card) if ($debug);
+			print_hash($card) if $debug;
 		}
 		## Turn off IPV6
 		if ($kernel26) {
 			$modules_conf->set_alias("net-pf-10 off");
-			print "$modules_conf->set_alias('net-pf-10 off')\n" if ($debug);
+			print "\$modules_conf->set_alias('net-pf-10 off')\n" if $debug;
 			print "IPV6 turned off \n";
 		}
 	}
-	system("rm -rf /etc/rc.d/rc?.d/*network") unless (scalar(@probed_cards) || $probe);
+	system("rm -rf /etc/rc.d/rc?.d/*network") unless scalar(@probed_cards) || $probe;
 	set_progress();
 }
 
-sub hwdetect_getprinters {
-	print getStr('printer_probe').": ";
-	my @probed_printers = ();
-	#eval { require printer::detect; @probed_printers = local_detect(); };
-	print scalar(@probed_printers)." ".getStr('found');
+sub hwdetect_getprinters() {
+	print getStr('printer_probe') . ": ";
+	my @probed_printers;
+	#eval { require printer::detect; @probed_printers = local_detect() };
+	print scalar(@probed_printers) . " " . getStr('found');
 	scalar @probed_printers ? print_success() : print_failed();
-	system("rm -rf /etc/rc.d/rc?.d/*cups") unless (scalar(@probed_printers));
+	system("rm -rf /etc/rc.d/rc?.d/*cups") unless scalar(@probed_printers);
 	foreach my $printer (@probed_printers) {
-		print_hash($printer) if ($debug);
+		print_hash($printer) if $debug;
 	}
 	set_progress();
 }
 
-sub hwdetect_getserial {
-	print getStr('serial_probe').": ";
-	my @probed_devices = ();
-	print scalar(@probed_devices)." ".getStr('found');
-	print " ".getStr('not_impl');
+sub hwdetect_getserial() {
+	print getStr('serial_probe') . ": ";
+	my @probed_devices;
+	print scalar(@probed_devices) . " " . getStr('found');
+	print " " . getStr('not_impl');
 	print_warning();
 	set_progress();
 }
 
-sub hwdetect_getusb {
-	if (-e '/proc/bus/usb/devices' && !defined($cmdline{'nousb'})) {
-		print getStr('usb_probe').": ";
-		my @probed_devices = ();
-		eval { @probed_devices = hwdetect_get_bustype('USB'); };
-		my @usable_devices = ();
+sub hwdetect_getusb() {
+	if (-e '/proc/bus/usb/devices' && !defined($cmdline{nousb})) {
+		print getStr('usb_probe') . ": ";
+		my @probed_devices;
+		eval { @probed_devices = hwdetect_get_bustype('USB') };
+		my @usable_devices;
 		foreach my $device (@probed_devices) {
-			unless (($device->{media_type} =~ /^Hub/) ||
+			unless ($device->{media_type} =~ /^Hub/ ||
 				($device->{media_type} =~ /Mouse/ ||
-				($device->{description} =~ /Hub/))) {
+				$device->{description} =~ /Hub/)) {
 				push(@usable_devices, $device);
 			}
 		}
-		print scalar(@usable_devices) . " ".getStr('found');
+		print scalar(@usable_devices) . " " . getStr('found');
 		scalar @probed_devices ? print_success() : print_failed();
 		foreach my $device (@usable_devices) {
 			my ($probed_vendor, $probed_desc) = split(/\|/, $device->{description});
 			hwdetect_loadmod($device->{driver}, $probed_vendor, $probed_desc);
-			print_hash($device) if ($debug);
+			print_hash($device) if $debug;
 		}
 	}
 	set_progress();
 }
 
-sub hwdetect_all {
+sub hwdetect_all() {
 	if ($debug) {
-		print_hash($_) foreach (@all_devices);
+		print_hash($_) foreach @all_devices;
 	}
 }
 
-sub hwdetect_readconf {
-	print getStr('mod_read').": ";
+sub hwdetect_readconf() {
+	print getStr('mod_read') . ": ";
 	$modules_conf = modules::any_conf->read;
 	print_success();
 	set_progress();
 }
 
-sub hwdetect_writeconf {
+sub hwdetect_writeconf() {
 	unless ($probe) {
-		print getStr('mod_write').": ";
+		print getStr('mod_write') . ": ";
 		system(":> $prefix/etc/modules.conf"); # clear first
 		system(":> $prefix/etc/modprobe.conf"); # clear first
 		$modules::prefix = $prefix;
@@ -868,120 +868,120 @@ sub hwdetect_writeconf {
 
 # descriptive name, type (or auto), mount defaults
 my %fstypes = (
-	0x0   => ['Empty'                                   ,''        ],
-	0x1   => ['DOS 12-bit FAT'                          ,'ufs'     ],
-	0x2   => ['XENIX root'                              ,'ufs'     ],
-	0x3   => ['XENIX /usr'                              ,''        ],
-	0x4   => ['DOS 16-bit FAT (up to 32M)'              ,'ufs'     ],
-	0x5   => ['DOS 3.3+ Extended Partition'             ,''        ],
-	0x6   => ['DOS FAT16'                               ,'vfat'    ],
-	0x7   => ['NTFS'                                    ,'ntfs'    ],
-	0x8   => ['OS/2 (v1.0-1.3 only)'                    ,'ufs'     ],
-	0x9   => ['AIX data partition'                      ,''        ],
-	0xa   => ['OS/2 Boot Manager'                       ,''        ],
-	0xb   => ['FAT32'                                   ,'vfat'    ],
-	0xc   => ['Win98 FAT32, LBA-mapped'                 ,'vfat'    ],
-	0xe   => ['Win95: DOS 16-bit FAT, LBA-mapped'       ,'vfat'    ],
-	0xf   => ['Win95: Extended partition, LBA-mapped'   ,''        ],
-	0x10  => ['OPUS (?)'                                ,''        ],
-	0x11  => ['Hidden DOS 12-bit FAT'                   ,''        ],
-	0x12  => ['Compaq/HP config partition'              ,''        ],
-	0x14  => ['Hidden DOS 16-bit FAT <32M'              ,''        ],
-	0x16  => ['Hidden DOS 16-bit FAT >=32M'             ,''        ],
-	0x17  => ['Hidden IFS (e.g., HPFS)'                 ,''        ],
-	0x18  => ['AST Windows swapfile'                    ,''        ],
-	0x1b  => ['Hidden WIN95 OSR2 32-bit FAT'            ,'vfat'    ],
-	0x1c  => ['Hidden WIN95 OSR2 32-bit FAT, LBA-mapped','vfat'    ],
-	0x1e  => ['Hidden FAT95'                            ,'vfat'    ],
-	0x22  => ['Used for Oxygen Extended Partition Table',''        ],
-	0x24  => ['NEC DOS 3.x'                             ,''        ],
-	0x35  => ['JFS (OS/2)'                              ,''        ],
-	0x38  => ['THEOS ver 3.2 2gb partition'             ,''        ],
-	0x39  => ['THEOS ver 4 spanned partition'           ,''        ],
-	0x3a  => ['THEOS ver 4 4gb partition'               ,''        ],
-	0x3b  => ['THEOS ver 4 extended partition'          ,''        ],
-	0x3c  => ['PartitionMagic recovery partition'       ,''        ],
-	0x40  => ['Venix 80286'                             ,''        ],
-	0x41  => ['Linux/MINIX (sharing disk with DRDOS)'   ,''        ],
-	0x42  => ['Windows Dynamic Partition'               ,''        ],
-	0x43  => ['Linux native (sharing disk with DRDOS)'  ,''        ],
-	0x45  => ['EUMEL/Elan'                              ,''        ],
-	0x46  => ['EUMEL/Elan 0x46'                         ,''        ],
-	0x47  => ['EUMEL/Elan 0x47'                         ,''        ],
-	0x48  => ['EUMEL/Elan 0x48'                         ,''        ],
-	0x4d  => ['QNX4.x'                                  ,''        ],
-	0x4e  => ['QNX4.x 2nd part'                         ,''        ],
-	0x4f  => ['QNX4.x 3rd part / Oberon partition'      ,''        ],
-	0x50  => ['OnTrack Disk Manager (older versions) RO',''        ],
-	0x51  => ['Novell'                                  ,''        ],
-	0x52  => ['CP/M / Microport SysV/AT'                ,''        ],
-	0x53  => ['Disk Manager 6.0 Aux3'                   ,''        ],
-	0x54  => ['Disk Manager 6.0 Dynamic Drive Overlay'  ,''        ],
-	0x55  => ['EZ-Drive'                                ,''        ],
-	0x56  => ['Golden Bow VFeature Partitioned Volume'  ,''        ],
-	0x57  => ['DrivePro'                                ,''        ],
-	0x5c  => ['Priam EDisk'                             ,''        ],
-	0x61  => ['SpeedStor'                               ,''        ],
-	0x63  => ['Unix System V (SCO, ...), Mach, GNU Hurd',''        ],
-	0x64  => ['PC-ARMOUR protected partition'           ,''        ],
-	0x65  => ['Novell Netware 3.xx or 4.xx'             ,''        ],
-	0x67  => ['Novell'                                  ,''        ],
-	0x68  => ['Novell 0x68'                             ,''        ],
-	0x69  => ['Novell 0x69'                             ,''        ],
-	0x70  => ['DiskSecure Multi-Boot'                   ,''        ],
-	0x75  => ['IBM PC/IX'                               ,''        ],
-	0x80  => ['MINIX until 1.4a'                        ,''        ],
-	0x81  => ['MINIX since 1.4b, early Linux'           ,''        ],
-	0x82  => ['Linux swap'                              ,'swap'    ],
-	0x83  => ['Linux native'                            ,'ext2'    ],
-	0x84  => ['OS/2 hidden C: drive'                    ,''        ],
-	0x85  => ['Linux extended partition'                ,''        ],
-	0x86  => ['Old Linux RAID partition superblock'     ,''        ],
-	0x87  => ['NTFS volume set'                         ,''        ],
-	0x8a  => ['Linux Kernel Partition (AiR-BOOT)'       ,''        ],
-	0x8e  => ['Linux Logical Volume Manager partition'  ,''        ],
-	0x93  => ['Amoeba'                                  ,''        ],
-	0x94  => ['Amoeba bad block table'                  ,''        ],
-	0x99  => ['DCE376 logical drive'                    ,''        ],
-	0xa0  => ['IBM Thinkpad hibernation partition'      ,''        ],
-	0xa5  => ['BSD/386, 386BSD, NetBSD, FreeBSD'        ,''        ],
-	0xa6  => ['OpenBSD'                                 ,''        ],
-	0xa7  => ['NEXTSTEP'                                ,''        ],
-	0xa9  => ['NetBSD'                                  ,''        ],
-	0xaa  => ['Olivetti Fat 12 1.44Mb Service Partition',''        ],
-	0xb7  => ['BSDI filesystem'                         ,''        ],
-	0xb8  => ['BSDI swap partition'                     ,''        ],
-	0xbe  => ['Solaris boot partition'                  ,''        ],
-	0xc0  => ['CTOS / REAL/32 secure small partition'   ,''        ],
-	0xc1  => ['DRDOS/secured (FAT-12)'                  ,''        ],
-	0xc4  => ['DRDOS/secured (FAT-16, < 32M)'           ,''        ],
-	0xc6  => ['DRDOS/secured (FAT-16, >= 32M)'          ,''        ],
-	0xc7  => ['Windows NT corrupted NTFS volume'        ,''        ],
-	0xcb  => ['reserved for DRDOS/secured (FAT32)'      ,''        ],
-	0xcc  => ['reserved for DRDOS/secured (FAT32, LBA)' ,''        ],
-	0xcd  => ['CTOS Memdump?'                           ,''        ],
-	0xce  => ['reserved for DRDOS/secured (FAT16, LBA)' ,''        ],
-	0xd0  => ['REAL/32 secure big partition'            ,''        ],
-	0xd1  => ['Old Multiuser DOS secured FAT12'         ,''        ],
-	0xd4  => ['Old Multiuser DOS secured FAT16 <32M'    ,''        ],
-	0xd5  => ['Old Multiuser DOS secured extended'      ,''        ],
-	0xd6  => ['Old Multiuser DOS secured FAT16 >=32M'   ,''        ],
-	0xd8  => ['CP/M-86'                                 ,''        ],
-	0xdb  => ['Digital Research CP/M'                   ,''        ],
-	0xdd  => ['Hidden CTOS Memdump?'                    ,''        ],
-	0xe1  => ['DOS access partition'                    ,''        ],
-	0xe3  => ['DOS R/O or SpeedStor'                    ,''        ],
-	0xe4  => ['16-bit FAT extended partition <1024 cyl.',''        ],
-	0xeb  => ['BeOS'                                    ,''        ],
-	0xee  => ['EFI GPT'                                 ,''        ],
-	0xef  => ['EFI (FAT-12/16/32)'                      ,''        ],
-	0xf1  => ['SpeedStor 0xf1'                          ,''        ],
-	0xf2  => ['DOS 3.3+ secondary partition'            ,''        ],
-	0xf4  => ['SpeedStor large partition'               ,''        ],
-	0xf5  => ['Prologue multi-volume partition'         ,''        ],
-	0xfd  => ['Linux RAID'                              ,''        ],
-	0xfe  => ['SpeedStor >1024 cyl'                     ,''        ],
-	0xff  => ['Xenix Bad Block Table'                   ,''        ]
+	0x0   => [ 'Empty'                                   , ''        ],
+	0x1   => [ 'DOS 12-bit FAT'                          , 'ufs'     ],
+	0x2   => [ 'XENIX root'                              , 'ufs'     ],
+	0x3   => [ 'XENIX /usr'                              , ''        ],
+	0x4   => [ 'DOS 16-bit FAT (up to 32M)'              , 'ufs'     ],
+	0x5   => [ 'DOS 3.3+ Extended Partition'             , ''        ],
+	0x6   => [ 'DOS FAT16'                               , 'vfat'    ],
+	0x7   => [ 'NTFS'                                    , 'ntfs'    ],
+	0x8   => [ 'OS/2 (v1.0-1.3 only)'                    , 'ufs'     ],
+	0x9   => [ 'AIX data partition'                      , ''        ],
+	0xa   => [ 'OS/2 Boot Manager'                       , ''        ],
+	0xb   => [ 'FAT32'                                   , 'vfat'    ],
+	0xc   => [ 'Win98 FAT32, LBA-mapped'                 , 'vfat'    ],
+	0xe   => [ 'Win95: DOS 16-bit FAT, LBA-mapped'       , 'vfat'    ],
+	0xf   => [ 'Win95: Extended partition, LBA-mapped'   , ''        ],
+	0x10  => [ 'OPUS (?)'                                , ''        ],
+	0x11  => [ 'Hidden DOS 12-bit FAT'                   , ''        ],
+	0x12  => [ 'Compaq/HP config partition'              , ''        ],
+	0x14  => [ 'Hidden DOS 16-bit FAT <32M'              , ''        ],
+	0x16  => [ 'Hidden DOS 16-bit FAT >=32M'             , ''        ],
+	0x17  => [ 'Hidden IFS (e.g., HPFS)'                 , ''        ],
+	0x18  => [ 'AST Windows swapfile'                    , ''        ],
+	0x1b  => [ 'Hidden WIN95 OSR2 32-bit FAT'            , 'vfat'    ],
+	0x1c  => [ 'Hidden WIN95 OSR2 32-bit FAT, LBA-mapped', 'vfat'    ],
+	0x1e  => [ 'Hidden FAT95'                            , 'vfat'    ],
+	0x22  => [ 'Used for Oxygen Extended Partition Table', ''        ],
+	0x24  => [ 'NEC DOS 3.x'                             , ''        ],
+	0x35  => [ 'JFS (OS/2)'                              , ''        ],
+	0x38  => [ 'THEOS ver 3.2 2gb partition'             , ''        ],
+	0x39  => [ 'THEOS ver 4 spanned partition'           , ''        ],
+	0x3a  => [ 'THEOS ver 4 4gb partition'               , ''        ],
+	0x3b  => [ 'THEOS ver 4 extended partition'          , ''        ],
+	0x3c  => [ 'PartitionMagic recovery partition'       , ''        ],
+	0x40  => [ 'Venix 80286'                             , ''        ],
+	0x41  => [ 'Linux/MINIX (sharing disk with DRDOS)'   , ''        ],
+	0x42  => [ 'Windows Dynamic Partition'               , ''        ],
+	0x43  => [ 'Linux native (sharing disk with DRDOS)'  , ''        ],
+	0x45  => [ 'EUMEL/Elan'                              , ''        ],
+	0x46  => [ 'EUMEL/Elan 0x46'                         , ''        ],
+	0x47  => [ 'EUMEL/Elan 0x47'                         , ''        ],
+	0x48  => [ 'EUMEL/Elan 0x48'                         , ''        ],
+	0x4d  => [ 'QNX4.x'                                  , ''        ],
+	0x4e  => [ 'QNX4.x 2nd part'                         , ''        ],
+	0x4f  => [ 'QNX4.x 3rd part / Oberon partition'      , ''        ],
+	0x50  => [ 'OnTrack Disk Manager (older versions) RO', ''        ],
+	0x51  => [ 'Novell'                                  , ''        ],
+	0x52  => [ 'CP/M / Microport SysV/AT'                , ''        ],
+	0x53  => [ 'Disk Manager 6.0 Aux3'                   , ''        ],
+	0x54  => [ 'Disk Manager 6.0 Dynamic Drive Overlay'  , ''        ],
+	0x55  => [ 'EZ-Drive'                                , ''        ],
+	0x56  => [ 'Golden Bow VFeature Partitioned Volume'  , ''        ],
+	0x57  => [ 'DrivePro'                                , ''        ],
+	0x5c  => [ 'Priam EDisk'                             , ''        ],
+	0x61  => [ 'SpeedStor'                               , ''        ],
+	0x63  => [ 'Unix System V (SCO, ...), Mach, GNU Hurd', ''        ],
+	0x64  => [ 'PC-ARMOUR protected partition'           , ''        ],
+	0x65  => [ 'Novell Netware 3.xx or 4.xx'             , ''        ],
+	0x67  => [ 'Novell'                                  , ''        ],
+	0x68  => [ 'Novell 0x68'                             , ''        ],
+	0x69  => [ 'Novell 0x69'                             , ''        ],
+	0x70  => [ 'DiskSecure Multi-Boot'                   , ''        ],
+	0x75  => [ 'IBM PC/IX'                               , ''        ],
+	0x80  => [ 'MINIX until 1.4a'                        , ''        ],
+	0x81  => [ 'MINIX since 1.4b, early Linux'           , ''        ],
+	0x82  => [ 'Linux swap'                              , 'swap'    ],
+	0x83  => [ 'Linux native'                            , 'ext2'    ],
+	0x84  => [ 'OS/2 hidden C: drive'                    , ''        ],
+	0x85  => [ 'Linux extended partition'                , ''        ],
+	0x86  => [ 'Old Linux RAID partition superblock'     , ''        ],
+	0x87  => [ 'NTFS volume set'                         , ''        ],
+	0x8a  => [ 'Linux Kernel Partition (AiR-BOOT)'       , ''        ],
+	0x8e  => [ 'Linux Logical Volume Manager partition'  , ''        ],
+	0x93  => [ 'Amoeba'                                  , ''        ],
+	0x94  => [ 'Amoeba bad block table'                  , ''        ],
+	0x99  => [ 'DCE376 logical drive'                    , ''        ],
+	0xa0  => [ 'IBM Thinkpad hibernation partition'      , ''        ],
+	0xa5  => [ 'BSD/386, 386BSD, NetBSD, FreeBSD'        , ''        ],
+	0xa6  => [ 'OpenBSD'                                 , ''        ],
+	0xa7  => [ 'NEXTSTEP'                                , ''        ],
+	0xa9  => [ 'NetBSD'                                  , ''        ],
+	0xaa  => [ 'Olivetti Fat 12 1.44Mb Service Partition', ''        ],
+	0xb7  => [ 'BSDI filesystem'                         , ''        ],
+	0xb8  => [ 'BSDI swap partition'                     , ''        ],
+	0xbe  => [ 'Solaris boot partition'                  , ''        ],
+	0xc0  => [ 'CTOS / REAL/32 secure small partition'   , ''        ],
+	0xc1  => [ 'DRDOS/secured (FAT-12)'                  , ''        ],
+	0xc4  => [ 'DRDOS/secured (FAT-16, < 32M)'           , ''        ],
+	0xc6  => [ 'DRDOS/secured (FAT-16, >= 32M)'          , ''        ],
+	0xc7  => [ 'Windows NT corrupted NTFS volume'        , ''        ],
+	0xcb  => [ 'reserved for DRDOS/secured (FAT32)'      , ''        ],
+	0xcc  => [ 'reserved for DRDOS/secured (FAT32, LBA)' , ''        ],
+	0xcd  => [ 'CTOS Memdump?'                           , ''        ],
+	0xce  => [ 'reserved for DRDOS/secured (FAT16, LBA)' , ''        ],
+	0xd0  => [ 'REAL/32 secure big partition'            , ''        ],
+	0xd1  => [ 'Old Multiuser DOS secured FAT12'         , ''        ],
+	0xd4  => [ 'Old Multiuser DOS secured FAT16 <32M'    , ''        ],
+	0xd5  => [ 'Old Multiuser DOS secured extended'      , ''        ],
+	0xd6  => [ 'Old Multiuser DOS secured FAT16 >=32M'   , ''        ],
+	0xd8  => [ 'CP/M-86'                                 , ''        ],
+	0xdb  => [ 'Digital Research CP/M'                   , ''        ],
+	0xdd  => [ 'Hidden CTOS Memdump?'                    , ''        ],
+	0xe1  => [ 'DOS access partition'                    , ''        ],
+	0xe3  => [ 'DOS R/O or SpeedStor'                    , ''        ],
+	0xe4  => [ '16-bit FAT extended partition <1024 cyl.', ''        ],
+	0xeb  => [ 'BeOS'                                    , ''        ],
+	0xee  => [ 'EFI GPT'                                 , ''        ],
+	0xef  => [ 'EFI (FAT-12/16/32)'                      , ''        ],
+	0xf1  => [ 'SpeedStor 0xf1'                          , ''        ],
+	0xf2  => [ 'DOS 3.3+ secondary partition'            , ''        ],
+	0xf4  => [ 'SpeedStor large partition'               , ''        ],
+	0xf5  => [ 'Prologue multi-volume partition'         , ''        ],
+	0xfd  => [ 'Linux RAID'                              , ''        ],
+	0xfe  => [ 'SpeedStor >1024 cyl'                     , ''        ],
+	0xff  => [ 'Xenix Bad Block Table'                   , ''        ]
 );
 
 # these are default options for fstab
@@ -990,8 +990,8 @@ my $fsopt_auto   = 'auto';
 my $fsopt_noauto = 'noauto';
 my $fsopt_ro     = 'ro';
 my $fsopt_rw     = 'rw';
-my $fsopt_fullrw = $fsopt_user.",".$fsopt_rw;
-my $fsopt_fullro = $fsopt_user.",".$fsopt_ro;
+my $fsopt_fullrw = $fsopt_user . "," . $fsopt_rw;
+my $fsopt_fullro = $fsopt_user . "," . $fsopt_ro;
 
 # type => (allow persistent, ext. opts, ro only)
 my %fsopts = (
@@ -1008,16 +1008,16 @@ my %fsopts = (
 
 sub hwdetect_getpersistent {
 	my (%devs) = @_;
-	print "    ".getStr('disk_persist').": ";
+	print "    " . getStr('disk_persist') . ": ";
 	my $mymnt   = "/tmp/hwdetect.mnt";
 	my $persist = "$mymnt/livecd.mnt";
 	my $loopmnt = "/tmp/hwdetect.img";
 	my $loopimg = "$mymnt/livecd.img";
-	system("mkdir -p $mymnt $loopmnt 2>/dev/null");
-	my $homeopt = $cmdline{'home'};
+	mkdir_p($_) foreach $mymnt, $loopmnt;
+	my $homeopt = $cmdline{home};
 	foreach my $dev (keys %devs) {
-		if ((-e $mymnt) && $devs{$dev}->{persist}) {
-			if (mount(undef, "", $devs{$dev}->{type}, $devs{$dev}->{devfs}, $mymnt)) {
+		if (-e $mymnt && $devs{$dev}{persist}) {
+			if (mount(undef, "", $devs{$dev}{type}, $devs{$dev}{devfs}, $mymnt)) {
 				if (-e $persist) {
 					my %popts;
 					foreach my $opt (cat_($persist)) {
@@ -1026,50 +1026,50 @@ sub hwdetect_getpersistent {
 						$popts{$name} = $value || 1;
 					}
 					if ($popts{mount}) {
-						$devs{$dev}->{opt} = $fsopt_fullrw;
-						$devs{$dev}->{persisted} = 1;
-						$devs{$dev}->{mount} = $popts{mount};
+						$devs{$dev}{opt} = $fsopt_fullrw;
+						$devs{$dev}{persisted} = 1;
+						$devs{$dev}{mount} = $popts{mount};
 					}
-					elsif ($popts{loop} && (-e $loopimg)) {
+					elsif ($popts{loop} && -e $loopimg) {
 						if ($popts{link}) {
 							mount(undef, "-o loop", "ext2", $loopimg, $loopmnt);
-							system("(cd $loopmnt ; ln -sf ".$devs{$dev}->{mount}." ".$popts{link}." ; cd /) 2>&1 >/dev/null");
+							system("(cd $loopmnt ; ln -sf " . $devs{$dev}{mount} . " " . $popts{link} . " ; cd /) 2>&1 >/dev/null");
 							umount(undef, $loopmnt);
 						}
 
-						$devs{$dev}->{loop} = $popts{loop};
-						$devs{$dev}->{opt} = $fsopt_fullrw;
-						$devs{$dev}->{persisted} = 1;
+						$devs{$dev}{loop} = $popts{loop};
+						$devs{$dev}{opt} = $fsopt_fullrw;
+						$devs{$dev}{persisted} = 1;
 					}
 				}
-				elsif (!$fdisk &&  defined($homeopt) && $devs{$dev}->{usb}) {
+				elsif (!$fdisk &&  defined($homeopt) && $devs{$dev}{usb}) {
 					if ($homeopt =~ /usb/) {
-						if ($devs{$dev}->{type} =~ /vfat/) {
+						if ($devs{$dev}{type} =~ /vfat/) {
 							my $totsize = qx(df -m $mymnt | awk '/tmp/{ print \$3 }');
 							chomp($totsize);
 							my $size = int($totsize/2); # 50% of available size
-							$size = 32 if (($size < 32) && ($totsize > 32)); # try to get 32MB
+							$size = 32 if $size < 32 && $totsize > 32; # try to get 32MB
 							system("(dd if=/dev/zero of=$loopimg bs=1M count=$size) 2>&1 >/dev/null");
 							system("(mke2fs -F -m0 $loopimg) 2>&1 >/dev/null");
 							system("(mount -o loop -t ext2 $loopimg $loopmnt) 2>&1 >/dev/null");
 							system("(cp -au /home/* $loopmnt) 2>&1 >/dev/null");
-							system("(cd $loopmnt ; ln -sf ".$devs{$dev}->{mount}." USB) 2>&1 >/dev/null");
+							system("(cd $loopmnt ; ln -sf " . $devs{$dev}{mount} . " USB) 2>&1 >/dev/null");
 							umount(undef, $loopmnt);
 		
 							system("echo 'loop=/home' >$persist");
 							system("echo 'link=USB' >>$persist");
 		
-							$devs{$dev}->{loop} = "/home";
-							$devs{$dev}->{opt} = $fsopt_fullrw;
-							$devs{$dev}->{persisted} = 1;
+							$devs{$dev}{loop} = "/home";
+							$devs{$dev}{opt} = $fsopt_fullrw;
+							$devs{$dev}{persisted} = 1;
 						}
-						elsif ($devs{$dev}->{type} =~ /ext2/ || 
-							$devs{$dev}->{type} =~ /ext3/) {
+						elsif ($devs{$dev}{type} =~ /ext2/ || 
+							$devs{$dev}{type} =~ /ext3/) {
 							system("echo 'mount=/home' >$persist");
 		
-							$devs{$dev}->{mount} = "/home";
-							$devs{$dev}->{opt} = $fsopt_fullrw;
-							$devs{$dev}->{persisted} = 1;
+							$devs{$dev}{mount} = "/home";
+							$devs{$dev}{opt} = $fsopt_fullrw;
+							$devs{$dev}{persisted} = 1;
 						}
 					}
 				}
@@ -1081,8 +1081,7 @@ sub hwdetect_getpersistent {
 	print_success();
 }
 
-sub hwdetect_raw_to_fs_description
-{
+sub hwdetect_raw_to_fs_description {
 	my ($raw) = @_;
 	my $pt_type = $raw->{pt_type};
 	if ($pt_type == 0x83) {
@@ -1100,8 +1099,7 @@ sub hwdetect_raw_to_fs_description
     return $fstypes{$pt_type}[0];
 }
 
-sub hwdetect_getdisks_add_hdd
-{
+sub hwdetect_getdisks_add_hdd {
     my	($raw, $fsopt_set, $comment) = @_;
     if ($raw->{size} != 0) {
 	my $fsType = $raw->{fs_type};
@@ -1113,44 +1111,44 @@ sub hwdetect_getdisks_add_hdd
 	    if ($comment) {
 		$info .= ' (' . $comment . ')';
 	    }
-	    $all_devs{$dev}->{info}    	= $info;
-	    $all_devs{$dev}->{dev}	= "/dev/" . $raw->{device};
-	    $all_devs{$dev}->{devfs}	= "/dev/" . $raw->{devfs_device};
-	    $all_devs{$dev}->{size}    	= $raw->{size};
-	    $all_devs{$dev}->{media}	= "hd";
+	    $all_devs{$dev}{info}    	= $info;
+	    $all_devs{$dev}{dev}	= "/dev/" . $raw->{device};
+	    $all_devs{$dev}{devfs}	= "/dev/" . $raw->{devfs_device};
+	    $all_devs{$dev}{size}    	= $raw->{size};
+	    $all_devs{$dev}{media}	= "hd";
 	    if ($fsType eq 'swap') {
 		$haveswap = 1;
-		$all_devs{$dev}->{mount} = "swap";
+		$all_devs{$dev}{mount} = "swap";
 	    } else {
-		$all_devs{$dev}->{mount} = "/mnt/" . $raw->{device};
-		if (($disk->{usb_media_type} =~ /^Mass Storage/) || ($disk->{info} =~ /Flash/)) {
-		    $all_devs{$dev}->{opt} = $fsopt_auto . "," . $fsopt_fullrw;
-		    $all_devs{$dev}->{usb} = 1;
-		    $all_devs{$dev}->{mount} = "/mnt/usb" . $numusb;
+		$all_devs{$dev}{mount} = "/mnt/" . $raw->{device};
+		if ($disk->{usb_media_type} =~ /^Mass Storage/ || $disk->{info} =~ /Flash/) {
+		    $all_devs{$dev}{opt} = $fsopt_auto . "," . $fsopt_fullrw;
+		    $all_devs{$dev}{usb} = 1;
+		    $all_devs{$dev}{mount} = "/mnt/usb" . $numusb;
 	    	    $numusb++;
 		} elsif (defined($opts[2])) {
-		    $all_devs{$dev}->{opt} = ($cmdline{'fstab'} =~ /noauto/)
+		    $all_devs{$dev}{opt} = ($cmdline{fstab} =~ /noauto/)
 			? $fsopt_fullro . "," . $fsopt_noauto
-			: $fsopt_fullro . ",". $fsopt_auto;
+			: $fsopt_fullro . "," . $fsopt_auto;
 		} else {
-		    $all_devs{$dev}->{opt} = $fsopt_set;
+		    $all_devs{$dev}{opt} = $fsopt_set;
 		}
 		if ($fsType =~ /ntfs|vfat/) {
-		    $all_devs{$dev}->{mount} = "/mnt/win_" . $numwin++;
+		    $all_devs{$dev}{mount} = "/mnt/win_" . $numwin++;
 		}
 	    }
-	    $all_devs{$dev}->{type} 	= $fsType;
-	    $all_devs{$dev}->{extopt}  	= $opts[1];
-	    $all_devs{$dev}->{persist}	= $opts[0];
+	    $all_devs{$dev}{type} 	= $fsType;
+	    $all_devs{$dev}{extopt}  	= $opts[1];
+	    $all_devs{$dev}{persist}	= $opts[0];
 	}
     }
 }
 
-sub hwdetect_getdisks {
-	print getStr('disk_probe').": ";
+sub hwdetect_getdisks() {
+	print getStr('disk_probe') . ": ";
 	my $fsopt_set = $fsopt_user;
-	$fsopt_set .= ($cmdline{'fstab'} =~ /ro/) ? ",".$fsopt_ro : ",".$fsopt_rw;
-	$fsopt_set .= ($cmdline{'fstab'} =~ /noauto/) ? ",".$fsopt_noauto : ",".$fsopt_auto;
+	$fsopt_set .= $cmdline{fstab} =~ /ro/ ? "," . $fsopt_ro : "," . $fsopt_rw;
+	$fsopt_set .= $cmdline{fstab} =~ /noauto/ ? "," . $fsopt_noauto : "," . $fsopt_auto;
 	my $all_hdds = fsedit::get_hds({}, undef);
 	fs::get_raw_hds('', $all_hdds);
 	
@@ -1178,30 +1176,30 @@ sub hwdetect_getdisks {
 			if ($disk->{media_type} =~ /^fd|^cdrom/) {
 				my $dev = $disk->{device};
 				my $extopts = "--,iocharset=iso8859-1,codepage=850,umask=0";
-				$extopts = $extopts.",nohide" if ($disk->{media_type} =~ /^cdrom/);
-				$all_devs{$dev}->{info}   = $disk->{media_type} . ": " . $disk->{info};
-				$all_devs{$dev}->{dev}    = "/dev/".$disk->{device};
-				$all_devs{$dev}->{devfs}  = "/dev/".$disk->{devfs_device};
-				$all_devs{$dev}->{media}  = $disk->{media_type};
+				$extopts = $extopts . ",nohide" if $disk->{media_type} =~ /^cdrom/;
+				$all_devs{$dev}{info}   = $disk->{media_type} . ": " . $disk->{info};
+				$all_devs{$dev}{dev}    = "/dev/" . $disk->{device};
+				$all_devs{$dev}{devfs}  = "/dev/" . $disk->{devfs_device};
+				$all_devs{$dev}{media}  = $disk->{media_type};
 				if ($disk->{media_type} =~ /^fd/) {
-					$all_devs{$dev}->{mount}  = "/mnt/floppy$numfloppy";
+					$all_devs{$dev}{mount}  = "/mnt/floppy$numfloppy";
 					$numfloppy++;
-					if ($numfloppy eq "1") {$numfloppy++} # skip 1
+					if ($numfloppy eq "1") { $numfloppy++ } # skip 1
 				}
 				else {
-					$all_devs{$dev}->{mount}  = "/mnt/cdrom$numcd";
+					$all_devs{$dev}{mount}  = "/mnt/cdrom$numcd";
 					$numcd++;
-					if ($numcd eq "1") {$numcd++}  # skip 1
+					if ($numcd eq "1") { $numcd++ }  # skip 1
 				}
-				$all_devs{$dev}->{type}   = "auto";
+				$all_devs{$dev}{type}   = "auto";
 				if ($disk->{media_type} =~ /^cdrom/) {
-					$all_devs{$dev}->{opt} = $fsopt_fullro;  ##### .",".$fsopt_noauto;
+					$all_devs{$dev}{opt} = $fsopt_fullro;  ##### . "," . $fsopt_noauto;
 				}
 				else {
-					$all_devs{$dev}->{opt} = $fsopt_fullrw;  ##### .",".$fsopt_noauto;
+					$all_devs{$dev}{opt} = $fsopt_fullrw;  ##### . "," . $fsopt_noauto;
 				}
-				$all_devs{$dev}->{extopt} = $extopts;
-				$all_devs{$dev}->{supermount} = 1;
+				$all_devs{$dev}{extopt} = $extopts;
+				$all_devs{$dev}{supermount} = 1;
 			}
 		}
 	}
@@ -1213,25 +1211,25 @@ sub hwdetect_getdisks {
 			print "\tprimary:\n";
 			foreach my $prim (keys %{$disk->{primary}}) {
 				unless ($prim =~ /normal/ || $prim =~ /extended/ || $prim =~ /raw/) {
-					print "\t\t" . $prim . " -> " . $disk->{primary}->{$prim} . "\n";
+					print "\t\t" . $prim . " -> " . $disk->{primary}{$prim} . "\n";
 				}
 			}
 		}
 
 		if ($debug) {
 			print "\t\tnormal:\n";
-			foreach my $norm (@{$disk->{primary}->{normal}}) {
+			foreach my $norm (@{$disk->{primary}{normal}}) {
 				print "\t\t\t" . $norm . "\n";
 			}
 			print "\t\textended:\n";
-			foreach my $extkey (%{$disk->{primary}->{extended}}) {
-				print "\t\t\t" . $extkey . " -> " . $disk->{primary}->{extended}->{$extkey} . "\n";
+			foreach my $extkey (%{$disk->{primary}{extended}}) {
+				print "\t\t\t" . $extkey . " -> " . $disk->{primary}{extended}{$extkey} . "\n";
 			}
 		}
-		foreach my $raw (@{$disk->{primary}->{raw}}) {
+		foreach my $raw (@{$disk->{primary}{raw}}) {
 			if ($debug) {
 				print "\t\traw:" . "\n";
-				foreach $rawkey (keys %$raw) {
+				foreach my $rawkey (keys %$raw) {
 					print "\t\t\t" . $rawkey . " -> " . $raw->{$rawkey} . "\n";
 				}
 			}
@@ -1247,17 +1245,17 @@ sub hwdetect_getdisks {
 				}
 				print "\t\tnormal:\n";
 				foreach my $normkey (%{$ext->{normkey}}) {
-					print "\t\t\t" . $normkey . " -> " . $disk->{primary}->{normal}->{$normkey} . "\n";
+					print "\t\t\t" . $normkey . " -> " . $disk->{primary}{normal}{$normkey} . "\n";
 				}
 				print "\t\textended:\n";
 				foreach my $extkey (%{$ext->{extended}}) {
-					print "\t\t\t" . $extkey . " -> " . $disk->{primary}->{extended}->{$extkey} . "\n";
+					print "\t\t\t" . $extkey . " -> " . $disk->{primary}{extended}{$extkey} . "\n";
 				}
 			}
 			foreach my $raw (@{$ext->{raw}}) {
 				if ($debug) {
 					print "\t\traw:" . "\n";
-					foreach $rawkey (keys %$raw) {
+					foreach my $rawkey (keys %$raw) {
 						print "\t\t\t" . $rawkey . " -> " . $raw->{$rawkey} . "\n";
 					}
 				}
@@ -1269,119 +1267,118 @@ sub hwdetect_getdisks {
 	### do the lvm disks
 	foreach my $vol (@{$all_hdds->{lvms}}) {
 		my $name = $vol->{VG_name};
-		foreach my $disk ($vol->{primary}->{normal}) {
-			foreach my $lvm (@{$disk}) {
+		foreach my $disk ($vol->{primary}{normal}) {
+			foreach my $lvm (@$disk) {
 				hwdetect_getdisks_add_hdd($lvm, $fsopt_set, $name);
 			}
 		}
 	}
 	
-	$num = 0;
-	$num++ foreach (keys %all_devs);
-	print "$num ".getStr('found');
+	$num = keys %all_devs;
+	print "$num " . getStr('found');
 	print_success();
 	set_progress();
 }
 
 
 # write the disk stuff
-sub hwdetect_writedisks {
+sub hwdetect_writedisks() {
 	print "\n hwdetect_writedisks \n";
 	unless ($probe) {
-		print getStr('disk_write').":\n";
+		print getStr('disk_write') . ":\n";
 		# get persistent partitions and set their mountpoints,
 		# and relevant options
 		hwdetect_getpersistent(%all_devs);
 
 		# create mountpoints
-		print "    ".getStr('disk_create').": ";
-		my $cmd;
+		print "    " . getStr('disk_create') . ": ";
 		foreach my $dev (sort keys %all_devs) {
-			system("mkdir -p $prefix/".$all_devs{$dev}->{mount}." 2>/dev/null");
+			system("mkdir -p $prefix/" . $all_devs{$dev}{mount} . " 2>/dev/null");
 		}
 		print_success();
 
 		# write /etc/fstab
-		system("mkdir -p $prefix/etc/livecd/hwdetect/");
+		mkdir_p("$prefix/etc/livecd/hwdetect/");
 		print "    Writing $prefix/etc/fstab: ";
-		open FSTAB, '>', "$prefix/etc/fstab";
-		print FSTAB "\n### ".getStr('disk_fstab_info')." $SCRIPT_NAME v$SCRIPT_VER\n";
-		open INFO, '>', "$prefix/etc/livecd/hwdetect/mounts.cfg";
-		print FSTAB "\n# USB\nnone\t/proc/bus/usb\tusbdevfs\tdefaults\t0 0\n" if ($usbfstab);
-		print FSTAB "\n# PTS\nnone\t/dev/pts\tdevpts\tmode=0620\t0 0\n";
+          my $FSTAB;
+		open $FSTAB, '>', "$prefix/etc/fstab";
+		print $FSTAB "\n### " . getStr('disk_fstab_info') . " $SCRIPT_NAME v$SCRIPT_VER\n";
+		open my $INFO, '>', "$prefix/etc/livecd/hwdetect/mounts.cfg";
+		print $FSTAB "\n# USB\nnone\t/proc/bus/usb\tusbdevfs\tdefaults\t0 0\n" if $usbfstab;
+		print $FSTAB "\n# PTS\nnone\t/dev/pts\tdevpts\tmode=0620\t0 0\n";
 
 		if ($kernel26) {
-		   print FSTAB "\n# SYSFS\nnone\t/sys sysfs\tdefaults\t0 0\n";
-		   print FSTAB "\n# PROC\nnone\t/proc proc\tdefaults\t0 0\n";
-		   print FSTAB "\n# TMPFS\nnone\t/tmp tmpfs\tdefaults\t0 0\n";
+		   print $FSTAB "\n# SYSFS\nnone\t/sys sysfs\tdefaults\t0 0\n";
+		   print $FSTAB "\n# PROC\nnone\t/proc proc\tdefaults\t0 0\n";
+		   print $FSTAB "\n# TMPFS\nnone\t/tmp tmpfs\tdefaults\t0 0\n";
                 } 
 		foreach my $dev (sort keys %all_devs) {
-			print FSTAB "\n# ".$all_devs{$dev}->{info};
-			if ($all_devs{$dev}->{supermount}) {
+			print $FSTAB "\n# " . $all_devs{$dev}{info};
+			if ($all_devs{$dev}{supermount}) {
 				my $entry = "\n";
 				$entry .= "none\t";
-				$entry .= $all_devs{$dev}->{mount}."\t";
+				$entry .= $all_devs{$dev}{mount} . "\t";
 				$entry .= "supermount\t";
-				my $opt = "dev=".$all_devs{$dev}->{dev}.",";
-				# my $opt = "dev=".$all_devs{$dev}->{dev}.",fs=udf:iso9660,";
-				$opt .= $all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
-				$opt .= "," if ($all_devs{$dev}->{opt} && $all_devs{$dev}->{extopt});
-				$opt .= $all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
-				$entry .= $opt."\t"."0 0\n";
-				print FSTAB $entry;
+				my $opt = "dev=" . $all_devs{$dev}{dev} . ",";
+				# my $opt = "dev=" . $all_devs{$dev}{dev} . ",fs=udf:iso9660,";
+				$opt .= $all_devs{$dev}{opt} if $all_devs{$dev}{opt};
+				$opt .= "," if $all_devs{$dev}{opt} && $all_devs{$dev}{extopt};
+				$opt .= $all_devs{$dev}{extopt} if $all_devs{$dev}{extopt};
+				$entry .= $opt . "\t" . "0 0\n";
+				print $FSTAB $entry;
 			}
 			else {
 				my $entry = "\n";
-				$entry .= $all_devs{$dev}->{dev}."\t";
-				$entry .= $all_devs{$dev}->{mount}."\t";
-				$entry .= $all_devs{$dev}->{type}."\t";
+				$entry .= $all_devs{$dev}{dev} . "\t";
+				$entry .= $all_devs{$dev}{mount} . "\t";
+				$entry .= $all_devs{$dev}{type} . "\t";
 				my $opt = "";
-				$opt .= $all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
-				$opt .= "," if ($all_devs{$dev}->{opt} && $all_devs{$dev}->{extopt});
-				$opt .= $all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
-				$entry .= $opt."\t"."0 0\n";
-				print FSTAB $entry;
+				$opt .= $all_devs{$dev}{opt} if $all_devs{$dev}{opt};
+				$opt .= "," if $all_devs{$dev}{opt} && $all_devs{$dev}{extopt};
+				$opt .= $all_devs{$dev}{extopt} if $all_devs{$dev}{extopt};
+				$entry .= $opt . "\t" . "0 0\n";
+				print $FSTAB $entry;
 			}
 
-			if ($all_devs{$dev}->{loop}) {
-				my $entry = "# ".getStr('disk_fstab_loop')."\n";
-				$entry .= $all_devs{$dev}->{mount}."/livecd.img\t";
-				$entry .= $all_devs{$dev}->{loop}."\t";
+			if ($all_devs{$dev}{loop}) {
+				my $entry = "# " . getStr('disk_fstab_loop') . "\n";
+				$entry .= $all_devs{$dev}{mount} . "/livecd.img\t";
+				$entry .= $all_devs{$dev}{loop} . "\t";
 				$entry .= "ext2\t";
-				$entry .= "loop,".$fsopt_fullrw."\t";
+				$entry .= "loop," . $fsopt_fullrw . "\t";
 				$entry .= "0 0\n";
-				print FSTAB $entry;
+				print $FSTAB $entry;
 			}
 
-			print INFO "$dev=";
-			print INFO "|info=".$all_devs{$dev}->{info};
-			print INFO "|dev=".$all_devs{$dev}->{dev};
-			print INFO "|devfs=".$all_devs{$dev}->{devfs};
-			print INFO "|mount=".$all_devs{$dev}->{mount};
-			print INFO "|media=".$all_devs{$dev}->{media};
-			print INFO "|size=".$all_devs{$dev}->{size} if ($all_devs{$dev}->{size});
-			print INFO "|type=".$all_devs{$dev}->{type};
-			print INFO "|persist=".$all_devs{$dev}->{persist} if ($all_devs{$dev}->{persist});
-			print INFO "|persisted=".$all_devs{$dev}->{persisted} if ($all_devs{$dev}->{persisted});
-			print INFO "|opt=".$all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
-			print INFO "|extopt=".$all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
-			print INFO "|usb=".$all_devs{$dev}->{usb} if ($all_devs{$dev}->{usb});
-			print INFO "|loop=".$all_devs{$dev}->{loop} if ($all_devs{$dev}->{loop});
-			print INFO "|supermount=".$all_devs{$dev}->{supermount} if ($all_devs{$dev}->{supermount});
-			print INFO "\n";
+			print $INFO "$dev=";
+			print $INFO "|info=" . $all_devs{$dev}{info};
+			print $INFO "|dev=" . $all_devs{$dev}{dev};
+			print $INFO "|devfs=" . $all_devs{$dev}{devfs};
+			print $INFO "|mount=" . $all_devs{$dev}{mount};
+			print $INFO "|media=" . $all_devs{$dev}{media};
+			print $INFO "|size=" . $all_devs{$dev}{size} if $all_devs{$dev}{size};
+			print $INFO "|type=" . $all_devs{$dev}{type};
+			print $INFO "|persist=" . $all_devs{$dev}{persist} if $all_devs{$dev}{persist};
+			print $INFO "|persisted=" . $all_devs{$dev}{persisted} if $all_devs{$dev}{persisted};
+			print $INFO "|opt=" . $all_devs{$dev}{opt} if $all_devs{$dev}{opt};
+			print $INFO "|extopt=" . $all_devs{$dev}{extopt} if $all_devs{$dev}{extopt};
+			print $INFO "|usb=" . $all_devs{$dev}{usb} if $all_devs{$dev}{usb};
+			print $INFO "|loop=" . $all_devs{$dev}{loop} if $all_devs{$dev}{loop};
+			print $INFO "|supermount=" . $all_devs{$dev}{supermount} if $all_devs{$dev}{supermount};
+			print $INFO "\n";
 		}
-		print FSTAB "\n";
-		close FSTAB;
-		close INFO;
+		print $FSTAB "\n";
+		close $FSTAB;
+		close $INFO;
 		print_success();
 	}
 	set_progress();
 }
 
 # start all swap partitions
-sub hwdetect_swapon {
+sub hwdetect_swapon() {
 	if ($haveswap > 0) {
-		print getStr('swap_activate').": ";
+		print getStr('swap_activate') . ": ";
 		system("/sbin/swapon -a -e") ? print_failed() : print_success();
 	}
 	set_progress();
@@ -1389,7 +1386,7 @@ sub hwdetect_swapon {
 
 sub nothing () {};
 
-sub help {
+sub help() {
 	print <<EOF;
 Help for $SCRIPT_NAME Version $SCRIPT_VER
 Hardware detection / configuration program.
@@ -1406,10 +1403,10 @@ sub version () {
 	print "$SCRIPT_NAME $SCRIPT_VER\n";
 }
 
-MAIN: {print "\n$COLOR_YELLOW HWDETECT - MAIN\n $COLOR_NORMAL";
+MAIN: { print "\n$COLOR_YELLOW HWDETECT - MAIN\n $COLOR_NORMAL";
 	GetOptions(
-		'help'	   => sub { help (); exit },
-		'version'  => sub { version(); exit },
+		'help'	   => sub { help(); exit() },
+		'version'  => sub { version(); exit() },
 		'debug'    => \$debug,
 		'probe'    => \$probe,
 		'fdisk'    => \$fdisk,

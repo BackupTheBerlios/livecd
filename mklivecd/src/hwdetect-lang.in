@@ -19,16 +19,19 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect-lang.in,v 1.4 2004/01/25 08:51:42 jaco Exp $
+# $Id: hwdetect-lang.in,v 1.5 2004/11/16 20:56:27 tom_kelly33 Exp $
 #
 
-sub getLanguages { (
-	'en'    => 0,
-	'en_US' => 0,
-	'en_GB' => 0
-); }
+sub getLanguages() {
+	(
+	   'en'    => 0,
+	   'en_US' => 0,
+	   'en_GB' => 0
+	);
+}
 
-sub getStrings { (
+sub getStrings() {
+	(
 	'script_start'     => [ "Starting hardware detection", undef ],
 
 	'OK'               => [ "  OK  ", undef ],
@@ -83,14 +86,15 @@ sub getStrings { (
 	'disk_fstab_info'  => [ "Entries below this line were automatically added by", undef ],
 	'disk_fstab_loop'  => [ "Loop image for above partition", undef ],
 	'swap_activate'    => [ "Activating swap partitions", undef ]
-); }
+	);
+}
 
-sub getMyLang {
-	my $language = $languages{'en'};
+sub getMyLang() {
+	my $language = $languages{en};
 	if (defined($cmdline) && 
-	    defined($cmdline{'lang'}) && 
-	    defined($languages{$cmdline{'lang'}})) {
-		$language = $languages{$cmdline{'lang'}}; 
+	    defined($cmdline{lang}) &&
+	    defined($languages{$cmdline{lang}})) {
+		$language = $languages{$cmdline{lang}};
 	}
 	$language;
 }
