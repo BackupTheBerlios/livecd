@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.34 2004/06/05 13:11:29 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.35 2004/06/12 14:52:52 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -253,11 +253,11 @@ sub destroy
 	
 	$destroy = 1;
 	sleep(1) while ($isBusy);
-
-	do_system("umount $mnt/home") if (defined($homepart));
-	do_system("umount $mnt/var") if (defined($varpart));
-	do_system("umount $mnt/tmp") if (defined($tmppart));
-	do_system("umount $mnt && rm -rf $mnt");
+	print "\nunmounting \n";
+	do_system("umount -l $mnt/home") if (defined($homepart));
+	do_system("umount -l $mnt/var") if (defined($varpart));
+	do_system("umount -l $mnt/tmp") if (defined($tmppart));
+	do_system("umount -l $mnt && rm -rf $mnt");
 
 	#close(STDERR);
 	do_system("rm -rf $log");
@@ -498,7 +498,7 @@ sub showInstall
 	}
 	#threads->new(\&timeThread, this, $page, time, this->pbOverall, this->tlOverall) unless ($destroy);
 
-	my @dirs = qx(find $initrd/ -type d | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root | grep -v ^/etc) unless ($destroy);
+	my @dirs = qx(find $initrd/ -type d | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root | grep -v ^/etc | grep -v /lib/dev-state) unless ($destroy);
 	print "scalar(dirs)=".scalar(@dirs)."\n";
 	my $copysteps = scalar(@dirs);
 
@@ -513,6 +513,10 @@ sub showInstall
 	my @rootdirs = qx(find /root -type d) unless ($destroy);
 	print "scalar(rootdirs)=".scalar(@rootdirs)."\n";
 	$copysteps = $copysteps + scalar(@rootdirs);
+
+	my @devstatedirs = qx(find /lib/dev-state -type d) unless ($destroy);
+	print "scalar(devstatedirs)=".scalar(@devstatedirs)."\n";
+	$copysteps = $copysteps + scalar(@devstatedirs);
 
 	$pb_c_tot = $copysteps;
 	$pb_c_num = 0;
@@ -558,6 +562,8 @@ sub showInstall
 		doCopy("/", @etcdirs) unless ($destroy);
 		doCopy("/", @homedirs) unless ($destroy);
 		doCopy("/", @rootdirs) unless ($destroy);
+		doCopy("/", @devstatedirs) unless ($destroy);
+
 	}
 
 	$infotext = getStr('inst_fstab');
@@ -624,18 +630,22 @@ sub doFormat
 {
 	my ($this, $devs) = @_;
 
-	do_system("umount $devs->{$rootpart}{mount}");
+	do_system2("umount -l $devs->{$rootpart}{mount}");
 	formatPart($rootpart, $devs) if ($this->cbRootFormat->isChecked());
 	if ($this->cbSwapFormat->isChecked()) {
-		do_system("umount $devs->{$swappart}{mount}");  # Unused with swap - remove?
-		do_system("umount $swappart");			# Unused with swap - remove?
-		formatPart($swappart, $devs);
+		print getStr('fmt_title')."\n$swappart (".$fsnames{$devs->{$swappart}{type}}.")\n";
+		$infotext = getStr('fmt_title')."\n$swappart (".$fsnames{$devs->{$swappart}{type}}.")" unless ($destroy);
+		do_system2("swapoff $swappart");
+		do_system2("mkswap -c $swappart");
+		do_system2("swapon $swappart");
+		$pb_f_num++;
+		$pb_o_num++;
 	}
-	do_system("umount $devs->{$homepart}{mount}") if (defined($homepart));
+	do_system2("umount -l $devs->{$homepart}{mount}") if (defined($homepart));
 	formatPart($homepart, $devs) if (defined($homepart) && ($this->cbHomeFormat->isChecked()));
-	do_system("umount $devs->{$varpart}{mount}") if (defined($varpart));
+	do_system2("umount -l $devs->{$varpart}{mount}") if (defined($varpart));
 	formatPart($varpart, $devs) if (defined($varpart) && ($this->cbVarFormat->isChecked()));
-	do_system("umount $devs->{$tmppart}{mount}") if (defined($tmppart));
+	do_system2("umount -l $devs->{$tmppart}{mount}") if (defined($tmppart));
 	formatPart($tmppart, $devs) if (defined($tmppart) && ($this->cbTmpFormat->isChecked()));
 }
 
@@ -1037,9 +1047,9 @@ sub createUser # SLOT: ( )
 
 	# Add the user
 	if ($realname eq "") {
-	   $comm = "useradd -g '"."$username"."' -d '"."/home/$username"."' -s /bin/bash  -m -k /etc/skel -p foo '"."$username"."'";
+	   $comm = "\"useradd -g '"."$username"."' -d '"."/home/$username"."' -s /bin/bash  -m -k /etc/skel -p foo '"."$username"."'\"";
 	} else {
-	   $comm = "useradd -g '"."$username"."' -d '"."/home/$username"."' -s /bin/bash -c '"."$realname"."' -m -k /etc/skel -p foo '"."$username"."'";
+	   $comm = "\"useradd -g '"."$username"."' -d '"."/home/$username"."' -s /bin/bash -c '"."$realname"."' -m -k /etc/skel -p foo '"."$username"."'\"";
 	}
 	$result = do_system2("/bin/echo $comm | chroot $mnt");
 	print "\nDEBUG add user result=$result\n";
@@ -1075,9 +1085,9 @@ sub createUser # SLOT: ( )
 sub cbLanguage_act # SLOT: ( const QString & )
 {
 	my($check)  = @_;
-	$lang = substr($check, -2);   #e.g. French - fr 
+	$lang = substr($check, -2);   #e.g. French - fr
 	if ($lang ne 'ge') {    # Langua'ge'
 		init();
 	}
-
 }
+

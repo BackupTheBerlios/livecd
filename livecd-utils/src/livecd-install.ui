@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
 <class>fMain</class>
 <widget class="QWizard">
     <property name="name">
@@ -1325,12 +1325,12 @@
         </widget>
         <widget class="QLineEdit">
             <property name="name">
-                <cstring>lineEditUPW2</cstring>
+                <cstring>lineEdit2</cstring>
             </property>
             <property name="geometry">
                 <rect>
                     <x>505</x>
-                    <y>290</y>
+                    <y>70</y>
                     <width>200</width>
                     <height>24</height>
                 </rect>
@@ -1363,18 +1363,21 @@
         </widget>
         <widget class="QLineEdit">
             <property name="name">
-                <cstring>lineEditReal</cstring>
+                <cstring>lineEditUPW2</cstring>
             </property>
             <property name="geometry">
                 <rect>
                     <x>505</x>
-                    <y>230</y>
+                    <y>290</y>
                     <width>200</width>
                     <height>24</height>
                 </rect>
             </property>
             <property name="maxLength">
-                <number>16</number>
+                <number>32</number>
+            </property>
+            <property name="echoMode">
+                <enum>Password</enum>
             </property>
         </widget>
         <widget class="QLineEdit">
@@ -1395,21 +1398,18 @@
         </widget>
         <widget class="QLineEdit">
             <property name="name">
-                <cstring>lineEdit2</cstring>
+                <cstring>lineEditReal</cstring>
             </property>
             <property name="geometry">
                 <rect>
                     <x>505</x>
-                    <y>70</y>
+                    <y>230</y>
                     <width>200</width>
                     <height>24</height>
                 </rect>
             </property>
             <property name="maxLength">
                 <number>32</number>
-            </property>
-            <property name="echoMode">
-                <enum>Password</enum>
             </property>
         </widget>
     </widget>
