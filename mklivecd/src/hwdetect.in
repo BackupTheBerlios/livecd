@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.35 2003/11/01 14:38:39 jaco Exp $
+# $Id: hwdetect.in,v 1.36 2003/11/01 14:48:00 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -620,7 +620,7 @@ my %fstypes = (
 	0x3   => ['XENIX /usr'                              ,''        ],
 	0x4   => ['DOS 16-bit FAT (up to 32M)'              ,'ufs'     ],
 	0x5   => ['DOS 3.3+ Extended Partition'             ,''        ],
-	0x6   => ['DOS FAT16'                               ,'ufs'     ],
+	0x6   => ['DOS FAT16'                               ,'vfat'    ],
 	0x7   => ['NTFS'                                    ,'ntfs'    ],
 	0x8   => ['OS/2 (v1.0-1.3 only)'                    ,'ufs'     ],
 	0x9   => ['AIX data partition'                      ,''        ],
@@ -890,7 +890,10 @@ sub hwdetect_getdisks {
 					}
 					else {
 						$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
-						if (defined($opts[2])) {
+						if ($disk->{usb_media_type} =~ /^Mass Stotage/) {
+							$all_devs{$dev}->{opt}   = $fsopt_fullrw;
+						}
+						elsif (defined($opts[2])) {
 							$all_devs{$dev}->{opt}   = $fsopt_fullro;
 						}
 						else {
