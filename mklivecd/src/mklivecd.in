@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.85 2004/01/07 13:02:32 jaco Exp $
+# $Id: mklivecd.in,v 1.86 2004/01/07 13:12:34 jaco Exp $
 #
 
 use strict;
@@ -706,8 +706,8 @@ sub create_compressed {
 				chomp;
 				$ex .= " $_";
 			}
-			my $cmd = "nice -n 19 $loopcmp $o_root $workdir/livecd/livecd.$o_looptype -info -e $ex 2>&1";
-			open CMP, "$cmd |";
+			my $iso = "nice -n 19 $loopcmp $o_root $workdir/livecd/livecd.$o_looptype -info -e $ex 2>&1";
+			open CMP, "$iso |";
 			my $line;
 			my $linep = "";
 			while ($line = <CMP>) {
@@ -724,10 +724,12 @@ sub create_compressed {
 		}
 		else {
 			start_progress("Creating loop image", 10001);
-			my $cmd="(nice -n 19 mkisofs -R -exclude-list $workdir/excludes.list -sort $workdir/sort.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v $o_root";
-			$cmd = $cmd."| $loopcmp - $size" if (defined($loopcmp));
-			$cmd = $cmd." >$workdir/livecd/livecd.$o_looptype) 2>&1";
-			open CMP, "$cmd |";
+			my $iso = "(nice -n 19 mkisofs -R -exclude-list $workdir/excludes.list -sort $workdir/sort.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v";
+			$iso = defined($loopcmp) ? "$iso $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype" : "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
+			$iso = "$iso) 2>&1";
+			print "\n$iso\n";
+			die_("Hi");
+			open CMP, "$iso |";
 			my $line;
 			while ($line = <CMP>) {
 				if ($line =~ m/done, estimate/) {
