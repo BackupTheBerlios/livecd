@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.49 2004/10/31 19:21:26 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.50 2004/12/21 19:30:32 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -143,7 +143,7 @@ sub pageSelected # SLOT: ( const QString & )
 		## Make mount, remove swap and nfs
 		do_system("mkdir -p $mnt");  # make mountpoint
 		do_system2("swapoff -a");    # swap may change
-		do_system2("umount -t nfs"); # don't want to copy nfs dirs
+		do_system2("umount -a -t nfs"); # don't want to copy nfs dirs
 
 		doEvents();
 	}
@@ -587,6 +587,8 @@ sub showInstall
 		do_system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
 		do_system("mkdir -p $mnt/var/lock/subsys ; chmod -R 755 $mnt/var/lock/subsys");
 		do_system("mkdir -p $mnt/var/run/netreport ; chmod -R 755 $mnt/var/run/netreport ; touch $mnt/var/run/utmp");
+		#do_system("rm -f $mnt/etc/mtab ; touch $mnt/etc/mtab");
+		do_system("touch $mnt/halt");
 		do_system("cd $mnt/var ; ln -s ../tmp") unless (-e "$mnt/var/tmp");
 	}
 	
@@ -779,6 +781,27 @@ sub copyDir
 
 sub showBootloader
 {
+   if (!defined($debug)) {
+	my $kernelver = qx(uname -r);
+	chomp($kernelver);
+	my $kernel = "/boot/vmlinuz-".$kernelver;
+	my $initrd = "/boot/initrd-".$kernelver.".img";
+	my $distro = qx(cat /etc/redhat-release | awk '{ print \$1 }');
+	chomp($distro);
+	do_system("mount -t proc none $mnt/proc");
+	if ($kernel26 eq "1") {
+		do_system("cp -a /dev $mnt");
+		do_system("mount -t none /dev $mnt/dev -o bind");
+	} else {
+		do_system("mount -t devfs none $mnt/dev"); # Mount for devfs
+	}
+	do_system("rm -rf $mnt/$initrd");
+	do_system("mkdir -p $mnt/root/tmp");
+	my $with = "";
+	do_system("chroot $mnt /sbin/mkinitrd -v $with $initrd $kernelver");
+	do_system("umount $mnt/dev");
+	do_system("umount $mnt/proc");
+
 	this->setBackEnabled($page, 0);
 	this->lbBootloader->clear();
 	this->lbBootloader->insertItem("$rootpart ".getStr('boot_bs'));
@@ -798,7 +821,8 @@ sub showBootloader
 	    }
 	}
 	this->lbBootloader->insertItem("$_ ".getStr('boot_mbr')) foreach (@drives);
-	this->lbBootloader->setCurrentItem(0);
+	this->lbBootloader->setCurrentItem(1);
+    }
 }
 
 
@@ -838,7 +862,7 @@ image=$kernel
 	initrd=$initrd
 ";
 		if ($kernel26 eq "1") { 
-			print LILO "append=\"devfs=nomount splash=silent\"\n"; # Use udev
+			print LILO "append=\"devfs=nomount acpi=ht nomce splash=silent\"\n"; # Use udev
 		} else {
 			print LILO "append=\"devfs=mount splash=silent\"\n"; # Use devfs
 		}
@@ -903,13 +927,10 @@ label=\"$label\"
 		do_system("mount -t proc none $mnt/proc");
 		if ($kernel26 eq "1") {
 			do_system("cp -a /dev $mnt"); # Copy devices for udev
+			do_system("mount -t none /dev $mnt/dev -o bind");
 		} else {
 			do_system("mount -t devfs none $mnt/dev"); # Mount for devfs
 		}
-		do_system("rm -rf $mnt/$initrd");
-		do_system("mkdir -p $mnt/root/tmp");
-		my $with = "";
-		do_system("chroot $mnt /sbin/mkinitrd -v $with $initrd $kernelver");
 		do_system2("/sbin/lilo -v -r $mnt");
 		do_system("umount $mnt/dev");
 		do_system("umount $mnt/proc");
@@ -935,8 +956,6 @@ sub writeFstab {
 		if ($kernel26 eq "1") {   # If 2.6 kernel add these lines...
 		   print "DEBUG: Added 2.6 kernel to FSTAB\n";
 		   print FSTAB "\nnone"."\t"."/proc/bus/usb"."\t"."usbfs"."\t"."defaults"."\t"."0 0";
-		   print FSTAB "\nnone"."\t"."/sys"."\t"."sysfs"."\t"."defaults"."\t"."0 0";
-		   print FSTAB "\nnone"."\t"."/tmp"."\t"."tmpfs"."\t"."defaults"."\t"."0 0";
 		}
                 else { # 2.4 kernel
                    print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";

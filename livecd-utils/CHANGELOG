@@ -1,4 +1,10 @@
-# $Id: CHANGELOG,v 1.3 2003/12/03 05:37:02 jaco Exp $
+# $Id: CHANGELOG,v 1.4 2004/12/21 19:30:32 tom_kelly33 Exp $
+
+* 2004 Dec 20
+        [livecd-utils]
+        - added 'nomce acpi=ht' to append options
+        - changed bootloader item number
+        - added touch  $mnt/halt (and commented out other)
 
 * Tue, Dec 02, 2003, 0.2.0-cvs
   + Jaco Greeff <jaco@linuxminicd.org>:
