@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.21 2003/10/10 05:13:55 jaco Exp $
+# $Id: linuxrc.in,v 1.22 2003/10/10 06:35:36 jaco Exp $
 #
 
 ### global variables
@@ -292,11 +292,14 @@ createramdisk() {
 		fi
 
 		if [ -d /proc/sys/translucency ]; then
+			ltmp="/tmp/livecd"
 			docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
 				"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
 				"mkdir -p $MNTRAMDISK/initrd" \
 				"echo '0x0100' >/proc/sys/kernel/real-root-dev" \
 				"pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
+				"mkdir -p /proc && mount -n -t proc none /proc" \
+				"mkdir -p /dev && mount -n -o bind /initrd/dev /dev" \
 				"cd /" \
 				"touch fastboot" \
 				"cd /initrd$MNTLIVECD ; \
@@ -304,25 +307,23 @@ createramdisk() {
 					if [ -d /initrd$MNTLIVECD/\$d ]; then \
 						case \$d in \
 							dev|proc|mnt|tmp) \
-								mkdir -p /\$d || true ; \
 								;;
 							*) \
-								ln -sf /initrd$MNTLIVECD/\$d /\$d || true; \
+								mkdir -p /\$d || true ; \
+								mount -n -o bind /initrd$MNTLIVECD/\$d /\$d || true; \
 								;; \
 						esac \
 					fi \
 				done" \
-				"mkdir -p /dev && mount -n --move /initrd/dev /dev" \
-				"mkdir -p /proc && mount -n --move /initrd/proc /proc" \
-				"mkdir -p /mnt && ln -sf /initrd$MNTCDROM /mnt/cdrom" \
+				"mkdir -p /mnt/cdrom && mount -n -o bind /initrd$MNTCDROM /mnt/cdrom" \
 				"mkdir -p /tmp && chmod 777 /tmp" \
-				"for t in 0 1 2 3 4 5 6 7; do mkdir -p /tmp/livecd/\$t ; done" \
-				"echo '/initrd/loopfs/etc -> /tmp/livecd/0' >/proc/sys/translucency/0" \
-				"echo '/initrd/loopfs/lib -> /tmp/livecd/1' >/proc/sys/translucency/1" \
-				"echo '/initrd/loopfs/home -> /tmp/livecd/2' >/proc/sys/translucency/2" \
-				"echo '/initrd/loopfs/root -> /tmp/livecd/3' >/proc/sys/translucency/3" \
-				"echo '/initrd/loopfs/usr -> /tmp/livecd/4' >/proc/sys/translucency/4" \
-				"echo '/initrd/loopfs/var -> /tmp/livecd/5' >/proc/sys/translucency/5" \
+				"for t in etc home lib root usr var; do mkdir -p $ltmp/\$t ; done" \
+				"echo '/etc -> $ltmp/etc' >/proc/sys/translucency/0" \
+				"echo '/home -> $ltmp/home' >/proc/sys/translucency/1" \
+				"echo '/lib -> $ltmp/lib' >/proc/sys/translucency/2" \
+				"echo '/root -> $ltmp/root' >/proc/sys/translucency/3" \
+				"echo '/usr -> $ltmp/usr' >/proc/sys/translucency/4" \
+				"echo '/var -> $ltmp/var' >/proc/sys/translucency/5" \
 				"mkdir -p /var/lock/subsys" \
 				"mkdir -p /var/log && touch /var/log/wtmp" \
 				"mkdir -p /var/run && touch /var/run/utmp" \
@@ -334,7 +335,7 @@ createramdisk() {
 				"echo '' >/etc/mtab" \
 				"echo '' >/etc/modules.conf" \
 				"echo '#!/bin/sh' >/etc/rc.d/init.d/harddrake" \
-				"echo 'exit 0' >>/etc/rc.d/init.d/harddarke"
+				"echo 'exit 0' >>/etc/rc.d/init.d/harddrake"
 		else
 			docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
 				"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
