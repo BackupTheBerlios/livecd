@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.19 2003/10/03 09:35:44 jaco Exp $
+# $Id: Makefile,v 1.20 2003/10/04 10:03:28 jaco Exp $
 
 include Rules.mk
 
@@ -8,8 +8,7 @@ version:
 	@echo "$(PKGNAME), $(MKLIVECDVER)-$(MKLIVECDREL)"
 
 mklivecd:
-	$(MKDIR) -p $(DISTDIR)/init.d
-	$(CP) $(SRCDIR)/init.d/hwdetect $(DISTDIR)/init.d
+	$(MKDIR) -p $(DISTDIR)
 	$(CAT) $(SRCDIR)/hwdetect.in | \
 		$(SED) -e 's/@MKLIVECDVER@/$(ARCHIVEVER)/g;s/@DEF_KEYBOARD@/$(DEF_KEYBOARD)/g' \
 		>$(DISTDIR)/hwdetect
@@ -23,11 +22,9 @@ mklivecd:
 install:
 	$(MKDIR) -p $(DESTDIR)$(SHAREDIR)
 	$(MKDIR) -p $(DESTDIR)$(SBINDIR)
-	$(MKDIR) -p $(DESTDIR)$(RCDIR)
 	$(INSTALL) -m 644 $(DISTDIR)/linuxrc $(DESTDIR)$(SHAREDIR)
 	$(INSTALL) -m 755 $(DISTDIR)/$(PKGNAME) $(DESTDIR)$(SBINDIR)
 	$(INSTALL) -m 755 $(DISTDIR)/hwdetect $(DESTDIR)$(SBINDIR)
-	$(INSTALL) -m 755 $(DISTDIR)/init.d/hwdetect $(DESTDIR)$(RCDIR)
 
 spec:
 	$(MKDIR) -p $(DISTDIR)
@@ -40,12 +37,11 @@ clean:
 	$(RM) -rf $(DISTDIR)
 
 dist: spec
-	$(MKDIR) -p $(MKLIVECDDIST)/$(SRCDIR)/init.d
+	$(MKDIR) -p $(MKLIVECDDIST)/$(SRCDIR)
 	$(CP) AUTHORS CHANGELOG COPYING FAQ README TODO Makefile Rules.mk $(DISTDIR)/$(PKGNAME).spec $(MKLIVECDDIST)
 	$(CP) $(SRCDIR)/linuxrc.in $(MKLIVECDDIST)/$(SRCDIR)
 	$(CP) $(SRCDIR)/$(PKGNAME).in $(MKLIVECDDIST)/$(SRCDIR)
 	$(CP) $(SRCDIR)/hwdetect.in $(MKLIVECDDIST)/$(SRCDIR)
-	$(CP) $(SRCDIR)/init.d/hwdetect $(MKLIVECDDIST)/$(SRCDIR)/init.d
 	$(TAR) -c $(MKLIVECDDIST) | \
 		$(BZIP2) >$(DISTDIR)/$(MKLIVECDDIST).tar.bz2
 	$(MD5SUM) $(DISTDIR)/$(MKLIVECDDIST).tar.bz2 >$(DISTDIR)/$(MKLIVECDDIST).tar.bz2.md5
