@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.29 2003/10/04 20:22:41 bgmilne Exp $
+# $Id: mklivecd.in,v 1.30 2003/10/04 22:28:53 bgmilne Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -361,8 +361,8 @@ create_isolinux() {
 	keymsg=""
 	if [ -n "$isobootkeymsg" ]; then
 		for l in $isobootkeymsg; do
-			key=`echo $l | tr "," " " | awk '{ print $1 }'`
-			msg=`echo $l | tr "," " " | awk '{ print $2 }'`
+			key=`echo $l | awk -F',' '{ print $1 }'`
+			msg=`echo $l | awk -F',' '{ print $2 }'`
 			do_cp $msg $ISOLINUXDIR/livecd_$key.msg
 			do_cmd "echo '$key livecd_$key.msg' >>$ISOLINUXDIR/isolinux.cfg"
 		done
@@ -397,6 +397,37 @@ create_liveiso() {
 	do_cmd "$CMD"
 }
 
+check_theme() {
+	[ -z "$theme" ] && return 0
+	current_theme="`${rootdir}/usr/share/bootsplash/scripts/switch-themes -c`"
+	current_theme="${current_theme#*: }"
+	if [ "$theme" != "$current_theme" ]
+	then
+		# Is it available?
+		have_requested_theme=0
+		for i in `${rootdir}/usr/share/bootsplash/scripts/switch-themes -l|awk '{if ($1!="Available") print $1}'`
+		do
+			[ "$i" -eq "$theme" ] && have_requested_theme=1 || :
+		done
+		if [ $have_request_theme -eq 0 ]
+		then
+			echo "Theme $theme not available" >&2
+			exit 1
+		fi
+		
+		#We have the theme, so change it
+		${rootdir}/usr/share/bootsplash/scripts/switch-themes "$theme"
+	fi
+}
+
+restore_theme() {
+	[ -z "$theme" ] && return 0 
+	if [ "$theme" != "$current_theme" ]
+		${rootdir}/usr/share/bootsplash/scripts/switch-themes "$current_theme"
+	fi
+}
+		
+
 echo "$PROGNAME, version $VERSION, http://www.linuxminicd.org/mklivecd/" >&2
 echo "Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>" >&2
 echo "" >&2
@@ -404,7 +435,7 @@ while [ $# -gt 0 ]; do
 	case $1 in
 		--cloop*)
 			if echo $1 | grep '=' >/dev/null ; then
-				cloopimg=${1#--cloop=}
+				cloopimg="${1#--cloop=}"
 			else
 				cloopimg=$2
 				shift
@@ -413,7 +444,7 @@ while [ $# -gt 0 ]; do
 
 		--exclude-dir*)
 			if echo $1 | grep '=' >/dev/null ; then
-				excludes=${1--exclude-dir=}
+				excludes="${1#--exclude-dir=}"
 			else
 				excludes=$2
 				shift
@@ -425,7 +456,7 @@ while [ $# -gt 0 ]; do
 
 		--exclude-file*)
 			if echo $1 | grep '=' >/dev/null ; then
-				excludes=${1#--exclude-file=}
+				excludes="${1#--exclude-file=}"
 			else
 				excludes=$2
 				shift
@@ -437,7 +468,7 @@ while [ $# -gt 0 ]; do
 
 		--blocksize*)
 			if echo $1 | grep '=' >/dev/null ; then
-				blocksize=${1#--blocksize=}
+				blocksize="${1#--blocksize=}"
 			else
 				blocksize=$2
 				shift
@@ -446,7 +477,7 @@ while [ $# -gt 0 ]; do
 
 		--kernel*)
 			if echo $1 | grep '=' >/dev/null ; then
-				kernel=${1#--kernel=}
+				kernel="${1#--kernel=}"
 			else
 				kernel=$2
 				shift
@@ -455,7 +486,7 @@ while [ $# -gt 0 ]; do
 
 		--tmpdir*)
 			if echo $1 | grep '=' >/dev/null ; then
-				tmpdir=${1#--tmpdir=}
+				tmpdir="${1#--tmpdir=}"
 			else
 				tmpdir=$2
 				shift
@@ -464,7 +495,7 @@ while [ $# -gt 0 ]; do
 
 		--rootdir*)
 			if echo $1 | grep '=' >/dev/null ; then
-				rootdir=${1#--rootdir=}
+				rootdir="${1#--rootdir=}"
 			else
 				rootdir=$2
 				shift
@@ -473,7 +504,7 @@ while [ $# -gt 0 ]; do
 
 		--looptype*)
 			if echo $1 | grep '=' >/dev/null ; then
-				loopmod=${1#--looptype=}
+				loopmod="${1#--looptype=}"
 			else
 				loopmod=$2
 				shift
@@ -504,7 +535,7 @@ while [ $# -gt 0 ]; do
 
 		--splash*)
 			if echo $1 | grep '=' >/dev/null ; then
-				yn=${1#--splash=}
+				yn="${1#--splash=}"
 			else
 				yn=$2
 				shift
@@ -516,10 +547,18 @@ while [ $# -gt 0 ]; do
 			fi
 			;;
 
+		--theme*)
+			if echo $1 | grep '=' >/dev/null ; then
+				theme="${1#--theme=}"
+			else
+				theme=$2
+				shift
+			fi
+
 
 		--keyboard*)
 			if echo $1 | grep '=' >/dev/null ; then
-				mapping=${1#--keyboard=}
+				mapping="${1#--keyboard=}"
 			else
 				mapping=$2
 				shift
@@ -529,7 +568,7 @@ while [ $# -gt 0 ]; do
 
 		--resolution*)
 			if echo $1 | grep '=' >/dev/null ; then
-				resolution=${1#--resolution=}
+				resolution="${1#--resolution=}"
 			else
 				resolution=$2
 				shift
@@ -565,7 +604,7 @@ while [ $# -gt 0 ]; do
 
 		--iso-bootmsg*)
 			if echo $1 | grep '=' >/dev/null ; then
-				isobootmsg=${1#--iso-bootmsg=}
+				isobootmsg="${1#--iso-bootmsg=}"
 			else
 				isobootmsg=$2
 				shift
@@ -578,7 +617,7 @@ while [ $# -gt 0 ]; do
 
 		--iso-bootkey*)
 			if echo $1 | grep '=' >/dev/null ; then
-				isobootkey=${1#--iso-bootkey=}
+				isobootkey="${1#--iso-bootkey=}"
 			else
 				isobootkey=$2
 				shift
@@ -602,7 +641,7 @@ while [ $# -gt 0 ]; do
 
 		--iso-bgimage*)
 			if echo $1 | grep '=' >/dev/null ; then
-				isoimage=${1#--iso-bgimage=}
+				isoimage="${1#--iso-bgimage=}"
 			else
 				isoimage=$2
 				shift
@@ -649,7 +688,7 @@ while [ $# -gt 0 ]; do
 
 		*)
 			if [ -z "$target" ]; then
-				target=$1
+				target="$1"
 			else
 				usage
 			fi
@@ -737,7 +776,9 @@ do_cmd "mkdir -p $ISOLINUXDIR"
 do_cmd "mkdir -p $LIVECDCLOOPDIR"
 do_cmd "mkdir -p $CLOOPDIR"
 
+check_theme
 create_initrdimg
 create_cloop
 create_isolinux
+restore_theme
 create_liveiso
