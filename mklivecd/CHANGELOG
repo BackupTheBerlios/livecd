@@ -1,10 +1,10 @@
-# $Id: CHANGELOG,v 1.82 2003/12/07 16:33:50 jaco Exp $
+# $Id: CHANGELOG,v 1.83 2003/12/07 16:35:14 jaco Exp $
 
 * Sun, Dec 07, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
-        CD eject
+        CD eject ('noeject' boot option disables CD eject)
     [linuxrc]:
       - Fix error on illegal attempt to unmount /initrd/cdrom upon
         system shutdown
