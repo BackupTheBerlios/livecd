@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.6 2003/09/29 10:38:39 jaco Exp $
+# $Id: mklivecd.in,v 1.7 2003/09/30 07:24:37 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -214,7 +214,7 @@ $e"
 			exit 1
 		fi
 		REALSIZE=`echo $blocksize | awk '{ size = $1*1024; print size; }'`
-		MKISOCMD=nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST -hide-rr-moved -cache-inodes -no-bak -pad -v -v -gui $rootdir"
+		MKISOCMD="nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST -hide-rr-moved -cache-inodes -no-bak -pad -v -v -gui $rootdir"
 		if [ -n "$lowmem" ]; then
 			do_cmd "$MKISOCMD >$TMPISO"
 			do_cmd "$loopcmp $TMPISO $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
