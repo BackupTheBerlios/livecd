@@ -1,11 +1,7 @@
-# $Id: TODO,v 1.4 2003/10/01 13:20:49 jaco Exp $
+# $Id: TODO,v 1.5 2003/10/01 13:23:13 jaco Exp $
 
-- Allow for actual probed monitors to be selected instead of
-  going for the "good_default_monitor" in hwdetect. This is to be
-  done in conjunction with the next TODO
 - Add command-line options (at isolinux bootup) to select the
-  screen size and bitdepth for the X configuration (once previous
-  TODO is working)
+  screen size and bitdepth for the X configuration 
 - Persistent home
 - Install to HDD. This is possible now that the LiveCD is a direct
   copy of a MDK image insted of a hacked-up version to fit on a
