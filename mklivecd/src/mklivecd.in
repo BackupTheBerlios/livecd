@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.126 2004/11/25 03:22:30 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.127 2004/12/21 19:31:01 tom_kelly33 Exp $
 #
 
 use strict;
@@ -79,7 +79,7 @@ my $o_resolution   = '@DEF_RESOLUTION@';
 my $o_vgamode      = '@DEF_VGAMODE@';
 my $o_splash       = "yes";
 my $o_kernel       = get_exec("uname -r");
-my $o_timeout      = 900;
+my $o_timeout      = 150;
 my %opts           = ( # these are all the options with defaults
 	'root'       => \$o_root,
 	'tmp'        => \$o_tmp,
@@ -858,7 +858,7 @@ sub create_isolinux {
 	# write config
 	my $appopt;
 	if ($kernel26 == 1) {
-		$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=nomount acpi=ht vga=$o_vgamode keyb=$o_keyboard";
+		$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=nomount acpi=ht nomce vga=$o_vgamode keyb=$o_keyboard";
 	}else {
 		$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=mount vga=$o_vgamode keyb=$o_keyboard";
 	}	
@@ -997,6 +997,13 @@ MAIN: {
 		Storable::store({ dummy => 'nothing' } , "$o_root/etc/sysconfig/harddrake2/previous_hw");
 		run_program::rooted($o_root, "chkconfig", "--add", "harddrake");
 	}
+
+	{
+		local $::prefix = $o_root;
+		require keyboard;
+		keyboard::write(keyboard::lang2keyboard($o_keyboard));
+	}
+
 	create_compressed();
 	create_isolinux();
 	create_finaliso();

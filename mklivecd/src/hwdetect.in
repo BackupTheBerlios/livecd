@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.142 2004/11/26 05:35:52 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.143 2004/12/21 19:31:01 tom_kelly33 Exp $
 #
 
 use strict;
@@ -499,7 +499,7 @@ sub hwdetect_initusb() {
 				$usbfstab = 1;
 			}
 			else {
-				$usbfstab = mount("    " . getStr('usb_mount') . ": ", "-n", "usbdevfs", "none", "/proc/bus/usb");
+				$usbfstab = mount("    " . getStr('usb_mount') . ": ", "-n", "usbfs", "none", "/proc/bus/usb");
 			}
 
 			### load the usb modules that are not loaded automatically
@@ -1292,7 +1292,7 @@ sub hwdetect_writedisks() {
 		print getStr('disk_write') . ":\n";
 		# get persistent partitions and set their mountpoints,
 		# and relevant options
-		hwdetect_getpersistent(%all_devs);
+		# NO hwdetect_getpersistent(%all_devs);
 
 		# create mountpoints
 		print "    " . getStr('disk_create') . ": ";
@@ -1308,14 +1308,11 @@ sub hwdetect_writedisks() {
 		open $FSTAB, '>', "$prefix/etc/fstab";
 		print $FSTAB "\n### " . getStr('disk_fstab_info') . " $SCRIPT_NAME v$SCRIPT_VER\n";
 		open my $INFO, '>', "$prefix/etc/livecd/hwdetect/mounts.cfg";
-		print $FSTAB "\n# USB\nnone\t/proc/bus/usb\tusbdevfs\tdefaults\t0 0\n" if $usbfstab;
-		print $FSTAB "\n# PTS\nnone\t/dev/pts\tdevpts\tmode=0620\t0 0\n";
+		print $FSTAB "# ROOT\n/dev/root\t/\trootfs\tdefaults\t0 0\n";
+		print $FSTAB "# USB\nnone\t/proc/bus/usb\tusbfs\tdefaults\t0 0\n" if $usbfstab;
+		print $FSTAB "# PROC\nnone\t/proc\t\tproc\t\tdefaults\t0 0\n";
+		print $FSTAB "# PTS\nnone\t/dev/pts\tdevpts\tmode=0620\t0 0\n";
 
-		if ($kernel26) {
-		   print $FSTAB "\n# SYSFS\nnone\t/sys sysfs\tdefaults\t0 0\n";
-		   print $FSTAB "\n# PROC\nnone\t/proc proc\tdefaults\t0 0\n";
-		   print $FSTAB "\n# TMPFS\nnone\t/tmp tmpfs\tdefaults\t0 0\n";
-                } 
 		foreach my $dev (sort keys %all_devs) {
 			print $FSTAB "\n# " . $all_devs{$dev}{info};
 			if ($all_devs{$dev}{supermount}) {

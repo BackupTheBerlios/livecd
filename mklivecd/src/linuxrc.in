@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.85 2004/11/22 19:19:46 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.86 2004/12/21 19:31:01 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -360,7 +360,7 @@ findcdroms() {
 		done
 
 		## Check for scsi cds
-		for scsi_cdrom in /dev/scd[0-99]
+		for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99]
 		do
 			if [ -e "$scsi_cdrom" ]; then
 				CDROM_LIST="$CDROM_LIST $scsi_cdrom"
@@ -473,7 +473,7 @@ createramdisk() {
 	FOUNDMEM="$(awk '/MemTotal/{print $2}' /proc/meminfo)"
 	TOTALMEM="$(awk 'BEGIN{m=0};/MemFree|Cached/{m+=$2};END{print m}' /proc/meminfo)"
 	MAXSIZE="$(expr $TOTALMEM - $MINLEFT)"
-	RAMSIZE="$(expr $TOTALMEM / 5)"
+	RAMSIZE="$(expr $TOTALMEM / 3)"
 	[ -z "$RAMSIZE" ] && RAMSIZE=$MINRAMSIZE
 	[ $RAMSIZE -lt $MINRAMSIZE ] && RAMSIZE=$MINRAMSIZE
 	#RAMSIZE=$(expr $RAMSIZE \* 4) # tmpfs/varsize version, can use swap

@@ -1,6 +1,21 @@
-# $Id: CHANGELOG,v 1.124 2004/10/07 18:35:36 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.125 2004/12/21 19:31:01 tom_kelly33 Exp $
 
-  Oct 6th. 2004 
+* Dec 20th, 2004
+	[mklivecd]: 
+	- added 'nomce acpi=ht' to append options
+	- added keyboard patch (Thierry Vignaud)
+	- reduced $o_timeout to 150
+	[linuxrc]
+	- changed ramsize from totalmem/5 to /3
+	- added scsi_cdrom check for /dev/sr[0-99] (Yoshinori Okuji)
+	[rc.sysinit] 
+	- removed chmod a+rw after /etc copy
+	[hwdetect]
+	- removed call to hwdetect_getpersistent 
+	- fstab changes (Texstar)
+	- usbdevfs changed to usbfs 
+
+* Oct 6th. 2004 
   many changes to get to this point. Release 0.5.8 was
   the last for MDK 10.0. 
 

@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.37 2004/10/26 04:35:55 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.38 2004/12/21 19:31:01 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -199,7 +199,6 @@ setupdir_etc() {
 		setupdir_cow "etc" "dmask=755"
 	else
 		rm -rf /etc && cp -a $MNTLIVECD/etc /
-		chmod a+rw /etc
 	fi
 
 	mkdir -p /etc/livecd/hwdetect
@@ -230,14 +229,12 @@ setupdir_etc() {
 
 ### setup the /home structure
 setupdir_home() {
-	echo -n "  Building /home structure: "
-	
 	if [ -n "$COW" ]; then
 		setupdir_cow "home" "fmask=666,dmask=777"
 	else
+		echo -n "  Building /home structure: "
 		cp -a $MNTLIVECD/home /
 	fi
-	
 	printok
 	set_progress
 }
