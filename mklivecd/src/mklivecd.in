@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.19 2003/10/03 09:17:21 jaco Exp $
+# $Id: mklivecd.in,v 1.20 2003/10/03 09:51:01 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -30,7 +30,7 @@ PROGNAME="@PKGNAME@"
 rootdir=/
 target=""
 kernel=""
-verbose="yes"
+verbose=""
 MODULES=""
 img_vers=""
 builtins=""
@@ -94,7 +94,7 @@ usage () {
 	echo "    --iso-bootkey=<key>,<msg>  Display 'msg' on key 'key' from isolinux" >&2
 	echo "    --iso-graphic              Use the Madrake boot image extension" >&2
 	echo "    --iso-bgimage=<image.lss>  Use 'image.lss' as the isolinux display image" >&2
-	echo "    --keyboard=<mapping>       Specify a different keyboard layout (default: @DEF_KEYBOARD@) (4)" >&2
+	echo "    --keyboard=<mapping>       Specify a different keyboard layout (default: @DEF_KEYBOARD@)" >&2
 	echo "" >&2
 	echo "Examples:" >&2
 	echo "    `basename $0` --exclude-dir=\"^/usr/src/RPM ^/root/tmp\" livecd.iso" >&2
@@ -176,8 +176,7 @@ is_dietlibc_arch() {
 
 ### generate actual initrd image
 create_initrdimg() {
-	### Locale bug (fixed in 0.5.4)
-	#IMAGESIZE=`du -kc $INITRDDIR | grep total | sed 's/\t[^ ]*$//'`
+	echo "* Creating compressed initrd image..." >&2
 	IMAGESIZE=`du -ks $INITRDDIR | awk '{print $1}'`
 	INODES=250
 	for i in `find $INITRDDIR`; do
@@ -187,8 +186,6 @@ create_initrdimg() {
 		INODES=$[INODES + 1];
 	done
 	IMAGESIZE=$[IMAGESIZE + INODES / 10]  # 10 inodes needs 1k
-	### removed in 0.5.3, initrd size is big enough
-	#IMAGESIZE=$[IMAGESIZE + 250]          # extra 250K to play with
 	[ -n "$verbose" ] && echo "+ Creating filesystem with size ${IMAGESIZE}KB and $INODES inodes"
 	do_cmd "dd if=/dev/zero of=$INITRD bs=1k count=$IMAGESIZE 2> /dev/null"
 	do_cmd "mke2fs -q -m 0 -F -N $INODES -s 1 $INITRD"
@@ -205,6 +202,7 @@ create_initrdimg() {
 
 ### create the compressed iso image
 create_cloop() {
+	echo "* Creating compressed loop image..." >&2
 	if [ -f "$cloopimg" ]; then
 		do_cmd "ln $cloopimg $LIVECDCLOOPDIR/$LIVECDISOCLP"
 	else
@@ -247,13 +245,18 @@ $e"
 			exit 1
 		fi
 		REALSIZE=$[$blocksize*1024]
-		MKISOCMD="nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST -hide-rr-moved -cache-inodes -no-bak -pad -v -v -gui $rootdir"
+		MKISOCMD="nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST -hide-rr-moved -cache-inodes -no-bak -pad $verbose $verbose $rootdir"
+		[ -z "$verbose" ] && MKISOCMD="$MKISOCMD 2>/dev/null"
 		if [ -n "$lowmem" ]; then
 			do_cmd "$MKISOCMD >$TMPISO"
-			do_cmd "$loopcmp $TMPISO $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
+			CMD="$loopcmp $TMPISO $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
+			[ -z "$verbose" ] && CMD="$CMD 2>/dev/null"
+			do_cmd "$CMD"
 			do_cmd "rm -rf $TMPISO"
 		else
-			do_cmd "$MKISOCMD | $loopcmp - $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
+			CMD="$MKISOCMD | $loopcmp - $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
+			[ -z "$verbose" ] && CMD="$CMD 2>/dev/null"
+			do_cmd "$CMD"
 		fi
 		[ -n "$cloopimg" ] && do_cmd "ln $LIVECDCLOOPDIR/$LIVECDISOCLP $cloopimg"
 	fi
@@ -261,6 +264,7 @@ $e"
 
 ### install isolinux
 create_isolinux() {
+	echo "* Creating isolinux image..." >&2
 	isolinuxbin="/usr/lib/syslinux/isolinux.bin"
 	[ -n "$isographic" ] && isolinuxbin="/usr/lib/syslinux/isolinux-graphic.bin"
 	if [ ! -f $isolinuxbin ]; then
@@ -313,14 +317,17 @@ create_isolinux() {
 
 ### create the final iso image
 create_liveiso() {
+	echo "* Creating final iso image..." >&2
 	DISTRO=`gawk -F' ' '{ print $1 " " $2 }' $rootdir/etc/mandrake-release`
 	VERSION=`gawk -F' ' '{ print $4 " " $5 }' $rootdir/etc/mandrake-release`
 	VERSION_DATE=`date --utc`
-	do_cmd "nice -n 19 mkisofs -pad -l -R -J -v \
+	CMD="nice -n 19 mkisofs -pad -l -R -J $verbose \
 		-V '$DISTRO LiveCD' -A '$VERSION $VERSION_DATE' \
 		-b isolinux/isolinux.bin -c isolinux/boot.cat \
 		-hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table \
 		-o $target $LIVECDDIR"
+	[ -z "$verbose" ] && CMD="$CMD 2>/dev/null"
+	do_cmd "$CMD"
 }
 
 echo "$PROGNAME, version $VERSION, http://www.linuxminicd.org/mklivecd/" >&2
@@ -513,8 +520,8 @@ while [ $# -gt 0 ]; do
 			usage
 			;;
 
-		--verbose)
-			verbose=-v
+		-v|--verbose)
+			verbose="-v"
 			;;
 
 		-*)
@@ -585,6 +592,7 @@ if [ -z "$target" ]; then
 fi
 
 ### create the temporary directories for us to use
+echo "* Creating temporary directories..." >&2
 do_cmd "rm -rf $tmpdir/mklivecd.*"
 CLOOPDIR=`mktemp -d ${tmpdir}/mklivecd.cloop.XXXXXX`
 LIVECDDIR=`mktemp -d ${tmpdir}/mklivecd.livecd.XXXXXX`
@@ -606,14 +614,15 @@ if [ -z "$LIVECDDIR" -o -z "$INITRDDIR" -o -z "$INITRDMNT" -o -z "$CLOOPDIR" ]; 
     echo "ERROR: Unable to create temporary files and/or directories." >&2
     exit 1
 fi
-do_cmd "mkdir -p $INITRDDIR/{bin,dev,etc/init.d,lib/modules,proc,sbin,usr/{bin,sbin}}"
-do_cmd "mkdir -p $INITRDDIR/{cdrom,loopfs,ramfs}"
 do_cmd "mkdir -p $LIVECDDIR"
 do_cmd "mkdir -p $ISOLINUXDIR"
 do_cmd "mkdir -p $LIVECDCLOOPDIR"
 do_cmd "mkdir -p $CLOOPDIR"
 
 ### create initrd
+echo "* Creating initrd structure..." >&2
+do_cmd "mkdir -p $INITRDDIR/{bin,dev,etc/init.d,lib/modules,proc,sbin,usr/{bin,sbin}}"
+do_cmd "mkdir -p $INITRDDIR/{cdrom,loopfs,ramfs}"
 if is_dietlibc_arch; then
 	if [[ -n "$kernel26" ]]; then
 		do_cp /sbin/insmod-25-DIET $INITRDDIR/sbin/insmod
@@ -635,6 +644,7 @@ do_cp_strip /usr/sbin/hwdetect $INITRDDIR/usr/sbin/hwdetect
 do_cmd "chmod 755 $INITRDDIR/usr/sbin/hwdetect"
 
 ### modules
+echo "* Copying initrd kernel modules..." >&2
 do_cmd "mkdir -p $INITRDDIR$MODULESDIR/kernel"
 modules="$loopmod $modules"
 for m in $modules; do
