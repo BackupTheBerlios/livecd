@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.12 2004/01/13 05:30:18 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.13 2004/01/13 05:34:59 jaco Exp $
 #
 
 use threads;
@@ -461,10 +461,10 @@ sub showInstall
 	}
 	
 	unless (defined($nocopy)) {
-		doCopy($initrd, $devs, @dirs) unless ($destroy);
-		doCopy("/", $devs, @etcdirs) unless ($destroy);
-		doCopy("/", $devs, @homedirs) unless ($destroy);
-		doCopy("/", $devs, @rootdirs) unless ($destroy);
+		doCopy($initrd, @dirs) unless ($destroy);
+		doCopy("/", @etcdirs) unless ($destroy);
+		doCopy("/", @homedirs) unless ($destroy);
+		doCopy("/", @rootdirs) unless ($destroy);
 	}
 
 	$infotext = "Creating /etc/fstab";
@@ -586,10 +586,11 @@ sub formatPart
 
 sub doCopy
 {
-	my ($from, $devs, @dirs) = @_;
+	my ($from, @dirs) = @_;
 
-	if (!$destroy) {
-		copyDir($from, $_) foreach (@dirs);
+	print "DEBUG: doCopy: $from, ".scalar(@dirs)."\n";
+	foreach my $dir (@dirs) {
+		copyDir($from, $dir);
 	}
 }
 
