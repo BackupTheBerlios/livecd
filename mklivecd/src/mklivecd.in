@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.90 2004/01/08 07:59:47 jaco Exp $
+# $Id: mklivecd.in,v 1.91 2004/01/08 13:29:29 jaco Exp $
 #
 
 use strict;
@@ -581,7 +581,7 @@ sub create_initrd {
 
 	# start progress bar
 	my $pos = 0;
-	start_progress("Creating initrd", 30+scalar(@allmods));
+	start_progress("Creating initrd", 33+scalar(@allmods));
 
 	# create directories
 	my $dir = $workdir."/initrd.dir";
@@ -610,9 +610,12 @@ sub create_initrd {
 
 	# create devices
 	do_cmd("mknod $dir/dev/initrd b 1 250", ++$pos);
+	do_cmd("mknod $dir/dev/console c 5 1",  ++$pos);
 	do_cmd("mknod $dir/dev/null c 1 3",     ++$pos);
 	do_cmd("mknod $dir/dev/systty c 4 0",   ++$pos);
+	do_cmd("mknod $dir/dev/ram b 1 1",      ++$pos);
 	do_cmd("mknod $dir/dev/tty$_ c 4 $_",   ++$pos) foreach((1,2,3,4));
+	do_cmd("mknod $dir/dev/lvm b 109 0",    ++$pos);
 
 	# copy modules
 	foreach my $mod (@allmods) {
