@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.141 2004/11/24 04:22:18 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.142 2004/11/26 05:35:52 tom_kelly33 Exp $
 #
 
 use strict;
@@ -595,6 +595,7 @@ sub hwdetect_getvideo() {
 					-e "/usr/X11R6/lib/modules/drivers/nvidia_drv.o" &&
 					-e "/usr/X11R6/lib/modules/extensions/libglx.so" &&
 					(-e "/lib/modules/$kernel_ver/kernel/drivers/char/nvidia.o.gz" ||
+					-e "/lib/modules/$kernel_ver/kernel/drivers/video/nvidia.ko" ||
 					-e "/lib/modules/$kernel_ver/kernel/drivers/video/nvidia.o")) {
 					$probed_card->{Driver} = $probed_card->{Driver2};
 					$probed_card->{DRI_GLX_SPECIAL} = 1;
