@@ -4,7 +4,7 @@
 	<title>LiveCD - The Linux LiveCD project</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 </head>
-<body bgcolor="#FFFFFF" marginheight="5" marginwidth="5" link=#0050a0 vlink=#0050a0 alink=#000000>
+<body bgcolor="#FFFFFF" marginheight="10" marginwidth="10" link=#0050a0 vlink=#0050a0 alink=#000000>
 <center>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
 	<tr><td bgcolor="#000000">
@@ -24,7 +24,7 @@
 				&nbsp;&nbsp;|&nbsp;&nbsp;
 				<a href="http://www.linuxminicd.org/mklivecd/downloads/"><font color=#c0c0c0>d o w n l o a d</font></a>
 				&nbsp;&nbsp;|&nbsp;&nbsp;
-				<a href="links.php"><font color=#c0c0c0>l i n k s</font></a>
+				<a href="links.php"><font color=#c0c0c0c>l i n k s</font></a>
 				&nbsp;&nbsp;|&nbsp;&nbsp;
 				<a href="http://developer.berlios.de/projects/livecd/"><font color=#c0c0c0>p r o j e c t</font></a>
 				&nbsp;&nbsp;|&nbsp;&nbsp;
@@ -36,20 +36,22 @@
 		</table>
 	</td></tr>
 	<tr><td valign="top" colspan="2">
-		<p>
 		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr><td height="10"></td></tr>
 			<tr><td bgcolor="#000000">
 				<table width=100% border=0 cellspacing=2 cellpadding=5 cols=2>
 					<tr><td bgcolor=#305080 nowrap>
-						<b><font color=#ffffff>&nbsp; m o n &nbsp; n o v &nbsp; 1 7 &nbsp; 2 0 0 3 &nbsp; 0 6 : 2 5</font></b>
+						<b><font color=#ffffff>a b o u t</font></b>
 					</td>
 					<td bgcolor=#d0d0d0 nowrap>
 						<b>&nbsp;</b>
 					</td></tr>
 					<tr><td colspan=2 bgcolor=#d0d0d0>
-						<b>h e a d i n g</b>
-						<br>
-						Hehe, I love how these timestamps go backwards. But anyway, school is so dull now. I don't see my friends much, and when I <i>do</i> see them, it's in a class that I like care about like art. Blah. Art is the only good part of school. I spend like 2 or 3 periods a day in that room. It's incredibly relaxing and focusing. I love crosshatching, it reminds me of watercolor, shade once, shade over, shade again... Very cool. Not like that idea that you should opaquify your paper like colored pencil =)
+						<b>i n t r o</b><br>
+						The LiveCD project is dedicated to providing you with tools to create your own LiveCD from a currently installed Linux distribution. It can be used to create your own distribution, specialised CD or to put together a demo disk to show off the power of our favourite OS.<p>
+						<b>f e a t u r e s</b><br>
+						The project features automatic hardware detection and setup and utilises compression technology to build a LiveCD from a partition much larger to typically fit on a CD. (Up to 2GB for a normal 650MB CD.) When booting from this LiveCD, the data is transparently decompressed as needed.<p>
+						Currently only Mandrake Linux 9.2+ is supported as a host for creation of the LiveCD, i.e. we are only able to create LivceCD's from a MDK install.<p>
 					</td></tr>
 				</table>
 			</td></tr>

@@ -19,8 +19,8 @@
 				&nbsp;&nbsp;
 				<font color=#ffffff>h o m e</font>
 				&nbsp;&nbsp;|&nbsp;&nbsp;
-				<!--<a href="about.php"><font color=#c0c0c0>a b o u t</font></a>
-				&nbsp;&nbsp;|&nbsp;&nbsp;-->
+				<a href="about.php"><font color=#c0c0c0>a b o u t</font></a>
+				&nbsp;&nbsp;|&nbsp;&nbsp;
 				<a href="http://www.linuxminicd.org/mklivecd/downloads/"><font color=#c0c0c0>d o w n l o a d</font></a>
 				&nbsp;&nbsp;|&nbsp;&nbsp;
 				<a href="links.php"><font color=#c0c0c0>l i n k s</font></a>
