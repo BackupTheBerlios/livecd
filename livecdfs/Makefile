@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2004/01/22 15:20:03 jaco Exp $
+# $Id: Makefile,v 1.6 2004/01/22 15:22:03 jaco Exp $
 
 include Rules.mk
 
@@ -12,7 +12,7 @@ $(LIBRARY): $(OBJECTS)
 test: $(SRCDIR)/test.o $(OBJECTS) $(LUFSOBJS)  
 	$(CXX) -o $@ $< $(OBJECTS) $(LUFSOBJS) 
 
-install:
+install: $(LIBRARY)
 	$(MKDIR) -p $(DESTDIR)/$(LIBDIR)
 	$(CP) -a $(LIBRARY)* $(DESTDIR)/$(LIBDIR)
 	
