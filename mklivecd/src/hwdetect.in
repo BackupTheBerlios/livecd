@@ -20,10 +20,12 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.58 2003/11/22 10:41:04 jaco Exp $
+# $Id: hwdetect.in,v 1.59 2003/11/22 11:38:53 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
+
+use Getopt::Long;
 
 use standalone;
 
@@ -67,6 +69,8 @@ my $COLOR_NORMAL   = $ESC."0;39m";
 ### global varibles
 my $debug         = 0;
 my $probe         = 0;
+my $fdisk         = 0;
+my $prefix        = "";
 my @all_devices   = ();
 my %cmdline;
 my $owndevfsd     = 1;
@@ -673,7 +677,7 @@ sub hwdetect_readconf {
 sub hwdetect_writeconf {
 	unless ($probe) {
 		print "Writing modules configuration: ";
-		modules::write_conf("");
+		modules::write_conf($prefix);
 		print_success();
 	}
 	set_progress();
@@ -845,7 +849,7 @@ sub hwdetect_getpersistent {
 						$devs{$dev}->{persisted} = 1;
 					}
 				}
-				elsif ($cmdline{'home'} =~ /usb/ && $devs{$dev}->{usb}) {
+				elsif (!$fdisk && $cmdline{'home'} =~ /usb/ && $devs{$dev}->{usb}) {
 					system("(cp -au /home/* $mymnt) 2>/dev/null");
 					open P, '>', "$persist";
 					print P "mount=/home\n";
@@ -1055,9 +1059,8 @@ sub hwdetect_getdisks {
 
 # write the disk stuff
 sub hwdetect_writedisks {
-	my ($prefix) = @_;
 	unless ($probe) {
-		print "Writing partition configuration: ";
+		print "Writing partition configuration:\n";
 		# get persistent partitions and set their mountpoints,
 		# and relevant options
 		hwdetect_getpersistent(%all_devs);
@@ -1067,7 +1070,7 @@ sub hwdetect_writedisks {
 		my $cmd;
 		foreach my $dev (keys %all_devs) {
 			my $mount = $all_devs{$dev}->{mount};
-			system("mkdir -p $mount 2>/dev/null");
+			system("mkdir -p $prefix/$mount 2>/dev/null");
 		}
 		print_success();
 
@@ -1075,7 +1078,7 @@ sub hwdetect_writedisks {
 		print "    Writing $prefix/etc/fstab: ";
 		open FSTAB, '>>', "$prefix/etc/fstab";
 		print FSTAB "\n### entries below this line were automatically added by $SCRIPT_NAME v$SCRIPT_VER\n";
-		qx(mkdir -p $prefix/etc/livecd/hwdetect/mounts.cfg);
+		qx(mkdir -p $prefix/etc/livecd/hwdetect/);
 		open INFO, '>', "$prefix/etc/livecd/hwdetect/mounts.cfg";
 		foreach my $dev (sort keys %all_devs) {
 			print FSTAB "\n# ".$all_devs{$dev}->{info};
@@ -1123,28 +1126,31 @@ sub hwdetect_swapon {
 }
 
 
-foreach (@ARGV) {
-	if    (/^--debug/) { $debug = 1; }
-	elsif (/^--probe/) { $probe = 1; }
-	else  { die "ERROR: Unknown option '$_'"; }
-}
+# parse command-line options
+GetOptions(
+	'debug'    => \$debug,
+	'probe'    => \$probe,
+	'fdisk'    => \$fdisk,
+	'prefix=s' => \$prefix
+);
 
+# run through the steps
 hwdetect_init();
 hwdetect_readconf();
-hwdetect_probepci();
-hwdetect_initusb();
-hwdetect_initpcmcia();
-hwdetect_probeall();
-hwdetect_all();
-hwdetect_getxfree();
-hwdetect_getsound();
-hwdetect_getnetwork();
-#hwdetect_getserial();
-hwdetect_getusb();
+hwdetect_probepci() unless ($fdisk);
+hwdetect_initusb() unless ($fdisk);
+hwdetect_initpcmcia() unless ($fdisk);
+hwdetect_probeall() unless ($fdisk);
+hwdetect_all() unless ($fdisk);
+hwdetect_getxfree() unless ($fdisk);
+hwdetect_getsound() unless ($fdisk);
+hwdetect_getnetwork() unless ($fdisk);
+#hwdetect_getserial() unless ($fdisk);
+hwdetect_getusb() unless ($fdisk);
 hwdetect_getdisks();
-hwdetect_writedisks("");
-hwdetect_swapon();
-hwdetect_getmachine();
-hwdetect_writeconf();
-hwdetect_deinitusb();
+hwdetect_writedisks();
+hwdetect_swapon() unless ($fdisk);
+hwdetect_getmachine() unless ($fdisk);
+hwdetect_writeconf() unless ($fdisk);
+hwdetect_deinitusb() unless ($fdisk);
 hwdetect_deinit();
