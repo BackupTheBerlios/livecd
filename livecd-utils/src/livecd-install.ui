@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.2" stdsetdef="1">
 <class>fMain</class>
 <widget class="QWizard">
     <property name="name">
@@ -61,23 +61,30 @@
                 <string>Alt+D</string>
             </property>
         </widget>
-        <widget class="QLabel">
+        <widget class="QTextBrowser">
             <property name="name">
-                <cstring>tlWelcome</cstring>
+                <cstring>tbWelcome</cstring>
             </property>
             <property name="geometry">
                 <rect>
                     <x>310</x>
                     <y>0</y>
                     <width>390</width>
-                    <height>350</height>
+                    <height>345</height>
                 </rect>
+            </property>
+            <property name="paletteBackgroundColor">
+                <color>
+                    <red>230</red>
+                    <green>231</green>
+                    <blue>230</blue>
+                </color>
+            </property>
+            <property name="lineWidth">
+                <number>1</number>
             </property>
             <property name="text">
                 <string>&lt;p&gt;&lt;b&gt;Welcome&lt;/b&gt; to the $distroname installer. This program will guide you through the steps of installing $distroname to your local disk. Navigation can be done with the &lt;i&gt;Back&lt;/i&gt; and &lt;i&gt;Next&lt;/i&gt; buttons. You can stop at any time with the &lt;i&gt;Cancel&lt;/i&gt; button.&lt;/p&gt;&lt;p&gt;This is BETA quality software and might have adverse or unintended side effects on your current system. These could include erasing important data or making your system unbootable. Use it with care!&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;For more information go to the LiveCD's homepage: http://livecd.berlios.de/ or the $distroname homepage: $distrohome.</string>
-            </property>
-            <property name="alignment">
-                <set>WordBreak|AlignTop|AlignLeft</set>
             </property>
         </widget>
     </widget>
@@ -271,19 +278,6 @@
             </widget>
             <widget class="QComboBox">
                 <property name="name">
-                    <cstring>cbTmp</cstring>
-                </property>
-                <property name="geometry">
-                    <rect>
-                        <x>10</x>
-                        <y>140</y>
-                        <width>370</width>
-                        <height>26</height>
-                    </rect>
-                </property>
-            </widget>
-            <widget class="QComboBox">
-                <property name="name">
                     <cstring>cbHome</cstring>
                 </property>
                 <property name="geometry">
@@ -389,6 +383,19 @@
                 </property>
                 <property name="text">
                     <string>Var (/var) device:</string>
+                </property>
+            </widget>
+            <widget class="QComboBox">
+                <property name="name">
+                    <cstring>cbTmp</cstring>
+                </property>
+                <property name="geometry">
+                    <rect>
+                        <x>10</x>
+                        <y>140</y>
+                        <width>370</width>
+                        <height>26</height>
+                    </rect>
                 </property>
             </widget>
         </widget>
@@ -1431,6 +1438,8 @@
     <slot>createUser()</slot>
     <slot>logging_yes()</slot>
     <slot>logging_no()</slot>
+    <slot>lbLang( QListBoxItem * )</slot>
+    <slot>Partition( const QString &amp; )</slot>
 </slots>
 <functions>
     <function language="Perl">init()</function>

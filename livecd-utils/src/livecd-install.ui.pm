@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.28 2004/04/26 14:57:13 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.29 2004/05/04 22:29:00 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -40,11 +40,6 @@ use lib qw(/usr/lib/libDrakX);
 
 use fs;
 use swap;
-
-use vars qw(
-        $opt_debug
-        $opt_nocopy
-);
 
 my $debug   : shared = undef;
 my $nocopy  : shared = undef;
@@ -164,7 +159,7 @@ sub initLang
 	setCaption(getStr('caption'));
 	
 	setTitle(page, getStr('scr_1_title'));
-	tlWelcome->setText(getStr('scr_1_text'));
+	tbWelcome->setText(getStr('scr_1_text'));
 	bDiskPartitioner->setText(getStr('btn_disk_part'));
 
 	setTitle(page_2, getStr('scr_2_title'));
@@ -778,7 +773,7 @@ image=$kernel
 		do_system("umount $mnt/dev");
 		do_system("umount $mnt/proc");
 	}
-	Qt::MessageBox::information (this, "$distroname Installer", getStr('bl_written'));
+	Qt::MessageBox::information (this, getStr('caption'), getStr('bl_written'));
 #	emit this->next(); # Jump to next page
 }
 
@@ -894,10 +889,10 @@ sub logging_yes # SLOT: ( )
 	my $message = "";
         my $result = do_system2("/bin/echo chkconfig --add syslog | chroot $mnt");
 	if ($result eq "0") {
-           Qt::MessageBox::information( this, "$distroname Installer", getStr('logging_yes'));
+           Qt::MessageBox::information( this, getStr('caption'), getStr('logging_yes'));
         } else {
            $message = getStr('function_error')."$result";
-           Qt::MessageBox::information (this, "$distroname Installer", $message);
+           Qt::MessageBox::information (this, getStr('caption'), $message);
         }
 }
 
@@ -908,10 +903,10 @@ sub logging_no # SLOT: ( );
 	my $message = "";
         my $result = do_system2("/bin/echo chkconfig --del syslog | chroot $mnt");
         if ($result eq "0") {
-           Qt::MessageBox::information( this, "$distroname Installer", getStr('logging_no'));
+           Qt::MessageBox::information( this, getStr('caption'), getStr('logging_no'));
         } else {
            $message = getStr('function_error')."$result";
-           Qt::MessageBox::information (this, "$distroname Installer", $message);
+           Qt::MessageBox::information (this, getStr('caption'), $message);
         }
 }
 
@@ -927,25 +922,25 @@ sub writeRootPW # SLOT: (  )
 
 	# Test - if not same ->reject, if null -> reject, if short -> warn and continue 
         if ($pw1 ne $pw2) {
-           Qt::MessageBox::warning( undef, "$distroname Installer", getStr('pword_not_same'), getStr('btn_retry'));
+           Qt::MessageBox::warning( undef, getStr('caption'), getStr('pword_not_same'), getStr('btn_retry'));
 	   return;
         }
         if ($pw1 eq "") {
-           Qt::MessageBox::warning(undef, "$distroname Installer", getStr('pword_null'), getStr('btn_retry'));
+           Qt::MessageBox::warning(undef, getStr('caption'), getStr('pword_null'), getStr('btn_retry'));
            return;
         }
 	if (length($pw1)<8) {
-	   Qt::MessageBox::information(this, "$distroname Installer", getStr('pword_short'));
+	   Qt::MessageBox::information(this, getStr('caption'), getStr('pword_short'));
 	}
 
 	# Passwords ok - now write to disk
 	$result = do_system2("/bin/echo $pw1 | chroot $mnt /usr/bin/passwd --stdin root");
         print "\nDEBUG: Password: $result\n";
 	if ($result eq "0") {	 
-	   Qt::MessageBox::information( this, "$distroname Installer", getStr('pword_ok'));
+	   Qt::MessageBox::information( this, getStr('caption'), getStr('pword_ok'));
 	} else {
            $message = getStr('function_error')."$result";
-           Qt::MessageBox::information (this, "$distroname Installer", $message);
+           Qt::MessageBox::information (this, getStr('caption'), $message);
 	}
 	lineEdit1->clear();
 	lineEdit2->clear();
@@ -964,12 +959,12 @@ sub deleteGuest # SLOT: ( )
 	my $result = do_system2("/bin/echo $comm | chroot $mnt");
 	print "\nDEBUG: Delete Guest result = $result\n";
         if ($result eq "1536") {
-	   Qt::MessageBox::information (this, "$distroname Installer", getStr('guest_not_found'));
+	   Qt::MessageBox::information (this, getStr('caption'), getStr('guest_not_found'));
         } elsif ($result eq "0") {
-           Qt::MessageBox::information (this, "$distroname Installer", getStr('guest_del_ok'))
+           Qt::MessageBox::information (this, getStr('caption'), getStr('guest_del_ok'))
 	} else { 
            $message = getStr('function_error')."$result";
-           Qt::MessageBox::information (this, "$distroname Installer", $message);
+           Qt::MessageBox::information (this, getStr('caption'), $message);
 	}
 }
 
@@ -991,19 +986,19 @@ sub createUser # SLOT: ( )
 	## Validation - user/pw1/pw2 null->reject, pw1<>pw2->reject, pw short->warn and accept
 
 	if ( ($username eq "") || ($pw1 eq "") || ($pw2 eq "") ) {
-	   Qt::MessageBox::warning(undef, "$distroname Installer", getStr('missing_value'), getStr('btn_retry'));
+	   Qt::MessageBox::warning(undef, getStr('caption'), getStr('missing_value'), getStr('btn_retry'));
            return;
 	}
 	if ($pw1 ne $pw2) {
-	   Qt::MessageBox::warning(undef, "$distroname Installer", getStr('pword_not_same'), getStr('btn_retry'));
+	   Qt::MessageBox::warning(undef, getStr('caption') , getStr('pword_not_same'), getStr('btn_retry'));
 	   return;
 	}
 	if ($pw1 eq "") {
-	   Qt::MessageBox::warning(undef, "$distroname Installer", getStr('pword_null'), getStr('btn_retry'));
+	   Qt::MessageBox::warning(undef, getStr('caption'), getStr('pword_null'), getStr('btn_retry'));
 	   return;
 	} 
 	if (length($pw1)<8) {
-	   Qt::MessageBox::information(undef, "$distroname Installer", getStr('pword_short'));
+	   Qt::MessageBox::information(undef, getStr('caption'), getStr('pword_short'));
         }
 
 	## Data accepted, make the user
@@ -1013,7 +1008,7 @@ sub createUser # SLOT: ( )
 	print "\nDEBUG add group result=$result\n";
         if (($result ne "0") && ($result ne "2304")) {
            $message = getStr('function_error')."$result";
-           Qt::MessageBox::information (this, "$distroname Installer", $message);
+           Qt::MessageBox::information (this, getStr('caption'), $message);
         }
 
 	# Add the user
@@ -1026,7 +1021,7 @@ sub createUser # SLOT: ( )
 	print "\nDEBUG add user result=$result\n";
 	if (($result ne "0") && ($result ne "2304")) {
            $message = getStr('function_error')."$result";
-           Qt::MessageBox::information (this, "$distroname Installer", $message);
+           Qt::MessageBox::information (this, getStr('caption'), $message);
 	}
 	if ($result eq "2304") {
 	   $message = "update";
@@ -1037,14 +1032,14 @@ sub createUser # SLOT: ( )
 	print "\nDEBUG: change user password result =$result\n";
         if ($result ne "0") {
            $message = getStr('function_error')."$result";
-           Qt::MessageBox::information (this, "$distroname Installer", $message);
+           Qt::MessageBox::information (this, getStr('caption'), $message);
 	   return;
 	}
 	if ($message eq "update") {
-	   Qt::MessageBox::information (this, "$distroname Installer", getStr('pword_updated')); 
+	   Qt::MessageBox::information (this, getStr('caption'), getStr('pword_updated')); 
         } else {
 	   $message = getStr('user')."$username".getStr('user_added');
-	   Qt::MessageBox::information (this, "$distroname Installer", $message);
+	   Qt::MessageBox::information (this, getStr('caption'), $message);
 	}
 	lineEditLogin->clear();
 	lineEditReal->clear();
