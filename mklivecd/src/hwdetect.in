@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.94 2004/01/21 06:22:15 jaco Exp $
+# $Id: hwdetect.in,v 1.95 2004/01/21 09:59:37 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -675,16 +675,19 @@ sub hwdetect_getsound {
 	my $num = 0;
 	foreach my $card (@probed_cards) {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
-		unless ($probe) {
-			modules::add_alias("sound-slot-$num", $card->{driver});
-			modules::set_options($card->{driver}, $card->{options}) if ($card->{options});
-
-			# sound card specifics not defaulted in MDK
-			modules::set_options('snd-via82xx', 'index=0 dxs_support=2') if ($card->{driver} =~ /via82xx/);
-			modules::set_options('snd-card-intel8x0', 'snd_ac97_clock=41194') if ($card->{driver} =~ /intel8x0/);
+		my $driver = defined($cmdline{'snddrv'}) ? $cmdline{'snddrv'} : $card->{driver};
+		
+		modules::add_alias("sound-slot-$num", $driver);
+		print "modules::add_alias('sound-slot-$num', '$driver')\n" if ($debug);
+		if ($card->{options} && !defined($cmdline{'snddrv'})) {
+			modules::set_options($driver, $card->{options}); 
+			print "modules::set_options($driver, ".$card->{options}.")\n" if ($debug);
 		}
-		print "modules::add_alias('sound-slot-$num', '".$card->{driver}."')\n" if ($debug);
-		print "modules::set_options(".$card->{driver}.", ".$card->{options}.")\n" if ($debug && $card->{options});
+		
+		# sound card specifics not defaulted in MDK
+		modules::set_options('snd-via82xx', 'index=0 dxs_support=2') if ($driver =~ /via82xx/);
+		modules::set_options('snd-card-intel8x0', 'snd_ac97_clock=41194') if ($driver =~ /intel8x0/);
+		
 		$num++;
 		# hwdetect_loadmod($card->{driver}, ...) makes alsa break since the init scripts
 		# want to load the correct module.
@@ -704,10 +707,13 @@ sub hwdetect_getnetwork {
 	my $num = 0;
 	foreach my $card (@probed_cards) {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
-		modules::add_alias("eth$num", $card->{driver}) unless ($probe);
-		print "modules::add_alias('eth$num', '".$card->{driver}."')\n" if ($debug);
+		my $driver = defined($cmdline{'netdrv'}) ? $cmdline{'netdrv'} : $card->{driver};
+		
+		modules::add_alias("eth$num", $driver) unless ($probe);
+		print "modules::add_alias('eth$num', '$driver')\n" if ($debug);
+		
 		$num++;
-		hwdetect_loadmod($card->{driver}, $probed_vendor, $probed_desc);
+		hwdetect_loadmod($driver, $probed_vendor, $probed_desc);
 		print_hash($card) if ($debug);
 	}
 	set_progress();
