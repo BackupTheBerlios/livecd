@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.140 2004/11/20 20:41:08 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.141 2004/11/24 04:22:18 tom_kelly33 Exp $
 #
 
 use strict;
@@ -1176,7 +1176,7 @@ sub hwdetect_getdisks() {
 			if ($disk->{media_type} =~ /^fd|^cdrom/) {
 				my $dev = $disk->{device};
 				my $extopts = "iocharset=iso8859-1,codepage=850,umask=0";
-				$extopts = $extopts . ",nohide" if $disk->{media_type} =~ /^cdrom/;
+				## $extopts = $extopts . ",nohide" if $disk->{media_type} =~ /^cdrom/;
 				$all_devs{$dev}{info}   = $disk->{media_type} . ": " . $disk->{info};
 				$all_devs{$dev}{dev}    = "/dev/" . $disk->{device};
 				$all_devs{$dev}{devfs}  = "/dev/" . $disk->{devfs_device};
@@ -1192,8 +1192,11 @@ sub hwdetect_getdisks() {
 					if ($numcd eq "1") { $numcd++ }  # skip 1
 				}
 				$all_devs{$dev}{type}   = "auto";
-				if ($disk->{media_type} =~ /^cdrom/) {
-					$all_devs{$dev}{opt} = $fsopt_fullro;  ##### . "," . $fsopt_noauto;
+				if ($disk->{media_type} =~ /^fd|^cdrom/) {
+					$all_devs{$dev}{opt} = $fsopt_fullro.",".$fsopt_noauto;
+					if ($disk->{media_type} =~ /^fd/) {
+						$all_devs{$dev}{opt} = $fsopt_fullrw . "," . $fsopt_noauto;
+					}
 				}
 				else {
 					$all_devs{$dev}{opt} = $fsopt_fullrw;  ##### . "," . $fsopt_noauto;
