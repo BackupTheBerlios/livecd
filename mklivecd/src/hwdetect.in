@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.120 2004/01/27 04:47:55 jaco Exp $
+# $Id: hwdetect.in,v 1.121 2004/01/29 07:42:29 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -1091,6 +1091,7 @@ sub hwdetect_getdisks {
 	### do all the cd, floppy stuff
 	my $numfloppy = 0;
 	my $numcd = 0;
+	my $numwin = 'c';
 	foreach my $disk (@{$all_hdds->{raw_hds}}) {
 		if ($debug) {
 			print "removable: " . $disk->{info} . "\n";
@@ -1168,6 +1169,7 @@ sub hwdetect_getdisks {
 					$all_devs{$dev}->{devfs}   = "/dev/".$raw->{devfs_device};
 					$all_devs{$dev}->{size}    = $raw->{size};
 					$all_devs{$dev}->{media}   = "hd";
+					my $type = $fstypes{$raw->{type}}[1];
 					if ($raw->{type} =~ /^130/) {
 						$haveswap = 1;
 						$all_devs{$dev}->{mount} = "swap";
@@ -1186,8 +1188,13 @@ sub hwdetect_getdisks {
 						else {
 							$all_devs{$dev}->{opt} = $fsopt_set;
 						}
+						if ($type =~ /ntfs/ ||
+						    $type =~ /vfat/) {
+							$all_devs{$dev}->{mount} = "/mnt/win_".$numwin;
+							$numwin++;
+						}
 					}
-					$all_devs{$dev}->{type}    = $fstypes{$raw->{type}}[1];
+					$all_devs{$dev}->{type}    = $type;
 					$all_devs{$dev}->{extopt}  = $opts[1];
 					$all_devs{$dev}->{persist} = $opts[0];
 				}
@@ -1230,6 +1237,7 @@ sub hwdetect_getdisks {
 						$all_devs{$dev}->{devfs}   = "/dev/".$raw->{devfs_device};
 						$all_devs{$dev}->{size}    = $raw->{size};
 						$all_devs{$dev}->{media}   = "hd";
+						my $type = $fstypes{$raw->{type}}[1];
 						if ($raw->{type} =~ /^130/) {
 							$haveswap = 1;
 							$all_devs{$dev}->{mount} = "swap";
@@ -1243,7 +1251,12 @@ sub hwdetect_getdisks {
 								$all_devs{$dev}->{opt}   = $fsopt_set;
 							}
 						}
-						$all_devs{$dev}->{type}    = $fstypes{$raw->{type}}[1];
+						if ($type =~ /ntfs/ ||
+						    $type =~ /vfat/) {
+							$all_devs{$dev}->{mount} = "/mnt/win_".$numwin;
+							$numwin++;
+						}
+						$all_devs{$dev}->{type}    = $type;
 						$all_devs{$dev}->{extopt}  = $opts[1];
 						$all_devs{$dev}->{persist} = $opts[0];
 					}
@@ -1278,6 +1291,11 @@ sub hwdetect_getdisks {
 						else {
 							$all_devs{$dev}->{opt} = $fsopt_set;
 						}
+						if ($type =~ /ntfs/ ||
+						    $type =~ /vfat/) {
+							$all_devs{$dev}->{mount} = "/mnt/win_".$numwin;
+							$numwin++;
+						}
 					}
 					$all_devs{$dev}->{type}    = $type;
 					$all_devs{$dev}->{extopt}  = $opts[1];
@@ -1306,19 +1324,8 @@ sub hwdetect_writedisks {
 		# create mountpoints
 		print "    ".getStr('disk_create').": ";
 		my $cmd;
-		my $drive = 'c';
 		foreach my $dev (sort keys %all_devs) {
-			my $mount = $all_devs{$dev}->{mount};
-			unless ($all_devs{$dev}->{persisted}) {
-				if ($all_devs{$dev}->{media} =~ /hd/ &&
-				    ($all_devs{$dev}->{type} =~ /ntfs/ ||
-				     $all_devs{$dev}->{type} =~ /vfat/)) {
-					$all_devs{$dev}->{mount} = "/mnt/win_".$drive;
-					$drive++;
-					$mount = $all_devs{$dev}->{mount};
-				}
-			}
-			system("mkdir -p $prefix/$mount 2>/dev/null");
+			system("mkdir -p $prefix/".$all_devs{$dev}->{mount}." 2>/dev/null");
 		}
 		print_success();
 
