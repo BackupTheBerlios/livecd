@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.48 2004/10/30 19:50:49 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.49 2004/10/31 19:21:26 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -261,7 +261,7 @@ sub init
 	select(STDOUT);
  	$| = 1;
 
-	if (index(qx(uname -r), "2.6") eq '-1') {  # "2.6_____"
+	if (index(qx(uname -r), "2.6") eq '0') {  # "2.6_____"
 		$kernel26 = 1;
 	}
 
