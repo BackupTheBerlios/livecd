@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.105 2004/01/24 08:59:19 jaco Exp $
+# $Id: hwdetect.in,v 1.106 2004/01/24 09:30:03 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -556,20 +556,24 @@ sub hwdetect_getvideo {
 			my $module = 'unknown';
 			unless ($probed_card) { # one card only :(
 				$probed_card = $card;
+				if (defined($cmdline{'xdrv'})) {
+					$probed_card->{Driver} = $cmdline{'xdrv'};
+					$probed_card->{Driver2} = $probed_card->{Driver};
+				}
 				if ($probed_card->{Driver2} eq 'nvidia' &&
-				-e "/usr/X11R6/lib/modules/drivers/nvidia_drv.o" &&
-				-e "/usr/X11R6/lib/modules/extensions/libglx.so" &&
-				(-e "/lib/modules/$kernel_ver/kernel/drivers/char/nvidia.o.gz" ||
-				-e "/lib/modules/$kernel_ver/kernel/drivers/video/nvidia.o")) {
+				       -e "/usr/X11R6/lib/modules/drivers/nvidia_drv.o" &&
+				       -e "/usr/X11R6/lib/modules/extensions/libglx.so" &&
+				       (-e "/lib/modules/$kernel_ver/kernel/drivers/char/nvidia.o.gz" ||
+				       -e "/lib/modules/$kernel_ver/kernel/drivers/video/nvidia.o")) {
 					$probed_card->{Driver} = $probed_card->{Driver2};
 					$probed_card->{DRI_GLX_SPECIAL} = 1;
 					$module = $probed_card->{Driver2};
 					modules::add_alias("/dev/nvidia*", $module);
 				}
 				if ($probed_card->{Driver2} eq 'fglrx' &&
-				-e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
-				-e "/usr/X11R6/lib/modules/drivers/fglrx_drv.o" &&
-				-e "/lib/modules/$kernel_ver/kernel/drivers/char/fglrx.o.gz") {
+				       -e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
+				       -e "/usr/X11R6/lib/modules/drivers/fglrx_drv.o" &&
+				       -e "/lib/modules/$kernel_ver/kernel/drivers/char/fglrx.o.gz") {
 					$probed_card->{Driver} = $probed_card->{Driver2};
 					$probed_card->{use_DRI_GLX} = 1;
 					$module = $probed_card->{Driver2};
