@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.9 2004/01/22 08:39:19 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.10 2004/01/22 14:58:29 jaco Exp $
  */
 
 #include <dirent.h>
@@ -128,23 +128,16 @@ LiveCDFS::doReaddir(char *name,
 	DIR *rdir, *tdir;
 	struct lufs_fattr attr;
 	struct dirent *ent;
-	
-	string rootpath = path->mkroot(name);//path->mkpath(name);
-	if (!Path::exists(rootpath, S_IFDIR) || !(rdir = opendir(rootpath.c_str()))) {
-		WARN("could not open directory, name='" << name << "'");
-		return -1;
-	}
+	vector<string> entries;
 	
 	string tmppath = path->mktmp(name);
-	vector<string> entries;
 	if ((tdir = opendir(tmppath.c_str()))) {
 		while ((ent = readdir(tdir))) {
-			TRACE("Adding direntry='" << ent->d_name << "'");
 			string subpath = path->join(name, ent->d_name);
 			if (whiteout->isVisible(subpath)) {
+				TRACE("Adding direntry='" << ent->d_name << "'");
 				if ((doStat(subpath.c_str(), &attr)) < 0) {
-					WARN("could not stat file='" << ent->d_name << "'");
-					closedir(tdir);
+					ERROR("could not stat file='" << ent->d_name << "'");
 					closedir(rdir);
 					return -1;
 				}
@@ -155,27 +148,35 @@ LiveCDFS::doReaddir(char *name,
 		closedir(tdir);
 	}
 	
-	while ((ent = readdir(rdir))){
-		string subpath = path->join(name, ent->d_name);
-		TRACE("Adding direntry='" << ent->d_name << "'");
-		bool found = false;
-		vector<string>::iterator i = entries.begin();
-		while (!found && (i != entries.end())) {
-			if (i->compare(subpath) == 0) { 
-				found = true;
-			} 
-			i++;
-		}
-		if (!found) {
-			if ((doStat(subpath.c_str(), &attr)) < 0) {
-				WARN("could not stat file='" << ent->d_name << "'");
-				closedir(rdir);
-				return -1;
+	string rootpath = path->mkroot(name);
+	if (whiteout->isVisible(name) && 
+	    Path::exists(rootpath, S_IFDIR) && 
+	    (rdir = opendir(rootpath.c_str()))) {
+		while ((ent = readdir(rdir))){
+			string subpath = path->join(name, ent->d_name);
+			bool found = false;
+			vector<string>::iterator i = entries.begin();
+			while (!found && (i != entries.end())) {
+				if (i->compare(subpath) == 0) { 
+					found = true;
+				} 
+				i++;
 			}
-			lu_cache_add2dir(dir, ent->d_name, NULL, &attr);
+			if (!found && whiteout->isVisible(subpath)) {
+				TRACE("Adding direntry='" << ent->d_name << "'");
+				if ((doStat(subpath.c_str(), &attr)) < 0) {
+					ERROR("could not stat file='" << ent->d_name << "'");
+					closedir(rdir);
+					return -1;
+				}
+				lu_cache_add2dir(dir, ent->d_name, NULL, &attr);
+			}
 		}
+		closedir(rdir);
 	}
-	closedir(rdir);
+	else {
+		WARN("could not open directory, name='" << name << "'");
+	}
 	
 	return 0;
 }
