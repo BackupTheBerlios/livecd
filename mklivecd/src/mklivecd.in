@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.12 2003/10/02 09:55:09 jaco Exp $
+# $Id: mklivecd.in,v 1.13 2003/10/02 11:31:08 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -52,32 +52,38 @@ usage () {
 	echo "Usage:" >&2
 	echo "    `basename $0` [options] <livecd-image>" >&2
 	echo "" >&2
-	echo "Options:" >&2
+	echo "General Options:" >&2
 	echo "    --help                     Display this message" >&2
 	echo "    --version                  Display script version information" >&2
 	echo "    --verbose                  Be verbose in output" >&2
-	echo "    --blocksize=<size>         Compression blocksize in K (default: 64)" >&2
-	echo "    --exclude-dir=<excludes>   Excludes directories from the final image (1)" >&2
-	echo "    --exclude-file=<excludes>  Excludes files from the final image (1)" >&2
-	echo "    --tmpdir=<tmpdir>          Temp directory for images" >&2
+	echo "" >&2
+	echo "Image generation:" >&2
 	echo "    --rootdir=<rootdir>        Root directory of the live filesystem" >&2
-	echo "    --cloop=<image>            Name of the saved compressed image (2)" >&2
+	echo "    --tmpdir=<tmpdir>          Temp directory for images" >&2
+	echo "    --cloop=<image>            Name of the saved compressed image (1)" >&2
+	echo "    --exclude-dir=<excludes>   Excludes directories from the final image (2)" >&2
+	echo "    --exclude-file=<excludes>  Excludes files from the final image (2)" >&2
 	echo "    --kernel=<kernel>          Kernel to use as boot image" >&2
-	echo "    --looptype=<cloop|bzloop>  Create a cloop (default) or bzloop image (3)" >&2
 	echo "    --lowmem                   Use disk as temporary storage for iso images" >&2
 	echo "    --final                    Strip extra lines from the scripts on the initrd" >&2
-	echo "    --keyboard=<language>      Specify a different keyboard layout (default: @DEF_KEYBOARD@)" >&2
 	echo "" >&2
-	echo "Notes for options:" >&2
-	echo "    1. Patterns passed to these options is to be valid in a grep(1) search, " >&2
-	echo "       and space delimited, e.g. --exclude-dir=\"^/home/jaco ^/root/\.mozilla\"" >&2
-	echo "       will exclude both the /home/jaco and /root/.mozilla directories" >&2
-	echo "    2. This option can have unexpected side-effects. When an image by this name " >&2
+	echo "    1. This option can have unexpected side-effects. When an image by this name " >&2
 	echo "       is found, it will not be re-created/overwritten, rather the existing image" >&2
 	echo "       will be re-used, i.e. the compressed image is not re-built." >&2
+	echo "    2. Patterns passed to these options is to be valid in a grep(1) search, " >&2
+	echo "       and space delimited, e.g. --exclude-dir=\"^/home/jaco ^/root/\.mozilla\"" >&2
+	echo "       will exclude both the /home/jaco and /root/.mozilla directories" >&2
+	echo "" >&2
+	echo "Compression options:" >&2
+	echo "    --blocksize=<size>         Compression blocksize in K (default: 64)" >&2
+	echo "    --looptype=<cloop|bzloop>  Create a cloop (default) or bzloop image (3)" >&2
+	echo "" >&2
 	echo "    3. The bzloop option is currently utilising the experimental bzloop kernel" >&2
 	echo "       module. It should not be considdered as stable and might have adverse" >&2
 	echo "       (unintended) side-effects." >&2
+	echo "" >&2
+	echo "Boot options:" >&2
+	echo "    --keyboard=<language>      Specify a different keyboard layout (default: @DEF_KEYBOARD@)" >&2
 	echo "" >&2
 	echo "Examples:" >&2
 	echo "    `basename $0` --exclude-dir=\"^/usr/src/RPM ^/root/tmp\" livecd.iso" >&2
