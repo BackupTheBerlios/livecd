@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.22 2003/11/23 06:21:43 jaco Exp $
+# $Id: livecd-install,v 1.23 2003/11/23 06:37:54 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -128,8 +128,8 @@ my %langs = (
 	'af' => 1,
 	'vi' => 2
 );
-my $lang_str  = "en";
-my $lang      = 0;
+my $lang_str  = undef;
+my $lang      = undef;
 
 # allowed devices
 my %devs = ();
@@ -353,7 +353,13 @@ MAIN: {
 	GetOptions(
 		'lang=s'  => \$lang_str,
 	);
-	$lang = $langs{$lang_str} || $langs{'en'};
+	$lang = $langs{$lang_str};
+	unless (defined($lang)) {
+		my ($los, $ls) = split(/\:/, $ENV{LANGUAGE});
+		$lang = $langs{$ls} || $langs{en};
+	}
+	print "$lang\n";
+	exit(0);
 
 	my $ret = qx(which zenity-qt 2>/dev/null || echo none);
 	if ($ret =~ /none/) {
