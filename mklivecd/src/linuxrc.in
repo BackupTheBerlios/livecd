@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.10 2003/10/04 14:22:49 jaco Exp $
+# $Id: linuxrc.in,v 1.11 2003/10/04 19:00:27 jaco Exp $
 #
 
 ### global variables
@@ -119,22 +119,13 @@ loadmod() {
 
 ### initialise
 initialise() {
-	busybox mount -t proc none /proc
+	busybox mount -n -t proc none /proc
 	busybox --install
 	docmd   "Setting up kernel parameters" \
 		"echo '0' >/proc/sys/kernel/printk" \
 		"echo '/sbin/modprobe' >/proc/sys/kernel/modprobe" \
 		"exec >/dev/console </dev/console 2>&1"
 	KERNELVER=`uname -r`
-# removed for now, this was part of the original MiniCD script -
-# not deleted to enable us to add a bootsplash at a later point
-#	if [ -e /proc/splash ]; then
-#		echo -n "Setting framebuffer splash: "
-#		for i in 0 1 2 3 4 5; do
-#			/initrd/bin/bootsplash -s -u $i /initrd/etc/bootsplash/bootbg-800x600.cfg 2>&1 >/dev/null
-#		done
-#		printok
-#	fi
 }
 
 
@@ -307,7 +298,7 @@ createramdisk() {
 			"ln -sf /initrd$MNTLIVECD/opt" \
 			"ln -sf /initrd$MNTLIVECD/sbin" \
 			"ln -sf /initrd$MNTLIVECD/usr" \
-			"mkdir -p /dev && mount -n --move /initrd/dev  /dev" \
+			"mkdir -p /dev && mount -n --move /initrd/dev /dev" \
 			"mkdir -p /proc && mount -n --move /initrd/proc /proc" \
 			"mkdir -p /mnt && ln -sf /initrd$MNTCDROM /mnt/cdrom" \
 			"mkdir -p /tmp && chmod 777 /tmp"
@@ -355,25 +346,18 @@ createramdisk() {
 		docmd   "Creating /etc structure" \
 			"cp -a /initrd$MNTLIVECD/etc /" \
 			"chmod a+rw /etc" \
-			"rm -rf /etc/mtab" \
-			"ln -sf /proc/mounts /etc/mtab" \
 			"rm -rf /etc/fstab && touch /etc/fstab" \
+			"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
+			"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
+			"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
+			"rm -rf /etc/mtab && touch /etc/mtab" \
 			"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
 			"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
-			"rm -rf /etc/rc.d/rc5.d/S05harddrake"
+			"rm -rf /etc/rc.d/rc5.d/S05harddrake" \
+			"rm -rf /etc/init.d/dm"
 		docmd   "Creating user directories" \
 			"cp -a /initrd$MNTLIVECD/root /" \
 			"cp -a /initrd$MNTLIVECD/home /"
-
-#			"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
-#			"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
-#			"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
-
-#				"cp /initrd/etc/init.d/hwdetect /etc/init.d" \
-#			"chmod 755 /etc/init.d/hwdetect" \
-#			"ln -s ../init.d/hwdetect /etc/rc.d/rc3.d/S00hwdetect" \
-#			"ln -s ../init.d/hwdetect /etc/rc.d/rc5.d/S00hwdetect" \
-
 	else
 		$SETCOLOR_FAIL
 		echo ""
