@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 #
-# $Id: hwdetect.in,v 1.36 2003/11/01 14:48:00 jaco Exp $
+# $Id: hwdetect.in,v 1.37 2003/11/01 15:34:34 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -890,7 +890,7 @@ sub hwdetect_getdisks {
 					}
 					else {
 						$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
-						if ($disk->{usb_media_type} =~ /^Mass Stotage/) {
+						if ($disk->{usb_media_type} =~ /^Mass Storage/) {
 							$all_devs{$dev}->{opt}   = $fsopt_fullrw;
 						}
 						elsif (defined($opts[2])) {
