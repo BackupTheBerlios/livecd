@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.2 2003/11/21 19:21:08 jaco Exp $
+# $Id: Rules.mk,v 1.3 2003/11/24 05:55:45 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -23,8 +23,10 @@ SPECDATE=$(shell LC_ALL=C date +"%a %b %e %Y")
 
 # Internal directories: don't edit
 DISTDIR=dist
+ICONDIR=icons
 SRCDIR=src
 UTILSDIST=$(PKGNAME)-$(ARCHIVEVER)
+ICONSDIST=$(PKGNAME).icons
 
 # Destination directories: you can change the locations for your site either
 # here or as an override on the make command-line (preferred)
