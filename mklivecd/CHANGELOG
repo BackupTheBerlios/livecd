@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.36 2003/10/04 13:20:53 jaco Exp $
+# $Id: CHANGELOG,v 1.37 2003/10/04 14:56:10 jaco Exp $
 
 * Sat, Oct 04, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -56,6 +56,8 @@
         linuxrc, to setup before MDK init)
       - Added partition reading and fstab generation
       - Generate proper modules.conf from probed devices
+      - Added PCMCIA support and prepared for firewire and other
+        types of busses
     [linuxrc]:
       - Only make symlinks to /var/lib/{rpm,urpmi} directories, the
         rest are actual writables

@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.17 2003/10/04 11:00:43 jaco Exp $
+# $Id: hwdetect.in,v 1.18 2003/10/04 14:56:10 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -71,6 +71,8 @@ my %cmdline;
 my $owndevfsd   = 1;
 my $ownprocusb  = 1;
 my $haveswap    = 0;
+my $haveusb     = 0;
+my $havepcmcia  = 0;
 
 sub rmws {
 	my ($str) = @_;
@@ -187,8 +189,8 @@ sub hwdetect_deinit {
 sub is_mounted {
 	my ($point) = @_;
 	my $mounted = 0;
-	foreach my $mount (cat_('/proc/mounts')) {
-		my ($md, $mp, $mt, $mo, @me) = split(/ /, $mount);
+	foreach my $mountline (cat_('/proc/mounts')) {
+		my ($md, $mp, $mt, $mo, @me) = split(/ /, $mountline);
 		$mounted = 1 if ($mp eq $point);
 	}
 	$mounted;
@@ -212,6 +214,16 @@ sub umount {
 	print $text;
 	$res = system("(umount $point) 2>/dev/null >/dev/null") if ($mounted);
 	$res ? print_failed() : print_success();
+}
+
+sub is_loaded {
+	my ($module) = @_;
+	my $loaded = 0;
+	foreach my $modline (cat_('/proc/modules')) {
+		my ($mod, @mode) = split(/ /, $modline);
+		$loaded = 1 if ($mod eq $module);
+	}
+	$loaded;
 }
 
 sub modprobe {
@@ -244,8 +256,13 @@ sub hwdetect_loadmod {
 	my $done = 0;
 	print_device($module, $vendor, $desc);
 	unless ($module =~ /unknown/) {
-		my $res = modprobe("", $module);
-		$res ? $probe ? print_warning : print_failed() : print_loaded();
+		if (is_loaded($module)) {
+			print_warning();
+		}
+		else {
+			my $res = modprobe("", $module);
+			$res ? $probe ? print_warning : print_failed() : print_loaded();
+		}
 		$done++;
 	}
 	print "\n" unless($done);
@@ -295,37 +312,73 @@ sub hwdetect_getmachine {
 	}
 }
 
-sub hwdetect_probeusb() {
-	print "Probing USB controllers: ";
-	# this is only for kernel 2.4, kernel 2.6 has only one usb
-	# interface module (TODO: cater for 2.6 as well)
-	my @modules = ('usb-uhci', 'usb-ohci');
-	foreach my $module (@modules) {
-		unless (modprobe("-q", $module)) {
-			modules::add_probeall("usb-interface", $module) unless ($probe);
+sub hwdetect_probepci() {
+	print "Probing PCI controllers: ";
+	my @all_pci = ();
+	my @all_bridge = ();
+	my %pciid;
+	eval { @all_pci = detect_devices::pci_probe() and print_success(); } or print_failed();
+	foreach my $pci (@all_pci) {
+		# make sure we display a single type only once
+		unless (defined($pciid{$pci->{id}})) {
+			$pciid{$pci->{id}} = 1;
+			my ($probed_vendor, $probed_desc) = split(/\|/, $pci->{description});
+			if ($pci->{media_type} =~ /USB/) {
+				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
+				modules::add_probeall("usb-interface", $pci->{driver}) unless ($probe);
+			}
+			elsif ($pci->{media_type} =~ /BRIDGE_CARDBUS/) {
+				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
+			}
+			elsif ($pci->{media_type} =~ /BRIDGE_/) {
+				push(@all_bridge, $pci);
+			}
 		}
+		print_hash($pci) if ($debug);
 	}
 
+	# display all the bridges for which we are not loading drivers
+	foreach my $bridge (@all_bridge) {
+		my ($probed_vendor, $probed_desc) = split(/\|/, $bridge->{description});
+		hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
+	}
+
+	# determine the type of busses we need to initialise now
+	$havepcmcia = 1 if (is_loaded('pcmcia_core'));
+	$haveusb = 1 if (is_loaded('usbcore'));
+}
+
+sub hwdetect_initpcmcia() {
+	print "Initialising PCMCIA controllers: ";
+	print_success();
+	print "    Loading base PCMCIA modules: ";
+	my $res = 0;
+	my @modules = ('ds');
+	$res += modprobe("-q", $_) foreach (@modules);
+	$res ? $probe ? print_warning() : print_failed() : print_loaded();
+}
+
+sub hwdetect_initusb() {
+	print "Initialising USB controllers: ";
 	if (-e '/proc/bus/usb') {
 		print_success();
 		if (is_mounted('/proc/bus/usb')) {
 			$ownprocusb = 0;
 		}
 		else {
-			mount("Mounting USB filesystem: ", "-n", "usbdevfs", "none", "/proc/bus/usb");
+			mount("    Mounting USB filesystem: ", "-n", "usbdevfs", "none", "/proc/bus/usb");
 		}
 
 		### load the usb modules that are not loaded automatically
 		# "printer" should be in as well? (does cups stuff :(
-		print "Loading base USB modules: ";
-		@modules = ('mousedev', 'keybdev', 'usb-storage', 'visor');
-		foreach my $module (@modules) {
-			modprobe("-q", $module);
-		}
-		print_success();
+		print "    Loading base USB modules: ";
+		my $res = 0;
+		my @modules = ('mousedev', 'keybdev', 'usb-storage', 'visor');
+		$res += modprobe("-q", $_) foreach (@modules);
+		$res ? $probe ? print_warning() : print_failed() : print_loaded();
 	}
 	else {
-		print_failed();
+		print_failure();
 	}
 }
 
@@ -440,6 +493,7 @@ sub hwdetect_getsound {
 	foreach my $card (@probed_cards) {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
 		modules::add_alias("sound-slot-$num", $card->{driver}) unless ($probe);
+		$num++;
 		hwdetect_loadmod($card->{driver}, $probed_vendor, $probed_desc);
 		print_hash($card) if ($debug);
 	}
@@ -455,6 +509,7 @@ sub hwdetect_getnetwork {
 	foreach my $card (@probed_cards) {
 		my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
 		modules::add_alias("eth$num", $card->{driver}) unless ($probe);
+		$num++;
 		hwdetect_loadmod($card->{driver}, $probed_vendor, $probed_desc);
 		print_hash($card) if ($debug);
 	}
@@ -490,9 +545,7 @@ sub hwdetect_getusb {
 }
 
 sub hwdetect_all {
-	foreach my $device (@all_devices) {
-		print_hash($device) if ($debug);
-	}
+	print_hash($_) foreach (@all_devices);
 }
 
 sub hwdetect_readconf {
@@ -839,7 +892,9 @@ hwdetect_getdisks();
 hwdetect_swapon() if ($haveswap > 0);
 hwdetect_getmachine();
 hwdetect_readconf();
-hwdetect_probeusb();
+hwdetect_probepci();
+hwdetect_initpcmcia() if ($havepcmcia > 0);
+hwdetect_initusb() if ($haveusb > 0);
 hwdetect_probeall();
 hwdetect_all() if ($debug);
 hwdetect_getxfree();
@@ -848,5 +903,5 @@ hwdetect_getnetwork();
 hwdetect_getserial();
 hwdetect_getusb() if -e '/proc/bus/usb/devices';
 hwdetect_writeconf() unless ($probe);
-hwdetect_deinitusb();
+hwdetect_deinitusb() if ($haveusb > 0);
 hwdetect_deinit();
