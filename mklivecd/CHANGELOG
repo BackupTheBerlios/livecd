@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.6 2003/09/26 09:19:47 jaco Exp $
+# $Id: CHANGELOG,v 1.7 2003/09/28 19:03:11 jaco Exp $
 
 * Fri, Sep 26, 2003, 0.5.5-cvs
   Jaco Greeff <jaco@linuxminicd.org>:
@@ -13,6 +13,8 @@
       - Added '--blocksize' option to, accepting sizes in K, eg.
         '--blocksize 224' to use a 224K size for the compressed
         blocks.
+    [mklivecd.spec]:
+      - Synced with contrib spec
 
 
 * Thu, Sep 25, 2003, 0.5.5
