@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.120 2004/02/16 05:43:46 jaco Exp $
+# $Id: CHANGELOG,v 1.121 2004/02/17 06:08:11 jaco Exp $
 
-* Mon, Feb 16, 2004, 0.5.7-cvs
+* Tue, Feb 17, 2004, 0.5.7-cvs
   + Buchan Milne <bgmilne@obsidian.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
@@ -156,6 +156,7 @@
       - Copy modules.dep if it cannot be created
       - Removed bzloop option (only 2.4, no benefit over squashfs)
       - --experminetal option supports LiveCDFS
+      - --debug option for additional debugging output 
     [mklivecd.spec]:
       - Updated URL: http://livecd.berlios.de
       - Synced with MDK contrib spec

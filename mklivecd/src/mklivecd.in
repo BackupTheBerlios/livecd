@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.108 2004/02/10 05:23:14 jaco Exp $
+# $Id: mklivecd.in,v 1.109 2004/02/17 06:08:11 jaco Exp $
 #
 
 use strict;
@@ -109,6 +109,9 @@ General Options:
    --version                       Display version information
    --verbose                       Be verbose in output
    --noclean                       Don't remove temporary files on exit.
+   --debug                         Display some extra debugging information 
+                                   while building the CD. (Usefull for bug 
+                                   reports to the developers.)
 
 Image generation:
    --root <rootdir>                Root directory of the live filesystem to use
@@ -368,6 +371,7 @@ sub parse_options {
 		'version',
 		'verbose+',
 		'noclean',
+		'debug',
 		'root=s',
 		'tmp=s',
 		'img=s',
@@ -727,6 +731,7 @@ sub create_compressed {
 			my $iso = "$loopcmp $o_root $workdir/livecd/livecd.$o_looptype -info -ef $workdir/excludes.list";
 			$iso = "$iso -sort $workdir/sort.list" if (defined($opts{sort})); 
 			$iso = "$iso 2>&1";
+			print "DEBUG: $iso\n" if (defined($opts{debug}));
 			open CMP, "$iso |" or die_("\nFATAL: Unable to execute '$iso'\n");
 			my $line;
 			my $linep = "";
@@ -748,6 +753,7 @@ sub create_compressed {
 			$iso = "$iso -sort $workdir/sort.list" if (defined($opts{sort})); 
 			$iso = defined($loopcmp) ? "$iso $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype" : "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
 			$iso = "($iso) 2>&1";
+			print "DEBUG: $iso\n" if (defined($opts{debug}));
 			open CMP, "$iso |" or die_("\nFATAL: Unable to execute '$iso'\n");
 			my $line;
 			while ($line = <CMP>) {
