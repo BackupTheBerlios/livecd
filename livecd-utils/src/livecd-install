@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.53 2004/01/25 09:33:40 jaco Exp $
+# $Id: livecd-install,v 1.54 2004/01/25 09:41:02 jaco Exp $
 #
 
 package fMain;
@@ -159,7 +159,7 @@ sub getStr {
 
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Sun Jan 25 11:31:20 2004
+# Created: Sun Jan 25 11:38:49 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -3559,7 +3559,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.53 2004/01/25 09:33:40 jaco Exp $
+# $Id: livecd-install,v 1.54 2004/01/25 09:41:02 jaco Exp $
 #
 
 #use LCDLang;
@@ -3686,17 +3686,8 @@ sub init
 {
 	select(STDOUT);
 	$| = 1;
-	
-	# initialise our /proc/cmdline
-	%cmdline = map {
-		chomp;
-		my ($name, $value) = split(/=/);
-		$name => $value || 1;
-	} split(/ /, cat_('/proc/cmdline'));
 
 	# initialise our languages
-	#%strings = getStrings();
-	#%languages = getLanguages();
 	$lang = getMyLang();
 	
 	print getStr('script_init')."\n";
@@ -4346,7 +4337,7 @@ sub toggleReboot # SLOT: ( bool )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.53 2004/01/25 09:33:40 jaco Exp $
+# $Id: livecd-install,v 1.54 2004/01/25 09:41:02 jaco Exp $
 #
 
 package main;

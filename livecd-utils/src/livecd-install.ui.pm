@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.21 2004/01/25 09:33:40 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.22 2004/01/25 09:41:02 jaco Exp $
 #
 
 #use LCDLang;
@@ -155,17 +155,8 @@ sub init
 {
 	select(STDOUT);
 	$| = 1;
-	
-	# initialise our /proc/cmdline
-	%cmdline = map {
-		chomp;
-		my ($name, $value) = split(/=/);
-		$name => $value || 1;
-	} split(/ /, cat_('/proc/cmdline'));
 
 	# initialise our languages
-	#%strings = getStrings();
-	#%languages = getLanguages();
 	$lang = getMyLang();
 	
 	print getStr('script_init')."\n";
