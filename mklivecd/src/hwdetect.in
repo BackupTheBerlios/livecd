@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.139 2004/11/20 01:52:40 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.140 2004/11/20 20:41:08 tom_kelly33 Exp $
 #
 
 use strict;
@@ -1315,7 +1315,7 @@ sub hwdetect_writedisks() {
 		foreach my $dev (sort keys %all_devs) {
 			print $FSTAB "\n# " . $all_devs{$dev}{info};
 			if ($all_devs{$dev}{supermount}) {
-				my $entry = "";
+				my $entry = "\n";
 				$entry .= "none\t";
 				$entry .= $all_devs{$dev}{mount} . "\t";
 				$entry .= "supermount\t";
@@ -1328,7 +1328,7 @@ sub hwdetect_writedisks() {
 				print $FSTAB $entry;
 			}
 			else {
-				my $entry = "";
+				my $entry = "\n";
 				$entry .= $all_devs{$dev}{dev} . "\t";
 				$entry .= $all_devs{$dev}{mount} . "\t";
 				$entry .= $all_devs{$dev}{type} . "\t";
