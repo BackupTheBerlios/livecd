@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.5 2003/09/29 00:32:32 bgmilne Exp $
+# $Id: mklivecd.in,v 1.6 2003/09/29 10:38:39 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -62,6 +62,7 @@ usage () {
 	echo "    --cloop=<image>            Name of the saved compressed image (2)" >&2
 	echo "    --kernel=<kernel>          Kernel to use as boot image" >&2
 	echo "    --looptype=<cloop|bzloop>  Create a cloop (default) or bzloop image (3)" >&2
+	echo "    --lowmem                   Use disk as temporary storage for iso images" >&2
 	echo "" >&2
 	echo "Notes for options:" >&2
 	echo "    1. Patterns passed to these options is to be valid in a grep(1) search, " >&2
@@ -213,9 +214,14 @@ $e"
 			exit 1
 		fi
 		REALSIZE=`echo $blocksize | awk '{ size = $1*1024; print size; }'`
-		do_cmd "nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST \
-			-hide-rr-moved -cache-inodes -no-bak -pad -v -v -gui $rootdir \
-			| $loopcmp - $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP 2>/dev/null"
+		MKISOCMD=nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST -hide-rr-moved -cache-inodes -no-bak -pad -v -v -gui $rootdir"
+		if [ -n "$lowmem" ]; then
+			do_cmd "$MKISOCMD >$TMPISO"
+			do_cmd "$loopcmp $TMPISO $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
+			do_cmd "rm -rf $TMPISO"
+		else
+			do_cmd "$MKISOCMD | $loopcmp - $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
+		fi
 		[ -n "$cloopimg" ] && do_cmd "ln $LIVECDCLOOPDIR/$LIVECDISOCLP $cloopimg"
 	fi
 }
@@ -334,6 +340,10 @@ while [ $# -gt 0 ]; do
 			fi
 			;;
 
+		--lowmem)
+			lowmem=1
+			;;
+
 		--version)
 			echo "mklivecd, version $VERSION, http://www.linuxminicd.org/mklivecd/" >&2
 			echo "Copyright (C) 2002-2003, Jaco Greeff <jaco@linuxminicd.org>" >&2
@@ -355,15 +365,7 @@ while [ $# -gt 0 ]; do
 			exit 0
 			;;
 
-		-h)
-			usage
-			;;
-
-		-?)
-			usage
-			;;
-
-		--help)
+		-h|-?|--help)
 			usage
 			;;
 
@@ -433,6 +435,7 @@ LIVECDDIR=`mktemp -d ${tmpdir}/mklivecd.livecd.XXXXXX`
 INITRDDIR=`mktemp -d ${tmpdir}/mklivecd.initrd.XXXXXX`
 INITRDMNT=`mktemp -d ${tmpdir}/mklivecd.initrd.mnt.XXXXXX`
 EXCLUDELIST=`mktemp ${tmpdir}/mklivecd.excludes.XXXXXX`
+TMPISO=`mktemp ${tmpdir}/mklivecd.iso.XXXXXX`
 MODULESDIR=/lib/modules/$kernel
 ISOLINUXDIR=$LIVECDDIR/isolinux
 INITRD=$ISOLINUXDIR/initrd
@@ -440,7 +443,7 @@ RCFILE=$INITRDDIR/linuxrc
 LIVECDCLOOPDIR=$LIVECDDIR
 
 ### cleanup on exit, hangup, interrupt, quit, termination
-trap 'rm -rf $CLOOPDIR $LIVECDDIR $INITRDDIR $INITRDMNT $EXCLUDELIST' 0 1 2 3 15
+trap 'rm -rf $CLOOPDIR $LIVECDDIR $INITRDDIR $INITRDMNT $EXCLUDELIST $TMPISO' 0 1 2 3 15
 
 ### create directories
 if [ -z "$LIVECDDIR" -o -z "$INITRDDIR" -o -z "$INITRDMNT" -o -z "$CLOOPDIR" ]; then

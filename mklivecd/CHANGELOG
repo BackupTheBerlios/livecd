@@ -1,10 +1,20 @@
-# $Id: CHANGELOG,v 1.7 2003/09/28 19:03:11 jaco Exp $
+# $Id: CHANGELOG,v 1.8 2003/09/29 10:38:39 jaco Exp $
 
-* Fri, Sep 26, 2003, 0.5.5-cvs
+* Mon, Sep 29, 2003, 0.5.5-cvs
   Jaco Greeff <jaco@linuxminicd.org>:
     [FAQ]:
       - Updated FAQ to include some compression parameter
-        statistics (describes mklivecd --blocksize and --looptype)
+        statistics (describes mklivecd '--blocksize' and
+        '--looptype' options)
+    [Makefile]:
+      - Combined piped sed commands into one
+      - Removed non-existing busybox and cloop version
+        replacements for specfile generation (legacy)
+      - Distribute generated specfile by default in 'dist',
+        instead of the previously included '.in' (This allows
+        a build via the "rpmbuild -t[abs] mklivecd-<ver>.tar.bz2"
+        command)
+      - Ability to build CVS dist per date
     [README]:
       - Include CVS location
     [mklivecd]:
@@ -13,9 +23,14 @@
       - Added '--blocksize' option to, accepting sizes in K, eg.
         '--blocksize 224' to use a 224K size for the compressed
         blocks.
+      - Added '--lowmem' option, writing created iso to disk
+        before compression. (Huge saving on memory comsumption
+        for low memory systems, expensive on disk space)
+      - case statement now has one combined entry for '-h', '-?'
+        and '--help' command-line options
     [mklivecd.spec]:
       - Synced with contrib spec
-
+      - Ability to auto-generate version info for changelog
 
 * Thu, Sep 25, 2003, 0.5.5
   Jaco Greeff <jaco@linuxminicd.org>:
@@ -49,7 +64,7 @@
         executables before using them
       - Test that the user indeed has root privledges before
         trying to build the iso image
-      - Display the "short GPL" in "mklivecd --version"
+      - Display the "short GPL" in '--version' option
       - If an unknown option is specified (-*), complain
       - If a target iso is not specified, display the usage info
       - Redirect all error messages to stderr
