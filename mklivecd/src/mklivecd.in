@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.115 2004/09/15 14:28:10 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.116 2004/09/15 14:31:29 tom_kelly33 Exp $
 #
 
 use strict;
@@ -671,7 +671,6 @@ sub create_initrd {
 	set_progress(++$pos, "find $dir | wc -l");
 
 	# do magic
-	print "\n DO MAGIC \n";
 	my $initrd = "$workdir/livecd/isolinux/initrd";
 	my $mnt = "$workdir/initrd.mnt";
 	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos);
@@ -685,14 +684,9 @@ sub create_initrd {
 
 	# make splash
 	print "\n Make Splash \n";
-	#do_cmd("mv -f $initrd.gz $o_root/tmp ; \
-	#	chroot $o_root /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz $o_resolution; \
-	#	mv -f $o_root/tmp/initrd.gz $workdir/livecd/isolinux", ++$pos) if ($o_splash =~ m/yes/);
-	if ($o_splash =~ m/yes/) {
-		do_cmd("mv -f $initrd.gz $o_root/tmp", ++$pos);
-		do_cmd("chroot $o_root /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz $o_resolution", ++$pos);
-		do_cmd("mv -f $o_root/tmp/initrd.gz $workdir/livecd/isolinux", ++pos);
-	}
+	do_cmd("mv -f $initrd.gz $o_root/tmp ; \
+		chroot $o_root /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz $o_resolution; \
+		mv -f $o_root/tmp/initrd.gz $workdir/livecd/isolinux", ++$pos) if ($o_splash =~ m/yes/);
 	# we are done
 	end_progress();
 }
