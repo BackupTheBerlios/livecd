@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.37 2003/10/04 14:56:10 jaco Exp $
+# $Id: CHANGELOG,v 1.38 2003/10/04 16:10:43 jaco Exp $
 
 * Sat, Oct 04, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -39,6 +39,7 @@
     [Rules.mk]:
       - Added file containing all variables from original Makefile
       - Added default keyboard mapping variable
+      - Added default resolution and vgamode mapping variables
     [README]:
       - Include CVS location
     [hwdetect]:
@@ -91,6 +92,9 @@
         now to cater for trhe mklivecd options
       - Added '--iso-bootkey=<key>,<msg>' option
       - Be less verbose by default, '--verbose' option works now
+      - Added '--resolution' option for fb resolution setup
+      - Added '--splash' option to try and create a bootsplash
+        initrd
     [mklivecd.spec]:
       - Synced with contrib spec
       - Ability to auto-generate version info for changelog

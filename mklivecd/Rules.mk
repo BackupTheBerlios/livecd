@@ -1,8 +1,12 @@
-# $Id: Rules.mk,v 1.7 2003/10/03 13:45:54 jaco Exp $
+# $Id: Rules.mk,v 1.8 2003/10/04 16:10:43 jaco Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
 DEF_KEYBOARD=us
+
+# these two parameters problably needs to match up
+DEF_RESOLUTION=800x600
+DEF_VGAMODE=788
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -58,3 +62,19 @@ RPMBUILD=$(shell which rpmbuild)
 SED=$(shell which sed)
 TAR=$(shell which tar)
 TOUCH=$(shell which touch)
+
+# these are files in the root dir
+DOCDIST=AUTHORS \
+	CHANGELOG \
+	COPYING \
+	FAQ \
+	README \
+	TODO \
+	Makefile \
+	Rules.mk \
+	$(DISTDIR)/$(PKGNAME).spec
+
+# these are files in the src dir
+SRCDIST=$(SRCDIR)/linuxrc.in \
+	$(SRCDIR)/$(PKGNAME).in \
+	$(SRCDIR)/hwdetect.in

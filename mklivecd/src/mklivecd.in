@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.23 2003/10/04 09:50:12 jaco Exp $
+# $Id: mklivecd.in,v 1.24 2003/10/04 16:10:43 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -54,6 +54,9 @@ isokeyboard=""
 isobootmsg=""
 isoimage=""
 isobootkeymsg=""
+resolution="@DEF_RESOLUTION@"
+vgamode="@DEF_VGAMODE@"
+bootsplash=""
 
 usage () {
 	echo "Usage:" >&2
@@ -95,6 +98,8 @@ usage () {
 	echo "    --iso-graphic              Use the Mandrake boot image extension" >&2
 	echo "    --iso-bgimage=<image.lss>  Use 'image.lss' as the isolinux display image" >&2
 	echo "    --keyboard=<mapping>       Specify a different keyboard layout (default: @DEF_KEYBOARD@)" >&2
+	echo "    --resolution=<res>         Specify the resolution for the framebuffer (default: @DEF_RESOLUTION@)" >&2
+	echo "    --splash                   Create with bootsplash if availble on image" >&2
 	echo "" >&2
 	echo "Examples:" >&2
 	echo "    `basename $0` --exclude-dir=\"^/usr/src/RPM ^/root/tmp\" livecd.iso" >&2
@@ -250,10 +255,15 @@ create_initrdimg() {
 	do_cmd "(cd $INITRDDIR; tar cf - .) | (cd $INITRDMNT; tar xf -)"
 	do_cmd "umount $INITRDMNT"
 	do_cmd  "(cd $ISOLINUXDIR ; gzip -9 initrd)"
-	[ -x ${rootdir}usr/share/bootsplash/scripts/make-boot-splash ] && \
-		do_cmd "(mv -f $ISOLINUXDIR/initrd.gz ${rootdir}tmp/; \
-		         chroot ${rootdir} /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz 1024; \
-			 mv -f ${rootdir}tmp/initrd.gz $ISOLINUXDIR)"
+	if [ -n "$bootsplash" ]; then
+		if [ -x ${rootdir}usr/share/bootsplash/scripts/make-boot-splash ]; then
+			do_cmd "(mv -f $ISOLINUXDIR/initrd.gz ${rootdir}tmp/; \
+		        	chroot ${rootdir} /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz $resolution; \
+				mv -f ${rootdir}tmp/initrd.gz $ISOLINUXDIR)"
+		else
+			echo "WARNING: '${rootdir}usr/share/bootsplash/scripts/make-boot-splash' does not exist. Creating initrd image without bootsplash" >&2
+		fi
+	fi
 }
 
 ### create the compressed iso image
@@ -359,11 +369,11 @@ create_isolinux() {
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo 'label livecd' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '    append initrd=initrd.gz devfs=mount fastboot=yes nomodules ramdisk_size=32000 root=/dev/rd/3 vga=788 automatic=method:cdrom $isokeyboard' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    append initrd=initrd.gz devfs=mount fastboot=yes nomodules ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard $bootsplash' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo 'label initrd' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '    append livecd=initrd initrd=initrd.gz devfs=mount fastboot=yes nomodules ramdisk_size=32000 root=/dev/rd/3 vga=788 automatic=method:cdrom $isokeyboard' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    append livecd=initrd initrd=initrd.gz devfs=mount fastboot=yes nomodules ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard $bootsplash' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo 'label memtest' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '    kernel memtest' >>$ISOLINUXDIR/isolinux.cfg"
@@ -491,6 +501,10 @@ while [ $# -gt 0 ]; do
 			final=1
 			;;
 
+		--splash)
+			bootsplash="splash=yes"
+			;;
+
 		--keyboard*)
 			if echo $1 | grep '=' >/dev/null ; then
 				mapping=`echo $1 | sed 's/^--keyboard=//'`
@@ -499,6 +513,42 @@ while [ $# -gt 0 ]; do
 				shift
 			fi
 			isokeyboard="keyb=$mapping"
+			;;
+
+		--resolution*)
+			if echo $1 | grep '=' >/dev/null ; then
+				resolution=`echo $1 | sed 's/^--resolution=//'`
+			else
+				resolution=$2
+				shift
+			fi
+			case $resolution in
+				640*)
+					vgamode=785
+					;;
+				800*)
+					vgamode=788
+					;;
+				1024*)
+					vgamode=791
+					;;
+				1280*)
+					vgamode=794
+					;;
+				1600*)
+					vgamode=797
+					;;
+				*)
+					echo "ERROR: Invalid resolution '$resolution' specified with '--resolution' option" >&2
+					echo "       Valid resolutions are: ">&2
+					echo "            640x480" >&2
+					echo "            800x600" >&2
+					echo "           1024x768" >&2
+					echo "          1280x1024" >&2
+					echo "          1600x1200" >&2
+					exit 1
+					;;
+			esac
 			;;
 
 		--iso-bootmsg*)
