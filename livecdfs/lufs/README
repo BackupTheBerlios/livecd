@@ -1,0 +1,394 @@
+LUFS – Linux Userland File System
+(sshfs, ftpfs, localfs, locasefs, gnutellafs, gvfs, cardfs, cefs)
+
+1. INTRODUCTION
+
+For those not interested in technicalities: 
+
+LUFS is enabling you to mount into your file hierarchy a remote computer's file system, which is accessible by various means (ftp, ssh, etc.). Then, the access to the remote files will be completely network transparent. In other words, you'll be able to read/modify remote files as if they were local, watch movies/listen to MP3s from FTP/SSH/Gnutella servers without copying them locally. Sheer magic. Now skip to the next section.
+
+LUFS is a hybrid userspace file system framework supporting an indefinite number of file systems transparently for any application. It consists of a kernel module and an userspace daemon. Basically it delegates most of the VFS calls to a specialized daemon which handles them.
+
+The reason for the userspace stuff: there are operations only suited for userspace (cryptography  for example) and implementing them in kernel would be bloat.
+
+The reason for the kernel stuff: I think it's important to keep the file system access point at the lowest level in order to allow all the applications to use it. Consider KDE: it implements its own virtual file system, a great one, but only KDE applications can take advantage of it. So does GNOME, MC and others. Suddenly we have lots of  overlapping userspace file system implementations, a real waste...
+
+Communication between the kernel module and the daemon is done through UNIX domain sockets. This makes LUFS best suited for networked file systems, where this indirection overhead (userspace <-> kernel <-> userspace) is small compared to the speed penalty due to the network itself.
+
+LUFS can be regarded as doing the same job as the VFS (virtual file system switch) in the kernel: it is a switch, distributing the file system calls to its supported file systems. With a big difference: LUFS file systems are implemented in userspace. This would be a drawback for local file systems where the access speed is important, but proves to be a huge advantage for networked file systems where the userland flexibility is most important.
+
+This flexibility allowed for implementation of SSHFS for example, in a pretty straightforward manner, using the already existing openssh infrastructure. Lots of other “exotic” file systems are in the planning phase: socketfs, httpfs, webdavfs, freenetfs, etc. Just imagine mounting a freenet file system and accessing all the goodies as they were local...
+
+Everything is a file and if not, it should be!
+
+2. FILE SYSTEMS
+
+This section describes the file systems distributed with LUFS and provides some real mount examples. Other file systems might also be available.
+
+The options presented here are file system specific, for a list of the global options please consult the USAGE section and the lufsmount(1) man page.
+
+
+
+2.1 LOCALFS
+
+LocalFS is a proof of concept and didactic file system, meant to demonstrate the framework's power. All it does is mirror the local tree on the mountpoint. Consider it a tutorial ;)
+
+It is a complete (and inefficient for simplicity's sake) implementation.
+
+Specific mount options: none.
+
+Mount example:
+
+[user@localhost]$ lufsmount localfs:// ~/mnt/lufs -–uid=505
+
+or, using mount:
+[root@localhost]# mount -t lufs none /mnt/lufs -o fs=localfs,uid=505
+
+
+
+
+2.2 LOCASEFS
+Contributed by: Timothee Besset <ttimo@idsoftware.com>
+
+LoCaseFS provides a lowercase mapping of the local file system. It comes in handy when importing win32 source trees on *nix systems.
+
+It is a complete implementation (based on localfs, it could use some optimizations). 
+
+Specific mount options: none
+
+Mount example:
+
+[user@localhost]$ lufsmount locasefs:// ~/mnt/lufs -–uid=505
+
+or, using mount:
+[root@localhost]# mount -t lufs none /mnt/lufs -o fs=locasefs,uid=505
+
+
+
+
+2.3 SSHFS
+Requires: ssh ( http://www.openssh.org ).
+
+SshFS is probably the most advanced LUFS file system because of its security, usefulness and completeness. It is based on the SFTP protocol and requires openssh. You can mount remote file systems accessible through sftp (scp utility).
+
+It is a complete implementation. 
+
+
+Specific mount options:
+
+host=server	: the sftp server to mount (authentication should be properly configured, see below)
+port=port	: the port the sftp server is listening on
+username=user	: the user to authenticate on the server (see INSTALLATION)
+
+I recommend setting up public key authentication (DSA or RSA based) on the remote system for the mounting user when using sshfs. This will allow the daemon to open several channels without any user interaction. Consult the ssh(1) manual page or try the lussh script for ssh setup.
+
+lussh is a helper script which tries to automatically setup public key authentication for ssh. You will be prompted for the ssh server and the remote username by the script and for the remote user's password by openssh. If you are prompted for the password more that twice, then public key authentication setup failed for the given server/user.
+
+It is possible to use sshfs without a public key authentication setup (provided you have openssh-askpass-gnome or some other ssh authentication helper) but you will be asked for passwords interactively. If this is annoying, you can reduce the number of communication channels (channels=1 option).
+
+Mount example:
+
+[user@localhost]$ lufsmount sshfs://mali@lufs.sourceforge.net ~/mnt/lufs –-fmask=444 -–dmask=555
+
+or, using mount:
+[root@localhost]# mount -t lufs none /mnt/lufs -o nosuid,fs=sshfs,host=lufs.sourceforge.net,username=mali,fmode=444,dmode=555
+
+
+
+2.4 FTPFS
+
+FtpFS is a port of an old kernel implementation ( http://ftpfs.sourceforge.net ). Based on  FTP, this file system  allows you to mount ftp sites locally.
+
+Because of FTP's nature, there are some limitations: 
+the communication is in clear
+some operations are not supported by the protocol
+some operations are not supported by specific server implementations
+
+Specific mount options:
+
+host=server	: the ftp server to mount
+port=port	: the port the ftp server is listening on
+username=user	: the user to authenticate on the server
+password=pass	: the user's password
+ftpactive		: will use active data connection (the server initiates the data connection) instead of passive data connection (the client opens the connection)
+
+If no username is supplied, LUFS will try anonymous access.
+If the ftp server only allows a limited number of logins from a certain IP (1 per IP), you should limit the number of channels with the channels option ( channels=1 ).
+
+Mount example:
+
+[user@localhost]$ lufsmount ftpfs://mali:mypass@ftp.sourceforge.net ~/mnt/lufs -o ftpactive
+
+or, using mount:
+[root@localhost]# mount -t lufs none /mnt/lufs -o nosuid,fs=ftpfs,host=ftp.sourceforge.net,username=mali,password=mypass,ftpactive
+
+
+
+2.5 GNUTELLAFS (GNETFS)
+
+OK, it's time to fasten your seatbelt and hold your breath: Kansas is going bye-bye 'cause you're about to swallow the red pill.
+
+Forget everything you knew about file sharing clients. This is a glimpse of the future...
+
+You mount a gnetfs in ~/gnet. You wait a couple of minutes so it can establish its peer connections. You start a search by creating a subdirectory of SEARCH: mkdir “~/gnet/SEARCH/metallica mp3”. You wait a few seconds for the results to accumulate. The you chdir to “SEARCH/metallica mp3” and try a ls: surprise – the files are there! You shoot up mpg123 and enjoy... You are happy.
+
+Sounds too good to be true? Well, it's here... 
+
+GnetFS is a Gnutella network interface. You can perform searches and access resources without downloading them locally.
+
+Specific options:
+known_peers=MAX		: maximum number of known peers (see below)
+hostX=IP:port		: known peer – specify initial peers (X < MAX)
+
+All these have sane defaults in /etc/lufsd.conf so you can just ignore them. Just make sure you specify a small dir_cache_ttl so that the directory cache won't get in your way (the gnutella results are cached anyway).
+
+In order to start a search you create a subdirectory of SEARCH. A search for the text in subdirectory's name will be started in background and results added to that dir gradually. Once you have some results, you can start accessing (read-only) them. When you are no longer interested in that search, you simply erase the directory.
+
+Note: You need some serious bandwidth in order to enjoy gnetfs. LAN is great, DSL will do. Maybe cable too.
+
+IMPORTANT: gnetfs is EXPERIMENTAL! At least the searches seem to be working OK while for transfers you need to be lucky (but this is no news to gnutella users, is it?:) . The gnutella back-end is incomplete and only implements the bare basics needed for file searching/download – no uploads/sharing (the gnutella guys are probably out to get me as I write :). Hope this will change soon, I'm stuck with a dialup connection for now so I'm counting a LOT on your feedback.
+
+Mount examples:
+
+[user@localhost]$ lufsmount gnetfs:// ~/gnet -o dir_cache_ttl=1
+
+or, using mount:
+
+[user@localhost]# mount -t lufs none /mnt/gnet -o fs=gnetfs,dir_cache_ttl=1
+
+
+
+2.6 GVFS (GnomeVFS)
+Requires: Gnome, libnomevfs (http://www.gnome.org)
+
+GVFS is an adapter file system linking lufs to Gnome's vfs. Thus, you gain access to the vfs functionality implemented in Gnome from all the applications. While not a very bright idea in itself (I think Gnome should use lufs or a similar concept) this might add some value to lufs considering the number of existing Gnome vfs modules.
+
+The functionality is dependent on that of the used Gnome VFS module, which (for gnomevfs-1 at least) isn't exactly impressive. The ftp and ssh modules especially, don't even come close to their lufs native corespondents.
+
+Specific mount options:
+
+No specific options, but the root option is mandatory and has a special meaning: it specifies the Gnome VFS URI to mount (thus it includes the protocol, host and all the other meaningful components) preceded by a “/” (example: root=/smb://station2).
+
+Mount examples:
+[user@localhost]$ lufsmount gvfs:///ssh://mali@ssh.sf.net ~/mnt/lufs
+
+[user@localhost]$ lufsmount gvfs:///file:/ ~/mnt/lufs
+
+or, using mount:
+[root@localhost]# mount -t lufs none /mnt/lufs -o fs=gvfs,root=/ftp://mali:xxxxx@ftp.sf.net
+
+[root@localhost]# mount -t lufs none /mnt/lufs -o fs=gvfs,root=/start-here:/
+
+
+
+2.7 CARDFS
+Contributed by: Martin Preuss < m_preuss@hamburg.de  >.
+Requires: libchipcard ( http://www.libchipcard.de ).
+
+This module allows you to mount memory card file systems. It requires the latest CVS libchipcard version.
+
+You must enable cefs support at configure time, using  --enable-cardfs if you want this file system to be built.
+
+Specific mount options:
+
+host=teminal@address	: terminal is the short name of your terminal (tow1,
+pcsc0 or whatever name you assigned to your terminal). If omitted the default terminal will be used.
+address is the address the cardfs daemon listens on (cardfsd's -a option)
+port=port		: the port that cardfsd is listening on (-p option)
+username=user		: the name used to authorize yourself to the card (only needed if encryption is enabled on the card)
+password=pass		: the password used for encryption/decryption
+
+You must start libchipcard's cardfs daemon before mounting the file system:
+[root@localhost]# cardfsd -a ADDRESS_TO_BIND_TO -p PORT_TO_BIND_TO
+
+Mount example:
+
+[root@localhost]# lufsmount cardfs://myusr:password@ttyS0@127.0.0.1:9770 /mnt/lufs
+
+or, using mount:
+[root@localhost]# mount -t lufs none /mnt/lufs -o nosuid,fs=cardfs,username=myusr,password=mypass,host=ttyS0@127.0.0.1,port=9770
+
+
+
+2.8 CEFS
+Contributed by: Fedor Bezrukov < fedor@ms2.inr.ac.ru >
+
+This lufs module allows access to a CE device's (HP (Compaq) IPAQ, HP Jornada, etc...) file system.
+
+You must enable cefs support at configure time, using  --enable-cefs if you want this file system to be built.
+
+Specific mount options:
+
+No specific options here. Simply mount the file system after connecting your PDA.
+Check out cefs.txt for detailed information.
+
+Mount example:
+
+[user@localhost]$ lufsmount cefs:// ~/mnt/lufs
+
+or, using mount:
+[root@localhost]# mount -t lufs none /mnt/lufs -o nosuid,fs=cefs
+
+3. BUILD & INSTALLATION
+
+3.1 SOURCE DISTRIBUTION
+
+In order to build LUFS you need to have the running kernel's headers installed. Check whether /lib/modules/`uname -r`/build/include is pointing to the running kernel's include dir.
+
+IMPORTANT:
+The kernel module requires the same compiler that was used for your running kernel's build. 
+
+Executing 
+
+[root@localhost]# ./configure [options]
+[root@localhost]# make
+[root@localhost]# make install
+
+as root in the top lufs directory should build and install the application. 
+
+The non-standard configure options are:
+
+--with-kernel=VERSION	configure for the specified kernel version (skip
+auto-detection)
+--with-kheaders=DIR	specify the location of the kernel headers (skip
+auto-detection)
+--with-ssh=SSH		specify the location of the ssh executable
+--enable-debug		enable debug messages from the daemon
+--enable-kdebug		enable debug messages from the kernel module
+--enable-cardfs		enable cardfs support
+--enable-cefs		enable cefs support
+--enable-autofs-install	enable installing of autofs config file
+--enable-modversions	force modversions kernel support
+--disable-suid		lufsmnt and lufsumount will not be made suid (regular 
+users won't be able to mount lufs).
+--disable-kernel-support	do not build & install the required kernel module
+(useful when your kernel is already patched for lufs support) 
+
+
+
+3.2 PATCHED KERNEL
+
+If for some reason (read modversions:) the kernel module fails to compile and install properly, you can try to patch the kernel manually.
+
+Download the patch for your kernel version (if available) into your kernel's source top directory. Apply it by
+
+[user@localhost ~/linux-2.4.19]$ zcat lufs-x.x.x-x.x.x.patch.gz | patch -Np1
+
+Then proceed with building and installing your kernel, not forgetting to reconfigure it, enabling LUFS under FILE SYSTEMS section first (it requires development/incomplete drivers and UNIX domain sockets).
+
+The rest of the package can then be easily installed as described above, specifying –disable-kernel-support when running ./configure.
+
+
+
+3.3 DEBUG BUILD
+
+So you've got lufs installed but bumped right into that nasty buggy... The cruel realization of lufs' imperfection overwhelms you... But wait, maybe you can do something about it!
+
+Don't  worry, I'm not gonna tell you to shoot gdb up and start hacking. Just make a debug build of lufs, try to replicate the problem and send me a bug report along with some log files. I will (try to) take care of the rest. 
+
+[root@localhost]# ./configure -–enable-debug -–enable-kdebug
+[root@localhost]# make clean
+[root@localhost]# make 
+[root@localhost]# make install
+
+When mounting, redirect stdout and stderr to some files :
+
+[root@localhost]# lufsmount ftpfs://mali@ftp.sourceforge.net ~/mnt >lufsd.log 2>lufsd.err
+
+Now try to replicate the problem and send me a bug report along with lufsd.err and lufsd.log plus a tail of your /var/log/messages (or whatever holds your kernel's logs). The bug report should contain information about you system (distro, kernel version, gcc version, etc.) and a description of what you did to bring up the bug.
+
+Your help will be appreciated!
+
+
+
+4. USAGE
+
+4.1 MOUNTING:
+
+NOTE: Regular users can mount/unmount lufs file systems using lufsmount/lufsumount if suid is set on these mount wrappers (see INSTALLATION).
+
+For your convenience, a mounting utility is provided (lufsmount) which allows a more natural interface. 
+
+Lufsmount <file_system>://[<user>[:<pass>]@][<host>][:<port>][/<remote_root>] <mountpoint> [OPTIONS]
+
+The -h flag provides a complete description of the available options.
+
+Notes: 
+“/”, ”:”, “@” are treated as separators by lufsmount. If one of the parameters contains such characters, you shouldn't use lufsmount. 
+lufsmount is just a parameter parser actually, which in turn calls lufsd with formated parameters, so you could use lufsd if you run into lufsmount's limitations.
+
+Another way to mount a LUFS is by calling lufsd directly:
+
+lufsd none mountpoint -o options[...]
+
+where the options have exactly the same syntax as when using mount (see below).
+
+Besides lufsmount & lufsd, you can always count on good ol' mount. You'll probably not be able to use mount as a regular user though... The general syntax for mounting a LUFS file system is
+
+mount -t lufs none mountpoint -o nosuid,fs=file_system[,uid=id][,gid=id][,fmask=mode][,dmask=mode][,channels=nr_chan][,root=remote_root][,own_fs][,quiet][,...]
+
+fs=file_system	: the file system type to mount (localfs, sshfs, ftpfs)
+uid=id		: the uid to own the mounted fs
+gid=id		: the gid to own the mounted fs
+fmask=mode	: the minimal permissions to be set on each file
+dmask=mode	: the minimal permissions to be set on each directory
+channels=nr_chan	: the number of communication channels to open for a mounted fs
+root=remote_root	: the remote directory to be mapped on the file system's root
+own_fs		: the whole file system will be owned by the mounting user
+quiet		: disable all logging (close all file descriptors)
+dir_cache_ttl=secs	: number of seconds a directory cache entry is valid
+
+The nosuid option is automatically appended, so that all the remote file systems are treated as untrusted.
+
+Sensitive information (passwords) will not be written in /etc/mtab.
+
+The number of communication channels represents the number of independent channels that will be used for a mounted file system. More of these insure better performance when multiple processes access the file system. Ideally, one channel per accessing process would allow optimum performance. There is a channel setup and resource overhead though, so a number of ~7 channels should not be exceeded. In some cases, multiple channels may cause problems (ftp servers only allowing a limited number of logins from a certain IP), so the channels option allows you to specify a reduced number (possibly 1).
+
+For file system specific options and examples check out the FILE SYSTEMS section.
+
+
+
+4.2 UNMOUNTING:
+
+As root, you can simply use umount in order to unmount a lufs file system. That is:
+
+#umount /mnt/lufs
+
+A regular user will have to use the suid-ed lufsumount:
+
+$lufsumount ~/mnt/lufs
+
+Of course, a regular user will only be able to unmount file systems mounted by himself.
+
+
+4.3 AUTOFS SUPPORT:
+
+LUFS provides autofs executable maps for ftpfs and sshfs (auto.ftpfs and auto.sshfs). These can be used in /etc/auto.master as follows:
+
+# Sample auto.master file
+# Format of this file:
+# mountpoint map options
+# For details of the format look at autofs(8).
+/mnt/net/ssh    /etc/auto.sshfs --timeout=60
+/mnt/net/ftp    /etc/auto.ftpfs --timeout=60
+
+
+Then, after restarting automount (/etc/init.d/autofs restart), you can access ssh and ftp servers more easily:
+
+$ cd /mnt/net/ftp/ftp.kernel.org/pub
+$ ls -al /mnt/net/ssh/mali@lufs.sourceforge.net
+
+
+Mounting and unmounting is taken care of by autofs.
+
+Notes:
+the --enable-autofs-install configure parameter will configure autofs for /mnt/net/ssh and /mnt/net/ftp automatically.
+for sshfs to function properly under autofs, public key authentication must be configured for root (or whoever is running automount - see the SSHFS section).
+
+
+4.4 PERMISSIONS MAPPING
+
+Two methods are available for mapping remote permissions locally:
+
+normal mapping:	the file/dir permissions are preserved and the owner changed accordingly (either the mounting user, or some neutral – uid=gid=2 – if the file is not owned remotely). This mode is active by default.
+forced ownership:	all the files/dirs are owned by the mounting user and the permissions are changed to reflect real access rights (if the file is not owned remotely, then the local “user” and “group” permissions will be the same as remote “other”). This mode is activated by the own_fs option.

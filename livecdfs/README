@@ -1,0 +1,2 @@
+Uasge: 
+mount -t lufs none /mnt/loopfs -o fs=livecdfs,rw_tmp=/tmp,ro_root=/initrd/loopfs

@@ -1,0 +1,12 @@
+Martin Preuss <m_preuss@hamburg.de>    - cardfs, initial autotools port.
+Fedor Bezrukov <fedor@ms2.inr.ac.ru>   - cefs.
+Jaroslav Rohel <rohel@kn.vutbr.cz>     - Novell Netware FTP support.
+Timothee Besset <ttimo@idsoftware.com> - locasefs.
+David Wilson <>			       - rpm spec file.
+Zachary Bedell <aramis@adirondack.net> - Windows NT FTP support.
+Karen Pease <karen-pease@uiowa.edu>    - localfs comments.
+Valient Gough <vgough@pobox.com>       - root path fixes.
+Denys Duchier <>                       - restart interrupted syscalls fix.
+Eric Green <eric@badtux.org>           - large file support, various fixes.
+James Marsh <marshj@cs.man.ac.uk>      - fsync support
+Pierre-Frederic Caillaud <pfcaillaud@wanadoo.fr> - wavfs

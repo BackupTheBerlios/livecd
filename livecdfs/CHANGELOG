@@ -1,0 +1,6 @@
+# $Id: CHANGELOG,v 1.1 2004/01/18 15:47:52 jaco Exp $
+      
+* Sun, Jan 18, 2004, 0.1.0-cvs
+  + Jaco Greeff <jaco@linuxminicd.org>:
+    [liblufs-livecdfs.so]:
+      - Initial version, WIP

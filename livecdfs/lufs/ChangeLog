@@ -1,0 +1,199 @@
+[05.28.2003] - Florin Malita <mali@go.ro>
+    * fixed the "hanging on access" bug (glibc, pthreads linking order issue)
+    * merged null fsync patch from James Marsh
+    * merged wavfs from Pierre-Frederic Callaud
+    
+[03.24.2003] - Florin Malita <mali@go.ro>
+    * updated kernel 2.5 support
+
+[03.08.2003] - Florin Malita <mali@go.ro>
+    * added large file support - patch from Eric Green(generic, localfs, sshfs).
+    * added ftpfs large file support
+    * fixed lufsmount's port option problem
+    * fixed (hopefully) the accept failure bug
+    * updated documentation
+            
+[02.10.2003] - Florin Malita <mali@go.ro>
+    * fixed password hiding bug (for passwords > 7 chars)
+
+[02.06.2003] - Florin Malita <mali@go.ro>
+    * fixed a small ftpfs chmod problem
+    * changed the debug enabling flag to DEBUG
+    * fixed mountpoint lookup problem - no more needed, absolute symlinks 
+      are translated to relative
+    * added a kernel patch and --disable-kernel-support config option
+              
+[01.29.2003] - Florin Malita <mali@go.ro>
+    * added gnutellafs (gnetfs) - EXPERIMENTAL!
+    * fixed a segfault on some mount failures
+
+[01.25.2003] - Florin Malita <mali@go.ro>
+    * merged interrupted system calls patch from Denys Duchier
+    * merged root dir patch from Valient Gough
+    * merged localfs doc patch from Karen Pease
+    * fixed ".", ".." direntry issues. filesystems are no longer required to
+      fill these in at the beginning of a directory
+        
+[01.18.2003] - Florin Malita <mali@go.ro>
+    * added dircache control options ('dir_cache_ttl' & 'dir_cache_entries')
+    * fixed lufsmount root_dir problem
+    * slight fs interface change - introduced the global context parameter
+      this can be safely ignored by most filesystems
+       
+[01.17.2003] - Florin Malita <mali@go.ro>
+    * fixed a nasty security regression introduced in 0.9: ps showing passwords
+
+[01.14.2003] - Florin Malita <mali@go.ro>
+    * fixed direntry case insensitivity problem
+    * full Linux 2.5 kernel support
+    
+[01.12.2003] - Florin Malita <mali@go.ro>
+    * fixed annoying page_cache problem
+    
+[01.09.2003] - Florin Malita <mali@go.ro>
+    * fixed sshfs banner problem
+    * fixed a write problem introduced in 0.9.0pre1
+    
+[01.08.2003] - Florin Malita <mali@go.ro>
+    * ported all utils to C
+    * took out all fs specific knowledge from lufsmount
+        
+[01.07.2003] - Florin Malita <mali@go.ro>
+    * initial Linux 2.5 kernel support - probably doesn't work yet...
+    * fixed a gvfs directory listing bug
+    * fixed small ftpsys_windows.cpp compile problem
+        
+[01.03.2003] - Florin Malita <mali@go.ro>
+    * new "--with-ssh=PATH" configure option
+
+[12.20.2002] - Florin Malita <mali@go.ro>
+    * added NT FTP support patch from Zach
+    * unified configuration & options handling
+        
+[12.19.2002] - Florin Malita <mali@go.ro>
+    * rewrote lufsd in plain C
+    * the daemon<->fs_modules interface is now C function based
+    * changed the project dir tree layout 
+    
+[12.14.2002] - Florin Malita <mali@go.ro>
+    * added lufsmount man page
+
+[12.11.2002] - Florin Malita <mali@go.ro>
+    * added ftpfs chmod support
+    * fixed some setattr refresh issues
+
+[12.09.2002] - Florin Malita <mali@go.ro>
+    * fixed special character passwords bug
+    * dynamic loading of fs modules
+    * kernel module coding style update
+            
+[12.02.2002] - Florin Malita <mali@go.ro>
+    * cleaned up error logging (less verbose)
+    * faster/cleaner unmount procedure
+    * got rid of the "dangerous" tempnam warning
+        
+[11.25.2002] - Florin Malita <mali@go.ro>
+    * added 'own_fs' support in lufsmount
+    
+[11.23.2002] - Florin Malita <mali@go.ro>
+    * fixed obscure bug causing "random" directory listing failures
+    * added autofs support
+    
+[11.21.2002] - Florin Malita <mali@go.ro>
+    * cefs patch from Fedor
+    * fixed module symbols problem
+    * hide password in arguments list
+    * added "own_fs" option
+            
+[11.07.2002] - Florin Malita <mali@go.ro>
+    * 0.8.0 is ready: 2 new filesystems (locasefs, gvfs).
+
+[11.06.2002] - Florin Malita <mali@go.ro>
+    * merged locasefs by ttimo.
+    * additional info to mtab record
+    
+[11.05.2002] - Florin Malita <mali@go.ro>
+    * added initial gnome-vfs (gvfs) support.
+
+[11.04.2002] - Florin Malita <mali@go.ro>
+    * added sshfs "port" option. 
+    * fixed build dependencies problem.
+    
+[11.03.2002] - Florin Malita <mali@go.ro>
+    * weird gcc3.2 bug workaround.
+
+[10.21.2002] - TTimo <ttimo@idsoftware.com>
+    * finished localfs lowercase implementation
+    
+[10.10.2002] - Florin Malita <mali@go.ro>
+    * lufs blocksize set to 512, for more accurate du results.
+
+[10.09.2002] - Florin Malita <mali@go.ro>
+    * added the lussh script for easy ssh public key authentication setup.
+
+[10.02.2002] - Florin Malita <mali@go.ro>
+    * added remote credentials checking for accurate permissions mapping.    
+    * merged Fedor's cefs update
+    * bugfixes
+    
+[09.30.2002] - Florin Malita <mali@go.ro>
+    * added suid lufsmnt and lufsumount for regular user mounts/umounts.
+    * redesigned the daemon. it is now started on demand, under regular privileges.
+    * the "lufs" user is no longer needed.
+    
+[09.15.2002] - Florin Malita <mali@go.ro>
+    * another "stale NFS file handle" causing bug got fixed. Looks like it's
+      a whole class...
+    * added "channels" option to workaround connection limiting servers.
+    
+[09.13.2002] - Florin Malita <mali@go.ro>
+    * fixed the big bad "NFS file handle" buggy.
+    * fixed some more symlink bugs.
+    
+[09.11.2002] - Florin Malita <mali@go.ro>
+    * fixed the gcc3.x compile problem.
+    * fixed the mountpoint discovery bug.
+    
+[09.02.2002] - Florin Malita <mali@go.ro>
+    * optimized the I/O path (eliminated unnecessary copy)
+    * fixed some sshfs symlink bugs
+    * cleaned up the filesystem API
+    * added Novell Netware FTP support by Jaroslav Rohel <rohel@kn.vutbr.cz>
+
+[08.28.2002] - Florin Malita <mali@go.ro>
+    * converted to automake/autoconf
+    * added cardfs by Martin Preuss <m_preuss@hamburg.de>
+    * added cefs by Fedor Bezrukov <fedor@ms2.inr.ac.ru>
+    
+[08.27.2002] - Florin Malita <mali@go.ro>
+    * rewrote daemon using pthreads
+    * added remote_root option
+    
+[08.25.2002] - Florin Malita <mali@go.ro>
+    * fixed localfs read bug
+
+[08.16.2002] - Florin Malita <mali@go.ro>
+    * fixed lufsmount compile bug
+    
+[08.14.2002] - Florin Malita <mali@go.ro>
+    * fixed "stale NFS file handle" bug.
+    * added lufsmount utility
+    * replaced fmode/dmode options with fmask/dmask
+    
+[08.10.2002] - Florin Malita <mali@go.ro>
+    * fixed ftpfs upload bug.
+    * workaround for gcc2.95 bug.
+    
+[08.08.2002] - Florin Malita <mali@go.ro>
+    * centralized the dircache. one shared per mountpoint.
+    * improved install procedure.
+
+[08.05.2002] - Florin Malita <mali@go.ro>
+    * added ftpfs
+
+[07.31.2002] - Florin Malita <mali@go.ro>
+    * gcc3 tweaking
+
+[07.08.2002] - Florin Malita <mali@go.ro>
+    * initial release.
+    

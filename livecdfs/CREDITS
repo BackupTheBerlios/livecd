@@ -1,0 +1,7 @@
+Skeleton adapted from the LocalFS and SSHFS (for object-oriented interface
+example) LUFS implementations (http://lufs.sourceforge.net), both
+Copyright (C) 2002 Florin Malita <mali@go.ro>
+
+Symlink, stacking, naming and whiteout handling code adapted from PlasticFS
+(http://plasticfs.sourceforge.net), 
+Copyright (C) 2002-2004 Peter Miller <millerp@canb.auug.org.au>

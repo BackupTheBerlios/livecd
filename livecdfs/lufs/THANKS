@@ -1,0 +1,11 @@
+* Steve Grecni <steve@steem.com> - provided valuable debug information.
+* Robert Lemmen <robertle@semistable.com> - gave me access to a Debian box.
+* Martin Preuss <m_preuss@hamburg.de> - contributed cardfs.
+* Fedor Bezrukov <fedor@ms2.inr.ac.ru> - contributed cefs.
+* Jaroslav Rohel <rohel@kn.vutbr.cz> - contributed NetwareFTP parsing code.
+* Vladimir Lazarenko <vlad@lazarenko.net> - gave me access to his box.
+* Timothee Besset <ttimo@idsoftware.com> - contributed locasefs.
+* David Wilson <> - provided the rpm spec.
+* Zachary S. Bedell <aramis@adirondack.net> - contributed NT FTP parsing code.
+* Eric Green <eric@badtux.org> - contributed large file support.
+* James Marsh <marshj@cs.man.ac.uk> - contributed null fsync.
