@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.99 2004/01/12 18:02:37 jaco Exp $
+# $Id: mklivecd.in,v 1.100 2004/01/14 06:06:34 jaco Exp $
 #
 
 use strict;
@@ -634,7 +634,7 @@ sub create_initrd {
 		}
 		else {
 			$modpath = $modpath.".gz";
-			if (!defined($kernel26) && -f $modpath) {
+			if (-f $modpath) {
 				do_cmd("gzip -dc $modpath >$tomod", ++$pos);
 			}
 			else {
