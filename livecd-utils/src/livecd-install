@@ -1,0 +1,129 @@
+#!/usr/bin/perl
+#
+# LiveCD install to HDD script
+# Copyright (C) 2003, Jaco Greeff <jaco@linuxminicd.org>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# The latest version of this script can be found at http://livecd.berlios.de
+#
+# $Id: livecd-install,v 1.1 2003/11/21 13:37:26 jaco Exp $
+#
+
+use lib(hwdetect);
+
+# our distro
+my $distro = "Mandrake";
+my $dlg    = "zenity";
+
+# name => [ lang 1, lang 2, lang 3, ... ]
+my %str = (
+	# error strings
+	'FATAL_ERROR_TIT'  => [ "Fatal Error",
+				"Fatale Fout" ],
+
+	# welcome screen
+	'WELCOME_TIT'      => [ "Welcome",
+				"Welkom" ],
+	'WELCOME_STR'      => [ "Welcome to the $distro LiveCD installation program.\n\nThis program will guide you through the process\nof installing the $distro LiveCD to hard disk.",
+				"Welkom by die $distro LiveCD installasie program.\n\nHierdie program sal jou deur die stappe neem\nom die $distro LiveCD op jou harde skyf te installeer." ],
+
+	# partition selection screen
+	'PROGSEL_TIT'      => [ "Mount Point Selection",
+				"Skryf Punt Seleksie" ],
+	'PROGSEL_STR'      => [ "",
+				"" ],
+	'PROGSEL_COL'      => [ "Program",
+				"Program" ],
+	'PROGSEL_DD'       => [ "Launch the DiskDrake partitioning tool",
+				"Loop die DiskDrake skyf verdeler" ],
+	'PROGSEL_INST'     => [ "Launch the LiveCD installer",
+				"Loop die LiveCD installasie program" ],
+
+	# install screens
+	'INSTPART_TIT'     => [ "Destination Partition",
+				"Installasie Bestemming" ],
+	'INSTPART_PART'    => [ "Partition",
+				"Partisie" ],
+	'INSTPART_SIZE'    => [ "Size",
+				"Grootte" ],
+	'INSTPART_TYPE'    => [ "Type",
+				"Tipe" ],
+	'INSTPART_WARN'    => [ "You are about to install $distro LiveCD to:",
+				"Jy sal nou $distro LiveCD installeer na:" ]
+);
+
+# languages for %str (numbers represent positions)
+my $LANG_EN   = 0;
+my $LANG_AF   = 1;
+my $lang      = $LANG_EN;
+
+# allowed devices
+my %devs = ();
+
+# reads our partitions
+sub read_parts {
+	my @lines = qx(/sbin/fdisk -l | /bin/grep ^/dev | /bin/grep -v Extended | /bin/grep -v swap);
+	foreach my $line (@lines) {
+		chomp($line);
+		my $boot = ($line =~ /\s\*\s/) ? 1 : 0;
+		$line =~ s/\s\*\s/ /;
+		my ($dev, $start, $end, $blocks, $id, $type) = split(/\s+/, $line, 6);
+		$blocks =~ s/\+//;
+		$devs{$dev}{'boot'} = $boot;
+		$devs{$dev}{'size'} = int($blocks/1024);
+		$devs{$dev}{'type'} = $type;
+	}
+}
+
+# do the actual install
+sub do_install {
+	my $quit = 0;
+	while (!$quit) {
+		my $list = "";
+		$list .= " \"\" $_ ".$devs{$_}{'size'}."MB \"".$devs{$_}{'type'}."\"" foreach (sort keys %devs);
+		my $ret = qx($dlg --list --radiolist --width 500 --height 300 --title "$str{'INSTPART_TIT'}[$lang]" --column "" --column "$str{'INSTPART_PART'}[$lang]" --column "$str{'INSTPART_SIZE'}[$lang]" --column "$str{'INSTPART_TYPE'}[$lang]" $list || echo cancel);
+		chomp($ret);
+		unless ($ret =~ /cancel/ || $ret eq "") {
+			$ret = qx($dlg --warning --text "$str{'INSTPART_WARN'}[$lang]\n$ret" || echo cancel);
+			unless ($ret =~ /cancel/) {
+				exit(0);
+			}
+		}
+		else {
+			$quit = 1;
+		}
+	}
+}
+
+# main entry point
+MAIN: {
+	qx($dlg --info --title "$str{'WELCOME_TIT'}[$lang]" --text "$str{'WELCOME_STR'}[$lang]");
+	my $quit = 0;
+	while (!$quit) {
+		my $ret = qx($dlg --list --radiolist --width 300 --height 200 --title "$str{'PROGSEL_TIT'}[$lang]" --column "" --column "$str{'PROGSEL_COL'}[$lang]" '' "$str{'PROGSEL_DD'}[$lang]" '' "$str{'PROGSEL_INST'}[$lang]" || echo quit);
+		chomp($ret);
+		if ($ret =~ /quit/) {
+			exit(0);
+		}
+		elsif ($ret eq $str{'PROGSEL_DD'}[$lang]) {
+			exec("/usr/sbin/diskdrake");
+		}
+		elsif ($ret eq $str{'PROGSEL_INST'}[$lang]) {
+			read_parts;
+			do_install;
+		}
+	}
+}

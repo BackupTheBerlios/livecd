@@ -1,0 +1,7 @@
+# $Id: CHANGELOG,v 1.1 2003/11/21 13:37:23 jaco Exp $
+
+* Fri, Nov 21, 2003, 0.1.0-cvs
+  + Jaco Greeff <jaco@linuxminicd.org>:
+    [livecd-install]:
+      - Initial version
+
