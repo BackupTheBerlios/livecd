@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.42 2005/02/05 07:57:09 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.43 2005/02/07 19:54:08 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -159,10 +159,10 @@ execshell() {
 
 	# find the best shell available to us at this point
 	if [ -e /bin/bash ]; then
-		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
-		SHELL="/initrd/bin/ash"
+		export PATH=$PATH:/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
+		SHELL="/initrd/bin/bash"
 	else
-		export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
+		export PATH=$PATH:/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
 		SHELL="/initrd/bin/ash"
 	fi
 	$SHELL
@@ -479,18 +479,23 @@ setupinit() {
 do_union () {
 
    echo "Setting up UNIONFS"
-   UNIONFS=/initrd/loopfs/lib/modules/$KERNELVER/kernel/fs/unionfs.ko
-   cp $UNIONFS /  # easy access for testing
-   insmod /$UNIONFS
+   UNIONMOD=unionfs.ko
+   cp `find /initrd/loopfs/lib/modules/$KERNELVER/kernel -name $UNIONMOD* ` / 
+   gunzip /$UNIONMOD.gz
+   insmod /$UNIONMOD
+   if [ $? != "0" ]; then 
+	echo "Failed to load unionfs module."
+	execshell
+   fi
+   rm /$UNIONMOD # Don't waste memory
    mkdir /union
    mkdir /changes
    mount -t unionfs -o dirs=/changes=rw:/initrd/loopfs=ro unionfs /union
 
    export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
-
    echo "6" > /proc/sys/kernel/printk # enable kernel messages
 
-   # now make the directories writeable
+   ## now make the directories writeable
    for d in $MNTLIVECD/*; do
 	d=${d#$MNTLIVECD/}
 	if [ -d $MNTLIVECD/$d ]; then
@@ -498,20 +503,27 @@ do_union () {
 		dev|proc|sys|mnt|tmp|udev|initrd)  	# Remain in RAM
 		;;
 		*)					# Any extra/custom dirs
-		rm -rf $d && /initrd/bin/busybox ln -s /union/$d /$d
+		rm -f $d && ln -s /union/$d /$d		# Replace link
 		;;
 		esac
 	else
-	   # copy the files
-	   cp $MNTLIVECD/$d /
+	   ln -s /union/$d /$d  # link the files
 	fi
    done
-echo "Starting a shell for testing purposes. Enter 'exit' to continue booting."
+
+## Testing section - can be deleted
+echo "Starting a shell for testing purposes."
+echo -n "Enter '"
+$SETCOLOR_OK
+echo -n "exit"
+$SETCOLOR_NORMAL
+echo -n "' to continue booting."
 execshell
+### End of testing section
 }
 
+###### MAIN ######
 echo "--- MKLIVECD RC.SYSINIT ------------"
-echo " cmdline = `grep -iq cow /proc/cmdline`"
 
 OPTION=`getbootoption union`
 if [ $OPTION ]; then

@@ -1,9 +1,11 @@
-# $Id: CHANGELOG,v 1.136 2005/02/05 07:57:09 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.137 2005/02/07 19:54:08 tom_kelly33 Exp $
 
+* 2005-02-07
+	[rc.sysinit.in] - updates to unionfs functionality
+	[linuxrc.in] - chmod 1777 on /tmp
 * 2005-02-05
 	[mklivecd] - fix keyboard links
 	[rc.sysinit.in] - add unionfs option
-
 * 2005-01-27
 	[mklivecd] - ln -fs NOT sf [alaa]
 * 2005-01-24
@@ -16,23 +18,19 @@
 	[rcsysinit] - added etjr change for nxserver
 	- added Ross's patch for /var/log/messages
 	[linuxrc.in] - added Emre's patch for dos-swap option
-	
 * 2005-01-14
 	all - updated Jaco's email to jaco@puxedo.org
 	[hwdetect] - added sata loading
 	- added Chris usb fix for keyboard/mouse
 	- added "not loaded" for modules
-	
 * 2005-01-09
 	[mklivecd]
 	- restored md5sum as an option
-
 * 2005-01-01
 	[mklivecd]
 	- added syslinux >= 1.76-15mdk as a requirement
 	- commented out halt file copy 
 	- readjusted step count for progress bar
-
 * 2004-12-29,30,31
 	[mklivecd]
 	- adjusted step counter for initrd progress
@@ -43,11 +41,9 @@
 	- removed old getpersistent code
 	[linuxrc.in]
 	- added ide devices hda to hdt
-
 * 2004-12-22
 	[mklivecd]
 	- added "--noprompt" boot option from Ross Thomas
-
 * Dec 20th, 2004
 	[mklivecd]: 
 	- added 'nomce acpi=ht' to append options
