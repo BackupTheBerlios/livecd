@@ -1,4 +1,4 @@
-# $Id: mklivecd.spec.in,v 1.17 2003/11/18 23:53:50 bgmilne Exp $
+# $Id: mklivecd.spec.in,v 1.18 2003/12/06 20:33:41 jaco Exp $
 
 %define name		mklivecd
 %define version		@MKLIVECDVER@
@@ -39,7 +39,8 @@ rm -rf %buildroot
 %doc AUTHORS COPYING CHANGELOG FAQ README TODO
 %{_sbindir}/mklivecd
 %{_sbindir}/hwdetect
-%{_datadir}/mklivecd
+%{_datadir}/linuxrc
+%{_datadir}/halt.local
 
 %changelog
 * @SPECDATE@ Jaco Greeff <jaco@linuxminicd.org> @MKLIVECDVER@-@MKLIVECDREL@mdk
