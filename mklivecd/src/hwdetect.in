@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.113 2004/01/25 17:59:07 jaco Exp $
+# $Id: hwdetect.in,v 1.114 2004/01/25 19:54:55 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -1273,8 +1273,8 @@ sub hwdetect_writedisks {
 			my $mount = $all_devs{$dev}->{mount};
 			unless ($all_devs{$dev}->{persisted}) {
 				if ($all_devs{$dev}->{media} =~ /hd/ &&
-				    ($all_devs{$dev}->{persisted} =~ /ntfs/ ||
-				     $all_devs{$dev}->{persisted} =~ /vfat/)) {
+				    ($all_devs{$dev}->{type} =~ /ntfs/ ||
+				     $all_devs{$dev}->{type} =~ /vfat/)) {
 					$all_devs{$dev}->{mount} = "win_".$drive;
 					$drive++;
 					$mount = $all_devs{$dev}->{mount};
