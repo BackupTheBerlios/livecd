@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.135 2004/10/01 13:44:13 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.136 2004/10/05 02:03:38 tom_kelly33 Exp $
 #
 
 use strict;
@@ -519,7 +519,7 @@ sub hwdetect_initusb() {
 
 sub hwdetect_deinitusb() {
 	if (($haveusb > 0) &&
-	    -e '/proc/bus/usb' && !defined($cmdline{'nousb'})) {
+		-e '/proc/bus/usb' && !defined($cmdline{'nousb'})) {
 		umount(getStr('usb_umount'), "/proc/bus/usb") if ($ownprocusb > 0);
 	}
 	set_progress();
@@ -566,7 +566,7 @@ sub hwdetect_getmouse {
 	#	# http://lists.berlios.de/pipermail/minicd-scripts/2003-October/000229.html
 	#	unless ($probed_mouse->{XMOUSETYPE} =~ /GlidePoint/) {
 	#		$probed_mouse->{XMOUSETYPE} = $kernel26 ? 'ExplorerPS/2' : 'auto'; # X will auto-detect the protocol
-	#		$probed_mouse->{nbuttons} = 4;        # get the ZAxisMapping right (needed for wheel)
+	#		$probed_mouse->{nbuttons} = 4;  # get ZAxisMapping right (needed for wheel)
 	#	}
 	#}
 	hwdetect_loadmod('unknown', $probed_vendor, $probed_mouse->{type}." ".$probed_mouse->{name}." ".$probed_desc);
@@ -592,19 +592,19 @@ sub hwdetect_getvideo {
 					$probed_card->{Driver2} = $probed_card->{Driver};
 				}
 				if ($probed_card->{Driver2} eq 'nvidia' &&
-				       -e "/usr/X11R6/lib/modules/drivers/nvidia_drv.o" &&
-				       -e "/usr/X11R6/lib/modules/extensions/libglx.so" &&
-				       (-e "/lib/modules/$kernel_ver/kernel/drivers/char/nvidia.o.gz" ||
-				       -e "/lib/modules/$kernel_ver/kernel/drivers/video/nvidia.o")) {
+					-e "/usr/X11R6/lib/modules/drivers/nvidia_drv.o" &&
+					-e "/usr/X11R6/lib/modules/extensions/libglx.so" &&
+					(-e "/lib/modules/$kernel_ver/kernel/drivers/char/nvidia.o.gz" ||
+					-e "/lib/modules/$kernel_ver/kernel/drivers/video/nvidia.o")) {
 					$probed_card->{Driver} = $probed_card->{Driver2};
 					$probed_card->{DRI_GLX_SPECIAL} = 1;
 					$module = $probed_card->{Driver2};
 					$modules_conf->set_alias("/dev/nvidia*", $module);
 				}
 				if ($probed_card->{Driver2} eq 'fglrx' &&
-				       -e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
-				       -e "/usr/X11R6/lib/modules/drivers/fglrx_drv.o" &&
-				       -e "/lib/modules/$kernel_ver/kernel/drivers/char/fglrx.o.gz") {
+					-e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
+					-e "/usr/X11R6/lib/modules/drivers/fglrx_drv.o" &&
+					-e "/lib/modules/$kernel_ver/kernel/drivers/char/fglrx.o.gz") {
 					$probed_card->{Driver} = $probed_card->{Driver2};
 					$probed_card->{use_DRI_GLX} = 1;
 					$module = $probed_card->{Driver2};
@@ -646,42 +646,18 @@ sub hwdetect_getmonitors {
 	print getStr('monitor_probe').": ";
 	my $probed_monitors = undef;
 
-	# try to get a monitor via DDC
-# 	eval { 
-#	    $probed_monitors = Xconfig::monitor::configure_auto_install($rawX, $old_X);
-#	};
-
-	my $monitors = [ $rawX->get_or_new_monitors(1) ];
-	#mapn {
-	#    my ($monitor, $auto_install_monitor) = @_;
-	#    put_in_hash($monitor, $auto_install_monitor);
-	#} $monitors, $old_X->{monitors} if $old_X->{monitors};
-
-	if (!$monitors->[0]{HorizSync}) {
-           put_in_hash($monitors->[0], Xconfig::monitor::getinfoFromDDC());
-	}
-
-	my $monitors_db = Xconfig::monitor::monitors_db();
-        foreach my $monitor (@$monitors) {
-           if (!configure_automatic($monitor, $monitors_db)) {
-               good_default_monitor() =~ /(.*)\|(.*)/ or internal_error("bad good_default_monitor");
-               put_in_hash($monitor, { VendorName => $1, ModelName => $2 });
-	       Xconfig::monitor::configure_automatic($monitor, $monitors_db) or internal_error("good_default_monitor (" . good_default_monitor()  . ") is unknown in MonitorDB");
-           }
-        }
-															       $rawX->set_monitors(@$monitors);
-
-
-	
-	print "probed mon = $probed_monitors\n";
+        # try to get a monitor via DDC
+	eval { 
+		$probed_monitors = Xconfig::monitor::configure_auto_install($rawX, {});
+	};
 	if (int @$probed_monitors > 0) {
-	    print_success();
+		print_success();
 	} else {
-	    print_failed();
+		print_failed();
 	}
 	foreach my $monitor (@$probed_monitors) {
-	    hwdetect_loadmod('unknown', $monitor->{VendorName}, $monitor->{ModelName}, 0);
-	    print_hash($monitor) if ($debug);
+		hwdetect_loadmod('unknown', $monitor->{VendorName}, $monitor->{ModelName}, 0);
+		print_hash($monitor) if ($debug);
 	}
 	$probed_monitors;
 }
@@ -691,19 +667,16 @@ sub hwdetect_getxfree {
 	my $def_mouse = hwdetect_getmouse();
 	my $def_card = hwdetect_getvideo();
 	my $rawX = Xconfig::default::configure($def_keyboard, $def_mouse);
-	$old_X = eval{ Xconfig::xfree->read };
 	my $def_monitors = hwdetect_getmonitors($rawX);
 
 	# fix the de(nodeadkeys) keyboard
 	#my $xkb = $rawX->get_keyboard();
 
 	#if ($xkb->{XkbLayout} =~ /de\(nodeadkeys\)/) {
-	#	$xkb->{XkbLayout} = 'de';
-	#	$xkb->{XkbVariant} = 'nodeadkeys';
-	#	$rawX->set_keyboard($xkb);
-	#}
-
-
+	#       $xkb->{XkbLayout} = 'de';
+	#       $xkb->{XkbVariant} = 'nodeadkeys';
+	#       $rawX->set_keyboard($xkb);
+	#} 
 	# config card and screen
 	Xconfig::card::to_raw_X($def_card, $rawX);
 	Xconfig::screen::configure($rawX, $def_card);
@@ -718,7 +691,7 @@ sub hwdetect_getxfree {
 		$resolution_wanted->{Y} = $generic_res{$cmdline{'xres'}}[3] || 768;
 		$old_X->{resolution_wanted} = $resolution_wanted;
 	}
-	
+        
 	# set the desired res, and override if failed and we are not safe
 	my $resolution = undef;
 	eval { $resolution = Xconfig::resolution_and_depth::configure_auto_install($rawX, $def_card, $def_monitors, $old_X); };
@@ -746,29 +719,6 @@ sub hwdetect_getxfree {
 		eval { $rawX->write() and print_success(); } or print_failed();
 	}
 	set_progress();
-}
-
-sub hwdetect_getxfree2 {
-	print "\nStarting Getxfree2\n";
-        my $def_keyboard = hwdetect_getkeyb();
-        my $def_mouse = hwdetect_getmouse();
-        my $def_card = hwdetect_getvideo();
-	my $old_X = eval{ Xconfig::xfree->read };
-        my $rawX = Xconfig::default::configure($def_keyboard, $def_mouse);
-	eval {Xconfig::main::configure_everything_auto_install($rawX, do_pkgs_standalone->new, {}, { allowFB => 1 });
-       	    modules::load_category($modules_conf, 'various/agpgart');
-	};
-	if ($@) { print "Warning: xconf problems returning $@\n";
-	} else { print "Returned ok from xconf\n";
-	}
-        unless ($probe) {
-               print getStr('x_write').": ";
-               eval { mouse::write(undef, $def_mouse); };
-               eval { keyboard::write($def_keyboard); };
-	       # eval { $rawX->write() and print_success(); } or print_failed();
-        }
-        set_progress();
-	print "\nDone with xfree2\n";
 }
 
 sub hwdetect_getsound {
@@ -906,7 +856,11 @@ sub hwdetect_writeconf {
 		system(":> $prefix/etc/modules.conf"); # clear first
 		system(":> $prefix/etc/modprobe.conf"); # clear first
 		$modules::prefix = $prefix;
-		modules::any_conf::write($modules_conf);
+		if ($kernel26) {
+			modules::modprobe_conf::write($modules_conf);
+		} else {
+			modules::any_conf::write($modules_conf);
+		}
 		print_success();
 	}
 	set_progress();
@@ -1110,7 +1064,7 @@ sub hwdetect_getpersistent {
 							$devs{$dev}->{persisted} = 1;
 						}
 						elsif ($devs{$dev}->{type} =~ /ext2/ || 
-						       $devs{$dev}->{type} =~ /ext3/) {
+							$devs{$dev}->{type} =~ /ext3/) {
 							system("echo 'mount=/home' >$persist");
 		
 							$devs{$dev}->{mount} = "/home";
@@ -1127,26 +1081,26 @@ sub hwdetect_getpersistent {
 	print_success();
 }
 
-sub	hwdetect_raw_to_fs_description
+sub hwdetect_raw_to_fs_description
 {
-    my	($raw) = @_;
-    my	$pt_type = $raw->{pt_type};
-    if ($pt_type == 0x83) {
-	my $fs_type = $raw->{fs_type};
-	if ($fs_type eq 'reiserfs') {
-	    return 'Journalised FS: ReiserFS';
-	} elsif ($fs_type eq 'xfs') {
-	    return 'Journalised FS: XFS';
-	} elsif ($fs_type eq 'jfs') {
-	    return 'Journalised FS: JFS';
-	} elsif ($fs_type eq 'ext3') {
-	    return 'Journalised FS: ext3';
+	my ($raw) = @_;
+	my $pt_type = $raw->{pt_type};
+	if ($pt_type == 0x83) {
+		my $fs_type = $raw->{fs_type};
+		if ($fs_type eq 'reiserfs') {
+			return 'Journalised FS: ReiserFS';
+		} elsif ($fs_type eq 'xfs') {
+			return 'Journalised FS: XFS';
+		} elsif ($fs_type eq 'jfs') {
+			return 'Journalised FS: JFS';
+		} elsif ($fs_type eq 'ext3') {
+			return 'Journalised FS: ext3';
+		}
 	}
-    }
     return $fstypes{$pt_type}[0];
 }
 
-sub	hwdetect_getdisks_add_hdd
+sub hwdetect_getdisks_add_hdd
 {
     my	($raw, $fsopt_set, $comment) = @_;
     if ($raw->{size} != 0) {
@@ -1433,6 +1387,8 @@ sub hwdetect_swapon {
 	set_progress();
 }
 
+sub nothing () {};
+
 sub help {
 	print <<EOF;
 Help for $SCRIPT_NAME Version $SCRIPT_VER
@@ -1450,7 +1406,7 @@ sub version () {
 	print "$SCRIPT_NAME $SCRIPT_VER\n";
 }
 
-MAIN: {print "\HWDETECT - MAIN\n";
+MAIN: {print "\n$COLOR_YELLOW HWDETECT - MAIN\n $COLOR_NORMAL";
 	GetOptions(
 		'help'	   => sub { help (); exit },
 		'version'  => sub { version(); exit },
@@ -1473,18 +1429,18 @@ MAIN: {print "\HWDETECT - MAIN\n";
 	
 	# get all devices
 	unless (defined($fdisk)) {
-		print "\nHWDETECT: Starting probeall\n" if $debug;
+		print "\n$COLOR_YELLOW HWDETECT: Starting probeall $COLOR_NORMAL\n";
 		hwdetect_probeall();
 		hwdetect_all();
-		print "\nHWDETECT: Starting getxfree2\n" if $debug;
-		hwdetect_getxfree2();
-		print "\nHWDETECT: Starting getsound\n" if $debug;
+		print "\n$COLOR_YELLOW HWDETECT: Starting getxfree $COLOR_NORMAL\n";
+		hwdetect_getxfree();
+		print "\n$COLOR_YELLOW HWDETECT: Starting getsound $COLOR_NORMAL\n";
 		hwdetect_getsound();
-		print "\nHWDETECT: Starting getnetwork\n" if $debug;
+		print "\n$COLOR_YELLOW HWDETECT: Starting getnetwork $COLOR_NORMAL\n";
 		hwdetect_getnetwork();
 
 		#hwdetect_getprinters();
-		print "\nHWDETECT: Starting getusb\n" if $debug;
+		print "\n$COLOR_YELLOW HWDETECT: Starting getusb $COLOR_NORMAL\n";
 		hwdetect_getusb();
 
 		#hwdetect_getserial();
@@ -1492,7 +1448,7 @@ MAIN: {print "\HWDETECT - MAIN\n";
 	}
 	
 	# get disks
-	print "\nHWDETECT: Starting getdisks\n" if $debug;
+	print "\n$COLOR_YELLOW HWDETECT: Starting getdisks\n$COLOR_NORMAL";
 	hwdetect_getdisks();
 	hwdetect_writedisks();
 	if (defined($fdisk)) {
@@ -1503,6 +1459,6 @@ MAIN: {print "\HWDETECT - MAIN\n";
 	# deinit
 	hwdetect_deinitusb() unless ($fdisk);
 	hwdetect_deinit();
-	print "\nHWDETECT - DONE\n";
+	print "\n$COLOR_YELLOW HWDETECT - DONE$COLOR_NORMAL\n";
 }
 
