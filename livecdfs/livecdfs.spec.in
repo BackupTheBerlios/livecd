@@ -1,0 +1,47 @@
+# $Id: livecdfs.spec.in,v 1.1 2004/01/24 12:03:13 jaco Exp $
+
+%define name	livecdfs
+%define version	@LIVECDFSVER@
+%define release	@LIVECDFSREL@mdk
+
+%define summary	A LiveCD UnionFS implementation
+
+Summary:	%{summary}
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
+License:	GPL
+Group:		System/Configuration/Boot and Init
+URL:		http://livecd.berlios.de/
+Source0:	%{name}-@ARCHIVEVER@.tar.bz2
+Requires:	lufs
+BuildRoot:	%{_tmppath}/%{name}-root
+
+%description
+The LiveCD UnionFS filesystem in a LUFS (Linux User Filesystem) module
+to allow for a writable union of different directories. It allows you
+to mimic writing to a non-writable medium.
+
+%prep
+%setup -q -n %{name}-@ARCHIVEVER@
+
+%build
+%make
+
+%install
+rm -rf %buildroot
+%makeinstall_std
+
+%clean
+rm -rf %buildroot
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS CHANGELOG COPYING CREDITS README
+%{_libdir}/liblufs-%{name}.so.0.1.0
+%{_libdir}/liblufs-%{name}.so.0.1
+%{_libdir}/liblufs-%{name}.so
+
+%changelog
+* @SPECDATE@ Jaco Greeff <jaco@mandrake.org> @LIVECDFSVER@-@LIVECDFSREL@mdk
+- Initial version, @ARCHIVEVER@

@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.10 2004/01/24 10:33:18 jaco Exp $
+# $Id: Rules.mk,v 1.11 2004/01/24 12:03:13 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -21,15 +21,17 @@ else
 endif
 KERNELVER=$(shell uname -r)
 SPECDATE=$(shell LC_ALL=C date +"%a %b %e %Y")
+LIVECDFSDIST=$(PKGNAME)-$(ARCHIVEVER)
 
 # our flags
 CXXFLAGS=-Wall -DDEBUG -I$(LUFSDIR)/include
 CFLAGS=-Wall -I$(LUFSDIR)/include
 
 # internal directories
-TOPDIR=$(shell pwd)
+DISTDIR=dist
 SRCDIR=src
 LUFSDIR=lufs
+TOPDIR=$(shell pwd)
 
 # external directories
 PREFIX=/usr
@@ -37,37 +39,58 @@ LIBDIR=$(PREFIX)/lib
 DESTDIR=
 
 # cour commands
+BZIP2=bzip2
+CAT=cat
 CD=cd
 CP=cp
 FIND=find
 GREP=grep
 LN=ln
+MD5SUM=md5sum
 MKDIR=mkdir
 RM=rm
+RPMBUILD=rpmbuild
+SED=sed
+TAR=tar
 XARGS=xargs
 
 # our files
-OBJECTS=$(SRCDIR)/handles.o \
+OBJECTS=\
+	$(SRCDIR)/handles.o \
 	$(SRCDIR)/livecdfs.o \
 	$(SRCDIR)/main.o \
 	$(SRCDIR)/path.o \
 	$(SRCDIR)/whiteout.o \
 	$(LUFSDIR)/lufsd/dircache.o
 
-INCLUDES=$(SRCDIR)/handles.h \
+INCLUDES=\
+	$(SRCDIR)/debug.h \
+	$(SRCDIR)/handles.h \
 	$(SRCDIR)/livecdfs.h \
-	$(SRCDIR)/main.h \
 	$(SRCDIR)/path.h \
 	$(SRCDIR)/whiteout.h
 
-SOURCES=$(SRCDIR)/handles.cpp \
+SOURCES=\
+	$(SRCDIR)/handles.cpp \
 	$(SRCDIR)/livecdfs.cpp \
 	$(SRCDIR)/main.cpp \
 	$(SRCDIR)/path.cpp \
 	$(SRCDIR)/test.cpp \
 	$(SRCDIR)/whiteout.cpp
 
-EXTSRC=$(LUFSDIR)/*
+DOCDIST=\
+	AUTHORS \
+	CHANGELOG \
+	COPYING \
+	CREDITS \
+	README
+	
+BUILDDIST=\
+	Makefile \
+	Rules.mk \
+	$(DISTDIR)/$(PKGNAME).spec
+
+EXTDIST=$(LUFSDIR)
 
 LIBRARY=liblufs-livecdfs.so
 
