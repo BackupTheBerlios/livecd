@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.12 2004/01/20 13:40:11 jaco Exp $
+# $Id: rc.sysinit.in,v 1.13 2004/01/21 06:33:13 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -361,7 +361,7 @@ setuproot() {
 ### setup for init of the actual mdk image
 setupinit() {
 	# perform hwdetect if not disabled
-	if `/bin/grep -iqv hwdetect=no /proc/cmdline`; then
+	if `/bin/grep -iqv hwdetect=no /proc/cmdline && /bin/grep -iqv nodetect /proc/cmdline`; then
 		OLDPATH=$PATH
 		export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 		/initrd/usr/sbin/hwdetect

@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.107 2004/01/21 06:23:12 jaco Exp $
+# $Id: CHANGELOG,v 1.108 2004/01/21 06:33:13 jaco Exp $
 
-* Tue, Jan 20, 2003, 0.5.7-cvs
+* Wed, Jan 21, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [halt.local]:
       - Added for custom commands to be executed at shutdown, eg.
@@ -152,6 +152,7 @@
       - Added (Split commands from linuxrc)
       - Adapted for use with busybox pre4 (Cooker version)
       - Always run ash when booting to initrd
+      - Also make us skip hwdetect if "nodetect" is specified
 
 
 * Mon, Oct 06, 2003, 0.5.6
