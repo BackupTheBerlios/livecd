@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.54 2003/11/02 14:35:56 jaco Exp $
+# $Id: mklivecd.in,v 1.55 2003/11/02 14:49:34 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -155,7 +155,7 @@ ISO Image options:
 
 Examples:
     `basename $0` --nodir=^/usr/src/RPM,^/root/tmp livecd.iso
-    `basename $0` --blocksize=224 --bootopt=splash=quiet livecd.iso
+    `basename $0` --blocksize=224 --bootopt=splash=silent livecd.iso
 " >&2
 	exit 1
 }
