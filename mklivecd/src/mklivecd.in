@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.94 2004/01/09 10:20:02 jaco Exp $
+# $Id: mklivecd.in,v 1.95 2004/01/10 08:49:45 jaco Exp $
 #
 
 use strict;
@@ -150,7 +150,7 @@ Compression options:
                                    (default: $o_looptype)
 
 Boot options:
-   --bootopt <opt=value>           Specify an additional boot option to pass to 
+   --bootopt <option>              Specify an additional boot option to pass to 
                                    the kernel command-line.
    --bootmsg <msg>                 Use 'msg' as the isolinux boot message.
    --bootkey <key=msg>             Display 'msg' on key 'key' from isolinux.
@@ -379,7 +379,7 @@ sub parse_options {
 		'experimental',
 		'looptype=s',
 		'blocksize=i',
-		'bootopt=s%',
+		'bootopt=s@',
 		'bootmsg=s',
 		'bootkey=s%',
 		'bootimg=s',
@@ -495,6 +495,7 @@ sub check_kernel {
 		$modext = ".ko";
 		$modules = $modules_26;
 		$modules_opt = $modules_opt_26;
+		print STDERR "\nWARNING: Using a 2.6.x kernel for the LiveCD is currently not recommended";
 	}
 	else {
 		$depmod = "/sbin/depmod";
@@ -785,10 +786,11 @@ sub create_isolinux {
 	}
 
 	# write config
-	my $appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=mount fastboot=yes ramdisk_size=32000 automatic=method:cdrom vga=$o_vgamode keyb=$o_keyboard";
+	my $appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=mount vga=$o_vgamode keyb=$o_keyboard"; 
+	$appopt = "$appopt fastboot=yes automatic=method:cdrom ramdisk_size=32000" if (!defined($kernel26));
 	$appopt = "$appopt fstab=".$opts{fstab} if (defined($opts{fstab}));
 	$appopt = "$appopt home=usb" if (defined($opts{usbhome}));
-	$appopt = "$appopt $_=".${$opts{bootopt}}{$_} foreach (keys %{$opts{bootopt}});
+	$appopt = "$appopt $_" foreach (@{$opts{bootopt}});
 	open CFG, '>', "$workdir/livecd/isolinux/isolinux.cfg";
 	print CFG "default livecd\n";
 	print CFG "prompt  1\n";
