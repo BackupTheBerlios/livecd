@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.135 2005/01/16 00:08:48 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.136 2005/01/25 06:12:38 tom_kelly33 Exp $
 #
 
 use strict;
@@ -1007,6 +1007,9 @@ MAIN: {
 #		require keyboard;
 #		keyboard::write(keyboard::lang2keyboard($o_keyboard));
 #	}
+
+	ln -sf /var/lib/xkb /usr/X11R6/lib/X11/xkb/compiled
+	ln -sf /var/lib/xdm /usr/X11R6/lib/X11/xdm/authdir
 
 	create_compressed();
 	create_isolinux();
