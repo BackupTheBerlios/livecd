@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.3 2003/09/25 08:42:54 jaco Exp $
+# $Id: hwdetect.in,v 1.4 2003/10/01 06:28:47 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -223,6 +223,38 @@ sub hwdetect_getmachine {
 	}
 }
 
+sub hwdetect_probeusb() {
+	print "Probing USB controllers: ";
+	# this is only for kernel 2.4, kernel 2.6 has only one usb
+	# interface module (TODO: cater for 2.6 as well)
+	my @modules = ('usb-uhci', 'usb-ohci');
+	foreach my $module (@modules) {
+		unless (system("(/sbin/modprobe -q $module) 2>/dev/null >/dev/null")) {
+			open MOD, "+>/etc/modules.conf";
+			print MOD "probeall usb-interface $module\n";
+			close MOD;
+		}
+	}
+
+	if (-e '/proc/bus/usb') {
+		print_success();
+		print "Mounting USB filesystem: ";
+		system("(mount -n -t usbdevfs none /proc/bus/usb) 2>/dev/null") ? print_failed() : print_success();
+
+		### load the usb modules that are not loaded automatically
+		# "printer" should be in as well? (does cups stuff :(
+		print "Loading base USB modules: ";
+		@modules = ('mousedev', 'keybdev', 'usb-storage', 'visor');
+		foreach my $module (@modules) {
+			system("(/sbin/modprobe -q $module) 2>/dev/null");
+		}
+		print_success();
+	}
+	else {
+		print_failed();
+	}
+}
+
 sub hwdetect_probeall {
 	print "Probing devices: ";
 	@detected_devices = ();
@@ -373,6 +405,7 @@ foreach (@ARGV) {
 hwdetect_init();
 hwdetect_getmachine();
 hwdetect_readconf();
+hwdetect_probeusb();
 hwdetect_probeall();
 hwdetect_all() if ($printdebug);
 hwdetect_getxfree();
