@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.4 2004/01/19 06:43:08 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.5 2004/01/19 06:54:30 jaco Exp $
  */
 
 #include <dirent.h>
@@ -359,7 +359,7 @@ LiveCDFS::doWrite(char *file,
 	}
 	
 	if (lseek(fd, offset, SEEK_SET) < 0) {
-		WARN("Seek for file='" << file << "', fd=" << handle << " failed");
+		WARN("Seek for file='" << file << "', fd=" << fd << " failed");
 		close(fd);
 		return -1;
 	}
