@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.20 2003/12/07 17:11:11 jaco Exp $
+# $Id: Rules.mk,v 1.21 2003/12/07 17:25:08 jaco Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -43,7 +43,7 @@ SBINPREFIX=$(PREFIX)
 BINDIR=$(PREFIX)/bin
 LIBDIR=$(PREFIX)/lib/$(PKGNAME)
 SHAREDIR=$(PREFIX)/share/$(PKGNAME)
-DOCDIR=$(PREFIX)/doc/$(PKGNAME)
+DOCDIR=$(PREFIX)/share/doc/$(PKGNAME)-$(MKLIVECDVER)
 SBINDIR=$(SBINPREFIX)/sbin
 RCDIR=$(SHAREDIR)/init.d
 

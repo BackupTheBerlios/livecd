@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.84 2003/12/07 17:11:11 jaco Exp $
+# $Id: CHANGELOG,v 1.85 2003/12/07 17:26:27 jaco Exp $
 
 * Sun, Dec 07, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -138,6 +138,7 @@
         src RPMS
       - Build all targets to DISTDIR
       - Split variables into Rules.mk
+      - Add 'install-doc' rule
     [Rules.mk]:
       - Added file containing all variables from original Makefile
       - Added default keyboard mapping variable

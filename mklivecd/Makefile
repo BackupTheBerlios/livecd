@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.26 2003/12/07 11:24:54 jaco Exp $
+# $Id: Makefile,v 1.27 2003/12/07 17:25:08 jaco Exp $
 
 include Rules.mk
 include Modules.mk
@@ -46,6 +46,10 @@ install:
 	$(INSTALL) -m 644 $(DISTDIR)/rc.sysinit $(DESTDIR)$(SHAREDIR)
 	$(INSTALL) -m 755 $(DISTDIR)/$(PKGNAME) $(DESTDIR)$(SBINDIR)
 	$(INSTALL) -m 755 $(DISTDIR)/hwdetect $(DESTDIR)$(SBINDIR)
+
+install-doc:
+	$(MKDIR) -p $(DESTDIR)$(DOCDIR)
+	$(CP) -f $(DOCDIST) $(DOCDIR)
 
 spec:
 	$(MKDIR) -p $(DISTDIR)
