@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.76 2004/01/07 10:20:42 jaco Exp $
+# $Id: hwdetect.in,v 1.77 2004/01/08 06:52:29 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -151,13 +151,34 @@ sub print_failed {
 }
 
 sub print_hash {
-	my ($hash) = @_;
-	print "<device>\n";
+	my ($hash, $pre, $in) = @_;
+	$pre = "" unless (defined($pre));
+	print "$pre<device>\n" unless (defined($in));
 	foreach my $key (keys %$hash) {
 		my $value = $hash->{$key};
-		print "\t<$key>$value</$key>\n";
-	}
-	print "</device>\n";
+		print "$pre\t<$key>";
+		if (defined($value)) {
+			print "$value";
+			if (ref($value) eq "HASH") {
+				print_hash($value, "$pre\t", 1);
+				print "$pre\t";
+			}
+			elsif (ref($value) eq "ARRAY") {
+				if (scalar(@$value) > 0) {
+					print "\n";
+					foreach my $elem (@{$value}) {
+						print "$pre\t$elem\n";
+						if (ref($elem) eq "HASH") {
+							print_hash($elem, "$pre\t", 1);
+						}
+					}
+					print "$pre\t";
+				}
+			}
+		}
+		print "</$key>\n";
+	}	
+	print "$pre</device>\n" unless (defined($in));
 }
 
 sub print_device {
@@ -923,18 +944,14 @@ sub hwdetect_getdisks {
 	$fsopt_set .= ($cmdline{'fstab'} =~ /noauto/) ? ",".$fsopt_noauto : ",".$fsopt_auto;
 	my $all_hdds = fsedit::get_hds({}, undef);
 	fs::get_raw_hds('', $all_hdds);
-	#fs::get_info_from_fstab($all_hds, '');
-	#fs::merge_info_from_mtab([ fsedit::get_really_all_fstab($all_hds) ]);
-	#$all_hds->{current_fstab} = fs::fstab_to_string($all_hds, '');
+	
 	if ($debug) {
 		foreach my $key (keys %$all_hdds) {
 			print $key . " ->\n";
 			my @disks = @{$all_hdds->{$key}};
 			foreach my $disk (@disks) {
 				print "\tdisk:\n";
-				foreach my $diskkey (keys %$disk) {
-					print "\t\t" . $diskkey . " -> " . $disk->{$diskkey} . "\n";
-				}
+				print_hash($disk);
 			}
 		}
 	}
@@ -1215,12 +1232,14 @@ GetOptions(
 	'prefix=s' => \$prefix
 );
 
-# run through the steps
+# initialise
 hwdetect_init();
 hwdetect_readconf();
 hwdetect_probepci() unless ($fdisk);
 hwdetect_initusb() unless ($fdisk);
 hwdetect_initpcmcia() unless ($fdisk);
+
+# get devices
 hwdetect_probeall() unless ($fdisk);
 hwdetect_all() unless ($fdisk);
 hwdetect_getxfree() unless ($fdisk);
@@ -1228,10 +1247,14 @@ hwdetect_getsound() unless ($fdisk);
 hwdetect_getnetwork() unless ($fdisk);
 #hwdetect_getserial() unless ($fdisk);
 hwdetect_getusb() unless ($fdisk);
+hwdetect_writeconf() unless ($fdisk);
+
+# get disks
 hwdetect_getdisks();
 hwdetect_writedisks();
 hwdetect_swapon() unless ($fdisk);
 hwdetect_getmachine() unless ($fdisk);
-hwdetect_writeconf() unless ($fdisk);
+
+# deinit
 hwdetect_deinitusb() unless ($fdisk);
 hwdetect_deinit();
