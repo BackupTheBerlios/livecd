@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.9 2003/09/29 10:43:53 jaco Exp $
+# $Id: CHANGELOG,v 1.10 2003/09/30 08:45:21 jaco Exp $
 
-* Mon, Sep 29, 2003, 0.5.5-cvs
+* Tue, Sep 30, 2003, 0.5.6-cvs
   + Buchan Milne <bgmile@cae.co.za>:
     [mklivecd]:
       - Fix rootdir to use the kernel/modules from the chroot
@@ -21,12 +21,17 @@
         a build via the "rpmbuild -t[abs] mklivecd-<ver>.tar.bz2"
         command)
       - Ability to build CVS dist per date
+      - Add RPM release information for spec file generation
     [README]:
       - Include CVS location
+    [linuxrc]:
+      - Only make symlinks to /var/lib/{rpm,urpmi} directories, the
+        rest are actual writables
+      - Complete rework of creation of /var directories
     [mklivecd]:
       - Changed default blocksize back to 64K (sane default for
         fastest operation in decompressing the compressed image)
-      - Added '--blocksize' option to, accepting sizes in K, eg.
+      - Added '--blocksize' option, accepting sizes in K, eg.
         '--blocksize 224' to use a 224K size for the compressed
         blocks.
       - Added '--lowmem' option, writing created iso to disk
@@ -37,6 +42,8 @@
     [mklivecd.spec]:
       - Synced with contrib spec
       - Ability to auto-generate version info for changelog
+      - Build CVS specs as per MDK guidelines
+
 
 * Thu, Sep 25, 2003, 0.5.5
   + Jaco Greeff <jaco@linuxminicd.org>:
