@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.122 2004/10/17 18:53:28 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.123 2004/10/19 14:07:01 tom_kelly33 Exp $
 #
 
 use strict;
@@ -510,6 +510,7 @@ sub check_kernel {
 		$modules_opt = $modules_opt_26;
 	}
 	else {
+		$kernel26 = 0;
 		$depmod = "/sbin/depmod";
 		$modext = ".o";
 		$modules = $modules_24;

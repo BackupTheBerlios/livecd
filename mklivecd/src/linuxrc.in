@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.79 2004/10/17 18:53:28 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.80 2004/10/19 14:07:01 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -190,9 +190,6 @@ initialise() {
 	echo "--- MKLIVECD LINUXRC ---------------"
 	rm -rf /sbin/init
 	mv /sbin/init.dynamic /sbin/init
-	# Unhide the udev files
-	docmd "  Restoring udev files" \
-	      "mv /sbin/tmp/* /sbin"
 
 	docmd   "  Setting up kernel parameters" \
 		"echo '0' >/proc/sys/kernel/printk" \
@@ -212,7 +209,12 @@ initialise() {
 		USB_MODULES="$USB_MODULES_26"
 		USB_MODULES_DRV="$USB_MODULES_DRV_26"
 	fi
-	
+
+        # Unhide the udev files
+	if [ $KERNEL26 ]; then 
+		docmd "  Restoring udev files" \
+		"mv /sbin/tmp/* /sbin"	
+	fi	
 	# debugging?
 	DEBUG=`grep -iq debug /proc/cmdline && echo 1`
 
@@ -368,7 +370,7 @@ CDROM_LIST=""
         for i in $CDROM_LIST; do
                 CDDEV="$i"
                 $MOVE_TO_COL
-                $SETCOLOR_WARN
+                $SETCOLOR_OK
                 echo "$i"
                 $SETCOLOR_NORMAL
                 ISOTYPE="iso9660"
@@ -503,11 +505,12 @@ else
 	for i in $DEVICES; do
 		CDDEV="$i"
 		$MOVE_TO_COL
-		$SETCOLOR_WARN
-		echo -n "$i"
+		$SETCOLOR_OK
+		echo "$i"
 		$SETCOLOR_NORMAL
 		ISOTYPE="iso9660"
 		if `mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null`; then
+			echo -n "  CDROM mounted"
 			# try to find either the .iso, .clp, .bzlp or .sqfs loop image
 			LOOPTYPE=""
 			if [ -f $MNTCDROM/$BASEIMG$LOOPBEXT ]; then
@@ -661,5 +664,5 @@ initialise    ""
 printwelcome  ""
 createramdisk ""
 findcloop     ""
-echo "--- Exiting LINUXRC -=--------------"
+echo "--- Exiting LINUXRC ----------------"
 exit 0
