@@ -1,8 +1,10 @@
-# $Id: TODO,v 1.9 2003/10/02 13:51:46 jaco Exp $
+# $Id: TODO,v 1.10 2003/10/04 11:15:31 jaco Exp $
 
 - Add command-line options (at isolinux bootup) to select the
   screen size and bitdepth for the X configuration
-- Persistent home
+- Persistent home (This is now easier since we do partition
+  detection in hwdetect - as part of this we should check for
+  a livecd file on the disk and mount at the correct place)
 - Install to HDD. This is possible now that the LiveCD is a direct
   copy of a MDK image insted of a hacked-up version to fit on a
   MiniCD
@@ -17,5 +19,6 @@
   detection code which should be re-used in the persistent home
   option)
 - Localisation support
-
+- Remove functions in hwdetect where we have duplicated already
+  existing MDK functions, e.g. in module loading
 
