@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.63 2003/11/02 11:46:33 jaco Exp $
+# $Id: CHANGELOG,v 1.64 2003/11/02 14:35:56 jaco Exp $
 
 * Sat, Nov 01, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -44,6 +44,8 @@
         creation behaviour
       - Added the ability to include extra boot options to be
         passed to the kernel with '--bootopt' options
+      - Add --volumeid, --application, --preparer, --publisher
+        options to identify iso uniquely
 
 
 * Mon, Oct 06, 2003, 0.5.6

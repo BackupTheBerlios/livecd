@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.53 2003/11/02 11:46:33 jaco Exp $
+# $Id: mklivecd.in,v 1.54 2003/11/02 14:35:56 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -67,6 +67,12 @@ vgamode="@DEF_VGAMODE@"
 bootsplash=1
 fstabopt="ro,noauto"
 
+# iso details
+isoappid=""
+isovolid=""
+isoprepid=""
+isopubid=""
+
 printusage () {
 	echo "
 Usage:
@@ -105,8 +111,6 @@ Image generation:
    --experimental              Enable experimental LiveCD feautures. Currently
                                this option enables kernel translucency support
                                (default: off)
-   --isoextrafiles=<path>      Add the files in 'path' to the root of the LiveCD
-                               ISO image
 
 Compression options:
    --blocksize=<size>          Compression blocksize in K (default: 64)
@@ -136,6 +140,18 @@ Boot options:
                                LiveCD. Options are one or more of 'auto' and
                                'rw', for example '--fstab=rw,auto' will
                                automatically mount all detected partitions rw.
+
+ISO Image options:
+   --isoextrafiles=<path>      Add the files in 'path' to the root of the LiveCD
+                               ISO image
+   --application=<id>          Use the specified iso application ID, as '-A'
+                               option to mkisofs
+   --volumeid=<id>             Use the specified iso volume ID, as a '-V' option
+                               to mkisofs
+   --preparer=<prep>           Use the specified preparer ID, as a '-p' option
+                               to mkisofs
+   --publisher=<pub>           Use the specified publisher ID, as a '-P' option
+                               to mkisofs
 
 Examples:
     `basename $0` --nodir=^/usr/src/RPM,^/root/tmp livecd.iso
@@ -446,8 +462,10 @@ create_liveiso() {
 	DISTRO=`gawk -F' ' '{ print $1 " " $2 }' $rootdir/etc/mandrake-release`
 	VERSION=`gawk -F' ' '{ print $4 " " $5 }' $rootdir/etc/mandrake-release`
 	VERSION_DATE=`date --utc`
+	[ -z "$isoappid" ] && isoappid="$VERSION $VERSION_DATE"
+	[ -z "$isovolid" ] && isovolid="$DISTRO LiveCD"
 	CMD="nice -n 19 mkisofs -pad -l -R -J ${isoextrafiles:+-f} $verbose \
-		-V '$DISTRO LiveCD' -A '$VERSION $VERSION_DATE' \
+		-V '$isovolid' -A '$isoappid' -p '$isoprepid' -P '$isopubid' \
 		-b isolinux/isolinux.bin -c isolinux/boot.cat \
 		-hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table \
 		-o $target $LIVECDDIR $isoextrafiles"
@@ -731,8 +749,7 @@ while [ $# -gt 0 ]; do
 			;;
 
 		--isoextrafiles*)
-			if echo $1 | grep '=' >/dev/null
-			then
+			if echo $1 | grep '=' >/dev/null ; then
 				isoextrafiles="${1#--isoextrafiles=}"
 			else
 				isoextrafiles="$2"
@@ -742,6 +759,42 @@ while [ $# -gt 0 ]; do
 			then
 				echo "ERROR: Extra ISO files directory $isoextrafiles could not be found." >&2
 				exit 1
+			fi
+			;;
+
+		--application*)
+			if echo $1 | grep '=' >/dev/null ; then
+				isoappid="${1#--application=}"
+			else
+				isoappid=$2
+				shift
+			fi
+			;;
+
+		--volumeid*)
+			if echo $1 | grep '=' >/dev/null ; then
+				isovolid="${1#--volumeid=}"
+			else
+				isovolid=$2
+				shift
+			fi
+			;;
+
+		--preparer*)
+			if echo $1 | grep '=' >/dev/null ; then
+				isoprepid="${1#--preparer=}"
+			else
+				isoprepid=$2
+				shift
+			fi
+			;;
+
+		--publisher*)
+			if echo $1 | grep '=' >/dev/null ; then
+				isopubid="${1#--publisher=}"
+			else
+				isopubid=$2
+				shift
 			fi
 			;;
 
