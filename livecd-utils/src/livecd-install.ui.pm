@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.52 2005/01/15 16:28:34 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.53 2005/02/05 07:39:19 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -86,6 +86,10 @@ my $pb_c_num      : shared = 0;
 my $pb_c_tot      : shared = 0;
 my $pb_o_num      : shared = 0;
 my $pb_o_tot      : shared = 0;
+
+my @satalist = qw(libata sd_mod ata_piix scsi_mod sr_mod sg a100u2w
+                advansys aha152x aha1542 aic7xxx BusLogic fdomain gdth
+                megaraid sata_promise sata_sil sata_svw sata_via sata_vsc);
 
 my %devs   = ();
 
@@ -798,8 +802,36 @@ sub showBootloader
 	}
 	do_system("rm -rf $mnt/$initrd");
 	do_system("mkdir -p $mnt/root/tmp");
-	my $with = "";
+
+	###  Check for SATA
+	my $loaded = `lsmod`;
+	my $with = '';
+	my $sata = '';
+	foreach $sata (@satalist) {
+   		if (index($loaded, $sata) ne "-1") {
+        		$with = "$with"." --with $sata";
+   		}
+	}
 	do_system("chroot $mnt /sbin/mkinitrd -v $with $initrd $kernelver");
+
+	### Update /etc/sysconfig/installkernel file for future kernel changes
+	if ($with ne '') {
+		my @FILELINES = [''];
+		my $line = '';
+		open ( INSTALLKERNEL, "+< $mnt/etc/sysconfig/installkernel");
+        	@FILELINES = <INSTALLKERNEL>;  ## Read the file into an array
+        	## Find the line INITRDOPTS="" and insert $with 
+        	foreach $line (@FILELINES) {
+        		next unless substr($line,0,10) eq "INITRDOPTS";
+        		substr($line, 12, 0)=$with." ";  # Insert "--with sata " values
+        	}
+		## Write the array to the file
+        	seek(INSTALLKERNEL, 0, 0);
+        	print INSTALLKERNEL @FILELINES;
+        	truncate( INSTALLKERNEL, tell(INSTALLKERNEL) );
+        	close( INSTALLKERNEL);
+	}
+
 	do_system("umount $mnt/dev");
 	do_system("umount $mnt/proc");
 
