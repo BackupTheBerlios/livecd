@@ -5,7 +5,7 @@
 </head>
 <body bgcolor="#FFFFFF" marginheight="10" marginwidth="10" link=#0050a0 vlink=#0050a0 alink=#000000>
 <center>
-<table width="850" border="0" cellspacing="0" cellpadding="0">
+<table width="750" border="0" cellspacing="0" cellpadding="0">
 	<tr><td bgcolor="#000000">
 		<table width="100%" border="0" cellspacing="2" cellpadding="0">
 			<tr><td bgcolor=#305080>
