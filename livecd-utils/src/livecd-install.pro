@@ -4,7 +4,7 @@ unix {
   OBJECTS_DIR = .obj
 }
 FORMS	= livecd-install.ui
-IMAGES	= left.png
+IMAGES	= ../images/left_simple.png
 TEMPLATE	=app
 CONFIG	+= qt warn_on release
 LANGUAGE	= Perl
