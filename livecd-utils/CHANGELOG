@@ -1,4 +1,7 @@
-# $Id: CHANGELOG,v 1.6 2005/01/15 16:28:34 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.7 2005/02/17 15:22:54 tom_kelly33 Exp $
+
+* 2005-02-17
+	- added sata_nv 
 
 * 2005-01-15
 	- added 'don't install lilo' entry
