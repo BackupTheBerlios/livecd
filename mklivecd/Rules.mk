@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.10 2003/10/05 12:00:15 jaco Exp $
+# $Id: Rules.mk,v 1.11 2003/10/06 14:57:50 jaco Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -15,7 +15,7 @@ MAJORVER=0
 MINORVER=5
 PATCHVER=6
 RELVER=1
-CVSVER=yes
+CVSVER=no
 
 # Automatic variable updates, leave alone
 MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
