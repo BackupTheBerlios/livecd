@@ -19,22 +19,35 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install-lang.pm.in,v 1.1 2004/01/25 08:39:26 jaco Exp $
+# $Id: livecd-install-lang.pm.in,v 1.2 2004/01/25 09:33:40 jaco Exp $
 #
 
-sub getLanguages { (
+package fMain;
+
+use strict;
+
+my $lang    : shared = 0;
+
+my %cmdline = map {
+		chomp;
+		my ($name, $value) = split(/=/);
+		$name => $value || 1;
+} split(/ /, cat_('/proc/cmdline'));
+
+my %languages = (
 	'en'    => 0,
 	'en_US' => 0,
 	'en_GB' => 0
-); }
+);
 
-sub getStrings { (
+my %strings = (
 	'script_init'      => [ "Initialising ... ", undef ],
 	'script_destroy'   => [ "Destroying ... ", undef ],
 	'done'             => [ "Done.", undef ],
 	'reboot'           => [ "Rebooting...", undef ],
 
 	'btn_retry'        => [ "Retry", undef ],
+	'btn_help'         => [ "Help", undef ],
 	'btn_cancel'       => [ "Cancel", undef ],
 	'btn_next'         => [ "Next", undef ],
 	'btn_back'         => [ "Back", undef ],
@@ -62,7 +75,7 @@ sub getStrings { (
 	'part_o_tmphome'   => [ "The temp (/tmp) partition is the same as the home (/home) partition.", undef ],
 	'part_o_tmpvar_t'  => [ "Overlapping temp/var",  undef ],
 	'part_o_tmpvar'    => [ "The temp (/tmp) partition is the same as the var (/var) partition.", undef ],
-	'part_name_swap'   => [ "(swap)", undef,
+	'part_name_swap'   => [ "(swap)", undef ],
 	'part_name_tmp'    => [ "/tmp", undef ],
 	'part_name_var'    => [ "/var", undef ],
 	'part_name_home'   => [ "/home", undef ],
@@ -77,7 +90,7 @@ sub getStrings { (
 	'copy_title'       => [ "Copying from", undef ],
 	
 	'boot_bs'          => [ "(Bootsector of partition)", undef ],
-	'boot_mbr'         => [ "(Master boot record of drive)", undef ]
+	'boot_mbr'         => [ "(Master boot record of drive)", undef ],
 	
 
 	'scr_1_title'      => [ "Step 1 of 6: Welcome", undef ],
@@ -107,7 +120,7 @@ sub getStrings { (
 	'scr_4_text'       => [ "<p><b>Installation</b> of LiveCD to your hard disk is currently in progress. Please be patient as this process does take some time.</p>", undef ],
 	'scr_4_copy'       => [ "Data copy progress:", undef ],
 	'scr_4_fmt'        => [ "Disk format:", undef ],
-	'scr_4_overall'    => [ "Overall progress:", undef ]
+	'scr_4_overall'    => [ "Overall progress:", undef ],
 
 
 	'scr_5_title'      => [ "Step 5 of 6: Bootloader Installation", undef ],
@@ -117,12 +130,12 @@ sub getStrings { (
 	'scr_6_title'      => [ "Step 6 of 6: Reboot", undef ],
 	'scr_6_text'       => [ "<p><b>Congratulations</b> you have completed the installation of the LiveCD to your local disk. Press <i>Finish</i> to boot your machine into your new install.</p>\n<p>It is recommended, after the boot, that you immediately change the passwords for both the root and user account, to ensure the security of your system.</p>", undef ],
 	'scr_6_no'         => [ "No, I will reboot my system later.", undef ],
-	'scr_6_yes'        => [ "Yes, reboot my system atomatically now.", undef ]
-); }
+	'scr_6_yes'        => [ "Yes, reboot my system atomatically now.", undef ] 
+); 
 
 sub getMyLang {
 	my $language = $languages{'en'};
-	if (defined($cmdline) && 
+	if (defined(%cmdline) && 
 	    defined($cmdline{'lang'}) && 
 	    defined($languages{$cmdline{'lang'}})) {
 		$language = $languages{$cmdline{'lang'}}; 
@@ -141,4 +154,5 @@ sub getStr {
 	}
 	$str;
 }
+
 

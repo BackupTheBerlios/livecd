@@ -28,8 +28,10 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.20 2004/01/25 08:59:45 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.21 2004/01/25 09:33:40 jaco Exp $
 #
+
+#use LCDLang;
 
 use threads;
 use threads::shared;
@@ -98,12 +100,6 @@ my %fsopts = (
 	'xfs'      => 'defaults'
 );
 
-# language stuff
-my $lang          : shared = 0;
-my %languages;
-my %strings;
-my %cmdline;
-
 sub cat_ { local *F; open F, $_[0] or return; my @l = <F>; wantarray() ? @l : join('', @l); };
 sub do_system  { my ($p) = @_; print "+ $p {\n"; my $c = system($p); print "+ }=$c\n"; };
 
@@ -168,19 +164,19 @@ sub init
 	} split(/ /, cat_('/proc/cmdline'));
 
 	# initialise our languages
-	%strings = getStrings();
-	%languages = getLanguages();
+	#%strings = getStrings();
+	#%languages = getLanguages();
 	$lang = getMyLang();
 	
-	print "Initialising ... ";
+	print getStr('script_init')."\n";
 	do_system("mkdir -p $mnt");
-	print "Done.\n";
+	print getStr('done')."\n";
 }
 
 
 sub destroy
 {
-	print "Destroying ... ";
+	print getStr('script_destroy')."\n";
 
 	# notify threads that we are to die and keep
 	# looping until we don't have a thread anymore
@@ -197,9 +193,9 @@ sub destroy
 	#close(STDERR);
 	do_system("rm -rf $log");
 
-	print "Done.\n";
+	print getStr('done')."\n";
 	if ($reboot) {
-		print "Rebooting...\n";
+		print getStr('reboot')."\n";
 		exec("/sbin/reboot");
 	}
 }
