@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.81 2003/12/07 11:24:54 jaco Exp $
+# $Id: CHANGELOG,v 1.82 2003/12/07 16:33:50 jaco Exp $
 
 * Sun, Dec 07, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -66,6 +66,7 @@
       - Print "LOADED" after loading modules, "OK" otherwise
         (SCSI doesn't print "FAILED" on no SCSI devices)
       - Use losetup to mount cloop images
+      - 'noscsi' boot option disables SCSI probing
     [mklivecd]:
       - Be verbose in depmod command
       - Copy SCSI and optinal modules in addition to normal
