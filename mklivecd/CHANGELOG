@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.15 2003/10/01 08:29:52 jaco Exp $
+# $Id: CHANGELOG,v 1.16 2003/10/01 10:41:01 jaco Exp $
 
 * Wed, Oct 01, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -33,6 +33,13 @@
     [hwdetect]:
       - Added support for USB devices, probing USB controllers to
         enable detection of attached devices
+      - Try to auto-detect monitors via DDC, if not available or
+        cannot be detected properly, fall back to a good default
+        (1024x768). Thanks to Pixel <pixel@mandrakesoft.com> for
+        pointers in this area.
+      - Default keyboard to 'us' as per language 'en'. (This gives
+        a stepping stone for configurable keyboards via the boot
+        prompt.)
     [linuxrc]:
       - Only make symlinks to /var/lib/{rpm,urpmi} directories, the
         rest are actual writables

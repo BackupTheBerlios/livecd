@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.4 2003/10/01 06:28:47 jaco Exp $
+# $Id: hwdetect.in,v 1.5 2003/10/01 10:41:01 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -30,6 +30,7 @@ use common;
 use modules;
 
 use harddrake::sound;
+use keyboard;
 use mouse;
 use Xconfig::card;
 use Xconfig::default;
@@ -299,26 +300,33 @@ sub hwdetect_getvideo {
 }
 
 sub hwdetect_getmonitor {
+	my ($rawX) = @_;
 	print "Selecting monitor: ";
-	my $def_monitor = undef;
-	eval { $def_monitor = Xconfig::monitor::good_default_monitor() and print_success(); } or print_failed();
-	my $monitors = Xconfig::monitor::monitors();
-	my %h_monitors = map {; "$_->{VendorName}|$_->{ModelName}" => $_ } @$monitors;
-	my $probed_monitor = $h_monitors{$def_monitor};
+	my $probed_monitor = undef;
+
+	# try to get a monitor via DDC
+	eval { $probed_monitor = Xconfig::monitor::from_raw_X($rawX); };
+	if (!$probed_monitor->{HorizSync}) {
+		# just grab a good default
+		my $def_monitor = undef;
+		eval { $def_monitor = Xconfig::monitor::good_default_monitor(); };
+		my $monitors = Xconfig::monitor::monitors();
+		my %h_monitors = map {; "$_->{VendorName}|$_->{ModelName}" => $_ } @$monitors;
+		$probed_monitor = $h_monitors{$def_monitor};
+	}
+	eval { $rawX->set_monitors($probed_monitor) and print_success(); } or print_failure();
 	hwdetect_loadmod('unknown', $probed_monitor->{VendorName}, $probed_monitor->{ModelName}, 0);
 	print_hash($probed_monitor) if ($printdebug);
 	$probed_monitor;
 }
 
 sub hwdetect_getxfree {
-	my $def_keyboard = undef;
+	my $def_keyboard = keyboard::lang2keyboard('en');
 	my $def_mouse = hwdetect_getmouse();
 	my $def_card = hwdetect_getvideo();
-	my $def_monitor = hwdetect_getmonitor();
-
 	my $rawX = Xconfig::default::configure($def_keyboard, $def_mouse);
-	
-	$rawX->set_monitors($def_monitor);
+	my $def_monitor = hwdetect_getmonitor($rawX);
+
 	Xconfig::card::to_raw_X($def_card, $rawX);
 	Xconfig::screen::configure($rawX, $def_card);
 	Xconfig::resolution_and_depth::configure(undef, $rawX, $def_card, $def_monitor, 1);
