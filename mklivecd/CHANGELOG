@@ -1,12 +1,15 @@
-# $Id: CHANGELOG,v 1.11 2003/09/30 09:44:24 jaco Exp $
+# $Id: CHANGELOG,v 1.12 2003/10/01 05:58:47 jaco Exp $
 
-* Tue, Sep 30, 2003, 0.5.6-cvs
+* Wed, Oct 01, 2003, 0.5.6-cvs
   + Buchan Milne <bgmile@cae.co.za>:
     [mklivecd]:
       - Fix rootdir to use the kernel/modules from the chroot
-      - Add basic bootsplash support (doesn't work with a chroot
-        at present) if bootsplash is installed on the image'd
-        system
+      - Add basic bootsplash support if bootsplash is installed
+        on the image'd system (normal as well as chroot)
+      - Avoid premature shell expansion polluting the exclude list
+    [mklivecd.spec]:
+      - Updated to allow for rpmbuild -ta <tarball> to work for
+        a CVS snapshot generated via 'make dist'
   + Jaco Greeff <jaco@linuxminicd.org>:
     [FAQ]:
       - Updated FAQ to include some compression parameter
