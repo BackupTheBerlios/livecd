@@ -63,6 +63,23 @@
                 <bool>true</bool>
             </property>
         </widget>
+        <widget class="QPushButton">
+            <property name="name">
+                <cstring>DiskPartitioner</cstring>
+            </property>
+            <property name="geometry">
+                <rect>
+                    <x>450</x>
+                    <y>340</y>
+                    <width>140</width>
+                    <height>40</height>
+                </rect>
+            </property>
+            <property name="text">
+                <string>Disk Partitioner
+(for advanced users)</string>
+            </property>
+        </widget>
     </widget>
     <widget class="QWidget">
         <property name="name">
@@ -915,30 +932,38 @@
         <receiver>fMain</receiver>
         <slot>toggleReboot(bool)</slot>
     </connection>
+    <connection>
+        <sender>DiskPartitioner</sender>
+        <signal>clicked()</signal>
+        <receiver>fMain</receiver>
+        <slot>DiskPartitioner_clicked()</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">livecd-install.ui.pm</include>
+    <include location="local" impldecl="in implementation">livecd-install.ui.h</include>
 </includes>
 <slots>
-    <slot access="" language="Perl" returnType="">pageSelected(const QString &amp;)</slot>
-    <slot access="" language="Perl" returnType="">toggleReboot(bool)</slot>
-    <slot access="" language="Perl" returnType="">doLoaderInstall( )</slot>
+    <slot language="Perl">pageSelected( const QString &amp; )</slot>
+    <slot language="Perl">toggleReboot( bool )</slot>
+    <slot language="Perl">doLoaderInstall()</slot>
+    <slot>DiskPartitioner_clicked()</slot>
 </slots>
 <functions>
-    <function access="" language="Perl" returnType="">init()</function>
-    <function access="" language="Perl" returnType="">destroy()</function>
-    <function access="" language="Perl" returnType="">scanPartitions()</function>
-    <function access="" language="Perl" returnType="">showVerify()</function>
-    <function access="" language="Perl" returnType="">showInstall()</function>
-    <function access="" language="Perl" returnType="">timeThread()</function>
-    <function access="" language="Perl" returnType="">fmtTime()</function>
-    <function access="" language="Perl" returnType="">doEvents()</function>
-    <function access="" language="Perl" returnType="">doFormat()</function>
-    <function access="" language="Perl" returnType="">formatPart()</function>
-    <function access="" language="Perl" returnType="">doCopy()</function>
-    <function access="" language="Perl" returnType="">copyDir()</function>
-    <function access="" language="Perl" returnType="">showBootloader()</function>
-    <function access="" language="Perl" returnType="">writeFstab()</function>
+    <function language="Perl">init()</function>
+    <function language="Perl">destroy()</function>
+    <function language="Perl">scanPartitions()</function>
+    <function language="Perl">showVerify()</function>
+    <function language="Perl">showInstall()</function>
+    <function language="Perl">timeThread()</function>
+    <function language="Perl">fmtTime()</function>
+    <function language="Perl">doEvents()</function>
+    <function language="Perl">doFormat()</function>
+    <function language="Perl">formatPart()</function>
+    <function language="Perl">doCopy()</function>
+    <function language="Perl">copyDir()</function>
+    <function language="Perl">showBootloader()</function>
+    <function language="Perl">writeFstab()</function>
 </functions>
 <layoutdefaults spacing="6" margin="11"/>
 </UI>

@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.55 2004/01/25 10:54:08 jaco Exp $
+# $Id: livecd-install,v 1.56 2004/04/08 04:01:41 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -101,7 +101,7 @@ my %strings = (
 
 	'scr_1_title'      => [ "Step 1 of 6: Welcome", undef ],
 	'scr_1_text'       => [ "<p><b>Welcome</b> to the LiveCD installation program. This application will guide you through the steps of installing the LiveCD to your local disk.</p>\n<p>Navigation through the steps can be done with the <i>Back</i> and <i>Next</i> buttons, while you can exit/abort the process at any time with the <i>Cancel</i> button.</p>\n<p>This is BETA quality software and might have adverse (unintended) side effects on your current running system. These side-effects might include erasing of important data and/or rendering of your system in an unbootable state. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n", undef ],
-				
+	'disk_partitioner_text' => [ "Disk Partitioner\n(for advanced users)", undef ],
 
 	'scr_2_title'      => [ "Step 2 of 6: Partition Selection", undef ],
 	'scr_2_text'       => [ "<p><b>Choose</b> the partitions to be associated with different mountpoints. You need to specify devices for use by the <i>root</i> and <i>swap</i>, while a seperate <i>home</i> partition is recommended.</p>\n", undef ],
@@ -165,7 +165,7 @@ sub getStr {
 
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Sun Jan 25 12:49:26 2004
+# Created: Wed Apr 7 22:47:28 2004
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -181,11 +181,13 @@ use Qt::isa qw(Qt::Wizard);
 use Qt::slots
     pageSelected => ['const QString&'],
     toggleReboot => ['bool'],
-    doLoaderInstall => [];
+    doLoaderInstall => [],
+    DiskPartitioner_clicked => [];
 use Qt::attributes qw(
     page
     tlWelcome
     pixmapLabel2
+    DiskPartitioner
     page_2
     groupBox16_2
     textLabel1_2
@@ -3293,6 +3295,9 @@ sub NEW
     pixmapLabel2->setGeometry( Qt::Rect(0, 0, 300, 380) );
     pixmapLabel2->setPixmap( $image0 );
     pixmapLabel2->setScaledContents( 1 );
+
+    DiskPartitioner = Qt::PushButton(page, "DiskPartitioner");
+    DiskPartitioner->setGeometry( Qt::Rect(450, 340, 140, 40) );
     addPage( page, "" );
 
     page_2 = Qt::Widget(this, "page_2");
@@ -3477,6 +3482,7 @@ sub NEW
     Qt::Object::connect(this, SIGNAL "selected(const QString&)", this, SLOT "pageSelected(const QString&)");
     Qt::Object::connect(bInstall, SIGNAL "pressed()", this, SLOT "doLoaderInstall()");
     Qt::Object::connect(rbReboot, SIGNAL "toggled(bool)", this, SLOT "toggleReboot(bool)");
+    Qt::Object::connect(DiskPartitioner, SIGNAL "clicked()", this, SLOT "DiskPartitioner_clicked()");
 
     init();
 }
@@ -3498,6 +3504,8 @@ sub languageChange
     "<p>Navigation through the steps can be done with the <i>Back</i> and <i>Next</i> buttons, while you can exit/abort the process at any time with the <i>Cancel</i> button.</p>\n" .
     "<p>This is BETA quality software and might have adverse (unintended) side effects on your current running system. These side-effects might include erasing of important data and/or rendering of your system in an unbootable state. Use it with care!</p><p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>\n" .
     "") );
+    DiskPartitioner->setText( trUtf8("Disk Partitioner\n" .
+    "(for advanced users)") );
     setTitle( page, trUtf8("Step 1 of 6: Welcome") );
     groupBox16_2->setTitle( trUtf8("Optional Partitions") );
     textLabel1_2->setText( trUtf8("Home (/home) device:") );
@@ -3565,7 +3573,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.55 2004/01/25 10:54:08 jaco Exp $
+# $Id: livecd-install,v 1.56 2004/04/08 04:01:41 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -3693,7 +3701,8 @@ sub initLang
 	
 	setTitle(page, trUtf8(getStr('scr_1_title')));
 	tlWelcome->setText(trUtf8(getStr('scr_1_text')));
-	
+	DiskPartitioner->setText(trUtf8(getStr('disk_partitioner_text')));
+
 	setTitle(page_2, trUtf8(getStr('scr_2_title')));
 	tlWelcome_2_3->setText(trUtf8(getStr('scr_2_text')));
 	groupBox16->setTitle(trUtf8(getStr('scr_2_req')));
@@ -4372,6 +4381,12 @@ sub toggleReboot # SLOT: ( bool )
 	print "check: $check, reboot: $reboot\n";
 }
 
+sub DiskPartitioner_clicked # SLOT: (   )
+{
+        my ($check) = @_;
+        do_system("diskdrake");
+}
+
 
 1;
 
@@ -4395,7 +4410,7 @@ sub toggleReboot # SLOT: ( bool )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.55 2004/01/25 10:54:08 jaco Exp $
+# $Id: livecd-install,v 1.56 2004/04/08 04:01:41 tom_kelly33 Exp $
 #
 
 package main;

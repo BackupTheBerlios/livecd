@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.23 2004/01/25 10:54:08 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.24 2004/04/08 04:01:42 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -156,7 +156,8 @@ sub initLang
 	
 	setTitle(page, trUtf8(getStr('scr_1_title')));
 	tlWelcome->setText(trUtf8(getStr('scr_1_text')));
-	
+	DiskPartitioner->setText(trUtf8(getStr('disk_partitioner_text')));
+
 	setTitle(page_2, trUtf8(getStr('scr_2_title')));
 	tlWelcome_2_3->setText(trUtf8(getStr('scr_2_text')));
 	groupBox16->setTitle(trUtf8(getStr('scr_2_req')));
@@ -833,5 +834,11 @@ sub toggleReboot # SLOT: ( bool )
 
 	$reboot = $check;
 	print "check: $check, reboot: $reboot\n";
+}
+
+sub DiskPartitioner_clicked # SLOT: (   )
+{
+        my ($check) = @_;
+        do_system("diskdrake");
 }
 
