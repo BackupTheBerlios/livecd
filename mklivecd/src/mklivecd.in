@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.87 2004/01/07 13:14:06 jaco Exp $
+# $Id: mklivecd.in,v 1.88 2004/01/07 13:24:29 jaco Exp $
 #
 
 use strict;
@@ -285,6 +285,7 @@ sub set_progress {
 				$progress_curr += $num;
 				print $ESC."1G";
 				chomp($text);
+				$text =~ s#\r?\n# #gs; # remove newlines in text
 				if (length($text) > 72) {
 					print "  ".pack("A72", $text)." ...";
 				}
@@ -473,6 +474,7 @@ sub parse_options {
 	check_dietlibc();
 	check_resolution();
 	check_root();
+	check_apps();
 
 	# pretty up
 	print "\n\n";
@@ -542,6 +544,12 @@ sub check_resolution {
 ### see if we are indeed root
 sub check_root {
 	die_("\nFATAL: You have to be root to execute this program\n") if ($> > 0);
+}
+
+
+### see if we are indeed root
+sub check_apps {
+	die_("\nFATAL: mkisofs program not available, please install the correct package\n") unless (-f '/usr/bin/mkisofs');
 }
 
 
