@@ -1,4 +1,4 @@
-# $Id: TODO,v 1.12 2003/10/31 07:06:10 jaco Exp $
+# $Id: TODO,v 1.13 2003/10/31 07:08:24 jaco Exp $
 
 - Add command-line options (at isolinux bootup) to select the
   screen size and bitdepth for the X configuration
@@ -15,4 +15,9 @@
 - Localisation support
 - Remove functions in hwdetect where we have duplicated already
   existing MDK functions, e.g. in module loading
+- Mouse configuration should override the gpm config as well
+- Localised keyboard support on console
+- PS/2 wheel mouse should be made to work
+- USB memory stick support
+- Translucency kernel module support
 
