@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.83 2004/01/07 09:35:48 jaco Exp $
+# $Id: mklivecd.in,v 1.84 2004/01/07 12:52:02 jaco Exp $
 #
 
 use strict;
@@ -58,16 +58,16 @@ my $modules_26     = '@DEF_MODULES_PATH_26@ @DEF_MODULES_DEP_PATH_26@ @DEF_MODUL
 my $modules_opt_26 = '@DEF_MODULES_OPT_PATH_26@ @DEF_SCSI_MODULES_OPT_PATH_26@ @DEF_USB_MODULES_DRV_PATH_26@';
 my $nodirs         = '^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/tmp$';
 my $nofiles        = '^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*[.]rpmnew$ .*[.]rpmsave$ /[.]bash_history$ /[.]fonts[.]cache-[0-9]$ /[.]xauth.* /[.]xsession-errors$ ^/var/run/ ^/var/lock/subsys/';
-my $loopmod        = "drivers/block/cloop";
-my $loopcmp        = "create_compressed_fs";
-my $blocksize      = 64;
+my $loopmod        = undef;
+my $loopcmp        = undef;
+my $blocksize      = 32;
 my $finaliso       = "livecd.iso";
 
 ### command-line options
 my $o_verbose;
 my $o_root         = "/";
 my $o_tmp          = "/tmp";
-my $o_looptype     = "clp";
+my $o_looptype     = "sqfs";
 my $o_keyboard     = '@DEF_KEYBOARD@';
 my $o_resolution   = '@DEF_RESOLUTION@';
 my $o_vgamode      = '@DEF_VGAMODE@';
@@ -105,82 +105,92 @@ sub print_usage {
    $0 [options] <livecd-image>
 
 General Options:
-   --help                      Display this message
-   --version                   Display version information
-   --verbose                   Be verbose in output
-   --noclean                   Don't remove temporary files on exit
+   --help                          Display this message
+   --version                       Display version information
+   --verbose                       Be verbose in output
+   --noclean                       Don't remove temporary files on exit.
 
 Image generation:
-   --root <rootdir>            Root directory of the live filesystem to use as
-                               the image for the LiveCD (default: $o_root)
-   --tmp <tmpdir>              Name of the directory to be used for temporary
-                               storage (default: $o_tmp)
-   --img <image>               Name of the saved compressed image. When an image
-                               by this name is found, it will not be re-created
-                               or overwritten, rather the existing image will be
-                               re-used, i.e. the compressed image is not
-                               re-built.
-   --nofile <ex1>[,][...]      Excludes files from the final image. (Also see
-                               the --nodir option for a full description)
-   --nodir <ex1>[,][...]       Excludes directories from the final image.
-                               Patterns passed to this option (as with the
-                               --nofile option) should be valid in a grep(1)
-                               search, e.g. --nodir=^/home/jaco,^/root/.mcop
-                               will exclude both the /home/jaco and /root/.mcop
-                               directories from the final LiveCD.
-   --sort <file>               Sort the files on the compressed iso image
-                               according to the mkisofs-style sort specifier
-                               as detailed in file.
-   --kernel <kernel>           Kernel to use as default for the LiveCD image.
-                               (default: $o_kernel)
-   --experimental              Enable experimental LiveCD feautures. Currently
-                               this option enables kernel translucency support
+   --root <rootdir>                Root directory of the live filesystem to use
+                                   as the for the image of the LiveCD. 
+                                   (default: $o_root)
+   --tmp <tmpdir>                  Name of the directory to be used for 
+                                   temporary file storage. 
+                                   (default: $o_tmp)
+   --img <image>                   Name of the saved compressed image. When an 
+                                   image by this name is found, it will not be 
+                                   re-created or overwritten, rather the 
+                                   existing image will be re-used, i.e. the 
+                                   compressed image is not re-built.
+   --nofile <ex1>[,][...]          Excludes files from the final image. (Also
+                                   see the --nodir option for a full 
+                                   description)
+   --nodir <ex1>[,][...]           Excludes directories from the final image.
+                                   Patterns passed to this option (as with the
+                                   --nofile option) should be valid in a grep(1)
+                                   search, e.g. --nodir=^/home/jaco,^/root/.mcop
+                                   will exclude both the /home/jaco and 
+                                   /root/.mcop directories from the final 
+                                   LiveCD.
+   --sort <file>                   Sort the files on the compressed iso image
+                                   according to the mkisofs-style sort specifier
+                                   as detailed in file.
+   --kernel <kernel>               Kernel to use as default for the LiveCD
+                                   image. 
+                                   (default: $o_kernel)
+   --experimental                  Enable experimental LiveCD feautures. 
+                                   Currently this option enables kernel 
+                                   translucency support.
 
 Compression options:
-   --blocksize <size>          Compression blocksize in K (default: $blocksize)
-   --looptype <clp|bzlp|sqfs>  Create a cloop, bzloop or squashfs image. The bzloop
-                               option is utilising the experimental bzloop kernel
-                               module. bzloop should not be considdered as
-                               stable and might have unintended side-effects on
-                               the created LiveCD. (default: $o_looptype)
+   --blocksize <size>              Compression (if used) blocksize in K 
+                                   (default: $blocksize)
+   --looptype <clp|bzlp|sqfs|iso>  Create a cloop, bzloop, squashfs or iso (non-
+                                   compressed) image. 
+                                   (default: $o_looptype)
 
 Boot options:
-   --bootopt <opt=value>       Specify an additional boot option to pass to the
-                               kernel command-line.
-   --bootmsg <msg>             Use 'msg' as the isolinux boot message
-   --bootkey <key=msg>         Display 'msg' on key 'key' from isolinux
-   --bootimg <img>             Use 'img' (LSS format) as the isolinux background
-                               display image
-   --mdkboot                   Use the Mandrake boot image extension to display
-                               the boot message
-   --timeout                   Specify the default ISO Linux prompt timeout in
-                               seconds. (default: $o_timeout)
-   --keyboard <mapping>        Specify a different keyboard layout as default
-                               for the LiveCD (default: $o_keyboard)
-   --resolution <res>          Specify the resolution for the framebuffer output
-                               device (default: $o_resolution)
-   --splash <yes|no>           Create the LiveCD with bootsplash support if
-                               available on the root filesystem (default: $o_splash)
-   --fstab <options>           Override the default options for the fstab on the
-                               LiveCD. Options are one or more of 'auto' and
-                               'rw', for example '--fstab=rw,auto' will
-                               automatically mount all detected partitions rw.
+   --bootopt <opt=value>           Specify an additional boot option to pass to 
+                                   the kernel command-line.
+   --bootmsg <msg>                 Use 'msg' as the isolinux boot message.
+   --bootkey <key=msg>             Display 'msg' on key 'key' from isolinux.
+   --bootimg <img>                 Use 'img' (LSS format) as the isolinux.
+                                   background display image.
+   --mdkboot                       Use the Mandrake boot image extension to 
+                                   display the boot message.
+   --timeout                       Specify the default ISO Linux prompt timeout
+                                   in seconds. 
+                                   (default: $o_timeout)
+   --keyboard <mapping>            Specify a different keyboard layout as 
+                                   default for the LiveCD. 
+                                   (default: $o_keyboard)
+   --resolution <res>              Specify the resolution for the framebuffer 
+                                   output device. 
+                                   (default: $o_resolution)
+   --splash <yes|no>               Create the LiveCD with bootsplash support if
+                                   available on the root filesystem. 
+                                   (default: $o_splash)
+   --fstab <options>               Override the default options for the fstab on
+                                   the LiveCD. Options are one or more of 'auto'
+                                   and 'rw', for example '--fstab=rw,auto' will
+                                   automatically mount all detected partitions 
+                                   rw.
 
 ISO Image options:
-   --isoextrafiles <path>      Add the files in 'path' to the root of the LiveCD
-                               ISO image
-   --application <id>          Use the specified iso application ID, as '-A'
-                               option to mkisofs
-   --volumeid <id>             Use the specified iso volume ID, as a '-V' option
-                               to mkisofs
-   --preparer <prep>           Use the specified preparer ID, as a '-p' option
-                               to mkisofs
-   --publisher <pub>           Use the specified publisher ID, as a '-P' option
-                               to mkisofs
+   --isoextrafiles <path>          Add the files in 'path' to the root of the
+                                   LiveCD ISO image.
+   --application <id>              Use the specified iso application ID, as '-A'
+                                   option to mkisofs.
+   --volumeid <id>                 Use the specified iso volume ID, as a '-V'
+                                   option to mkisofs.
+   --preparer <prep>               Use the specified preparer ID, as a '-p'
+                                   option to mkisofs.
+   --publisher <pub>               Use the specified publisher ID, as a '-P'
+                                   option to mkisofs.
 
 Behaviour:
-   --usbhome                   Use USB memory stick devices as a persistent home
-                               when available/connected on bootup.
+   --usbhome                       Use USB memory stick devices as a persistent
+                                   home when available/connected on bootup.
 
 Examples:
     $0 --nodir ^/usr/src/RPM,^/root/tmp livecd.iso
@@ -437,7 +447,12 @@ sub parse_options {
 	push @{$opts{nodir}}, split(/ /, $nodirs);
 
 	# setup executables
-	if ($o_looptype =~ /clp/) {
+	if ($o_looptype =~ /iso/) {
+		$loopcmp = undef;
+		$loopmod = undef;
+		$blocksize = 0;
+	}
+	elsif ($o_looptype =~ /clp/) {
 		$loopcmp = "create_compressed_fs";
 		$loopmod = "drivers/block/cloop";
 		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 64;
@@ -553,7 +568,7 @@ sub do_copy {
 sub create_initrd {
 	# get our modules
 	my @allmods = split(/ /, $modules);
-	push @allmods, $loopmod;
+	push @allmods, $loopmod if (defined($loopmod));
 	my @allmods_opt = split(/ /, $modules_opt);
 
 	# start progress bar
@@ -662,7 +677,7 @@ sub create_compressed {
 	}
 	else {
 		my $pos = 0;
-		start_progress("Setting compression parameters", 5);
+		start_progress("Setting filesystem parameters", 5);
 
 		# handle excludes
 		do_cmd(":>$workdir/excludes.list", ++$pos);
@@ -708,8 +723,10 @@ sub create_compressed {
 			end_progress();
 		}
 		else {
-			start_progress("Creating compressed image", 10001);
-			my $cmd="(nice -n 19 mkisofs -R -exclude-list $workdir/excludes.list -sort $workdir/sort.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype) 2>&1";
+			start_progress("Creating loop image", 10001);
+			my $cmd="(nice -n 19 mkisofs -R -exclude-list $workdir/excludes.list -sort $workdir/sort.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v $o_root";
+			$cmd = $cmd."| $loopcmp - $size" if (defined($loopcmp));
+			$cmd = $cmd." >$workdir/livecd/livecd.$o_looptype) 2>&1";
 			open CMP, "$cmd |";
 			my $line;
 			while ($line = <CMP>) {

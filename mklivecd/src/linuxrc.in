@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.59 2004/01/06 13:25:10 jaco Exp $
+# $Id: linuxrc.in,v 1.60 2004/01/07 12:52:02 jaco Exp $
 #
 
 ### global variables
@@ -51,8 +51,10 @@ BASEIMG="livecd"          # name of the base cloop image, with a .clp (cloop), .
 LOOPBEXT=".bzlp"          # extension for the above
 LOOPCEXT=".clp"           # extension for the above
 LOOPSEXT=".sqfs"
+LOOPIEXT=".iso"
 SQUASHFS=
 LOOPTYPE="$LOOPCEXT"
+ISOTYPE="iso9660"
 MD5FILE="livecd.md5"
 DEVICES=""                # list of all ide/scsi cd-type devices
 FOUNDMEM=200000           # total memory found on box
@@ -336,6 +338,10 @@ findcloop() {
 				LOOPTYPE="$LOOPSEXT"
 				LOOPMOD="squashfs"
 				SQUASHFS=1
+			elif [ -f $MNTCDROM/$BASEIMG$LOOPIEXT ]; then
+				LOOPTYPE="$LOOPIEXT"
+				LOOPMOD=
+				SQUASHFS=
 			fi
 
 			# if it exists, load the correct module and mount
@@ -345,19 +351,22 @@ findcloop() {
 
 				checkmd5 ""
 
-				echo -n "Loading compressed loop kernel module: "
-				loadmod $LOOPMOD && printloaded || printfail
-				#loadmod $LOOPMOD file=$MNTCDROM/$BASEIMG$LOOPTYPE && printloaded || printfail
+				if [ -n "$LOOPMOD" ]; then
+					echo -n "Loading compressed loop kernel module: "
+					loadmod $LOOPMOD && printloaded || printfail
+					#loadmod $LOOPMOD file=$MNTCDROM/$BASEIMG$LOOPTYPE && printloaded || printfail
+				fi
 
-				echo -n "Mounting compressed image on $MNTLIVECD: "
+				echo -n "Mounting loop image on $MNTLIVECD: "
 				if [ -z "$SQUASHFS" ]; then
 					CLOOPDEV="/dev/$LOOPMOD/0"
 					if [ -e "$CLOOPDEV" ]; then
 						losetup $CLOOPDEV $MNTCDROM/$BASEIMG$LOOPTYPE && \
-						mount -r -t iso9660 $CLOOPDEV $MNTLIVECD && CLOOPMNT=1
+						mount -r -t $ISOTYPE $CLOOPDEV $MNTLIVECD && CLOOPMNT=1
 					fi
 				else
-					mount -o loop -r -t squashfs $MNTCDROM/$BASEIMG$LOOPTYPE $MNTLIVECD && CLOOPMNT=1
+					[ -n "$SQUASHFS" ] && ISOTYPE="squashfs"
+					mount -o loop -r -t $ISOTYPE $MNTCDROM/$BASEIMG$LOOPTYPE $MNTLIVECD && CLOOPMNT=1
 				fi
 
 				# did we get it?
@@ -365,7 +374,7 @@ findcloop() {
 					printfail
 					$SETCOLOR_FAIL
 					echo ""
-					echo "ERROR: Unable to mount filesystem uncompressed,"
+					echo "ERROR: Unable to mount loop filesystem,"
 					echo "       dropping you to a limited shell."
 					$SETCOLOR_NORMAL
 					execshell

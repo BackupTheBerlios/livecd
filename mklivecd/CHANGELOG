@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.100 2004/01/07 09:31:57 jaco Exp $
+# $Id: CHANGELOG,v 1.101 2004/01/07 12:52:02 jaco Exp $
 
 * Wed, Jan 07, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -127,6 +127,7 @@
       - Make sure depmod is run if running kernel is not the same
         as the CD kernel (Thanks mark <mark@tapinternet.com>)
       - Added --noclean option to not remove temporary files
+      - Added uncompressed loop image support
     [mklivecd.spec]:
       - Updated URL: http://livecd.berlios.de
       - Synced with MDK contrib spec
