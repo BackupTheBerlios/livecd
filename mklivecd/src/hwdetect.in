@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.88 2004/01/14 06:15:52 jaco Exp $
+# $Id: hwdetect.in,v 1.89 2004/01/14 07:52:18 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -682,6 +682,19 @@ sub hwdetect_getnetwork {
 	set_progress();
 }
 
+sub hwdetect_getprinters {
+	print "Detecting local printers: ";
+	my @probed_printers = ();
+	#eval { require printer::detect; @probed_printers = local_detect(); };
+	print scalar(@probed_printers)." found";
+	scalar @probed_printers ? print_success() : print_failed();
+	system("rm -rf /etc/rc.d/rc?.d/*cups") unless (scalar(@probed_printers));
+	foreach my $printer (@probed_printers) {
+		print_hash($printer) if ($debug);
+	}
+	set_progress();
+}
+
 sub hwdetect_getserial {
 	print "Detecting serial devices: ";
 	my @probed_devices = ();
@@ -1299,8 +1312,9 @@ MAIN: {
 		hwdetect_getxfree();
 		hwdetect_getsound();
 		hwdetect_getnetwork();
-		#hwdetect_getserial();
+		hwdetect_getprinters();
 		hwdetect_getusb();
+		#hwdetect_getserial();
 		hwdetect_writeconf();
 	}
 	
