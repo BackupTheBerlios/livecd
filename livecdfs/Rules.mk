@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.5 2004/01/22 15:20:03 jaco Exp $
+# $Id: Rules.mk,v 1.6 2004/01/22 15:23:07 jaco Exp $
 
 TOPDIR=$(shell pwd)
 SRCDIR=src
@@ -10,6 +10,7 @@ CXXFLAGS=-Wall -DDEBUG -I$(LUFSDIR)/include
 CFLAGS=-Wall -I$(LUFSDIR)/include
 
 CD=cd
+CP=cp
 FIND=find
 GREP=grep
 LN=ln
