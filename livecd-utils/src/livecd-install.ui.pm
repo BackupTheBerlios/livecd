@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.6 2004/01/06 10:18:10 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.7 2004/01/12 07:03:57 jaco Exp $
 #
 
 use threads;
@@ -451,7 +451,7 @@ sub showInstall
 	system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
 	system("mkdir -p $mnt/var/lock/subsys ; chmod -R 755 $mnt/var/lock/subsys");
 	system("mkdir -p $mnt/var/run/netreport ; chmod -R 755 $mnt/var/run/netreport ; touch $mnt/var/run/utmp");
-	system("cd $mnt/var ; ln -s ../tmp");
+	system("cd $mnt/var ; ln -s ../tmp") unless (-e "$mnt/var/tmp");
 
 	doCopy($initrd, $devs, @dirs);
 	doCopy("/", $devs, @etcdirs);
