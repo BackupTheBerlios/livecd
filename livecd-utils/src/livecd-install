@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.5 2003/11/21 20:19:05 jaco Exp $
+# $Id: livecd-install,v 1.6 2003/11/22 09:41:20 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -114,21 +114,17 @@ sub read_parts {
 sub copy_dir {
 	my ($file, $root, $dir, $mnt, $prog, $inc) = @_;
 
-	my $tmp = $prog;
-	qx(mkdir -p "$mnt/$dir" ; chown --reference="$root/$dir" "$mnt/$dir" ; chmod --reference="$root/$dir" "$mnt/$dir") unless ($dir eq "/");
-	qx(cp -dp "$root/$dir/" "$mnt/$dir" 2>/dev/null);
-
-	my @roots = qx(find "$root/$dir" -type d -maxdepth 1 | grep -v "^$root/$dir\$" | sed -e \'s,^$root/,,\' | grep -v ^/dev | grep -v ^/proc);
-	if (scalar(@roots)) {
-		my $i = $inc/scalar(@roots);
-		foreach my $r (@roots) {
-			chomp($r);
-			copy_dir($file, $root, $r, $mnt, $prog, $i); # from $prog -> $prog+$i
-			$prog = $prog + $i;
-		}
+	print sprintf("%0.70s ", $dir);
+	qx(mkdir -p "$mnt/$dir" ; chown --reference="$root/$dir" "$mnt/$dir" ; chmod --reference="$root/$dir" "$mnt/$dir");
+	unless (($dir =~ m|^/lib/dev-state|) || ($dir =~ m|^/proc|) || ($dir =~ m|^/dev|)) {
+		qx(cp -dp "$root/$dir/"* "$mnt/$dir" 2>/dev/null);
+		qx(cp -dp "$root/$dir/".* "$mnt/$dir" 2>/dev/null);
 	}
-	$prog = $tmp + $inc;
+	print sprintf("\x1B[72G[%6.2f%%]\n", $prog);
+
+	$prog = $prog + $inc;
 	print $file "$prog\n";
+	$prog;
 }
 
 # copy
@@ -154,7 +150,15 @@ sub copy_to {
 	print $file "$prog\n" or $cancel = 1;
 
 	# find all the root dirs on the current root
-	copy_dir($file, $initrd, "/", $mnt, 5, 90); # from 5 to 95
+	my $du = qx(du $initrd -ks | awk '{ print $1 }');
+	chomp($du);
+	my @dirs = qx(find $initrd -type d | sed -s 's,$initrd,,');
+	$prog = 5;
+	my $inc = 90/scalar(@dirs); # from 5 to 95
+	foreach my $dir (@dirs) {
+		chomp($dir);
+		$prog = copy_dir($file, $initrd, $dir, $mnt, $prog, $inc); 
+	}
 
 	# make the rest
 	qx(mkdir -p $mnt/dev ; mkdir -p $mnt/proc);
@@ -204,7 +208,7 @@ sub do_install {
 				copy_to($dev, $mnt);
 				make_fstab($dev, $mnt);
 				make_lilo($dev, $mnt);
-				qx(umount $mnt ; rm -rf $mnt);
+				qx(umount $mnt && rm -rf $mnt);
 				exit(0);
 			}
 		}
@@ -216,13 +220,24 @@ sub do_install {
 
 # main entry point
 MAIN: {
+	my $ret = qx(id -u);
+	chomp($ret);
+	die "FATAL: You neer to be root to run this program\n" if ($ret ne "0");
+	$ret = qx(which zenity-qt 2>/dev/null || echo none);
+	if ($ret =~ /none/) {
+		$ret = qx(which zenity 2>/dev/null || echo none);
+		die "FATAL: Neither 'zenity' nor 'zenity-qt' was found in the path. Please install the required packages.\n" if ($ret =~ /none/);
+	}
+	chomp($ret);
+	$dlg = $ret;
+
 	qx($dlg --info --title "$str{'WELCOME_TIT'}[$lang]" --text "$str{'WELCOME_STR'}[$lang]");
-	my $ret = qx($dlg --warning --title "$str{'WARN_ERROR_TIT'}[$lang]" --text "$str{'WARNCORR_STR'}[$lang]" || echo cancel);
+	$ret = qx($dlg --warning --title "$str{'WARN_ERROR_TIT'}[$lang]" --text "$str{'WARNCORR_STR'}[$lang]" || echo cancel);
 	exit(0) if ($ret =~ /cancel/);
 
 	my $quit = 0;
 	while (!$quit) {
-		my $ret = qx($dlg --list --radiolist --width 300 --height 200 --title "$str{'PROGSEL_TIT'}[$lang]" --column "" --column "$str{'PROGSEL_COL'}[$lang]" '' "$str{'PROGSEL_DD'}[$lang]" '' "$str{'PROGSEL_INST'}[$lang]" || echo quit);
+		$ret = qx($dlg --list --radiolist --width 300 --height 200 --title "$str{'PROGSEL_TIT'}[$lang]" --column "" --column "$str{'PROGSEL_COL'}[$lang]" '' "$str{'PROGSEL_DD'}[$lang]" '' "$str{'PROGSEL_INST'}[$lang]" || echo quit);
 		chomp($ret);
 		if ($ret =~ /quit/) {
 			exit(0);
