@@ -1,4 +1,4 @@
-# $Id: mklivecd.spec.in,v 1.32 2005/01/01 20:35:34 tom_kelly33 Exp $
+# $Id: mklivecd.spec.in,v 1.33 2005/01/15 00:31:09 tom_kelly33 Exp $
 
 %define name	mklivecd
 %define version	@MKLIVECDVER@
@@ -57,7 +57,7 @@ rm -rf %buildroot
 %{_datadir}/mklivecd/rc.sysinit
 
 %changelog
-* @SPECDATE@ Jaco Greeff <jaco@mandrake.org> @MKLIVECDVER@-@MKLIVECDREL@mdk
+* @SPECDATE@ Jaco Greeff <jaco@puxedo.org> @MKLIVECDVER@-@MKLIVECDREL@mdk
 - version @ARCHIVEVER@
 - updated description
 - added squashfs-tools require

@@ -1,7 +1,7 @@
 #
 # LiveCD hardware detection script language strings
 #
-# Copyright (C) 2004, Jaco Greeff <jaco@linuxminicd.org>
+# Copyright (C) 2004, Jaco Greeff <jaco@puxedo.org>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect-lang.in,v 1.5 2004/11/16 20:56:27 tom_kelly33 Exp $
+# $Id: hwdetect-lang.in,v 1.6 2005/01/15 00:31:10 tom_kelly33 Exp $
 #
 
 sub getLanguages() {

@@ -3,7 +3,7 @@
 #
 # LiveCD hardware detection script
 #
-# Copyright (C) 2002-2004, Jaco Greeff <jaco@linuxminicd.org>
+# Copyright (C) 2002-2004, Jaco Greeff <jaco@puxedo.org>
 # Copyright (C) 2004, Tom Kelly  <tom_kelly33@yahoo.com>
 #
 #    This program is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.144 2004/12/30 05:40:09 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.145 2005/01/15 00:31:10 tom_kelly33 Exp $
 #
 
 use strict;
@@ -153,6 +153,16 @@ sub print_loaded() {
 	print $COLOR_NORMAL if !$debug;
 	print "]\n";
 }
+
+sub print_noload() {
+        print $MOVE_TO_COL if !$debug;
+        print "[";
+        print $COLOR_GREEN if !$debug;
+        print getStr('NOT LOADED');
+        print $COLOR_NORMAL if !$debug;
+        print "]\n";
+}
+
 
 sub print_warning() {
 	print $MOVE_TO_COL if !$debug;
@@ -364,7 +374,7 @@ sub hwdetect_loadmod {
 		$delay = undef if defined($delay) && is_loaded($module);
 		my $num = modprobe("", $module);
 		sleep($delay) if defined($delay) && $delay;
-		!$num ? $probe ? print_warning() : print_failed() : print_loaded();
+		!$num ? $probe ? print_warning() : print_noload() : print_loaded();
 		$done++;
 	}
 	print "\n" unless $done;
@@ -509,7 +519,7 @@ sub hwdetect_initusb() {
 			# "printer" should be in as well? (does cups stuff :(
 			print "    " . getStr('usb_load') . ": ";
 			my $num = 0;
-			my @modules = $kernel26 ? ('input', 'usb-storage', 'visor') : ('input', 'mousedev', 'keybdev', 'usb-storage', 'visor');
+			my @modules = $kernel26 ? ('input', 'usb-storage', 'visor', 'usbmouse', 'usbhid') : ('input', 'mousedev', 'keybdev', 'usb-storage', 'visor');
 			$num += modprobe("-q", $_) foreach @modules;
 			!$num ? $probe ? print_warning() : print_failed() : print_loaded();
 		}
@@ -535,6 +545,24 @@ sub hwdetect_probeall() {
 	eval { @all_devices = detect_devices::probeall() };
 	scalar @all_devices ? print_success() : print_failed();
 	set_progress();
+}
+
+sub hwdetect_getsata() {
+	my $sata;
+	my $total = 0;
+	my @satalist = qw(libata.ko sd_mod.ko ata_piix.ko scsi_mod.ko sr_mod.ko sg.ko a100u2w.ko 
+		advansys.ko aha152x.ko aha1542.ko aic7xxx.ko BusLogic.ko fdomain.ko gdth.ko 
+		megaraid.ko sata_promise.ko sata_sil.ko sata_svw.ko sata_via.ko sata_vsc.ko);
+	
+	foreach $sata (@satalist) {
+		my $num = modprobe("", $module);
+		#hwdetect_loadmod($sata, undef, undef, undef);
+		if ($num ne 0) {
+			print "\n Module $sata loaded\n";
+			$total+=1;
+		}
+	}
+	print "Total SATA modules loaded = $total\n";
 }
 
 sub hwdetect_getkeyb() {
@@ -835,7 +863,7 @@ sub hwdetect_getusb() {
 	set_progress();
 }
 
-sub hwdetect_all() {
+sub hwdetect_printall() {
 	if ($debug) {
 		print_hash($_) foreach @all_devices;
 	}
@@ -1352,7 +1380,9 @@ MAIN: { print "\n$COLOR_YELLOW HWDETECT - MAIN\n $COLOR_NORMAL";
 	unless (defined($fdisk)) {
 		print "\n$COLOR_YELLOW HWDETECT: Starting probeall $COLOR_NORMAL\n";
 		hwdetect_probeall();
-		hwdetect_all();
+		hwdetect_printall();
+		print "\n$COLOR_YELLOW HWDETECT: Starting getsata $COLOR_NORMAL\n";
+		hwdetect_getsata();
 		print "\n$COLOR_YELLOW HWDETECT: Starting getxfree $COLOR_NORMAL\n";
 		hwdetect_getxfree();
 		print "\n$COLOR_YELLOW HWDETECT: Starting getsound $COLOR_NORMAL\n";

@@ -2,7 +2,7 @@
 #
 # LiveCD iso build script
 #
-# Copyright (C) 2002-2004, Jaco Greeff <jaco@linuxminicd.org>
+# Copyright (C) 2002-2004, Jaco Greeff <jaco@puxedo.org>
 # Copyright (C) 2003, Buchan Milne <bgmilne@obsidian.co.za>
 # Copyright (C) 2004, Tom Kelly  <tom_kelly33@yahoo.com>
 #
@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.133 2005/01/09 22:14:09 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.134 2005/01/15 00:31:10 tom_kelly33 Exp $
 #
 
 use strict;
