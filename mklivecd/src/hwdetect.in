@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.103 2004/01/23 08:43:58 jaco Exp $
+# $Id: hwdetect.in,v 1.104 2004/01/23 08:45:36 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -685,7 +685,6 @@ sub hwdetect_getsound {
 		eval { @probed_cards = hwdetect_get_mediatype('MULTIMEDIA_AUDIO'); };
 		print scalar(@probed_cards)." found";
 		scalar @probed_cards ? print_success() : print_failed();
-		system("rm -rf /etc/rc.d/rc?.d/*alsa /etc/rc.d/rc?.d/sound") unless (scalar(@probed_cards) || $probe);
 		my $num = 0;
 		foreach my $card (@probed_cards) {
 			my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
@@ -710,6 +709,7 @@ sub hwdetect_getsound {
 			print_hash($card) if ($debug);
 		}
 	}
+	system("rm -rf /etc/rc.d/rc?.d/*alsa /etc/rc.d/rc?.d/sound") unless (scalar(@probed_cards) || $probe);
 	set_progress();
 }
 
