@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.8 2004/01/24 10:25:06 jaco Exp $
+# $Id: Rules.mk,v 1.9 2004/01/24 10:31:17 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -9,18 +9,34 @@ PATCHVER=0
 RELVER=1
 CVSVER=yes
 
+# Automatic variable updates, leave alone
+LIVECDFSVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
+ifeq "$(CVSVER)" "yes"
+	CVSDATE=$(shell date +cvs.%Y%m%d)
+	LIVECDFSREL=0.$(CVSDATE).$(RELVER)
+	ARCHIVEVER=$(MKLIVECDVER)-$(CVSDATE)
+else
+	LIVECDFSREL=$(RELVER)
+	ARCHIVEVER=$(MKLIVECDVER)
+endif
+KERNELVER=$(shell uname -r)
+SPECDATE=$(shell LC_ALL=C date +"%a %b %e %Y")
+
 # our flags
 CXXFLAGS=-Wall -DDEBUG -I$(LUFSDIR)/include
 CFLAGS=-Wall -I$(LUFSDIR)/include
 
-# our directories
+# internal directories
 TOPDIR=$(shell pwd)
 SRCDIR=src
-LUFSDIR=$(TOPDIR)/lufs
+LUFSDIR=lufs
+
+# external directories
 PREFIX=/usr
 LIBDIR=$(PREFIX)/lib
 DESTDIR=
 
+# cour commands
 CD=cd
 CP=cp
 FIND=find
@@ -30,6 +46,7 @@ MKDIR=mkdir
 RM=rm
 XARGS=xargs
 
+# our files
 OBJECTS=$(SRCDIR)/handles.o \
 	$(SRCDIR)/livecdfs.o \
 	$(SRCDIR)/main.o \
@@ -42,6 +59,15 @@ INCLUDES=$(SRCDIR)/handles.h \
 	$(SRCDIR)/main.h \
 	$(SRCDIR)/path.h \
 	$(SRCDIR)/whiteout.h
+
+SOURCES=$(SRCDIR)/handles.cpp \
+	$(SRCDIR)/livecdfs.cpp \
+	$(SRCDIR)/main.cpp \
+	$(SRCDIR)/path.cpp \
+	$(SRCDIR)/test.cpp \
+	$(SRCDIR)/whiteout.cpp
+
+EXTSRC=$(LUFSDIR)/*
 
 LIBRARY=liblufs-livecdfs.so
 
