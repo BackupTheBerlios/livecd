@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.cpp,v 1.15 2004/02/01 13:06:49 jaco Exp $
+ * $Id: path.cpp,v 1.16 2004/02/02 04:58:23 jaco Exp $
  */
 
 #include <errno.h>
@@ -117,6 +117,7 @@ Path::copyTmp(const string &path)
 				WARN("Unable to open file='%s'", rootpath.c_str());
 			}
 			close(dst);
+			chown(tmppath.c_str(), buf.st_uid, buf.st_gid);
 		}
 		else {
 			WARN("Unable to open file='%s'", tmppath.c_str());
@@ -238,13 +239,18 @@ Path::recurseMkdir(const string &path,
 	if (!exists(mktmp(root), 0)) {
 		TRACE("Making root='%s'", root.c_str());
 		int mode = 0777;
+		int uid = 0;
+		int gid = 0;
 		if (stat(mkroot(root).c_str(), &buf) == 0) {
 			mode = buf.st_mode;
+			uid = buf.st_uid;
+			gid = buf.st_gid;
 		}
 		if (mkdir(mktmp(root).c_str(), mode) != 0) {
 			ERROR("Creation of root='%s' failed", root.c_str());
 			FUNC_END();
 		}
+		chown(mktmp(root).c_str(), uid, gid);
 	}
 	else {
 		TRACE("Already existing (tmp) root='%s'", root.c_str());
@@ -261,10 +267,15 @@ Path::recurseMkdir(const string &path,
 		string dir = join(root, path);
 		TRACE("Making dir='%s'", dir.c_str());
 		int mode = 0777;
+		int uid = 0;
+		int gid = 0;
 		if (stat(mkroot(dir).c_str(), &buf) == 0) {
 			mode = buf.st_mode;
+			uid = buf.st_uid;
+			gid = buf.st_gid;
 		}
 		mkdir(mktmp(dir).c_str(), mode);
+		chown(mktmp(dir).c_str(), uid, gid);
 	}
 	
 	TRACE("Recurse path='%s', root='%s' completed", path.c_str(), root.c_str());

@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.27 2004/02/01 13:06:49 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.28 2004/02/02 04:58:23 jaco Exp $
  */
 
 #include <dirent.h>
@@ -305,8 +305,8 @@ LiveCDFS::doStat(const char *name,
 	      
 	attr->f_mode  = buf.st_mode;
 	attr->f_nlink = buf.st_nlink;
-	attr->f_uid   = 2; // This makes us default to the specified -o uid
-	attr->f_gid   = 2; // This makes us default to the specified -o gid
+	attr->f_uid   = buf.st_uid; //2; // This makes us default to the specified -o uid
+	attr->f_gid   = buf.st_gid; //2; // This makes us default to the specified -o gid
 	attr->f_size  = buf.st_size;
 	attr->f_atime = buf.st_atime;
 	attr->f_mtime = buf.st_mtime;
@@ -336,7 +336,7 @@ LiveCDFS::doReadlink(const char *link,
 	else {
 		buf[ret] = '\0';
 		TRACE("After readlink, ret=%d, buf='%s'", ret, buf);
-		if (buf[0] == '/') {
+		/*if (buf[0] == '/') {
 			string relpath = string("../");
 			int pos = 0;
 			while ((pos = string(link).find("/", pos+1)) > 0) {
@@ -353,7 +353,7 @@ LiveCDFS::doReadlink(const char *link,
 			strncpy(buf, relpath.c_str(), 255);
 			ret = strlen(buf);
 			TRACE("Translated relpath='%s'", buf);
-		}
+		}*/
 	}
 	FUNC_RET("%d", ret, ret);
 }
@@ -725,14 +725,23 @@ LiveCDFS::doSetattr(const char *file,
 	struct stat buf;
 	int res;
 	if ((res = lstat(tmppath.c_str(), &buf)) < 0) {
-		ERROR("Could not perform lstat on file='%s', res=", file, res);
+		ERROR("Could not perform lstat, strerror(errno)='%s'", file, strerror(errno));
 		FUNC_RET("%d", res, res);
 	}
 	
+	if ((buf.st_uid != attr->f_uid) ||
+	    (buf.st_gid != attr->f_gid)) {
+		TRACE("Setting uid=%d, gid=%d", attr->f_uid, attr->f_gid);
+		if ((res = chown(tmppath.c_str(), attr->f_uid, attr->f_gid)) < 0) {
+			ERROR("Unable to chown, strerror(errno)='%s'", strerror(errno));
+			FUNC_RET("%d", res, res);
+		}
+	}
+	
 	if (buf.st_size > attr->f_size) {
-		TRACE("Truncating file to %u bytes", attr->f_size);
+		TRACE("Truncating to %u bytes", attr->f_size);
 		if ((res = truncate(tmppath.c_str(), attr->f_size)) < 0) {
-			ERROR("Unable to truncate, res=%u", res);
+			ERROR("Unable to truncate, strerror(errno)='%s'", strerror(errno));
 			FUNC_RET("%d", res, res);
 		}
 	}
@@ -740,7 +749,7 @@ LiveCDFS::doSetattr(const char *file,
 	if (buf.st_mode != attr->f_mode) {
 		TRACE("Set mode=%u, old=%u", attr->f_mode, buf.st_mode);
 		if ((res = chmod(tmppath.c_str(), attr->f_mode)) < 0) {
-			ERROR("Unable to chmod, res=%u", res);
+			ERROR("Unable to chmod, strerror(errno)='%s'", strerror(errno));
 			FUNC_RET("%d", res, res);
 		}
 	}
@@ -749,7 +758,7 @@ LiveCDFS::doSetattr(const char *file,
 	    (buf.st_mtime != (time_t)attr->f_mtime)) {
 		struct utimbuf utim = {attr->f_atime, attr->f_mtime};
 		if ((res = utime(tmppath.c_str(), &utim)) < 0) {
-			ERROR("Unable to utime, res=%u", res);
+			ERROR("Unable to utime, strerror(errno)='%s'", strerror(errno));
 			FUNC_RET("%d", res, res);
 		}
 	}
