@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.91 2004/01/08 13:29:29 jaco Exp $
+# $Id: mklivecd.in,v 1.92 2004/01/08 17:03:01 jaco Exp $
 #
 
 use strict;
@@ -165,7 +165,7 @@ Boot options:
                                    default for the LiveCD. 
                                    (default: $o_keyboard)
    --resolution <res>              Specify the resolution for the framebuffer 
-                                   output device. 
+                                   output device. (Either resolution or normal)
                                    (default: $o_resolution)
    --splash <yes|no>               Create the LiveCD with bootsplash support if
                                    available on the root filesystem. 
@@ -513,7 +513,11 @@ sub check_dietlibc {
 
 ### checks the resolution given
 sub check_resolution {
-	if ($o_resolution =~ m/^640x480/) {
+	if ($o_resolution =~ m/^normal/) {
+		$o_vgamode = "normal";
+		$o_splash = "no";
+	}
+	elsif ($o_resolution =~ m/^640x480/) {
 		$o_vgamode = 785;
 	}
 	elsif ($o_resolution =~ m/^800x600/) {
@@ -531,6 +535,7 @@ sub check_resolution {
 	else {
 		die_("\nFATAL: Invalid resolution '$o_resolution' specified with '--resolution' option
        Valid resolutions are:
+             normal 
             640x480
             800x600
            1024x768
