@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect-lang.in,v 1.3 2004/01/25 07:42:47 jaco Exp $
+# $Id: hwdetect-lang.in,v 1.4 2004/01/25 08:51:42 jaco Exp $
 #
 
 sub getLanguages { (
@@ -29,98 +29,60 @@ sub getLanguages { (
 ); }
 
 sub getStrings { (
-	'script_start'     => [ "Starting hardware detection",
-				undef ],
+	'script_start'     => [ "Starting hardware detection", undef ],
 
-	'OK'               => [ "  OK  ",
-				undef ],
-	'LOADED'           => [ "LOADED",
-				undef ],
-	'WARN'             => [ " WARN ",
-				undef ],
-	'FAILED'           => [ "FAILED",
-				undef ],
+	'OK'               => [ "  OK  ", undef ],
+	'LOADED'           => [ "LOADED", undef ],
+	'WARN'             => [ " WARN ", undef ],
+	'FAILED'           => [ "FAILED", undef ],
 
-	'arch_probe'       => [ "Detecting architecture", 
-				undef ],
-	'arch_cpus'        => [ "CPUs",
-				undef ],
-	'arch_mem_found'   => [ "memory found",
-				undef ],
-	'avail_mem'        => [ "Available Memory", 
-				undef ],
-	'avail_swap'       => [ "Available Swap", 
-				undef ],
-	'of_mem'           => [ "of", # Available memory 128KB ***of*** 640KB 
-				undef ],
+	'arch_probe'       => [ "Detecting architecture",  undef ],
+	'arch_cpus'        => [ "CPUs", undef ],
+	'arch_mem_found'   => [ "memory found", undef ],
+	'avail_mem'        => [ "Available Memory",  undef ],
+	'avail_swap'       => [ "Available Swap",  undef ],
+	
+	# Available memory 128KB ***of*** 640KB 
+	'of_mem'           => [ "of",  undef ],
 
-	'pci_probe'        => [ "Probing PCI controllers", 
-				undef ],
-	'all_probe'        => [ "Probing devices", 
-				undef ],
-	'found'            => [ "found", # 10 ***found***
-				undef ],
+	'pci_probe'        => [ "Probing PCI controllers",  undef ],
+	'all_probe'        => [ "Probing devices",  undef ],
+	'found'            => [ "found", undef ], # 10 ***found***
 
-	'pcmcia_init'      => [ "Initialising PCMCIA controllers", 
-				undef ],
-	'pcmcia_load'      => [ "Loading base PCMCIA modules", 
-				undef ],
+	'pcmcia_init'      => [ "Initialising PCMCIA controllers",  undef ],
+	'pcmcia_load'      => [ "Loading base PCMCIA modules",  undef ],
 
-	'usb_init'         => [ "Initialising USB controllers", 
-				undef ],
-	'usb_load'         => [ "Loading base USB modules", 
-				undef ],
-	'usb_mount'        => [ "Mounting USB filesystem", 
-				undef ],
-	'usb_umount'       => [ "Unmounting USB filesystem", 
-				undef ],
-	'usb_probe'        => [ "Detecting USB devices", 
-				undef ],
+	'usb_init'         => [ "Initialising USB controllers",  undef ],
+	'usb_load'         => [ "Loading base USB modules",  undef ],
+	'usb_mount'        => [ "Mounting USB filesystem",  undef ],
+	'usb_umount'       => [ "Unmounting USB filesystem",  undef ],
+	'usb_probe'        => [ "Detecting USB devices",  undef ],
 
-	'keyboard_probe'   => [ "Selecting keyboard", 
-				undef ],
-	'mouse_probe'      => [ "Detecting mouse", 
-				undef ],
-	'video_probe'      => [ "Detecting video cards", 
-				undef ],
-	'monitor_probe'    => [ "Selecting monitor", 
-				undef ],
-	'resolution_probe' => [ "Selecting resolution", 
-				undef ],
-	'x_write'          => [ "Writing X configuration", 
-				undef ],
+	'keyboard_probe'   => [ "Selecting keyboard",  undef ],
+	'mouse_probe'      => [ "Detecting mouse", undef ],
+	'video_probe'      => [ "Detecting video cards", undef ],
+	'monitor_probe'    => [ "Selecting monitor", undef ],
+	'resolution_probe' => [ "Selecting resolution", undef ],
+	'x_write'          => [ "Writing X configuration", undef ],
 
-	'sound_probe'      => [ "Detecting sound cards", 
-				undef ],
-	'network_probe'    => [ "Detecting network cards", 
-				undef ],
-	'printer_probe'    => [ "Detecting local printers", 
-				undef ],
+	'sound_probe'      => [ "Detecting sound cards", undef ],
+	'network_probe'    => [ "Detecting network cards", undef ],
+	'printer_probe'    => [ "Detecting local printers", undef ],
 
-	'serial_probe'     => [ "Detecting serial devices", 
-				undef ],
-	'not_impl'         => [ "(not implemented)", # Detecting serial devices: ***(not implemented)***
-				undef ],
+	'serial_probe'     => [ "Detecting serial devices", undef ],
+	# Detecting serial devices: ***(not implemented)***
+	'not_impl'         => [ "(not implemented)", undef ],
 
-	'mod_read'         => [ "Reading modules configuration", 
-				undef ],
-	'mod_write'        => [ "Writing modules configuration", 
-				undef ],
+	'mod_read'         => [ "Reading modules configuration", undef ],
+	'mod_write'        => [ "Writing modules configuration", undef ],
 
-	'disk_probe'       => [ "Detecting disk drives/partitions", 
-				undef ],
-	'disk_persist'     => [ "Finding persistent partitions", 
-				undef ],
-	'disk_write'       => [ "Writing partition configuration", 
-				undef ],
-	'disk_create'      => [ "Creating device mountpoints", 
-				undef ],
-	'disk_fstab_info'  => [ "Entries below this line were automatically added by", 
-				undef ],
-	'disk_fstab_loop'  => [ "Loop image for above partition", 
-				undef ],
-	'swap_activate'    => [ "Activating swap partitions", 
-				undef ]
+	'disk_probe'       => [ "Detecting disk drives/partitions", undef ],
+	'disk_persist'     => [ "Finding persistent partitions", undef ],
+	'disk_write'       => [ "Writing partition configuration", undef ],
+	'disk_create'      => [ "Creating device mountpoints", undef ],
+	'disk_fstab_info'  => [ "Entries below this line were automatically added by", undef ],
+	'disk_fstab_loop'  => [ "Loop image for above partition", undef ],
+	'swap_activate'    => [ "Activating swap partitions", undef ]
 ); }
 
 sub getMyLang {
