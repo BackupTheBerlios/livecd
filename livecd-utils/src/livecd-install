@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.9 2003/11/22 16:00:09 jaco Exp $
+# $Id: livecd-install,v 1.10 2003/11/22 16:15:22 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -32,6 +32,10 @@ use bootloader;
 use fs;
 
 use MDK::Common::System;
+
+# my name
+my $PROG_NAME = "livecd-install";
+my $PROG_VER  = "0.1.0";
 
 # our distro
 my $distro = qx(cat /etc/redhat-release | awk '{ print \$1 }');
@@ -195,14 +199,38 @@ sub copy_to {
 }
 
 # create a basic fstab
+my %fsopts = (
+	'ext2'     => 'defaults',
+	'ext3'     => 'defaults',
+	'jfs'      => 'defaults',
+	'reiserfs' => 'notail,noatime',
+	'xfs'      => 'defaults'
+);
+
 sub make_fstab {
 	my ($dev, $mnt) = @_;
 	my @fstab = fs::read_fstab("", "/etc/fstab");
 	my $hdds = {};
 	fs::add2all_hds($hdds, @fstab);
 	fs::write_fstab($hdds, $mnt);
-	open FSTAB, '>>', "$mnt/etc/fstab";
-	print FSTAB "$dev / ".$devs{$dev}{type}." defaults 0 0\n";
+	open FSTAB, '>', "$mnt/etc/fstab";
+	print FSTAB "\n### entries below this line were automatically added by $PROG_NAME v$PROG_VER\n";
+	foreach my $dev (sort keys %devs) {
+		my $devpnt = $dev;
+		$devpnt =~ s|/dev/||;
+		qx(mkdir -p $mnt/$devpnt 2>/dev/null);
+		print FSTAB "\n# ".$devs{$dev}->{info};
+		my $entry = "\n";
+		$entry .= $devs{$dev}->{devfs}."\t";
+		$entry .= $devs{$dev}->{mount}."\t";
+		$entry .= $devs{$dev}->{type}."\t";
+		my $opt = "";
+		$opt .= $devs{$dev}->{opt} if ($devs{$dev}->{opt});
+		$opt .= "," if ($devs{$dev}->{opt} && $devs{$dev}->{extopt});
+		$opt .= $devs{$dev}->{extopt} if ($devs{$dev}->{extopt});
+		$entry .= $opt."\t"."0 0\n";
+		print FSTAB $entry;
+	}
 	close FSTAB;
 }
 
@@ -221,12 +249,13 @@ sub do_install {
 		}
 		my $dev = qx($dlg --list --radiolist --width 500 --height 300 --title "$str{'INSTPART_TIT'}[$lang]" --column "" --column "$str{'INSTPART_PART'}[$lang]" --column "$str{'INSTPART_SIZE'}[$lang]" --column "$str{'INSTPART_TYPE'}[$lang]" $list || echo cancel);
 		chomp($dev);
-		print "Selected -> $dev\n";
 		unless ($dev =~ /cancel/ || $dev eq "") {
 			my $ret = qx($dlg --warning --title "$str{'WARN_ERROR_TIT'}[$lang]" --text "$str{'INSTPART_WARN'}[$lang]\n$dev ($devs{$dev}{type})" || echo cancel);
 			unless ($ret =~ /cancel/) {
 				my $mnt = "/tmp/livecd.inst.$$";
 				my $type = $devs{$dev}{type};
+				$devs{$dev}{opt} = $fsopts{$devs{$dev}{type}};
+				$devs{$dev}{mount} = "/";
 				qx(mkdir -p $mnt ; umount $dev ; mount -t $type $dev $mnt);
 				copy_to($dev, $mnt);
 				make_fstab($dev, $mnt);
