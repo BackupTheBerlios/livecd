@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.1 2003/11/21 13:37:23 jaco Exp $
+# $Id: Rules.mk,v 1.2 2003/11/21 19:21:08 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -14,10 +14,10 @@ UTILSVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
 ifeq "$(CVSVER)" "yes"
 	CVSDATE=$(shell date +cvs.%Y%m%d)
 	UTILSREL=0.$(CVSDATE).$(RELVER)
-	UTILSVER=$(UTILSVER)-$(CVSDATE)
+	ARCHIVEVER=$(UTILSVER)-$(CVSDATE)
 else
 	UTILSREL=$(RELVER)
-	UTILSVER=$(UTILSVER)
+	ARCHIVEVER=$(UTILSVER)
 endif
 SPECDATE=$(shell LC_ALL=C date +"%a %b %e %Y")
 

@@ -1,0 +1,44 @@
+# $Id: livecd-utils.spec.in,v 1.1 2003/11/21 19:21:08 jaco Exp $
+
+%define name		livecd-utils
+%define version		@UTILSVER@
+%define release		@UTILSREL@mdk
+
+%define summary		Various LiveCD utilities for installation of a LiveCD
+
+Summary:		%{summary}
+Name:			%{name}
+Version:		%{version}
+Release:		%{release}
+License:		GPL
+Group:			System/Configuration/Boot and Init
+URL:			http://livecd.berlios.de/
+Source0:		%{name}-@ARCHIVEVER@.tar.bz2
+Requires:		zenity
+BuildRoot:		%{_tmppath}/%{name}-root
+Buildarch:		noarch
+
+%description
+%{summary}
+
+%prep
+%setup -q -n %{name}-@ARCHIVEVER@
+
+%build
+%make
+
+%install
+rm -rf %buildroot
+%makeinstall DESTDIR=%buildroot
+
+%clean
+rm -rf %buildroot
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS COPYING CHANGELOG
+%{_sbindir}/livecd-install
+
+%changelog
+* @SPECDATE@ Jaco Greeff <jaco@linuxminicd.org> @UTILSVER@-@UTILSREL@mdk
+- version @ARCHIVEVER@
