@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.8 2004/01/22 08:32:42 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.9 2004/01/22 08:39:19 jaco Exp $
  */
 
 #include <dirent.h>
@@ -266,7 +266,6 @@ LiveCDFS::doOpen(char *file,
 		created = true;
 	}
 	else if ((flags & O_RDWR) || (flags & O_WRONLY)) {
-		struct stat buf;
 		string rootpath = path->mkroot(file);
 		if (path->exists(rootpath.c_str(), S_IFREG) || path->exists(rootpath.c_str(), S_IFLNK)) {
 			if (!path->exists(tmppath.c_str(), 0)) {
