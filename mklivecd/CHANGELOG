@@ -1,8 +1,10 @@
-# $Id: CHANGELOG,v 1.134 2005/01/25 06:12:38 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.135 2005/01/27 21:56:25 tom_kelly33 Exp $
 
+* 2005-01-27
+	[mklivecd] - ln -fs NOT sf [alaa]
 * 2005-01-24
-	[mklivecd] - added keyboard/kdm fix [ikerek]
-	[rc.sysinit.in] - added gnome to special dir list [ikerek]
+	[mklivecd] - added keyboard/kdm fix [alaa, ikerek]
+	[rc.sysinit.in] - added gnome to special dir list [alaa, ikerek]
 * 2005-01-20
 	[hwdetect] - fix errors in sata loader
 * 2005-01-15
