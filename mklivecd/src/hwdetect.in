@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.119 2004/01/26 19:30:12 jaco Exp $
+# $Id: hwdetect.in,v 1.120 2004/01/27 04:47:55 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -1048,7 +1048,8 @@ sub hwdetect_getpersistent {
 							$devs{$dev}->{opt} = $fsopt_fullrw;
 							$devs{$dev}->{persisted} = 1;
 						}
-						elsif ($devs{$dev}->{type} =~ /ext2/) {
+						elsif ($devs{$dev}->{type} =~ /ext2/ || 
+						       $devs{$dev}->{type} =~ /ext3/) {
 							system("echo 'mount=/home' >$persist");
 		
 							$devs{$dev}->{mount} = "/home";
