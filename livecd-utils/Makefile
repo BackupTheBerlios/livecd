@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.9 2004/01/25 09:33:40 jaco Exp $
+# $Id: Makefile,v 1.10 2004/03/05 05:23:17 jaco Exp $
 
 include Rules.mk
 
@@ -32,7 +32,7 @@ spec:
 clean:
 	$(RM) -rf $(UTILSDIST)
 	$(RM) -rf $(DISTDIR)
-	$(RM) -rf $(SRCDIR)/*.pm.in
+	$(RM) -rf $(SRCDIR)/livecd-install.pm.in
 	$(RM) -rf $(SRCDIR)/*~
 
 dist: spec
