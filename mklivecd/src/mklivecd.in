@@ -1,8 +1,10 @@
 #!/usr/bin/perl -w
 #
 # LiveCD iso build script
+#
 # Copyright (C) 2002-2004, Jaco Greeff <jaco@linuxminicd.org>
 # Copyright (C) 2003, Buchan Milne <bgmilne@obsidian.co.za>
+# Copyright (C) 2004, Tom Kelly  <tom_kelly33@yahoo.com>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -20,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.111 2004/04/19 15:47:44 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.112 2004/07/14 14:49:02 jaco Exp $
 #
 
 use strict;

@@ -4,6 +4,7 @@
 #
 # Copyright (C) 2002-2004, Jaco Greeff <jaco@linuxminicd.org>
 # Copyright (C) 2003, Buchan Milne <bgmilne@obsidian.co.za>
+# Copyright (C) 2004, Tom Kelly  <tom_kelly33@yahoo.com>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -22,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.74 2004/04/19 15:47:44 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.75 2004/07/14 14:49:02 jaco Exp $
 #
 
 ### global variables
