@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.105 2004/01/28 06:00:19 jaco Exp $
+# $Id: mklivecd.in,v 1.106 2004/01/30 20:36:57 jaco Exp $
 #
 
 use strict;
@@ -600,16 +600,16 @@ sub create_initrd {
 	}
 
 	# copy files
-	do_copy("/usr/bin/busybox",               755, "$dir/bin/busybox",         ++$pos);
-	do_copy("/usr/share/mklivecd/linuxrc",    755, "$dir/linuxrc",             ++$pos);
-	do_copy("/usr/share/mklivecd/rc.sysinit", 755, "$dir/etc/rc.d/rc.sysinit", ++$pos);
-	do_copy("/usr/sbin/hwdetect",             755, "$dir/usr/sbin/hwdetect",   ++$pos);
-	do_copy("/usr/share/mklivecd/halt.local", 755, "$dir/sbin/halt.local",     ++$pos);
-	do_copy($o_root."etc/inittab",            644, "$dir/etc/inittab",         ++$pos);
-	do_copy($o_root."sbin/init",              755, "$dir/sbin/init.dynamic",   ++$pos);
-	do_copy($o_root."lib/libc.so.6",            0, "$dir/lib",                 ++$pos);
-	do_copy($o_root."lib/ld-linux.so.2",        0, "$dir/lib",                 ++$pos);
-	do_copy("/usr/lib/libplasticfs.so.0",       0, "$dir/lib",                 ++$pos) if ((-f "/usr/lib/libplasticfs.so.0") && defined($opts{experimental}));
+	do_copy("/usr/bin/busybox",               755, "$dir/bin/busybox",             ++$pos);
+	do_copy("/usr/share/mklivecd/linuxrc",    755, "$dir/linuxrc",                 ++$pos);
+	do_copy("/usr/share/mklivecd/rc.sysinit", 755, "$dir/etc/rc.d/rc.sysinit",     ++$pos);
+	do_copy("/usr/sbin/hwdetect",             755, "$dir/usr/sbin/hwdetect",       ++$pos);
+	do_copy("/usr/share/mklivecd/halt.local", 755, "$dir/sbin/halt.local",         ++$pos);
+	do_copy($o_root."etc/inittab",            644, "$dir/etc/inittab",             ++$pos);
+	do_copy($o_root."sbin/init",              755, "$dir/sbin/init.dynamic",       ++$pos);
+	do_copy($o_root."lib/libc.so.6",            0, "$dir/lib",                     ++$pos);
+	do_copy($o_root."lib/ld-linux.so.2",        0, "$dir/lib",                     ++$pos);
+	do_copy("/usr/sbin/lufsd.livecdfs",       755, "$dir/usr/sbin/lufsd.livecdfs", ++$pos) if (defined($opts{experimental}));
 
 	# create devices
 	do_cmd("mknod $dir/dev/initrd b 1 250", ++$pos);

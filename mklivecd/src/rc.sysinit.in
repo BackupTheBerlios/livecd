@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.15 2004/01/29 10:23:52 jaco Exp $
+# $Id: rc.sysinit.in,v 1.16 2004/01/30 20:36:57 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -110,11 +110,12 @@ docmd() {
 
 ### load a module
 loadmod() {
-	EXT=".o"
+	EXT=".ko"
 	MODULE="/lib/modules/$KERNELVER/kernel/$1$EXT"
 	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
 	[ ! -f $MODULE ] && return 1
-	insmod $MODULE $2 2>&1 >/dev/null && return 0 || return 1
+	#insmod $MODULE $2 2>&1 >/dev/null && return 0 || return 1
+	insmod $MODULE $2 && return 0 || return 1
 }
 
 
@@ -162,8 +163,54 @@ execshell() {
 
 ### setup an overlay fs
 setuproot_overlay() {
-	echo "Root overlay not currently supported"
-	execshell
+	FSROOT="/.livecdfs"
+	LUFSD="/initrd/usr/sbin/lufsd.livecdfs"
+	LUFSO="fs=livecdfs,own_fs,uid=0,gid=0,fmask=666,dmask=777"
+	
+	docmd   "Creating overlay structure" \
+		"mkdir -p $FSROOT" \
+		"ln -sf /udev $FSROOT/udev" \
+		"ln -sf /tmp  $FSROOT/tmp"  \
+		"ln -sf /sys  $FSROOT/sys"  \
+		"ln -sf /proc $FSROOT/proc" \
+		"ln -sf /dev  $FSROOT/dev"  \
+		"cp -a $MNTLIVECD/etc/alternatives /etc" \
+		"rm -rf /lib  && ln -sf $MNTLIVECD/lib  /lib"  \
+		"rm -rf /sbin && ln -sf $MNTLIVECD/sbin /sbin" \
+		"rm -rf /usr  && ln -sf $MNTLIVECD/usr  /usr"
+	set_progress
+	docmd   "Creating root filesystem" \
+		"$MNTLIVECD/sbin/modprobe lufs" \
+		"cd $MNTLIVECD ; \
+		for d in *; do \
+			if [ -d $MNTLIVECD/\$d ]; then \
+				case \$d in \
+					dev|proc|sys|tmp|udev) \
+						;; \
+					*) \
+						rm -rf /\$d ; \ 
+						mkdir -p /\$d $FSROOT/\$d ; \ 
+						$LUFSD none /\$d -o $LUFSO,rw_tmp=$FSROOT/\$d,ro_root=$MNTLIVECD/\$d ; \ 
+						;; \
+				esac ; \
+			fi ; \
+		done"
+	set_progress
+	docmd   "Creating /var structure" \
+		"mkdir -p /var/lock/subsys" \
+		"mkdir -p /var/log && touch /var/log/wtmp" \
+		"mkdir -p /var/run && touch /var/run/utmp" \
+		"(cd /var && ln -sf ../tmp)"
+	set_progress
+	docmd   "Creating /etc structure" \
+		"mkdir -p /etc/livecd/hwdetect" \
+		"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
+		"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
+		"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
+		"echo '' >/etc/mtab" \
+		"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
+		"rm -rf /etc/rc.d/rc5.d/S05harddrake"
+	set_progress
 }
 
 
@@ -279,9 +326,9 @@ setuproot() {
 		$MNTLIVECD/sbin/insmod-2$kmin $transmod 2>&1 >/dev/null
 	fi
 	set_progress
-
-	OVERLAY=
-	if [ -n "$OVERLAY" ]; then
+	
+	# create the correct root type
+	if [ -e /initrd/usr/sbin/lufsd.livecdfs ]; then
 		setuproot_overlay
 	else
 		setuproot_normal

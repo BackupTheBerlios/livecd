@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.70 2004/01/29 10:13:51 jaco Exp $
+# $Id: linuxrc.in,v 1.71 2004/01/30 20:36:57 jaco Exp $
 #
 
 ### global variables
@@ -183,7 +183,6 @@ set_progress() {
 
 ### initialise
 initialise() {
-	export LD_PRELOAD=/initrd/lib/libplasticfs.so.0
 	busybox mount -n -t proc none /proc
 	busybox --install
 
@@ -422,8 +421,7 @@ createramdisk() {
 			"ln -s /initrd/bin" \
 			"ln -s /initrd/etc" \
 			"ln -s /initrd/lib" \
-			"ln -s /initrd/sbin" \
-			"ln -s /initrd/usr"
+			"ln -s /initrd/sbin"
 		set_progress
 	else
 		$SETCOLOR_FAIL
