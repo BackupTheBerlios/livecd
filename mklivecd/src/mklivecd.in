@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.118 2004/09/24 19:58:04 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.119 2004/10/01 18:02:14 tom_kelly33 Exp $
 #
 
 use strict;
@@ -492,15 +492,15 @@ sub check_kernel {
 
 	if (($major == 2) && ($minor >= 5)) {
 		$kernel26 = 1;
-		$modfile = "$o_root/etc/modprobe.conf";
-		$depmod = "$o_root/sbin/depmod-25";
+		$modfile = "/etc/modprobe.conf";
+		$depmod = "/sbin/depmod-25";
 		$modext = ".ko";
 		$modules = $modules_26;
 		$modules_opt = $modules_opt_26;
 		#print STDERR "\nWARNING: Using a 2.6.x kernel for the LiveCD is currently not recommended";
 	}
 	else {
-		$depmod = "$o_root/sbin/depmod";
+		$depmod = "/sbin/depmod";
 		$modext = ".o";
 		$modules = $modules_24;
 		$modules_opt = $modules_opt_24;
