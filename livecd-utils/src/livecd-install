@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.26 2003/11/23 11:48:53 jaco Exp $
+# $Id: livecd-install,v 1.27 2003/11/24 05:56:40 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -155,18 +155,12 @@ sub read_parts {
 	close($file);
 }
 
-# copy a single dit, decending on it's subdirs
+# copy a single dir
 sub copy_dir {
 	my ($file, $root, $dir, $mnt, $prog, $inc) = @_;
 
 	print sprintf("%0.70s ", $dir);
-	unless ($noinst) {
-		qx(mkdir -p "$mnt/$dir" ; chown --reference="$root/$dir" "$mnt/$dir" ; chmod --reference="$root/$dir" "$mnt/$dir");
-		unless (($dir =~ m|^/lib/dev-state|) || ($dir =~ m|^/proc|) || ($dir =~ m|^/dev|)) {
-			qx(cp -dp "$root/$dir/"* "$mnt/$dir" 2>/dev/null);
-			qx(cp -dp "$root/$dir/".* "$mnt/$dir" 2>/dev/null);
-		}
-	}
+	system("(cd $root/$dir ; tar --no-recursion --exclude .. -c * .*) | (cd $mnt/$dir ; tar -x)") unless ($noinst);
 	print sprintf("\x1B[72G[%6.2f%%]\n", $prog);
 
 	$prog = $prog + $inc;
