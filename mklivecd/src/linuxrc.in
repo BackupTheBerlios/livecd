@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.92 2005/02/14 06:56:35 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.93 2005/02/26 06:25:26 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -311,11 +311,11 @@ findcdroms() {
 		for i in $USB_MODULES; do
 			loadmod $i || USB_FOUND=
 		done
-		sleep 1
+		sleep 2
 		for i in $USB_MODULES_DRV; do
 			loadmod $i
 		done
-		sleep 1
+		sleep 2
 		[ -n "$USB_FOUND" ] && printloaded || printok
 	fi
 	set_progress
@@ -328,7 +328,7 @@ findcdroms() {
 		for i in $SCSI_MODULES; do
 			loadmod $i && SCSI_FOUND=1
 		done
-		sleep 1
+		sleep 3
 		[ -n "$SCSI_FOUND" ] && printloaded || printok
 	fi
 
