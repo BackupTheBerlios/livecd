@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.81 2004/10/20 03:59:42 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.82 2004/10/20 17:05:25 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -668,4 +668,5 @@ printwelcome  ""
 createramdisk ""
 findcloop     ""
 echo "--- Exiting LINUXRC ----------------"
+exec /etc/rc.d/rc.sysinit
 exit 0
