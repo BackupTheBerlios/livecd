@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.18 2003/11/22 19:39:43 jaco Exp $
+# $Id: livecd-install,v 1.19 2003/11/22 20:34:01 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -298,7 +298,7 @@ image=/boot/$kernel
 	read-only
 ";
 			close LILO;
-			qx(/sbin/lilo -f $mnt);
+			qx(mount -t devfs none $mnt/dev ; /sbin/lilo -f $mnt ; umount $mnt/dev);
 		}
 	}
 }
