@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.30 2003/10/04 22:28:53 bgmilne Exp $
+# $Id: mklivecd.in,v 1.31 2003/10/04 22:48:40 bgmilne Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -423,6 +423,7 @@ check_theme() {
 restore_theme() {
 	[ -z "$theme" ] && return 0 
 	if [ "$theme" != "$current_theme" ]
+	then
 		${rootdir}/usr/share/bootsplash/scripts/switch-themes "$current_theme"
 	fi
 }
@@ -554,6 +555,7 @@ while [ $# -gt 0 ]; do
 				theme=$2
 				shift
 			fi
+			;;
 
 
 		--keyboard*)
