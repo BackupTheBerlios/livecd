@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.25 2003/10/04 16:53:10 jaco Exp $
+# $Id: mklivecd.in,v 1.26 2003/10/04 17:23:07 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -256,6 +256,7 @@ create_initrdimg() {
 	do_cmd "umount $INITRDMNT"
 	do_cmd  "(cd $ISOLINUXDIR ; gzip -9 initrd)"
 	if [ -n "$bootsplash" ]; then
+		echo "* Creating bootsplash image..." >&2
 		if [ -x ${rootdir}usr/share/bootsplash/scripts/make-boot-splash ]; then
 			do_cmd "(mv -f $ISOLINUXDIR/initrd.gz ${rootdir}tmp/; \
 		        	chroot ${rootdir} /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz ${resolution}; \
@@ -369,11 +370,11 @@ create_isolinux() {
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo 'label livecd' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '    append initrd=initrd.gz devfs=mount fastboot=yes nomodules ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard $bootsplash' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    append initrd=initrd.gz devfs=mount fastboot=yes nomodules ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo 'label initrd' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '    kernel vmlinuz' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo '    append livecd=initrd initrd=initrd.gz devfs=mount fastboot=yes nomodules ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard $bootsplash' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo '    append livecd=initrd initrd=initrd.gz devfs=mount fastboot=yes nomodules ramdisk_size=32000 root=/dev/rd/3 vga=$vgamode automatic=method:cdrom $isokeyboard' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo 'label memtest' >>$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo '    kernel memtest' >>$ISOLINUXDIR/isolinux.cfg"
@@ -503,7 +504,7 @@ while [ $# -gt 0 ]; do
 
 		--splash*)
 			if echo $1 | grep '=' >/dev/null ; then
-				yn=`echo $1 | sed 's/^--yn=//'`
+				yn=`echo $1 | sed 's/^--splash=//'`
 			else
 				yn=$2
 				shift
