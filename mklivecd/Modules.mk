@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.7 2004/01/06 12:51:21 jaco Exp $
+# $Id: Modules.mk,v 1.8 2004/01/06 13:01:34 jaco Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -134,12 +134,16 @@ DEF_SCSI_MODULES_DEP_PATH_26=\
 	drivers/scsi/sr_mod \
 	drivers/scsi/sd_mod
 
-DEF_USB_PATH_24=\
-	drivers/usb/core/usbcore \
+DEF_USB_MODULES_PATH_24=\
+	drivers/usb/core/usbcore
+
+DEF_USB_MODULES_DRV_PATH_24=\
 	drivers/usb/host/uhci
 
-DEF_USB_PATH_26=\
-	drivers/usb/core/usbcore \
+DEF_USB_MODULES_PATH_26=\
+	drivers/usb/core/usbcore
+
+DEF_USB_MODULES_DRV_PATH_26=\
 	drivers/usb/host/uhci-hcd \
 	drivers/usb/host/ohci-hcd \
 	drivers/usb/host/ehci-hcd
@@ -151,7 +155,8 @@ DEF_MODULES_OPT_24=$(shell for m in $(DEF_MODULES_OPT_PATH_24); do basename $$m;
 DEF_SCSI_MODULES_24=$(shell for m in $(DEF_SCSI_MODULES_PATH_24); do basename $$m; done)
 DEF_SCSI_MODULES_OPT_24=$(shell for m in $(DEF_SCSI_MODULES_OPT_PATH_24); do basename $$m; done)
 DEF_SCSI_MODULES_DEP_24=$(shell for m in $(DEF_SCSI_MODULES_DEP_PATH_24); do basename $$m; done)
-DEF_USB_24=$(shell for m in $(DEF_USB_PATH_24); do basename $$m; done)
+DEF_USB_MODULES_24=$(shell for m in $(DEF_USB_MODULES_PATH_24); do basename $$m; done)
+DEF_USB_MODULES_DRV_24=$(shell for m in $(DEF_USB_MODULES_DRV_PATH_24); do basename $$m; done)
 
 DEF_MODULES_26=$(shell for m in $(DEF_MODULES_PATH_26); do basename $$m; done)
 DEF_MODULES_DEP_26=$(shell for m in $(DEF_MODULES_DEP_PATH_26); do basename $$m; done)
@@ -159,4 +164,5 @@ DEF_MODULES_OPT_26=$(shell for m in $(DEF_MODULES_OPT_PATH_26); do basename $$m;
 DEF_SCSI_MODULES_26=$(shell for m in $(DEF_SCSI_MODULES_PATH_26); do basename $$m; done)
 DEF_SCSI_MODULES_OPT_26=$(shell for m in $(DEF_SCSI_MODULES_OPT_PATH_26); do basename $$m; done)
 DEF_SCSI_MODULES_DEP_26=$(shell for m in $(DEF_SCSI_MODULES_DEP_PATH_26); do basename $$m; done)
-DEF_USB_26=$(shell for m in $(DEF_USB_PATH_26); do basename $$m; done)
+DEF_USB_MODULES_26=$(shell for m in $(DEF_USB_MODULES_PATH_26); do basename $$m; done)
+DEF_USB_MODULES_DRV_26=$(shell for m in $(DEF_USB_MODULES_DRV_PATH_26); do basename $$m; done)
