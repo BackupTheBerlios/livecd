@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.22 2003/10/03 13:45:01 jaco Exp $
+# $Id: mklivecd.in,v 1.23 2003/10/04 09:50:12 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -121,7 +121,7 @@ do_cp() {
 do_cp_strip() {
 	if [ -n "$final" ]; then
 		do_cmd "cat $1 | \
-			sed -e 's/^#[^!].*//;s/[^$]#.*//;s/^#$//;s/^[ ].*//' | \
+			sed -e 's/^#[^!].*//;s/[^$n]#.*//;s/^#$//;s/^[ ].*//' | \
 			tr -d \"\t\" | \
 			grep -v ^$ >$2"
 	else
@@ -176,6 +176,62 @@ is_dietlibc_arch() {
 
 ### generate actual initrd image
 create_initrdimg() {
+	### create initrd
+	echo "* Creating initrd structure..." >&2
+	do_cmd "mkdir -p $INITRDDIR/{bin,dev,etc,lib/modules,proc,sbin,usr/{bin,sbin}}"
+	do_cmd "mkdir -p $INITRDDIR/{cdrom,loopfs,ramfs}"
+	if is_dietlibc_arch; then
+		if [[ -n "$kernel26" ]]; then
+			do_cp /sbin/insmod-25-DIET $INITRDDIR/sbin/insmod
+		else
+			do_cp /sbin/insmod-DIET $INITRDDIR/sbin/insmod
+		fi
+		else
+		if [[ -n "$kernel26" ]]; then
+			do_cp /sbin/insmod.static-25 $INITRDDIR/sbin/insmod
+		else
+			do_cp /sbin/insmod.static $INITRDDIR/sbin/insmod
+		fi
+	fi
+	do_cp /usr/bin/busybox $INITRDDIR/bin/busybox
+	do_cp_strip /usr/share/mklivecd/linuxrc $INITRDDIR/linuxrc
+	do_cmd "chmod 755 $INITRDDIR/linuxrc"
+	do_cp_strip /usr/sbin/hwdetect $INITRDDIR/usr/sbin/hwdetect
+	do_cmd "chmod 755 $INITRDDIR/usr/sbin/hwdetect"
+
+	### modules
+	echo "* Copying initrd kernel modules..." >&2
+	do_cmd "mkdir -p $INITRDDIR$MODULESDIR/kernel"
+	modules="$loopmod $modules"
+	for m in $modules; do
+		modpath=`(cd ${rootdir}lib/modules/$kernel; find -type f -name $m.o.gz | grep -v build)`
+		if [ -n "$modpath" ]; then
+			do_cmd "gzip -dc ${rootdir}lib/modules/$kernel/$modpath >$INITRDDIR$MODULESDIR/kernel/$m.o"
+		else
+			modpath=`(cd ${rootdir}lib/modules/$kernel; find -type f -name $m.o | grep -v build)`
+			if [ -z "$modpath" ]; then
+				echo "ERROR: unable to find kernel module $m.o" >&2
+				exit 1
+			fi
+			do_cp ${rootdir}lib/modules/$kernel/$modpath $INITRDDIR/$MODULESDIR/kernel/$m.o
+		fi
+	done
+	do_cmd ":> $INITRDDIR$modulefile"
+	if [ `uname -r` == "$kernel" ]; then
+		do_cmd "depmod -a --basedir $INITRDDIR --config $INITRDDIR$modulefile"
+	else
+		do_cp ${rootdir}lib/modules/$kernel/modules.* $INITRDDIR/$MODULESDIR/
+	fi
+
+	### devices
+	do_cmd "mknod $INITRDDIR/dev/initrd b 1 250"
+	do_cmd "mknod $INITRDDIR/dev/null c 1 3"
+	do_cmd "mknod $INITRDDIR/dev/systty c 4 0"
+	for i in 1 2 3 4; do
+		do_cmd "mknod $INITRDDIR/dev/tty$i c 4 $i"
+	done
+
+	### compressed image
 	echo "* Creating compressed initrd image..." >&2
 	IMAGESIZE=`du -ks $INITRDDIR | awk '{print $1}'`
 	INODES=250
@@ -618,62 +674,6 @@ do_cmd "mkdir -p $LIVECDDIR"
 do_cmd "mkdir -p $ISOLINUXDIR"
 do_cmd "mkdir -p $LIVECDCLOOPDIR"
 do_cmd "mkdir -p $CLOOPDIR"
-
-### create initrd
-echo "* Creating initrd structure..." >&2
-do_cmd "mkdir -p $INITRDDIR/{bin,dev,etc/init.d,lib/modules,proc,sbin,usr/{bin,sbin}}"
-do_cmd "mkdir -p $INITRDDIR/{cdrom,loopfs,ramfs}"
-if is_dietlibc_arch; then
-	if [[ -n "$kernel26" ]]; then
-		do_cp /sbin/insmod-25-DIET $INITRDDIR/sbin/insmod
-	else
-		do_cp /sbin/insmod-DIET $INITRDDIR/sbin/insmod
-	fi
-	else
-	if [[ -n "$kernel26" ]]; then
-		do_cp /sbin/insmod.static-25 $INITRDDIR/sbin/insmod
-	else
-		do_cp /sbin/insmod.static $INITRDDIR/sbin/insmod
-	fi
-fi
-do_cp /usr/bin/busybox $INITRDDIR/bin/busybox
-do_cp_strip /usr/share/mklivecd/linuxrc $INITRDDIR/linuxrc
-do_cmd "chmod 755 $INITRDDIR/linuxrc"
-do_cp_strip /usr/share/mklivecd/init.d/hwdetect $INITRDDIR/etc/init.d/hwdetect
-do_cp_strip /usr/sbin/hwdetect $INITRDDIR/usr/sbin/hwdetect
-do_cmd "chmod 755 $INITRDDIR/usr/sbin/hwdetect"
-
-### modules
-echo "* Copying initrd kernel modules..." >&2
-do_cmd "mkdir -p $INITRDDIR$MODULESDIR/kernel"
-modules="$loopmod $modules"
-for m in $modules; do
-	modpath=`(cd ${rootdir}lib/modules/$kernel; find -type f -name $m.o.gz | grep -v build)`
-	if [ -n "$modpath" ]; then
-		do_cmd "gzip -dc ${rootdir}lib/modules/$kernel/$modpath >$INITRDDIR$MODULESDIR/kernel/$m.o"
-	else
-		modpath=`(cd ${rootdir}lib/modules/$kernel; find -type f -name $m.o | grep -v build)`
-		if [ -z "$modpath" ]; then
-			echo "ERROR: unable to find kernel module $m.o" >&2
-			exit 1
-		fi
-		do_cp ${rootdir}lib/modules/$kernel/$modpath $INITRDDIR/$MODULESDIR/kernel/$m.o
-	fi
-done
-do_cmd ":> $INITRDDIR$modulefile"
-if [ `uname -r` == "$kernel" ]; then
-	do_cmd "depmod -a --basedir $INITRDDIR --config $INITRDDIR$modulefile"
-else
-	do_cp ${rootdir}lib/modules/$kernel/modules.* $INITRDDIR/$MODULESDIR/
-fi
-
-### devices
-do_cmd "mknod $INITRDDIR/dev/initrd b 1 250"
-do_cmd "mknod $INITRDDIR/dev/null c 1 3"
-do_cmd "mknod $INITRDDIR/dev/systty c 4 0"
-for i in 1 2 3 4; do
-	do_cmd "mknod $INITRDDIR/dev/tty$i c 4 $i"
-done
 
 create_initrdimg
 create_cloop

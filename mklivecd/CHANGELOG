@@ -1,6 +1,6 @@
-# $Id: CHANGELOG,v 1.33 2003/10/03 09:51:01 jaco Exp $
+# $Id: CHANGELOG,v 1.34 2003/10/04 09:50:12 jaco Exp $
 
-* Fri, Oct 03, 2003, 0.5.6-cvs
+* Sat, Oct 04, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
     [mklivecd]:
       - Fix rootdir to use the kernel/modules from the chroot
@@ -52,11 +52,15 @@
       - Keyboad can be specified on isolinux prompt, for example
         keyb=dvorak resulting in a dvorak keyboard (If not
         specified, it defaults to Rules.mk, 'us', value)
+      - hwdetect is not called from rc.* anymore (rather from
+        linuxrc, to setup before MDK init)
+      - Added partition reading and fstab generation
     [linuxrc]:
       - Only make symlinks to /var/lib/{rpm,urpmi} directories, the
         rest are actual writables
       - Complete rework of creation of /var directories
       - Allow rw access to /lib/dev-state
+      - Call hwdetect at end of sequence, before init
     [mklivecd]:
       - Changed default blocksize back to 64K (sane default for
         fastest operation in decompressing the compressed image)

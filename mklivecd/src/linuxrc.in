@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.7 2003/10/02 05:29:48 jaco Exp $
+# $Id: linuxrc.in,v 1.8 2003/10/04 09:50:12 jaco Exp $
 #
 
 ### global variables
@@ -357,20 +357,23 @@ createramdisk() {
 			"chmod a+rw /etc" \
 			"rm -rf /etc/mtab" \
 			"ln -sf /proc/mounts /etc/mtab" \
-			"rm -rf /etc/fstab" \
-			"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
-			"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
-			"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
-			"echo '' >/etc/modules.conf" \
-			"cp /initrd/etc/init.d/hwdetect /etc/init.d" \
-			"chmod 755 /etc/init.d/hwdetect" \
-			"ln -s ../init.d/hwdetect /etc/rc.d/rc3.d/S00hwdetect" \
-			"ln -s ../init.d/hwdetect /etc/rc.d/rc5.d/S00hwdetect" \
+			"rm -rf /etc/fstab && touch /etc/fstab" \
+			"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
 			"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
 			"rm -rf /etc/rc.d/rc5.d/S05harddrake"
 		docmd   "Creating user directories" \
 			"cp -a /initrd$MNTLIVECD/root /" \
 			"cp -a /initrd$MNTLIVECD/home /"
+
+#			"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
+#			"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
+#			"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
+
+#				"cp /initrd/etc/init.d/hwdetect /etc/init.d" \
+#			"chmod 755 /etc/init.d/hwdetect" \
+#			"ln -s ../init.d/hwdetect /etc/rc.d/rc3.d/S00hwdetect" \
+#			"ln -s ../init.d/hwdetect /etc/rc.d/rc5.d/S00hwdetect" \
+
 	else
 		$SETCOLOR_FAIL
 		echo ""
@@ -388,13 +391,16 @@ setupinit() {
 	if `grep -iq livecd=initrd /proc/cmdline`; then
 		execshell
 	else
+		# prepare for Mandrake init
+		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
+		/initrd/usr/sbin/hwdetect
+
 		# clean up
 		docmd   "Unmounting /proc filesystem" \
 			"umount /proc"
 
 		### go to mdk init
 		echo "Starting Mandrake Linux init sequence ..."
-		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
 	fi
 }
 
