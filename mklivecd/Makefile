@@ -1,6 +1,7 @@
-### $Id: Makefile,v 1.9 2003/10/01 08:18:57 jaco Exp $
+### $Id: Makefile,v 1.10 2003/10/01 08:28:22 jaco Exp $
 
 ### our version identifiers
+PKGNAME=mklivecd
 MAJORVER=0
 MINORVER=5
 PATCHVER=6
@@ -23,17 +24,16 @@ DESTDIR=
 PREFIX=/usr
 SBINPREFIX=$(PREFIX)
 BINDIR=$(PREFIX)/bin
-LIBDIR=$(PREFIX)/lib/mklivecd
-SHAREDIR=$(PREFIX)/share/mklivecd
-DOCDIR=$(PREFIX)/doc/mklivecd
+LIBDIR=$(PREFIX)/lib/$(PKGNAME)
+SHAREDIR=$(PREFIX)/share/$(PKGNAME)
+DOCDIR=$(PREFIX)/doc/$(PKGNAME)
 SBINDIR=$(SBINPREFIX)/sbin
 RCDIR=$(SHAREDIR)/init.d
 
 ### internal directories
-MKLIVECDBUILD=.build
-MKLIVECDSRC=src
-MKLIVECDDIST=mklivecd-$(ARCHIVEVER)
 DISTDIR=dist
+SRCDIR=src
+MKLIVECDDIST=$(PKGNAME)-$(ARCHIVEVER)
 
 ### utility programs
 BZIP2=/usr/bin/bzip2
@@ -56,50 +56,47 @@ version:
 	echo "$(MKLIVECDVER)"
 
 mklivecd:
-	$(RM) -rf $(MKLIVECDBUILD)
-	$(MKDIR) -p $(MKLIVECDBUILD)/init.d
-	$(CP) $(MKLIVECDSRC)/isolinux.cfg $(MKLIVECDBUILD)
-	$(CP) $(MKLIVECDSRC)/init.d/hwdetect $(MKLIVECDBUILD)/init.d
-	$(CAT) $(MKLIVECDSRC)/hwdetect.in | \
+	$(MKDIR) -p $(DISTDIR)/init.d
+	$(CP) $(SRCDIR)/isolinux.cfg $(DISTDIR)
+	$(CP) $(SRCDIR)/init.d/hwdetect $(DISTDIR)/init.d
+	$(CAT) $(SRCDIR)/hwdetect.in | \
 		$(SED) -e 's/\@MKLIVECDVER/$(ARCHIVEVER)/g' \
-		>$(MKLIVECDBUILD)/hwdetect
-	$(CAT) $(MKLIVECDSRC)/linuxrc.in | \
+		>$(DISTDIR)/hwdetect
+	$(CAT) $(SRCDIR)/linuxrc.in | \
 		$(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g;s/\@KERNELVER/$(KERNELVER)/g' \
-		>$(MKLIVECDBUILD)/linuxrc
-	$(CAT) $(MKLIVECDSRC)/mklivecd.in | \
+		>$(DISTDIR)/linuxrc
+	$(CAT) $(SRCDIR)/$(PKGNAME).in | \
 		$(SED) -e 's/\@MKLIVECDVER/$(MKLIVECDVER)/g' \
-		>$(MKLIVECDBUILD)/mklivecd
+		>$(DISTDIR)/$(PKGNAME)
 
 install:
 	$(MKDIR) -p $(DESTDIR)$(SHAREDIR)
 	$(MKDIR) -p $(DESTDIR)$(SBINDIR)
 	$(MKDIR) -p $(DESTDIR)$(RCDIR)
-	$(INSTALL) -m 644 $(MKLIVECDBUILD)/linuxrc $(DESTDIR)$(SHAREDIR)
-	$(INSTALL) -m 644 $(MKLIVECDBUILD)/isolinux.cfg $(DESTDIR)$(SHAREDIR)
-	$(INSTALL) -m 755 $(MKLIVECDBUILD)/mklivecd $(DESTDIR)$(SBINDIR)
-	$(INSTALL) -m 755 $(MKLIVECDBUILD)/hwdetect $(DESTDIR)$(SBINDIR)
-	$(INSTALL) -m 755 $(MKLIVECDBUILD)/init.d/hwdetect $(DESTDIR)$(RCDIR)
+	$(INSTALL) -m 644 $(DISTDIR)/linuxrc $(DESTDIR)$(SHAREDIR)
+	$(INSTALL) -m 644 $(DISTDIR)/isolinux.cfg $(DESTDIR)$(SHAREDIR)
+	$(INSTALL) -m 755 $(DISTDIR)/$(PKGNAME) $(DESTDIR)$(SBINDIR)
+	$(INSTALL) -m 755 $(DISTDIR)/hwdetect $(DESTDIR)$(SBINDIR)
+	$(INSTALL) -m 755 $(DISTDIR)/init.d/hwdetect $(DESTDIR)$(RCDIR)
 
 spec:
 	$(MKDIR) -p $(DISTDIR)
-	$(CAT) mklivecd.spec.in | \
+	$(CAT) $(PKGNAME).spec.in | \
 		$(SED) -e 's/@MKLIVECDVER/$(MKLIVECDVER)/g;s/@RELEASE/$(RELEASE)/g' \
-		>$(DISTDIR)/mklivecd.spec
+		>$(DISTDIR)/$(PKGNAME).spec
 
 clean:
 	$(RM) -rf $(MKLIVECDDIST)
-	$(RM) -rf $(MKLIVECDBUILD)
 	$(RM) -rf $(DISTDIR)
-	$(RM) -rf mklivecd.spec
 
-dist: clean spec
-	$(MKDIR) -p $(MKLIVECDDIST)/$(MKLIVECDSRC)/init.d
-	$(CP) AUTHORS CHANGELOG COPYING FAQ README TODO Makefile $(DISTDIR)/mklivecd.spec $(MKLIVECDDIST)
-	$(CP) $(MKLIVECDSRC)/isolinux.cfg $(MKLIVECDDIST)/$(MKLIVECDSRC)
-	$(CP) $(MKLIVECDSRC)/linuxrc.in $(MKLIVECDDIST)/$(MKLIVECDSRC)
-	$(CP) $(MKLIVECDSRC)/mklivecd.in $(MKLIVECDDIST)/$(MKLIVECDSRC)
-	$(CP) $(MKLIVECDSRC)/hwdetect.in $(MKLIVECDDIST)/$(MKLIVECDSRC)
-	$(CP) $(MKLIVECDSRC)/init.d/hwdetect $(MKLIVECDDIST)/$(MKLIVECDSRC)/init.d
+dist: spec
+	$(MKDIR) -p $(MKLIVECDDIST)/$(SRCDIR)/init.d
+	$(CP) AUTHORS CHANGELOG COPYING FAQ README TODO Makefile $(DISTDIR)/$(PKGNAME).spec $(MKLIVECDDIST)
+	$(CP) $(SRCDIR)/isolinux.cfg $(MKLIVECDDIST)/$(SRCDIR)
+	$(CP) $(SRCDIR)/linuxrc.in $(MKLIVECDDIST)/$(SRCDIR)
+	$(CP) $(SRCDIR)/$(PKGNAME).in $(MKLIVECDDIST)/$(SRCDIR)
+	$(CP) $(SRCDIR)/hwdetect.in $(MKLIVECDDIST)/$(SRCDIR)
+	$(CP) $(SRCDIR)/init.d/hwdetect $(MKLIVECDDIST)/$(SRCDIR)/init.d
 	$(TAR) -c $(MKLIVECDDIST) | \
 		$(BZIP2) >$(DISTDIR)/$(MKLIVECDDIST).tar.bz2
 	$(MD5SUM) $(DISTDIR)/$(MKLIVECDDIST).tar.bz2 >$(DISTDIR)/$(MKLIVECDDIST).tar.bz2.md5
