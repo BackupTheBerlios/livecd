@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.47 2004/10/30 19:15:51 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.48 2004/10/30 19:50:49 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -56,8 +56,7 @@ my $mnt    : shared = "/tmp/livecd.install.$$";
 my $log    : shared = "/tmp/livecd.install.log.$$";
 my $initrd : shared = "/initrd/loopfs";
 
-my $kernel24	: shared = "";
-my $kernel26	: shared = "";
+my $kernel26	: shared = undef;
 
 my $page = undef;
 
@@ -262,10 +261,8 @@ sub init
 	select(STDOUT);
  	$| = 1;
 
-	if (index(qx(uname -r), "2.6") eq '-1') {
+	if (index(qx(uname -r), "2.6") eq '-1') {  # "2.6_____"
 		$kernel26 = 1;
-	} else {
-		$kernel24 = 1;
 	}
 
 	# initialise our languages
@@ -840,10 +837,10 @@ image=$kernel
 	root=$rootpart
 	initrd=$initrd
 ";
-		if ($kernel26) { 
-			print LILO "append=\"devfs=nomount splash=silent\"\n";
+		if ($kernel26 eq "1") { 
+			print LILO "append=\"devfs=nomount splash=silent\"\n"; # Use udev
 		} else {
-			print LILO "append=\"devfs=mount splash=silent\"\n";
+			print LILO "append=\"devfs=mount splash=silent\"\n"; # Use devfs
 		}
 		print LILO "vga=788
 read-only
@@ -904,10 +901,10 @@ label=\"$label\"
 		}
 		close LILO;
 		do_system("mount -t proc none $mnt/proc");
-		if ($kernel26) {
-			do_system("cp -a /dev $mnt");
+		if ($kernel26 eq "1") {
+			do_system("cp -a /dev $mnt"); # Copy devices for udev
 		} else {
-			do_system("mount -t devfs none $mnt/dev");
+			do_system("mount -t devfs none $mnt/dev"); # Mount for devfs
 		}
 		do_system("rm -rf $mnt/$initrd");
 		do_system("mkdir -p $mnt/root/tmp");
@@ -935,7 +932,7 @@ sub writeFstab {
 		print FSTAB "\nnone"."\t"."/proc"."\t"."proc"."\t"."defaults"."\t"."0 0";
 		print FSTAB "\nnone"."\t"."/dev/pts"."\t"."devpts"."\t"."mode=0620"."\t"."0 0";
 
-		if ($kernel26) {   # If 2.6 kernel add these lines...
+		if ($kernel26 eq "1") {   # If 2.6 kernel add these lines...
 		   print "DEBUG: Added 2.6 kernel to FSTAB\n";
 		   print FSTAB "\nnone"."\t"."/proc/bus/usb"."\t"."usbfs"."\t"."defaults"."\t"."0 0";
 		   print FSTAB "\nnone"."\t"."/sys"."\t"."sysfs"."\t"."defaults"."\t"."0 0";
