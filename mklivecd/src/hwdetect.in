@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.22 2003/10/06 07:01:04 jaco Exp $
+# $Id: hwdetect.in,v 1.23 2003/10/06 11:36:37 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -725,7 +725,8 @@ sub hwdetect_getpersistent {
 					} split(/ /, cat_($persist));
 					if ($popts{mount}) {
 						$devs{$dev}->{mount} = $popts{mount};
-						$devs{$dev}->{opt}   = $fsopt_persist;
+						$devs{$dev}->{opt} = $fsopt_persist;
+						$devs{$dev}->{persisted} = 1;
 					}
 				}
 				umount(undef, $mymnt);
@@ -766,6 +767,7 @@ sub hwdetect_getdisks {
 				my $extopts = "--,iocharset=iso8859-1,codepage=850,umask=0";
 				$extopts = $extopts.",nohide" if ($disk->{media_type} =~ /^cdrom/);
 				$all_devs{$dev}->{info}   = $disk->{media_type} . ": " . $disk->{info};
+				$all_devs{$dev}->{dev}    = "/dev/".$disk->{device};
 				$all_devs{$dev}->{devfs}  = "/dev/".$disk->{devfs_device};
 				$all_devs{$dev}->{media}  = $disk->{media_type};
 				$all_devs{$dev}->{mount}  = "/mnt/".$disk->{device};
@@ -814,7 +816,9 @@ sub hwdetect_getdisks {
 				if ($raw->{devfs_device} && $fstypes{$raw->{type}}[1] && @opts) {
 					my $dev = $raw->{device};
 					$all_devs{$dev}->{info}    = "/dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{type} . ": " . $fstypes{$raw->{type}}[0] . " (primary)";
+					$all_devs{$dev}->{dev}     = "/dev/" . $raw->{device};
 					$all_devs{$dev}->{devfs}   = "/dev/".$raw->{devfs_device};
+					$all_devs{$dev}->{size}    = $raw->{size};
 					$all_devs{$dev}->{media}   = "hd";
 					if ($raw->{type} =~ /^130/) {
 						$haveswap = 1;
@@ -863,7 +867,9 @@ sub hwdetect_getdisks {
 					if ($raw->{devfs_device} && $fstypes{$raw->{type}}[1] && @opts) {
 						my $dev = $raw->{device};
 						$all_devs{$dev}->{info}    = "/dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{type} . ": " . $fstypes{$raw->{type}}[0] . " (extended)";
+						$all_devs{$dev}->{dev}     = "/dev/" . $raw->{device};
 						$all_devs{$dev}->{devfs}   = "/dev/".$raw->{devfs_device};
+						$all_devs{$dev}->{size}    = $raw->{size};
 						$all_devs{$dev}->{media}   = "hd";
 						if ($raw->{type} =~ /^130/) {
 							$haveswap = 1;
@@ -904,6 +910,7 @@ sub hwdetect_getdisks {
 			print "    Writing /etc/fstab: ";
 			open FSTAB, '>>', '/etc/fstab';
 			print FSTAB "\n### entries below this line were automatically added by $SCRIPT_NAME v$SCRIPT_VER\n";
+			open INFO, '>', '/etc/livecd/hwdetect/mounts.cfg';
 			foreach my $dev (sort keys %all_devs) {
 				print FSTAB "\n# ".$all_devs{$dev}->{info};
 				my $entry = "\n";
@@ -916,9 +923,22 @@ sub hwdetect_getdisks {
 				$opt .= $all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
 				$entry .= $opt."\t"."0 0\n";
 				print FSTAB $entry;
+
+				print INFO "$dev.info=".$all_devs{$dev}->{info}."\n";
+				print INFO "$dev.dev=".$all_devs{$dev}->{dev}."\n";
+				print INFO "$dev.devfs=".$all_devs{$dev}->{devfs}."\n";
+				print INFO "$dev.mount=".$all_devs{$dev}->{mount}."\n";
+				print INFO "$dev.media=".$all_devs{$dev}->{media}."\n";
+				print INFO "$dev.size=".$all_devs{$dev}->{size}."\n" if ($all_devs{$dev}->{size});
+				print INFO "$dev.type=".$all_devs{$dev}->{type}."\n";
+				print INFO "$dev.persist=".$all_devs{$dev}->{persist}."\n" if ($all_devs{$dev}->{persist});
+				print INFO "$dev.persisted=".$all_devs{$dev}->{persisted}."\n" if ($all_devs{$dev}->{persisted});
+				print INFO "$dev.opt=".$all_devs{$dev}->{opt}."\n" if ($all_devs{$dev}->{opt});
+				print INFO "$dev.extopt=".$all_devs{$dev}->{extopt}."\n" if ($all_devs{$dev}->{extopt});
 			}
 			print FSTAB "\n";
 			close FSTAB;
+			close INFO;
 			print_success();
 		}
 	}
