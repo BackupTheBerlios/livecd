@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.12 2003/10/04 19:02:57 jaco Exp $
+# $Id: linuxrc.in,v 1.13 2003/10/04 22:00:37 jaco Exp $
 #
 
 ### global variables
@@ -274,7 +274,7 @@ createramdisk() {
 
 	# Check for sufficient memory to mount extra ramdisk for /etc, /home, /root, /var
 	if test -n "$TOTALMEM" -a "$TOTALMEM" -gt "$MINLEFT"; then
-		docmd   "Creating $MNTRAMDISK (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
+		docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
 			"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
 			"mkdir -p $MNTRAMDISK/initrd" \
 			"echo '0x0100' >/proc/sys/kernel/real-root-dev" \
@@ -287,6 +287,30 @@ createramdisk() {
 			 	case \$f in \
 					dev-state) \
 						mkdir -p /lib/\$f ; \
+						;; \
+					modules) \
+						mkdir -p /lib/\$f ; \
+						for k in \$f/*; do \
+							if \`echo \$k | grep -q \$f/$KERNELVER\`; then \
+								mkdir -p /lib/\$k ; \
+								for s in \$k/*; do \
+									if [ -f /initrd$MNTLIVECD/lib/\$s ]; then \
+										cp /initrd$MNTLIVECD/lib/\$s /lib/\$s ; \
+										chmod 644 /lib/\$s ; \
+									else \
+										mkdir -p /lib/\$s ; \
+										for d in \`find \$s -type d\`; do \
+											mkdir -p /lib/\$d || true; \
+											for m in \$d/*; do \
+												[ -f /initrd$MNTLIVECD/lib/\$m ] && ln -sf /initrd$MNTLIVECD/lib/\$m /lib/\$m || true; \
+											done \
+										done \
+									fi \
+								done \
+							else \
+								ln -sf /initrd$MNTLIVECD/lib/\$k /lib/\$k || true; \
+							fi \
+						done \
 						;; \
 					*) \
 						ln -sf /initrd$MNTLIVECD/lib/\$f /lib/\$f || true; \
