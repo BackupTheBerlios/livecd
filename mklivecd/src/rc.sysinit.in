@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.32 2004/10/13 04:12:54 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.33 2004/10/17 18:53:28 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -467,15 +467,16 @@ setupinit() {
 
 	# display some info
 	distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
-	echo "  Starting $distro Linux init sequence ..."
+	# moved to end echo "  Starting $distro Linux init sequence ..."
 
 	# setup the full path as now available and start distro boot
 	export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
-	/etc/rc.d/rc.sysinit
+	# moved to end /etc/rc.d/rc.sysinit
 }
 echo "--- MKLIVECD RC.SYSINIT ------------"
 setuproot ""
 setupinit ""
 echo "--- Exiting MKLIVECD RC.SYSINIT ----"
-sleep 2
+echo "Starting $distro Linux init sequence..." 
+/etc/rc.d/rc.sysinit
 exit 0

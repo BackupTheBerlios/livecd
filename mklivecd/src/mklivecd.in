@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.121 2004/10/13 04:12:54 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.122 2004/10/17 18:53:28 tom_kelly33 Exp $
 #
 
 use strict;
@@ -67,6 +67,7 @@ my $finaliso       = "livecd.iso";
 
 ### command-line options
 my $o_verbose;
+my $o_workdir;
 my $o_root         = "/";
 my $o_tmp          = "/tmp";
 my $o_looptype     = "sqfs";
@@ -110,7 +111,9 @@ General Options:
    --help                          Display this message
    --version                       Display version information
    --verbose                       Be verbose in output
-   --noclean                       Don't remove temporary files on exit.
+   --noclean                       Don't remove temporary files on exit. #'
+   --workdir			   Specify a working directory which will not
+   				   be cleaned.
    --debug                         Display some extra debugging information 
                                    while building the CD. (Usefull for bug 
                                    reports to the developers.)
@@ -374,6 +377,7 @@ sub parse_options {
 		'version',
 		'verbose+',
 		'noclean',
+		'workdir=s',
 		'debug',
 		'root=s',
 		'tmp=s',
@@ -423,7 +427,9 @@ sub parse_options {
 	die_("\nFATAL: Kernel (--kernel) '".$o_kernel."' not installed on the root image. (Directory '".$o_root."/lib/modules/".$o_kernel."' does not exist.)\n") if (!(-d $o_root."/lib/modules/".$o_kernel));
 	die_("\nFATAL: Extra ISO directory (--isoextrafiles) '".$opts{isoextrafiles}."' does not exist\n") if (defined($opts{isoextrafiles}) && !(-d $opts{isoextrafiles}));
 	die_("\nFATAL: Unknown splash (--splash) option '$o_splash'\n") unless ($o_splash =~ /yes|no/);
-	
+	die_("\nFATAL: Work directory (--workdir) '".$opts{workdir}."' does not exist\n") if (defined($
+opts{workdir}) && !(-d $opts{workdir}));
+
 	# final iso name
 	if (scalar(@ARGV) > 0) {
 		die_("\nFATAL: Too many command-line arguments\n") if (scalar(@ARGV) > 1);
@@ -443,8 +449,13 @@ sub parse_options {
 	$opts{preparer} = "$PROG_NAME $PROG_VERSION" unless (defined($opts{preparer}));
 	$opts{publisher} = "$URL" unless (defined($opts{publisher}));
 
-	# create our working dir
-	$workdir = $o_tmp."mklivecd.$$";
+	# create our working dir if none given
+	if ($opts{workdir}) {
+		$workdir = $opts{workdir};
+		$opts{noclean} = 1;
+	} else {
+		$workdir = $o_tmp."mklivecd.$$";
+	}
 	system("mkdir -p $workdir");
 	die_("\nFATAL: Unable to create working directory, '$workdir'\n") unless (-e $workdir);
 	print STDERR "\nWARNING: The temporary directory '$workdir' will not be removed at exit, please do so manually" if (defined($opts{noclean}));
@@ -621,6 +632,7 @@ sub create_initrd {
 	do_copy($o_root."etc/inittab",            644, "$dir/etc/inittab",             ++$pos);
 	do_copy($o_root."sbin/init",              755, "$dir/sbin/init.dynamic",       ++$pos);
 	do_copy($o_root."lib/libc.so.6",            0, "$dir/lib",                     ++$pos);
+#	do_copy($o_root."lib/libm.so.6",	    0, "$dir/lib",		       ++$pos);
 	do_copy($o_root."lib/ld-linux.so.2",        0, "$dir/lib",                     ++$pos);
 	do_copy("/usr/sbin/lufsd.livecdfs",       755, "$dir/usr/sbin/lufsd.livecdfs", ++$pos) if (defined($opts{experimental}));
 	if ($kernel26 == 1) {
@@ -830,7 +842,7 @@ sub create_isolinux {
 	my $appopt;
 	if ($kernel26 == 1) {
 		$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=nomount acpi=ht vga=$o_vgamode keyb=$o_keyboard";
-	} else {
+	}else {
 		$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=mount vga=$o_vgamode keyb=$o_keyboard";
 	}	
 	$appopt = "$appopt fastboot=yes automatic=method:cdrom ramdisk_size=32000" if (!defined($kernel26));
