@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.65 2004/01/13 11:43:08 jaco Exp $
+# $Id: linuxrc.in,v 1.66 2004/01/14 20:35:18 jaco Exp $
 #
 
 ### global variables
@@ -184,6 +184,7 @@ set_progress() {
 
 ### initialise
 initialise() {
+	export LD_PRELOAD=/initrd/lib/libplasticfs.so.0
 	busybox mount -n -t proc none /proc
 	busybox --install
 

@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.10 2004/01/13 12:22:44 jaco Exp $
+# $Id: rc.sysinit.in,v 1.11 2004/01/14 20:35:18 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -173,35 +173,75 @@ setuproot() {
 	fi
 	set_progress
 
-	if [ -d /proc/sys/translucency ]; then
+	OVERLAY=
+	[ -d /proc/sys/translucency ] && OVERLAY=1
+	[ -f /initrd/lib/libplasticfs.so.0 ] && OVERLAY=1
+	if [ -n "$OVERLAY" ]; then
 		ltmp="/tmp/livecd"
 		docmd   "Building root filesystem" \
 			"cd /" \
 			"touch fastboot" \
-			"cd $MNTLIVECD ; \
-			for d in *; do \
+			"for d in $MNTLIVECD/*; do \
+				d=\${d#$MNTLIVECD} ; \
 				if [ -d $MNTLIVECD/\$d ]; then \
 					case \$d in \
-						dev|proc|mnt|tmp) \
-							;;
-						*) \
-							ln -sf $MNTLIVECD/\$d /\$d || true; \
+						dev|proc|mnt|tmp|sys|udev) \
+							mkdir -p /\$d ; \
 							;; \
-					esac \
-				fi \
+						*) \
+							rm -rf /\$d ; \
+							ln -s $MNTLIVECD\$d /\$d || true ; \
+							;; \
+					esac ; \
+				fi ; \
 			done" \
 			"mkdir -p /mnt/cdrom && mount -n -o bind $MNTCDROM /mnt/cdrom" \
 			"mkdir -p /tmp && chmod 777 /tmp"
-		set_pogress
-		docmd   "Creating filesystem overlay" \
-			"for t in etc home lib root usr var; do mkdir -p $ltmp/\$t ; done" \
-			"echo '$MNTLIVECD/etc -> $ltmp/etc' >/proc/sys/translucency/0" \
-			"echo '$MNTLIVECD/home -> $ltmp/home' >/proc/sys/translucency/1" \
-			"echo '$MNTLIVECD/lib -> $ltmp/lib' >/proc/sys/translucency/2" \
-			"echo '$MNTLIVECD/root -> $ltmp/root' >/proc/sys/translucency/3" \
-			"echo '$MNTLIVECD/usr -> $ltmp/usr' >/proc/sys/translucency/4" \
-			"echo '$MNTLIVECD/var -> $ltmp/var' >/proc/sys/translucency/5"
 		set_progress
+			
+		if [ -f /initrd/lib/libplasticfs.so.0 ]; then
+			echo -n "Creating filesystem overlay: "
+			rm -rf /lib 
+			mkdir -p /lib
+			cd $MNTLIVECD
+			for f in lib/*; do 
+				f=${f#lib/}
+				case $f in 
+					dev-state) 
+						mkdir -p /lib/$f
+						;;
+					modules)
+						mkdir -p /lib/$f
+						VP="viewpath /lib/$f $MNTLIVECD/lib/$f"
+						[ -n "$PLASTICFS" ] && PLASTICFS="$PLASTICFS | $VP" || PLASTICFS="$VP"
+						;;
+					*)
+						ln -sf $MNTLIVECD/lib/$f /lib/$f
+						;;
+				esac
+			done
+			cd /
+			for d in etc home root var; do
+				rm -rf /$d
+				mkdir -p /$d
+				VP="viewpath /$d $MNTLIVECD/$d"
+				[ -n "$PLASTICFS" ] && PLASTICFS="$PLASTICFS | $VP" || PLASTICFS="$VP"
+			done
+			export LD_PRELOAD=/initrd/lib/libplasticfs.so.0
+			export PLASTICFS="$PLASTICFS"
+			printok
+			set_progress
+		else
+			docmd   "Creating filesystem overlay" \
+				"for t in etc home lib root usr var; do mkdir -p $ltmp/\$t ; done" \
+				"echo '$MNTLIVECD/etc -> $ltmp/etc' >/proc/sys/translucency/0" \
+				"echo '$MNTLIVECD/home -> $ltmp/home' >/proc/sys/translucency/1" \
+				"echo '$MNTLIVECD/lib -> $ltmp/lib' >/proc/sys/translucency/2" \
+				"echo '$MNTLIVECD/root -> $ltmp/root' >/proc/sys/translucency/3" \
+				"echo '$MNTLIVECD/var -> $ltmp/var' >/proc/sys/translucency/4"
+			set_progress
+		fi
+		
 		docmd   "Creating /var structure" \
 			"mkdir -p /var/lock/subsys" \
 			"mkdir -p /var/log && touch /var/log/wtmp" \
@@ -215,8 +255,8 @@ setuproot() {
 			"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
 			"rm -rf /etc/mtab && touch /etc/mtab" \
 			"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
-			"echo '#!/bin/bash' >/usr/share/harddrake/service_harddrake" \
-			"echo 'exit 0' >>/usr/share/harddrake/service_harddrake"
+			"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
+			"rm -rf /etc/rc.d/rc5.d/S05harddrake"
 		set_progress
 	else
 		docmd   "Building root filesystem" \
@@ -366,7 +406,7 @@ setupinit() {
 
 		# setup the full path as now available and start distro boot
 		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
-		exec /etc/rc.d/rc.sysinit
+		bash -c /etc/rc.d/rc.sysinit
 	fi
 }
 

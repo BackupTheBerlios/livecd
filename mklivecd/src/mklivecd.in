@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.100 2004/01/14 06:06:34 jaco Exp $
+# $Id: mklivecd.in,v 1.101 2004/01/14 20:35:18 jaco Exp $
 #
 
 use strict;
@@ -139,8 +139,8 @@ Image generation:
                                    image. 
                                    (default: $o_kernel)
    --experimental                  Enable experimental LiveCD feautures. 
-                                   Currently this option enables kernel 
-                                   translucency support.
+                                   Currently this option enables overlay 
+                                   filesystem support.
 
 Compression options:
    --blocksize <size>              Compression (if used) blocksize in K 
@@ -588,7 +588,7 @@ sub create_initrd {
 
 	# start progress bar
 	my $pos = 0;
-	start_progress("Creating initrd", 33+scalar(@allmods));
+	start_progress("Creating initrd", 34+scalar(@allmods));
 
 	# create directories
 	my $dir = $workdir."/initrd.dir";
@@ -614,6 +614,7 @@ sub create_initrd {
 	do_copy($o_root."sbin/init",              755, "$dir/sbin/init.dynamic",   ++$pos);
 	do_copy($o_root."lib/libc.so.6",            0, "$dir/lib",                 ++$pos);
 	do_copy($o_root."lib/ld-linux.so.2",        0, "$dir/lib",                 ++$pos);
+	do_copy("/usr/lib/libplasticfs.so.0",       0, "$dir/lib",                 ++$pos) if ((-f "/usr/lib/libplasticfs.so.0") && defined($opts{experimental}));
 
 	# create devices
 	do_cmd("mknod $dir/dev/initrd b 1 250", ++$pos);
