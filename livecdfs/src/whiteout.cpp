@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: whiteout.cpp,v 1.5 2004/01/22 15:30:20 jaco Exp $
+ * $Id: whiteout.cpp,v 1.6 2004/01/24 20:05:04 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -31,7 +31,7 @@
 
 #include "debug.h"
 
-vector<t_whiteout> Whiteout::entries;
+//vector<t_whiteout> Whiteout::entries;
 
 Whiteout *
 Whiteout::create(const string &tmp)
@@ -150,7 +150,7 @@ Whiteout::load(const string &path)
 	FUNC("path='" << path << "'");
 	
 	string file = Path::join(Path::join(tmp, path), WHITEOUT);
-	int fd = open(file.c_str(), O_RDWR | O_TRUNC | O_CREAT, 0644);
+	int fd = open(file.c_str(), O_RDWR | O_CREAT, 0644);
 	if (fd > 0) {
 		entries.clear();
 		char sz[2];
