@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: debug.h,v 1.5 2004/01/24 20:16:40 jaco Exp $
+ * $Id: debug.h,v 1.6 2004/01/24 20:20:44 jaco Exp $
  */
  
 #ifndef _DEBUG_dot_H_
@@ -32,10 +32,10 @@ using namespace std;
 #undef WARN
 #undef ERROR
 
+#define PTR(x)		(void *)x
+#define DEC(x)		std::dec << x << std::hex
+	
 #ifdef DEBUG 
-	#define PTR(x)		(void *)x
-	#define DEC(x)		std::dec << x << std::hex
-
 	#define HDR		__FILE__ << "(" << __LINE__ << "): "
 
 	#define FUNC(x)		cout << " INFO: " << HDR << __func__ << "(" << std::hex << x << std::dec << ")\n"
@@ -47,19 +47,14 @@ using namespace std;
 	#define WARN(x)		cout << " WARN: " << HDR << std::hex << x << std::dec << "\n"
 	#define ERROR(x)	cout << "ERROR: " << HDR << std::hex << x << std::dec << "\n"
 #else
-	#define PTR(x)		""
-	#define DEC(x)		""
+	#define FUNC(x)		if (0) { cout << x; }
+	#define TRACE(x) 	if (0) { cout << x; }
+	#define TRACE_START()	if (0) { cout << x; }
+	#define TRACE_END()	if (0) { cout << x; }
+	#define TRACE_RET(x)	if (0) { cout << x; }
 	
-	#define HDR		""
-
-	#define FUNC(x)		if (0) {}
-	#define TRACE(x) 	if (0) {}
-	#define TRACE_START()	if (0) {}
-	#define TRACE_END()	if (0) {}
-	#define TRACE_RET(x)	if (0) {}
-	
-	#define WARN(x)		if (0) {}
-	#define ERROR(x)	if (0) {}
+	#define WARN(x)		if (0) { cout << x; }
+	#define ERROR(x)	if (0) { cout << x; }
 #endif
 
 #endif
