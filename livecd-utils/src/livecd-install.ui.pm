@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.19 2004/01/25 07:32:51 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.20 2004/01/25 08:59:45 jaco Exp $
 #
 
 use threads;
@@ -98,6 +98,11 @@ my %fsopts = (
 	'xfs'      => 'defaults'
 );
 
+# language stuff
+my $lang          : shared = 0;
+my %languages;
+my %strings;
+my %cmdline;
 
 sub cat_ { local *F; open F, $_[0] or return; my @l = <F>; wantarray() ? @l : join('', @l); };
 sub do_system  { my ($p) = @_; print "+ $p {\n"; my $c = system($p); print "+ }=$c\n"; };
@@ -154,6 +159,19 @@ sub init
 {
 	select(STDOUT);
 	$| = 1;
+	
+	# initialise our /proc/cmdline
+	%cmdline = map {
+		chomp;
+		my ($name, $value) = split(/=/);
+		$name => $value || 1;
+	} split(/ /, cat_('/proc/cmdline'));
+
+	# initialise our languages
+	%strings = getStrings();
+	%languages = getLanguages();
+	$lang = getMyLang();
+	
 	print "Initialising ... ";
 	do_system("mkdir -p $mnt");
 	print "Done.\n";
