@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.47 2003/10/12 07:34:09 jaco Exp $
+# $Id: mklivecd.in,v 1.48 2003/10/13 20:37:57 bgmilne Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -103,6 +103,7 @@ Image generation:
    --experimental              Enable experimental LiveCD feautures. Currently
                                this option enables kernel translucency support
                                (default: off)
+   --isoextrafiles=<path>      Add the files in 'path' at the root the ISO image
 
 Compression options:
    --blocksize=<size>          Compression blocksize in K (default: 64)
@@ -436,11 +437,11 @@ create_liveiso() {
 	DISTRO=`gawk -F' ' '{ print $1 " " $2 }' $rootdir/etc/mandrake-release`
 	VERSION=`gawk -F' ' '{ print $4 " " $5 }' $rootdir/etc/mandrake-release`
 	VERSION_DATE=`date --utc`
-	CMD="nice -n 19 mkisofs -pad -l -R -J $verbose \
+	CMD="nice -n 19 mkisofs -pad -l -R -J ${isoextrafiles:+-f} $verbose \
 		-V '$DISTRO LiveCD' -A '$VERSION $VERSION_DATE' \
 		-b isolinux/isolinux.bin -c isolinux/boot.cat \
 		-hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table \
-		-o $target $LIVECDDIR"
+		-o $target $LIVECDDIR $isoextrafiles"
 	[ -z "$verbose" ] && CMD="$CMD 2>/dev/null"
 	do_cmd "$CMD"
 }
@@ -704,6 +705,20 @@ while [ $# -gt 0 ]; do
 			fi
 			if [ ! -f "$isoimage" ]; then
 				echo "ERROR: The specified boot graphic, '$isoimage' could not be found." >&2
+				exit 1
+			fi
+			;;
+		--isoextrafiles*)
+			if echo $1 | grep '=' >/dev/null
+			then
+				isoextrafiles="${1#--isoextrafiles=}"
+			else
+				isoextrafiles="$2"
+				shift
+			fi
+			if [ ! -e "$isoextrafiles" ]
+			then
+				echo "ERROR: Extra ISO files directory $isoextrafiles could not be found." >&2
 				exit 1
 			fi
 			;;
