@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.115 2004/01/26 05:25:31 jaco Exp $
+# $Id: hwdetect.in,v 1.116 2004/01/26 07:59:12 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -421,6 +421,22 @@ sub hwdetect_probepci() {
 				print "modules::add_probeall('scsi_hostadapter', '".$pci->{driver}."')\n" if ($debug);
 			}
 			elsif ($pci->{media_type} =~ /BRIDGE_CARDBUS/ && !defined($cmdline{'nopcmcia'})) {
+				unless (is_loaded($pci->{driver})) {
+					my %popts;
+					foreach my $opt (cat_("/etc/sysconfig/pcmcia")) {
+						chomp($opt);
+						my ($name, $value) = split(/=/, $opt);
+						$popts{$name} = $value || 1;
+					}
+					$popts{PCMCIA} = "yes";
+					$popts{PCIC} = $pci->{driver};
+					
+					# this should be decent file operations!
+					system(":> /etc/sysconfig/pcmcia");
+					foreach my $opt (sort keys %popts) {
+						system("echo '".$opt."=".$popts{$opt}."' >>/etc/sysconfig/pcmcia");
+					}
+				}
 				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
 			}
 			elsif ($pci->{media_type} =~ /BRIDGE_/) {
