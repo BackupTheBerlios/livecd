@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.11 2004/01/24 12:03:13 jaco Exp $
+# $Id: Rules.mk,v 1.12 2004/01/24 12:10:13 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -24,8 +24,8 @@ SPECDATE=$(shell LC_ALL=C date +"%a %b %e %Y")
 LIVECDFSDIST=$(PKGNAME)-$(ARCHIVEVER)
 
 # our flags
-CXXFLAGS=-Wall -DDEBUG -I$(LUFSDIR)/include
-CFLAGS=-Wall -I$(LUFSDIR)/include
+CXXFLAGS+=-Wall $(EXTRA_CXXFLAGS) -DDEBUG -I$(LUFSDIR)/include
+CFLAGS+=-Wall $(EXTRA_CFLAGS) -I$(LUFSDIR)/include
 
 # internal directories
 DISTDIR=dist
