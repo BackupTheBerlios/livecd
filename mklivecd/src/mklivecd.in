@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.46 2003/10/10 09:42:54 jaco Exp $
+# $Id: mklivecd.in,v 1.47 2003/10/12 07:34:09 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -90,7 +90,7 @@ Image generation:
    --nodir=<ex1>[,][...]       Excludes directories from the final image.
                                Patterns passed to this option (as with the
                                --nofile option) should be valid in a grep(1)
-                               search, e.g. --nodir=^/home/jaco,^/root/\.mcop
+                               search, e.g. --nodir=^/home/jaco,^/root/.mcop
                                will exclude both the /home/jaco and /root/.mcop
                                directories from the final LiveCD.
    --kernel=<kernel>           Kernel to use as default for the LiveCD image.
