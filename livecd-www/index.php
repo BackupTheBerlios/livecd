@@ -42,6 +42,24 @@
 					<tr><td bgcolor="#000000">
 						<table width=100% border=0 cellspacing=2 cellpadding=5 cols=2>
 							<tr><td bgcolor=#305080 nowrap>
+								<b><font color=#ffffff>m o n &nbsp; d e c &nbsp; 0 1 &nbsp; 2 0 0 3 &nbsp;</font></b>
+							</td>
+							<td bgcolor=#d0d0d0 nowrap>
+								<b>&nbsp;</b>
+							</td></tr>
+							<tr><td colspan=2 bgcolor=#d0d0d0>
+								<b>P C L i n u x O S &nbsp; 2 K 4 &nbsp; P r e v i e w &nbsp; 4</b><br>
+
+								<a href="http://www.pclinuxonline.com/">Texstar</a> has released <a href="links.php">preview 4 of PCLinuxOS</a>. It is also the first LiveCD to feature the (currently) experimental LiveCD HDD installer, some screenshots of the installer are <a href="http://developer.berlios.de/screenshots/?group_id=1149">available here</a>.
+							</td></tr>
+						</table>
+					</td></tr>
+				</table>
+				<table width="100%" border="0" cellspacing="0" cellpadding="0">
+					<tr><td height="10"></td></tr>
+					<tr><td bgcolor="#000000">
+						<table width=100% border=0 cellspacing=2 cellpadding=5 cols=2>
+							<tr><td bgcolor=#305080 nowrap>
 								<b><font color=#ffffff>f r i &nbsp; n o v &nbsp; 2 1 &nbsp; 2 0 0 3 &nbsp;</font></b>
 							</td>
 							<td bgcolor=#d0d0d0 nowrap>
