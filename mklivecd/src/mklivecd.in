@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.17 2003/10/03 05:09:24 jaco Exp $
+# $Id: mklivecd.in,v 1.18 2003/10/03 06:19:06 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -92,7 +92,7 @@ usage () {
 	echo "    --iso-bootmsg=<boot.msg>   Use 'boot.msg' as the isolinux message display" >&2
 	echo "    --iso-graphic              Use the Madrake boot image extension" >&2
 	echo "    --iso-bgimage=<image.lss>  Use 'image.lss' as the isolinux display image" >&2
-	echo "    --keyboard=<language>      Specify a different keyboard layout (default: @DEF_KEYBOARD@)" >&2
+	echo "    --keyboard=<mapping>       Specify a different keyboard layout (default: @DEF_KEYBOARD@) (4)" >&2
 	echo "" >&2
 	echo "Examples:" >&2
 	echo "    `basename $0` --exclude-dir=\"^/usr/src/RPM ^/root/tmp\" livecd.iso" >&2

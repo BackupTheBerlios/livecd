@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.13 2003/10/02 07:39:11 jaco Exp $
+# $Id: hwdetect.in,v 1.14 2003/10/03 06:19:06 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -301,11 +301,13 @@ sub hwdetect_probeall {
 
 sub hwdetect_getkeyb {
 	print "Selecting keyboard: ";
-	my $probed_keyb = undef;
-	my $probed_desc = "";
-	my $req_keyb = $cmdline{'keyb'} || $DEF_KEYBOARD;
-	eval { $probed_keyb = keyboard::lang2keyboard($req_keyb) and print_success(); } or print_failed();
-	$probed_desc = keyboard::keyboard2text($probed_keyb);
+	my $probed_keyb = { KEYBOARD => $cmdline{'keyb'} };
+	my $probed_desc = keyboard::keyboard2text($probed_keyb);
+	unless (defined($probed_desc)) {
+		$probed_keyb = { KEYBOARD => $DEF_KEYBOARD };
+		$probed_desc = keyboard::keyboard2text($probed_keyb);
+	}
+	print_success();
 	hwdetect_loadmod('unknown', "", $probed_desc);
 	print_hash($probed_keyb) if ($debug);
 	$probed_keyb;
