@@ -1,7 +1,9 @@
 
 #
 # LiveCD-Install script
+#
 # Copyright (C) 2003-2004, Jaco Greeff <jaco@linuxminicd.org>
+# Copyright (C) 2004, Tom Kelly  <tom_kelly33@yahoo.com>
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -19,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.pl.in,v 1.3 2004/05/04 22:29:00 tom_kelly33 Exp $
+# $Id: livecd-install.pl.in,v 1.4 2004/07/14 14:58:03 jaco Exp $
 #
 
 package main;
