@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.16 2004/01/13 06:38:24 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.17 2004/01/21 10:52:46 jaco Exp $
 #
 
 use threads;
@@ -650,12 +650,16 @@ sub doLoaderInstall # SLOT: ( )
 		my ($bdev, $text) = split(/ /, $bootstr);
 		$bootdev = $bdev;
 
+		my $kbdmap = "$mnt/usr/lib/kbd/keymaps/livecd.map";
+		do_system("mkdir -p $mnt/usr/lib/kbd/keymaps ; dumpkeys >$kbdmap");
+		do_system("keytab-lilo.pl $kbdmap $kbdmap >$mnt/boot/livecd.klt");
+		
 		do_system("mkdir -p $mnt/etc");
 		open LILO, '>', "$mnt/etc/lilo.conf";
 		print LILO "boot=$bootdev
 map=/boot/map
 default=\"$distro\"
-keytable=/boot/us.klt
+keytable=/boot/livecd.klt
 prompt
 nowarn
 timeout=100
