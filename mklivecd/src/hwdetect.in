@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.59 2003/11/22 11:38:53 jaco Exp $
+# $Id: hwdetect.in,v 1.60 2003/11/22 15:07:27 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -866,6 +866,8 @@ sub hwdetect_getpersistent {
 	print_success();
 }
 
+my %all_devs = ();
+
 sub hwdetect_getdisks {
 	print "Detecting disk drives/partitions: ";
 	my $fsopt_set = $fsopt_user;
@@ -882,9 +884,11 @@ sub hwdetect_getdisks {
 	else {
 		$fsopt_set .= ",".$fsopt_noauto;
 	}
-	my %all_devs = ();
 	my $all_hdds = fsedit::get_hds({}, undef);
 	fs::get_raw_hds('', $all_hdds);
+	#fs::get_info_from_fstab($all_hds, '');
+	#fs::merge_info_from_mtab([ fsedit::get_really_all_fstab($all_hds) ]);
+	#$all_hds->{current_fstab} = fs::fstab_to_string($all_hds, '');
 	if ($debug) {
 		foreach my $key (keys %$all_hdds) {
 			print $key . " ->\n";
