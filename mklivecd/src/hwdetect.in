@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.121 2004/01/29 07:42:29 jaco Exp $
+# $Id: hwdetect.in,v 1.122 2004/01/31 08:20:56 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -1188,8 +1188,7 @@ sub hwdetect_getdisks {
 						else {
 							$all_devs{$dev}->{opt} = $fsopt_set;
 						}
-						if ($type =~ /ntfs/ ||
-						    $type =~ /vfat/) {
+						if ($type =~ /ntfs|vfat/) {
 							$all_devs{$dev}->{mount} = "/mnt/win_".$numwin;
 							$numwin++;
 						}
@@ -1251,8 +1250,7 @@ sub hwdetect_getdisks {
 								$all_devs{$dev}->{opt}   = $fsopt_set;
 							}
 						}
-						if ($type =~ /ntfs/ ||
-						    $type =~ /vfat/) {
+						if ($type =~ /ntfs|vfat/) {
 							$all_devs{$dev}->{mount} = "/mnt/win_".$numwin;
 							$numwin++;
 						}
@@ -1291,8 +1289,7 @@ sub hwdetect_getdisks {
 						else {
 							$all_devs{$dev}->{opt} = $fsopt_set;
 						}
-						if ($type =~ /ntfs/ ||
-						    $type =~ /vfat/) {
+						if ($type =~ /ntfs|vfat/) {
 							$all_devs{$dev}->{mount} = "/mnt/win_".$numwin;
 							$numwin++;
 						}
