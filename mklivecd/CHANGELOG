@@ -1,9 +1,8 @@
-# $Id: CHANGELOG,v 1.142 2005/02/18 23:37:03 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.143 2005/02/25 16:57:18 tom_kelly33 Exp $
 
-* 2005-02-18
-	[hwdetect] corrected net-pf-10 off bug, thanks to Tex & Ikerek
-* 2005-02-17
-	[hwdetect & livecd-install] add sata_nv, thanks to Ocilent
+* 2005-02-25 [mklivecd] another keyboard link correction: Ikerek
+* 2005-02-18 [hwdetect] corrected net-pf-10 off bug, thanks to Tex & Ikerek
+* 2005-02-17 [hwdetect & livecd-install] add sata_nv, thanks to Ocilent
 * 2005-02-13
 	[linuxrc.in] added usb devices to search list
 	[hwdetect] if 'noscsi' => no SATA check
@@ -14,8 +13,7 @@
 * 2005-02-05
 	[mklivecd] - fix keyboard links
 	[rc.sysinit.in] - add unionfs option
-* 2005-01-27
-	[mklivecd] - ln -fs NOT sf [alaa]
+* 2005-01-27 [mklivecd] - ln -fs NOT sf [alaa]
 * 2005-01-24
 	[mklivecd] - added keyboard/kdm fix [alaa, ikerek]
 	[rc.sysinit.in] - added gnome to special dir list [alaa, ikerek]
@@ -31,9 +29,7 @@
 	[hwdetect] - added sata loading
 	- added Chris usb fix for keyboard/mouse
 	- added "not loaded" for modules
-* 2005-01-09
-	[mklivecd]
-	- restored md5sum as an option
+* 2005-01-09 [mklivecd] restored md5sum as an option
 * 2005-01-01
 	[mklivecd]
 	- added syslinux >= 1.76-15mdk as a requirement
@@ -49,9 +45,7 @@
 	- removed old getpersistent code
 	[linuxrc.in]
 	- added ide devices hda to hdt
-* 2004-12-22
-	[mklivecd]
-	- added "--noprompt" boot option from Ross Thomas
+* 2004-12-22 [mklivecd] - added "--noprompt" boot option from Ross Thomas
 * Dec 20th, 2004
 	[mklivecd]: 
 	- added 'nomce acpi=ht' to append options
