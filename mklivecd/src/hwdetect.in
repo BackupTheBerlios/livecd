@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.24 2003/10/06 12:30:35 jaco Exp $
+# $Id: hwdetect.in,v 1.25 2003/10/07 06:46:49 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -257,7 +257,7 @@ sub hwdetect_loadmod {
 	print_device($module, $vendor, $desc);
 	unless ($module =~ /unknown/) {
 		if (is_loaded($module)) {
-			print_warning();
+			print_loaded();
 		}
 		else {
 			my $res = modprobe("", $module);
