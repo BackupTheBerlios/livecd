@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.9 2004/01/06 13:25:10 jaco Exp $
+# $Id: Modules.mk,v 1.10 2004/01/06 13:29:16 jaco Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -138,7 +138,8 @@ DEF_USB_MODULES_PATH_24=\
 	drivers/usb/usbcore
 
 DEF_USB_MODULES_DRV_PATH_24=\
-	drivers/usb/host/uhci
+	drivers/usb/host/uhci \
+	drivers/usb/storage/usb-storage
 
 DEF_USB_MODULES_PATH_26=\
 	drivers/usb/core/usbcore
@@ -146,7 +147,8 @@ DEF_USB_MODULES_PATH_26=\
 DEF_USB_MODULES_DRV_PATH_26=\
 	drivers/usb/host/uhci-hcd \
 	drivers/usb/host/ohci-hcd \
-	drivers/usb/host/ehci-hcd
+	drivers/usb/host/ehci-hcd \
+	drivers/usb/storage/usb-storage
 
 # convert our module paths to their basenames
 DEF_MODULES_24=$(shell for m in $(DEF_MODULES_PATH_24); do basename $$m; done)
