@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.19 2003/10/05 09:23:51 jaco Exp $
+# $Id: hwdetect.in,v 1.20 2003/10/05 18:44:48 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -201,9 +201,9 @@ sub mount {
 	my $res = 0;
 	my $mounted = is_mounted($point);
 
-	print $text;
+	print $text if ($text);
 	$res = system("(mount $opt -t $type $dev $point) 2>/dev/null >/dev/null") if (!$mounted);
-	$res ? print_failed() : print_success();
+	if ($text) { $res ? print_failed() : print_success(); }
 }
 
 sub umount {
@@ -211,9 +211,9 @@ sub umount {
 	my $res = 0;
 	my $mounted = is_mounted($point);
 
-	print $text;
+	print $text if ($text);
 	$res = system("(umount $point) 2>/dev/null >/dev/null") if ($mounted);
-	$res ? print_failed() : print_success();
+	if ($text) { $res ? print_failed() : print_success(); }
 }
 
 sub is_loaded {
@@ -682,22 +682,55 @@ my %fstypes = (
 	0xff  => ['Xenix Bad Block Table'                   ,''        ]
 );
 
+# these are default options for fstab
+my $fsopt         = 'noauto,user,ro,exec';
+my $fsopt_persist = 'user,rw,exec';
+
+# type => (allow persistent, ext. opts)
 my %fsopts = (
-	'ext2'     => 'noauto,user,ro,exec',
-	'ext3'     => 'noauto,user,ro,exec',
-	'jfs'      => 'noauto,user,ro,exec',
-	'ntfs'     => 'noauto,user,ro,exec,iocharset=iso8859-1,umask=0',
-	'reiserfs' => 'noauto,user,ro,exec,notail,noatime',
-	'swap'     => 'defaults',
-	'ufs'      => 'noauto,user,ro,exec,iocharset=iso8859-1,umask=0',
-	'vfat'     => 'noauto,user,ro,exec,iocharset=iso8859-1,codepage=850,umask=0',
-	'xfs'      => 'noauto,user,ro,exec'
+	'ext2'     => [1,     undef],
+	'ext3'     => [1,     undef],
+	'jfs'      => [1,     undef],
+	'ntfs'     => [undef, 'iocharset=iso8859-1,umask=0'],
+	'reiserfs' => [1,     'notail,noatime'],
+	'swap'     => [undef, 'defaults'],
+	'ufs'      => [1,     'iocharset=iso8859-1,umask=0'],
+	'vfat'     => [1,     'iocharset=iso8859-1,codepage=850,umask=0'],
+	'xfs'      => [1,     undef]
 );
+
+sub hwdetect_getpersistent {
+	my (%devs) = @_;
+	print "    Finding persistent partitions: ";
+	my $mymnt = "/tmp/hwdetect.mnt";
+	my $persist = "$mymnt/LIVECD.MNT";
+	system("mkdir -p $mymnt 2>/dev/null");
+	foreach my $dev (keys %devs) {
+		if ((-e $mymnt) && $devs{$dev}->{persist}) {
+			mount(undef, "", $devs{$dev}->{type}, $devs{$dev}->{devfs}, $mymnt);
+			if (is_mounted($mymnt)) {
+				if (-e $persist) {
+					my %popts = map {
+						chomp;
+						my ($name, $value) = split(/=/);
+						$name => $value || 1;
+					} split(/ /, cat_($persist));
+					if ($popts{mount}) {
+						$devs{$dev}->{mount} = $popts{mount};
+						$devs{$dev}->{opt}   = $fsopt_persist;
+					}
+				}
+				umount(undef, $mymnt);
+			}
+		}
+	}
+	system("rm -rf $mymnt 2>/dev/null");
+	print_success();
+}
 
 sub hwdetect_getdisks {
 	print "Detecting disk drives/partitions: ";
-	my @detected_fstab = ();
-	my %detected_mounts = ();
+	my %all_devs = ();
 	my $all_hdds = fsedit::get_hds({}, undef);
 	fs::get_raw_hds('', $all_hdds);
 	if ($debug) {
@@ -721,17 +754,16 @@ sub hwdetect_getdisks {
 		}
 		unless ($disk->{media_type} =~ /^hd/) {
 			if ($disk->{media_type} =~ /^fd|^cdrom/) {
-				my $entry = "\n\n### " . $disk->{media_type} . ": " . $disk->{info};
-				$entry = $entry . "\n# /dev/$disk->{device}";
-				push(@detected_fstab, $entry);
-				$entry = "\n/dev/".$disk->{devfs_device};
-				$entry = $entry . "\t/mnt/" . $disk->{device};
-				$detected_mounts{$disk->{device}} = [$disk->{devfs_device}, $disk->{media_type}];
-				$entry = $entry . "\tauto";
-				$entry = $entry . "\tnoauto,user,ro,exec,--,iocharset=iso8859-1,codepage=850,umask=0";
-				$entry = $entry . ",nohide" if ($disk->{media_type} =~ /^cdrom/);
-				$entry = $entry . "\t0 0";
-				push(@detected_fstab, $entry);
+				my $dev = $disk->{device};
+				my $extopts = "--,iocharset=iso8859-1,codepage=850,umask=0";
+				$extopts = $extopts.",nohide" if ($disk->{media_type} =~ /^cdrom/);
+				$all_devs{$dev}->{info}   = $disk->{media_type} . ": " . $disk->{info};
+				$all_devs{$dev}->{devfs}  = "/dev/".$disk->{devfs_device};
+				$all_devs{$dev}->{media}  = $disk->{media_type};
+				$all_devs{$dev}->{mount}  = "/mnt/".$disk->{device};
+				$all_devs{$dev}->{type}   = "auto";
+				$all_devs{$dev}->{opt}    = $fsopt;
+				$all_devs{$dev}->{extopt} = $extopts;
 			}
 		}
 	}
@@ -747,8 +779,7 @@ sub hwdetect_getdisks {
 				}
 			}
 		}
-		my $entry = "\n\n### hdd: " . $disk->{info};
-		push(@detected_fstab, $entry);
+
 		if ($debug) {
 			print "\t\tnormal:\n";
 			foreach my $norm (@{$disk->{primary}->{normal}}) {
@@ -771,22 +802,23 @@ sub hwdetect_getdisks {
 				### we are missing it (only do this if we cannot find it,
 				### see it as a try 2)
 				$raw->{type} = $raw->{type} & 0xFF unless ($fstypes{$raw->{type}});
-				if ($raw->{devfs_device} && $fstypes{$raw->{type}}[1] && $fsopts{$fstypes{$raw->{type}}[1]}) {
-					$entry = "\n# /dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{type} . ": " . $fstypes{$raw->{type}}[0] . " (primary)";
-					push(@detected_fstab, $entry);
-					$entry = "\n/dev/" . $raw->{devfs_device};
+				my @opts = @{$fsopts{$fstypes{$raw->{type}}[1]}};
+				if ($raw->{devfs_device} && $fstypes{$raw->{type}}[1] && @opts) {
+					my $dev = $raw->{device};
+					$all_devs{$dev}->{info}    = "/dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{type} . ": " . $fstypes{$raw->{type}}[0] . " (primary)";
+					$all_devs{$dev}->{devfs}   = "/dev/".$raw->{devfs_device};
+					$all_devs{$dev}->{media}   = "hd";
 					if ($raw->{type} =~ /^130/) {
 						$haveswap = 1;
-						$entry = $entry . "\tswap";
+						$all_devs{$dev}->{mount} = "swap";
 					}
 					else {
-						$entry = $entry . "\t/mnt/" . $raw->{device};
-						$detected_mounts{$raw->{device}} = [$raw->{devfs_device}, 'hd'];
+						$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
+						$all_devs{$dev}->{opt}     = $fsopt;
 					}
-					$entry = $entry . "\t" . $fstypes{$raw->{type}}[1];
-					$entry = $entry . "\t" . $fsopts{$fstypes{$raw->{type}}[1]};
-					$entry = $entry . "\t0 0";
-					push(@detected_fstab, $entry);
+					$all_devs{$dev}->{type}    = $fstypes{$raw->{type}}[1];
+					$all_devs{$dev}->{extopt}  = $opts[1];
+					$all_devs{$dev}->{persist} = $opts[0];
 				}
 			}
 		}
@@ -819,57 +851,68 @@ sub hwdetect_getdisks {
 					### we are missing it (only do this if we cannot find it,
 					### see it as a try 2)
 					$raw->{type} = $raw->{type} & 0xFF unless ($fstypes{$raw->{type}});
-					if ($raw->{devfs_device} && $fstypes{$raw->{type}}[1] && $fsopts{$fstypes{$raw->{type}}[1]}) {
-						$entry = "\n# /dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{type} . ": " . $fstypes{$raw->{type}}[0] . " (extended)";
-						push(@detected_fstab, $entry);
-						$entry = "\n/dev/" . $raw->{devfs_device};
+					my @opts = @{$fsopts{$fstypes{$raw->{type}}[1]}};
+					if ($raw->{devfs_device} && $fstypes{$raw->{type}}[1] && @opts) {
+						my $dev = $raw->{device};
+						$all_devs{$dev}->{info}    = "/dev/" . $raw->{device} . ", size=" . $raw->{size} . ", type=" . $raw->{type} . ": " . $fstypes{$raw->{type}}[0] . " (extended)";
+						$all_devs{$dev}->{devfs}   = "/dev/".$raw->{devfs_device};
+						$all_devs{$dev}->{media}   = "hd";
 						if ($raw->{type} =~ /^130/) {
 							$haveswap = 1;
-							$entry = $entry . "\tswap";
+							$all_devs{$dev}->{mount} = "swap";
 						}
 						else {
-							$entry = $entry . "\t/mnt/" . $raw->{device};
-							$detected_mounts{$raw->{device}} = [$raw->{devfs_device}, 'hd'];
+							$all_devs{$dev}->{mount} = "/mnt/".$raw->{device};
+							$all_devs{$dev}->{opt}     = $fsopt;
 						}
-						$entry = $entry . "\t" . $fstypes{$raw->{type}}[1];
-						$entry = $entry . "\t" . $fsopts{$fstypes{$raw->{type}}[1]};
-						$entry = $entry . "\t0 0";
-						push(@detected_fstab, $entry);
+						$all_devs{$dev}->{type}    = $fstypes{$raw->{type}}[1];
+						$all_devs{$dev}->{extopt}  = $opts[1];
+						$all_devs{$dev}->{persist} = $opts[0];
 					}
 				}
 			}
 		}
 	}
 	$num = 0;
-	$num++ foreach (keys %detected_mounts);
+	$num++ foreach (keys %all_devs);
 	print "$num found";
-	if (scalar @detected_fstab) {
-		print_success();
+	print_success();
+	if ($num) {
 		unless ($probe) {
-			### create /mnt/*
+			# get persistent partitions and set their mountpoints,
+			# and relevant options
+			hwdetect_getpersistent(%all_devs);
+
+			# create mountpoints
 			print "    Creating device mountpoints: ";
 			my $cmd;
-			foreach my $mount (keys %detected_mounts) {
-				my $device = $detected_mounts{$mount}[0];
-				$cmd = "mkdir -p /mnt/$mount 2>&1 >/dev/null";
-				`$cmd`;
+			foreach my $dev (keys %all_devs) {
+				my $mount = $all_devs{$dev}->{mount};
+				system("mkdir -p $mount 2>/dev/null");
 			}
 			print_success();
 
-			### write /etc/fstab
+			# write /etc/fstab
 			print "    Writing /etc/fstab: ";
 			open FSTAB, '>>', '/etc/fstab';
-			print FSTAB "\n### entries below this line were automatically added by $SCRIPT_NAME v$SCRIPT_VER";
-			foreach my $entry (@detected_fstab) {
+			print FSTAB "\n### entries below this line were automatically added by $SCRIPT_NAME v$SCRIPT_VER\n";
+			foreach my $dev (sort keys %all_devs) {
+				print FSTAB "\n# ".$all_devs{$dev}->{info};
+				my $entry = "\n";
+				$entry .= $all_devs{$dev}->{devfs}."\t";
+				$entry .= $all_devs{$dev}->{mount}."\t";
+				$entry .= $all_devs{$dev}->{type}."\t";
+				my $opt = "";
+				$opt .= $all_devs{$dev}->{opt} if ($all_devs{$dev}->{opt});
+				$opt .= "," if ($all_devs{$dev}->{opt} && $all_devs{$dev}->{extopt});
+				$opt .= $all_devs{$dev}->{extopt} if ($all_devs{$dev}->{extopt});
+				$entry .= $opt."\t"."0 0\n";
 				print FSTAB $entry;
 			}
-			print FSTAB "\n\n";
+			print FSTAB "\n";
 			close FSTAB;
 			print_success();
 		}
-	}
-	else {
-		print_warning();
 	}
 }
 
