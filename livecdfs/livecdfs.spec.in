@@ -1,4 +1,4 @@
-# $Id: livecdfs.spec.in,v 1.5 2004/01/24 20:50:50 jaco Exp $
+# $Id: livecdfs.spec.in,v 1.6 2004/01/24 20:51:54 jaco Exp $
 
 %define name	livecdfs
 %define version	@LIVECDFSVER@
@@ -35,7 +35,6 @@ EXTRA_CXXFLAGS="-O2 -g"
 	EXTRA_CXXFLAGS="$EXTRA_CXXFLAGS -DDEBUG"
 %endif
 %make EXTRA_CFLAGS="$EXTRA_CFLAGS" EXTRA_CXXFLAGS="$EXTRA_CXXFLAGS"
-
 
 %install
 rm -rf %buildroot
