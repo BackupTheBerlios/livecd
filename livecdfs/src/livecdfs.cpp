@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.22 2004/01/28 06:29:05 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.23 2004/01/31 07:30:39 jaco Exp $
  */
 
 #include <dirent.h>
@@ -54,7 +54,7 @@ LiveCDFS::findActive(const string &root,
 		i++;
 	}
 	TRACE("Existing LiveCDFS instance not found");
-	FUNC_RET("5p", NULL, NULL);
+	FUNC_RET("%p", NULL, NULL);
 }
 
 
@@ -328,7 +328,7 @@ LiveCDFS::doOpen(const char *file,
 	unsigned flags = mode ^ O_ACCMODE;
 	unsigned modes = mode & O_ACCMODE;
 	
-	FUNC_START("file='%s', mode=%u (modes=%u, flags=%u)", file, mode, modes, flags);
+	FUNC_START("file='%s', mode=%u (flags=%u, modes=%u)", file, mode, flags, modes);
 	
 	if (!whiteout->isVisible(file)) {
 		FUNC_RET("%d", -1, -1);
@@ -342,7 +342,8 @@ LiveCDFS::doOpen(const char *file,
 	bool created = false;
 	string tmppath = path->mktmp(file);
 	string openpath = string("");
-	if (flags & O_CREAT) {
+	if (mode & O_CREAT) {
+		TRACE("Flags for file='%s' is set to O_CREAT", file);
 		string dir = path->getDir(file);
 		if ((dir.length() != 0) && !path->isTmp(dir)) {
 			TRACE("Creating directory dir='%s'", dir.c_str());
@@ -353,15 +354,18 @@ LiveCDFS::doOpen(const char *file,
 		created = true;
 		TRACE("Creating empty file='%s' on temp space", file);
 	}
-	else if ((flags & O_RDWR) || (flags & O_WRONLY)) {
+	else if ((modes == O_RDWR) || (modes == O_WRONLY)) {
+		TRACE("Mode for file='%s' is set to O_RDWR || O_WRONLY", file);
 		string rootpath = path->mkroot(file);
 		if (path->exists(rootpath, S_IFREG) || path->exists(rootpath, S_IFLNK)) {
+			TRACE("File='%s' is a regular file or symlink on root", file);
 			if (!path->exists(tmppath, 0)) {
 				path->copyTmp(file);
 			}
 			openpath = tmppath;
 		}
 		else if (path->exists(tmppath, S_IFREG) || path->exists(tmppath, S_IFLNK)) {
+			TRACE("File='%s' is a regular file or symlink on tmp", file);
 			openpath = tmppath;
 		}
 		else {
@@ -371,10 +375,11 @@ LiveCDFS::doOpen(const char *file,
 	}
 	else {
 		// normal read
+		TRACE("Mode for file='%s' is set for normal read", file);
 		openpath = path->mkpath(file);
 	}
 	
-	int fd = open(openpath.c_str(), flags, modes);
+	int fd = open(openpath.c_str(), mode, 0666);
 	if (fd <= 0) {
 		WARN("Unable to open file='%s', flags=%u, modes=%u", file, flags, modes);
 		FUNC_RET("%d", -1, -1);
@@ -427,9 +432,9 @@ LiveCDFS::doRead(const char *file,
 {
 	FUNC_START("file='%s', offset=%l, count=%ul, buf=%p", file, offset, count, buf);
 	
-	int fd = open(path->mkpath(file).c_str(), O_RDWR);
+	int fd = open(path->mkpath(file).c_str(), O_RDONLY);
 	if (fd <= 0) {
-		WARN("Cannot open file='%s' O_RDWR", file);
+		WARN("Cannot open file='%s' O_RDONLY", file);
 		FUNC_RET("%d", -1, -1);
 	}
 	
@@ -454,9 +459,9 @@ LiveCDFS::doWrite(const char *file,
 {
 	FUNC_START("file='%s', offset=%l, count=%ul, buf=%p", file, offset, count, buf);
 	
-	int fd = open(path->mkpath(file).c_str(), O_RDWR);
+	int fd = open(path->mkpath(file).c_str(), O_WRONLY);
 	if (fd <= 0) {
-		WARN("Cannot open file='%s' O_RDWR", file);
+		WARN("Cannot open file='%s' O_WRONLY", file);
 		FUNC_RET("%d", fd, fd);
 	}
 	
