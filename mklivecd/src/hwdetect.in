@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org> hwdetect script
 #
-# $Id: hwdetect.in,v 1.10 2003/10/01 12:59:02 jaco Exp $
+# $Id: hwdetect.in,v 1.11 2003/10/01 13:20:49 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -177,6 +177,22 @@ sub modprobe {
 	$res;
 }
 
+sub hwdetect_get_cmdline {
+	my ($param) = @_;
+	my $ret = undef;
+	if (defined($param)) {
+		open CMDLINE, "</proc/cmdline";
+		my @cmds = split(/ /, <CMDLINE>);
+		close CMDLINE;
+		foreach my $cmd (@cmds) {
+			my ($name, $val) = split(/=/, $cmd);
+			$val = 1 unless (defined($val));
+			$ret = $val if ($name eq $param);
+		}
+	}
+	$ret;
+}
+
 sub hwdetect_get_mediatype {
 	my ($media_type) = @_;
 	my @rets = ();
@@ -298,7 +314,9 @@ sub hwdetect_getkeyb {
 	print "Selecting keyboard: ";
 	my $probed_keyb = undef;
 	my $probed_desc = "";
-	eval { $probed_keyb = keyboard::lang2keyboard($DEF_KEYBOARD) and print_success(); } or print_failed();
+	my $req_keyb = hwdetect_get_cmdline("keyb");
+	$req_keyb = $DEF_KEYBOARD unless (defined($req_keyb));
+	eval { $probed_keyb = keyboard::lang2keyboard($req_keyb) and print_success(); } or print_failed();
 	$probed_desc = keyboard::keyboard2text($probed_keyb);
 	hwdetect_loadmod('unknown', "", $probed_desc);
 	print_hash($probed_keyb) if ($printdebug);
