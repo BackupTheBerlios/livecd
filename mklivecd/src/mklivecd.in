@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.128 2004/12/22 06:32:59 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.129 2004/12/31 19:52:03 tom_kelly33 Exp $
 #
 
 use strict;
@@ -995,16 +995,15 @@ MAIN: {
 	parse_options();
 
 	create_initrd();
-	if (-e "$o_root/etc/init.d/harddrake") {
-		Storable::store({ dummy => 'nothing' } , "$o_root/etc/sysconfig/harddrake2/previous_hw");
-		run_program::rooted($o_root, "chkconfig", "--add", "harddrake");
-	}
-
-	{
-		local $::prefix = $o_root;
-		require keyboard;
-		keyboard::write(keyboard::lang2keyboard($o_keyboard));
-	}
+#	if (-e "$o_root/etc/init.d/harddrake") {
+#		Storable::store({ dummy => 'nothing' } , "$o_root/etc/sysconfig/harddrake2/previous_hw");
+#		run_program::rooted($o_root, "chkconfig", "--add", "harddrake");
+#	}
+#	{
+#		local $::prefix = $o_root;
+#		require keyboard;
+#		keyboard::write(keyboard::lang2keyboard($o_keyboard));
+#	}
 
 	create_compressed();
 	create_isolinux();
