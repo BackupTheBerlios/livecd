@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Mon Dec 1 07:34:36 2003
+# Created: Mon Dec 1 07:50:38 2003
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -4486,11 +4486,10 @@ sub showInstall
 
     threads->new(\&timeThread, $this, $page, time, $this->pbCopy, $this->tlCopy) unless ($destroy);
     system("mkdir -p $mnt");
+    system("mount -t ".$devs->{$rootpart}{type}." $rootpart $mnt");
     system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
     system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
     system("mkdir -p $mnt/var ; chmod 755 $mnt/var");
-
-    system("mount -t ".$devs->{$rootpart}{type}." $rootpart $mnt");
     system("mount -t ".$devs->{$homepart}{type}." $homepart $mnt/home") if (defined($homepart));
     system("mount -t ".$devs->{$varpart}{type}." $varpart $mnt/var") if (defined($varpart));
     system("mount -t ".$devs->{$tmppart}{type}." $tmppart $mnt/tmp") if (defined($tmppart));

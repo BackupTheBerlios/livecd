@@ -347,11 +347,10 @@ sub showInstall
 
     threads->new(\&timeThread, $this, $page, time, $this->pbCopy, $this->tlCopy) unless ($destroy);
     system("mkdir -p $mnt");
+    system("mount -t ".$devs->{$rootpart}{type}." $rootpart $mnt");
     system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
     system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
     system("mkdir -p $mnt/var ; chmod 755 $mnt/var");
-
-    system("mount -t ".$devs->{$rootpart}{type}." $rootpart $mnt");
     system("mount -t ".$devs->{$homepart}{type}." $homepart $mnt/home") if (defined($homepart));
     system("mount -t ".$devs->{$varpart}{type}." $varpart $mnt/var") if (defined($varpart));
     system("mount -t ".$devs->{$tmppart}{type}." $tmppart $mnt/tmp") if (defined($tmppart));
