@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.92 2004/01/05 05:39:02 jaco Exp $
+# $Id: CHANGELOG,v 1.93 2004/01/05 05:45:40 jaco Exp $
 
 * Mon, Jan 05, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -16,6 +16,7 @@
   + Jaco Greeff <jaco@linuxminicd.org>:
     [FAQ]:
       - Point to the gif2lss program in the boot splash section
+      - Show how to override Makefile parameters
     [README]:
       - Updated to point to the new LiveCD home of mklivecd,
         http://developer.berlios.de/projects/livecd/ with the
