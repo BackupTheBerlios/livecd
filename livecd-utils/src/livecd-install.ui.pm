@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.7 2004/01/12 07:03:57 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.8 2004/01/12 17:58:41 jaco Exp $
 #
 
 use threads;
@@ -44,7 +44,7 @@ my $debug   : shared = undef;
 
 my $destroy : shared = 0;
 my $isBusy  : shared = 0;
-my $reboot  : shared = undef;
+my $reboot  : shared = 0;
 
 my $prefix : shared = "/tmp";
 my $mnt    : shared = "/tmp/livecd.install.$$";
@@ -142,7 +142,7 @@ sub pageSelected # SLOT: ( const QString & )
 		this->setNextEnabled($page, 0);
 		this->setFinishEnabled($page, 1);
 		doEvents();
-		$reboot = 1;
+		$reboot = 0;
 	}
 }
 
@@ -164,6 +164,7 @@ sub destroy
 	# notify threads that we are to die and keep
 	# looping until we don't have a thread anymore
 	this->killTimers();
+	
 	$destroy = 1;
 	sleep(1) while ($isBusy);
 
@@ -176,7 +177,7 @@ sub destroy
 	system("rm -rf $log");
 
 	print "Done.\n";
-	if (defined($reboot)) {
+	if ($reboot) {
 		print "Rebooting...\n";
 		exec("/sbin/reboot");
 	}
@@ -400,19 +401,19 @@ sub showInstall
 	}
 	#threads->new(\&timeThread, this, $page, time, this->pbOverall, this->tlOverall) unless ($destroy);
 
-	my @dirs = qx(find $initrd/ -type d | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root | grep -v ^/etc);
+	my @dirs = qx(find $initrd/ -type d | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root | grep -v ^/etc) unless ($destroy);
 	print "scalar(dirs)=".scalar(@dirs)."\n";
 	my $copysteps = scalar(@dirs);
 
-	my @etcdirs = qx(find /etc -type d);
+	my @etcdirs = qx(find /etc -type d) unless ($destroy);
 	print "scalar(etcdirs)=".scalar(@etcdirs)."\n";
 	$copysteps = $copysteps + scalar(@etcdirs);
 
-	my @homedirs = qx(find /home -type d);
+	my @homedirs = qx(find /home -type d) unless ($destroy);
 	print "scalar(homedirs)=".scalar(@homedirs)."\n";
 	$copysteps = $copysteps + scalar(@homedirs);
 
-	my @rootdirs = qx(find /root -type d);
+	my @rootdirs = qx(find /root -type d) unless ($destroy);
 	print "scalar(rootdirs)=".scalar(@rootdirs)."\n";
 	$copysteps = $copysteps + scalar(@rootdirs);
 
@@ -427,41 +428,45 @@ sub showInstall
 		#threads->new(\&timeThread, this, $page, time, this->pbFormat, this->tlFormat) unless ($destroy);
 		$time_f_start = time;
 		$time_f_run = 1;
-		doFormat($devs);
+		doFormat($devs) unless ($destroy);
 		$time_f_run = -1;
 	}
 
 	#threads->new(\&timeThread, this, $page, time, this->pbCopy, this->tlCopy) unless ($destroy);
-	$time_c_start = time;
-	$time_c_run = 1;
-	system("mkdir -p $mnt");
-	system("mount -t ".$devs->{$rootpart}{type}." $rootpart $mnt");
-	system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
-	system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
-	system("mkdir -p $mnt/var ; chmod 755 $mnt/var");
-	system("mount -t ".$devs->{$homepart}{type}." $homepart $mnt/home") if (defined($homepart));
-	system("mount -t ".$devs->{$varpart}{type}." $varpart $mnt/var") if (defined($varpart));
-	system("mount -t ".$devs->{$tmppart}{type}." $tmppart $mnt/tmp") if (defined($tmppart));
+	unless ($destroy) {
+		$time_c_start = time;
+		$time_c_run = 1;
+		system("mkdir -p $mnt");
+		system("mount -t ".$devs->{$rootpart}{type}." $rootpart $mnt");
+		system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
+		system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
+		system("mkdir -p $mnt/var ; chmod 755 $mnt/var");
+		system("mount -t ".$devs->{$homepart}{type}." $homepart $mnt/home") if (defined($homepart));
+		system("mount -t ".$devs->{$varpart}{type}." $varpart $mnt/var") if (defined($varpart));
+		system("mount -t ".$devs->{$tmppart}{type}." $tmppart $mnt/tmp") if (defined($tmppart));
+	
+		system("mkdir -p $mnt/initrd ; chmod 755 $mnt/initrd");
+		system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
+		system("mkdir -p $mnt/dev ; chmod 755 $mnt/dev");
+		system("mkdir -p $mnt/proc ; chmod 755 $mnt/proc");
+		system("mkdir -p $mnt/root/tmp ; chmod -R 755 $mnt/root/tmp");
+		system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
+		system("mkdir -p $mnt/var/lock/subsys ; chmod -R 755 $mnt/var/lock/subsys");
+		system("mkdir -p $mnt/var/run/netreport ; chmod -R 755 $mnt/var/run/netreport ; touch $mnt/var/run/utmp");
+		system("cd $mnt/var ; ln -s ../tmp") unless (-e "$mnt/var/tmp");
+	}
+	
+	doCopy($initrd, $devs, @dirs) unless ($destroy);
+	doCopy("/", $devs, @etcdirs) unless ($destroy);
+	doCopy("/", $devs, @homedirs) unless ($destroy);
+	doCopy("/", $devs, @rootdirs) unless ($destroy);
 
-	system("mkdir -p $mnt/initrd ; chmod 755 $mnt/initrd");
-	system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
-	system("mkdir -p $mnt/dev ; chmod 755 $mnt/dev");
-	system("mkdir -p $mnt/proc ; chmod 755 $mnt/proc");
-	system("mkdir -p $mnt/root/tmp ; chmod -R 755 $mnt/root/tmp");
-	system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
-	system("mkdir -p $mnt/var/lock/subsys ; chmod -R 755 $mnt/var/lock/subsys");
-	system("mkdir -p $mnt/var/run/netreport ; chmod -R 755 $mnt/var/run/netreport ; touch $mnt/var/run/utmp");
-	system("cd $mnt/var ; ln -s ../tmp") unless (-e "$mnt/var/tmp");
-
-	doCopy($initrd, $devs, @dirs);
-	doCopy("/", $devs, @etcdirs);
-	doCopy("/", $devs, @homedirs);
-	doCopy("/", $devs, @rootdirs);
-
-	$infotext = "Creating /etc/fstab" unless ($destroy);
+	$infotext = "Creating /etc/fstab";
+	print "$infotext\n";
 	writeFstab($devs) unless ($destroy);
 
-	$infotext = "Installation completed." unless ($destroy);
+	$infotext = "Installation completed.";
+	print "$infotext\n";
 	$this->setNextEnabled($page, 1) unless ($destroy);
 
 	$isBusy = 0;
@@ -469,8 +474,7 @@ sub showInstall
 	$time_c_run = -1;
 	$time_o_run = -1;
 	
-	sleep(1);
-	this->killTimers();
+	print "showInstall(): Done.\n";
 }
 
 
@@ -739,11 +743,7 @@ sub toggleReboot # SLOT: ( bool )
 {
 	my ($check) = @_;
 
-	if (defined($check)) {
-		$reboot = ($check eq 1) ? 1 : undef;
-	}
-	else {
-		$reboot = undef;
-	}
+	$reboot = $check;
+	print "check: $check, reboot: $reboot\n";
 }
 
