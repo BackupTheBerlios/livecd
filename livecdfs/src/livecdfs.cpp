@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.11 2004/01/23 12:25:53 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.12 2004/01/23 12:27:52 jaco Exp $
  */
 
 #include <dirent.h>
@@ -336,7 +336,7 @@ LiveCDFS::doOpen(const char *file,
 	// the completely unoptimal (slow) approach in opening the file again in 
 	// doRead and doWrite (When an elegant work-around is in place, we can
 	// use the handles infrastructure, currently it only indicates the number
-	// of files we are budy with.)
+	// of files we are busy with.)
 	close(fd);
 	handles->add(string(file), fd, flags, modes);
 	TRACE(handles->size() << " files currently open.");
