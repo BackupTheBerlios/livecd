@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.67 2003/12/07 15:08:48 jaco Exp $
+# $Id: hwdetect.in,v 1.68 2003/12/07 16:05:43 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -277,7 +277,7 @@ sub hwdetect_get_bustype {
 }
 
 sub hwdetect_loadmod {
-	my ($module, $vendor, $desc) = @_;
+	my ($module, $vendor, $desc, $delay) = @_;
 	my $done = 0;
 	print_device($module, $vendor, $desc);
 	unless ($module =~ /unknown/) {
@@ -286,6 +286,7 @@ sub hwdetect_loadmod {
 		}
 		else {
 			my $res = modprobe("", $module);
+			sleep($delay) if (defined($delay) && $delay);
 			$res ? $probe ? print_warning : print_failed() : print_loaded();
 		}
 		$done++;
@@ -350,7 +351,7 @@ sub hwdetect_probepci() {
 			$pciid{$pci->{id}} = 1;
 			my ($probed_vendor, $probed_desc) = split(/\|/, $pci->{description});
 			if ($pci->{media_type} =~ /SERIAL_USB/) {
-				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
+				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc, 5);
 				modules::add_probeall("usb-interface", $pci->{driver}) unless ($probe);
 				print "modules::add_probeall('usb-interface', '".$pci->{driver}."')\n" if ($debug);
 			}
