@@ -19,14 +19,19 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.8 2003/11/22 10:55:30 jaco Exp $
+# $Id: livecd-install,v 1.9 2003/11/22 16:00:09 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
-use lib qw(/initrd/usr/sbin);
+
+use standalone;
+
+use common;
 
 use bootloader;
 use fs;
+
+use MDK::Common::System;
 
 # our distro
 my $distro = qx(cat /etc/redhat-release | awk '{ print \$1 }');
@@ -83,6 +88,12 @@ my %str = (
 	'INSTPART_WARN'    => [ "You are about to install $distro LiveCD to:",
 				"Jy sal nou $distro LiveCD installeer na:" ],
 
+	# detection dlg
+	'DETECT_TIT'       => [ "Disk detection",
+				"Skyf vind" ],
+	'DETECT_STR'       => [ "Please be patient while detecting attached disks",
+				"Wees asseblief geduldig terwyl ons soek vir skywe" ],
+
 	# progress dlg
 	'INSTPROG_TIT'     => [ "Installing",
 				"Installasie" ],
@@ -99,24 +110,24 @@ my $lang      = $LANG_EN;
 # allowed devices
 my %devs = ();
 
-my %fstypes = (83 => 'ext2', 183 => 'reiserfs', 283 => 'xfs', 383 => 'jfs', 483 => 'ext3');
-
 # reads our partitions
 sub read_parts {
-	my @lines = qx(/sbin/fdisk -l | /bin/grep ^/dev | /bin/grep -v Extended);
-	foreach my $line (@lines) {
+	open($file, "|$dlg --progress --width 450 --title \"".$str{'DETECT_TIT'}[$lang]."\" --text \"".$str{'DETECT_STR'}[$lang]." $dev\" --pulsate --auto-close");
+	qx(/initrd/usr/sbin/hwdetect --prefix /tmp/livecd.inst.$$ --fdisk >/dev/null);
+	foreach my $line (cat_("/tmp/livecd.inst.$$/etc/livecd/hwdetect/mounts.cfg")) {
 		chomp($line);
-		my $boot = ($line =~ /\s\*\s/) ? 1 : 0;
-		$line =~ s/\s\*\s/ /;
-		my ($dev, $start, $end, $blocks, $id, $type) = split(/\s+/, $line, 6);
-		$blocks =~ s/\+//;
-		if ($id eq 83 || $id eq 183 || $id eq 283 || $id eq 383 || $id eq 483) {
-			$devs{$dev}{'boot'} = $boot;
-			$devs{$dev}{'size'} = int($blocks/1024);
-			$devs{$dev}{'type'} = $type;
-			$devs{$dev}{'id'} = $id;
-		}
+		my ($dev, $info) = split(/=\|/, $line, 2);
+		my $devlnk = "/dev/$dev";
+		%{$devs{$devlnk}} = map {
+			chomp;
+			my ($name, $value) = split(/=/, $_, 2);
+			print "$dev: $name = [ $value ]\n";
+			$name => $value || 1;
+		} split(/\|/, $info);
 	}
+	qx(rm -rf /tmp/livecd.inst.$$);
+	print $file "100\n";
+	close($file);
 }
 
 # copy a single dit, decending on it's subdirs
@@ -191,7 +202,7 @@ sub make_fstab {
 	fs::add2all_hds($hdds, @fstab);
 	fs::write_fstab($hdds, $mnt);
 	open FSTAB, '>>', "$mnt/etc/fstab";
-	print FSTAB "$dev / ".$fstypes{$devs{$dev}{'id'}}." defaults 0 0\n";
+	print FSTAB "$dev / ".$devs{$dev}{type}." defaults 0 0\n";
 	close FSTAB;
 }
 
@@ -205,14 +216,17 @@ sub do_install {
 	my $quit = 0;
 	while (!$quit) {
 		my $list = "";
-		$list .= " \"\" $_ ".$devs{$_}{'size'}."MB \"".$devs{$_}{'type'}." (". ($fstypes{$devs{$_}{'id'}}).")\"" foreach (sort keys %devs);
+		foreach (sort keys %devs) {
+			$list .= " \"\" \"$_\" ".int((512*$devs{$_}{size})/(1024*1024))."MB \"".$devs{$_}{type}."\"" if ($devs{$_}{type} =~ /ext2/ || $devs{$_}{type} =~ /ext3/ || $devs{$_}{type} =~ /reiserfs/ || $devs{$_}{type} =~ /xfs/ || $devs{$_}{type} =~ /jfs/);
+		}
 		my $dev = qx($dlg --list --radiolist --width 500 --height 300 --title "$str{'INSTPART_TIT'}[$lang]" --column "" --column "$str{'INSTPART_PART'}[$lang]" --column "$str{'INSTPART_SIZE'}[$lang]" --column "$str{'INSTPART_TYPE'}[$lang]" $list || echo cancel);
 		chomp($dev);
+		print "Selected -> $dev\n";
 		unless ($dev =~ /cancel/ || $dev eq "") {
-			my $ret = qx($dlg --warning --title "$str{'WARN_ERROR_TIT'}[$lang]" --text "$str{'INSTPART_WARN'}[$lang]\n$dev ($fstypes{$devs{$dev}{'id'}})" || echo cancel);
+			my $ret = qx($dlg --warning --title "$str{'WARN_ERROR_TIT'}[$lang]" --text "$str{'INSTPART_WARN'}[$lang]\n$dev ($devs{$dev}{type})" || echo cancel);
 			unless ($ret =~ /cancel/) {
 				my $mnt = "/tmp/livecd.inst.$$";
-				my $type = $fstypes{$devs{$dev}{'id'}};
+				my $type = $devs{$dev}{type};
 				qx(mkdir -p $mnt ; umount $dev ; mount -t $type $dev $mnt);
 				copy_to($dev, $mnt);
 				make_fstab($dev, $mnt);
