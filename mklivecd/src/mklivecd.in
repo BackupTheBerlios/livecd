@@ -20,7 +20,7 @@
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.60 2003/11/18 23:53:50 bgmilne Exp $
+# $Id: mklivecd.in,v 1.61 2003/11/23 07:00:27 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -63,6 +63,7 @@ isobootmsg=""
 isoimage=""
 bootopt=""
 isobootkeymsg=""
+timeout=900
 resolution="@DEF_RESOLUTION@"
 vgamode="@DEF_VGAMODE@"
 bootsplash=1
@@ -133,6 +134,8 @@ Boot options:
                                display image
    --mdkboot                   Use the Mandrake boot image extension to display
                                the boot message (default: off)
+   --timeout                   Specify the default ISO Linux prompt timeout in
+                               seconds. (default: $timeout)
    --keyboard=<mapping>        Specify a different keyboard layout as default
                                for the LiveCD (default: @DEF_KEYBOARD@)
    --resolution=<res>          Specify the resolution for the framebuffer output
@@ -441,7 +444,7 @@ create_isolinux() {
 	# various command-lines
 	do_cmd "echo 'default livecd' >$ISOLINUXDIR/isolinux.cfg"
 	do_cmd "echo 'prompt  1' >>$ISOLINUXDIR/isolinux.cfg"
-	do_cmd "echo 'timeout 950' >>$ISOLINUXDIR/isolinux.cfg"
+	do_cmd "echo 'timeout $timeout' >>$ISOLINUXDIR/isolinux.cfg"
 	[ -f $ISOLINUXDIR/livecd.msg ] && do_cmd "echo 'display livecd.msg' >>$ISOLINUXDIR/isolinux.cfg"
 	keymsg=""
 	if [ -n "$isobootkeymsg" ]; then
@@ -654,6 +657,15 @@ while [ $# -gt 0 ]; do
 			else
 				bootsplash=
 				theme=
+			fi
+			;;
+
+		--timeout*)
+			if echo $1 | grep '=' >/dev/null ; then
+				timeout="${1#--timeout=}"
+			else
+				timeout=$2
+				shift
 			fi
 			;;
 
