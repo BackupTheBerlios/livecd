@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.25 2004/01/31 16:18:54 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.26 2004/02/01 07:16:13 jaco Exp $
  */
 
 #include <dirent.h>
@@ -228,7 +228,9 @@ LiveCDFS::doReaddir(const char *name,
 	struct dirent *ent;
 	vector<string> entries;
 	
+	string rootpath = path->mkroot(name);
 	string tmppath = path->mktmp(name);
+	
 	if ((tdir = opendir(tmppath.c_str()))) {
 		while ((ent = readdir(tdir))) {
 			string subpath = path->join(name, ent->d_name);
@@ -249,7 +251,6 @@ LiveCDFS::doReaddir(const char *name,
 		path->recurseMkdir(name);
 	}
 	
-	string rootpath = path->mkroot(name);
 	if (whiteout->isVisible(name) && 
 	    Path::exists(rootpath, S_IFDIR) && 
 	    (rdir = opendir(rootpath.c_str()))) {
@@ -304,13 +305,13 @@ LiveCDFS::doStat(const char *name,
 	      
 	attr->f_mode  = buf.st_mode;
 	attr->f_nlink = buf.st_nlink;
-	attr->f_uid   = buf.st_uid; 
-	attr->f_gid   = buf.st_gid;
+	attr->f_uid   = 2; // This makes us default to the specified -o uid
+	attr->f_gid   = 2; // This makes us default to the specified -o gid
 	attr->f_size  = buf.st_size;
 	attr->f_atime = buf.st_atime;
 	attr->f_mtime = buf.st_mtime;
 	attr->f_ctime = buf.st_ctime;
-	
+		
 	FUNC_RET("%d", 0, 0);
 }
 
@@ -645,35 +646,32 @@ LiveCDFS::doLinkAll(const char *target,
 	}
 	
 	string dir = path->getDir(newlink);
-	string starget = string(target);
 	string slink = path->mktmp(newlink);
 	if ((dir.length() != 0) && !path->isTmp(dir)) {
 		TRACE("Creating directory dir='%s' (link)", dir.c_str());
 		path->recurseMkdir(dir); 
 	}
 	
-	if (!path->isDir(target)) {
-		dir = path->getDir(target);
-		if ((dir.length() != 0) && !path->isTmp(dir)) {
-			TRACE("Creating directory dir='%s' (target)", dir.c_str());
-			path->recurseMkdir(dir); 
+	if (*target != '/') {
+		if (!path->isDir(target)) {
+			dir = path->getDir(target);
+			if ((dir.length() != 0) && !path->isTmp(dir)) {
+				TRACE("Creating directory dir='%s' (target)", dir.c_str());
+				path->recurseMkdir(dir); 
+			}
+		}
+		
+		if (!path->exists(path->mktmp(target), 0)) {
+			if (path->exists(path->mkroot(target), 0)) {
+				path->copyTmp(target);
+			}
 		}
 	}
 	
-	if (!path->exists(path->mktmp(target), 0)) {
-		if (path->exists(path->mkroot(target), 0)) {
-			path->copyTmp(target);
-			starget = path->mktmp(starget);
-		}
-	}
-	else if (starget.find("/") == 0) {
-		starget = path->mktmp(starget);
-	}
-	
-	TRACE("Creating link, target='%s', link='%s'", starget.c_str(), slink.c_str());
-	int ret = issymlink ? symlink(starget.c_str(), slink.c_str()) : link(starget.c_str(), slink.c_str());
+	TRACE("Creating link, target='%s', link='%s'", target, slink.c_str());
+	int ret = issymlink ? symlink(target, slink.c_str()) : link(target, slink.c_str());
 	if (ret < 0) {
-		ERROR("strerror(errno)='%s' on link(target='%s', link='%s')", strerror(errno), starget.c_str(), slink.c_str());
+		ERROR("strerror(errno)='%s' on link(target='%s', link='%s')", strerror(errno), target, slink.c_str());
 	}
 	FUNC_RET("%d", ret, ret);
 }
