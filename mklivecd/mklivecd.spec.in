@@ -1,4 +1,4 @@
-# $Id: mklivecd.spec.in,v 1.14 2003/10/06 15:06:24 jaco Exp $
+# $Id: mklivecd.spec.in,v 1.15 2003/11/01 10:05:10 bgmilne Exp $
 
 %define name		mklivecd
 %define version		@MKLIVECDVER@
@@ -22,7 +22,7 @@ Buildarch:		noarch
 %{summary}
 
 %prep
-%setup -q %{name}-@ARCHIVEVER@
+%setup -q -n %{name}-@ARCHIVEVER@
 
 %build
 %make

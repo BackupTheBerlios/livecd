@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.15 2003/10/10 04:52:17 jaco Exp $
+# $Id: Rules.mk,v 1.16 2003/11/01 10:05:10 bgmilne Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -73,6 +73,7 @@ DOCDIST=\
 	TODO \
 	Makefile \
 	Rules.mk \
+	Modules.mk \
 	$(DISTDIR)/$(PKGNAME).spec
 
 # these are files in the src dir
