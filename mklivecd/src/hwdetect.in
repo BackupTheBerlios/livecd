@@ -20,7 +20,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.64 2003/12/03 20:05:24 jaco Exp $
+# $Id: hwdetect.in,v 1.65 2003/12/06 17:31:50 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -556,22 +556,34 @@ sub hwdetect_getxfree {
 	my $rawX = Xconfig::default::configure($def_keyboard, $def_mouse);
 	my $def_monitor = hwdetect_getmonitor($rawX);
 
+	# config card and screen
 	Xconfig::card::to_raw_X($def_card, $rawX);
 	Xconfig::screen::configure($rawX, $def_card);
 
-	# do some resolution magic
-	Xconfig::resolution_and_depth::configure(undef, $rawX, $def_card, $def_monitor, 1);
+	# detect a resolution
+	print "Selecting resolution: ";
+	$rawX->{default_depth} = defined($cmdline{'xbpp'}) ? $cmdline{'xbpp'} : 16;
+	if (defined($cmdline{'xres'})) {
+		my $resolution_wanted;
+		$resolution_wanted->{Depth} = $rawX->{default_depth};
+		$resolution_wanted->{X} = $generic_res{$cmdline{'xres'}}[2] || 1024;
+		$resolution_wanted->{Y} = $generic_res{$cmdline{'xres'}}[3] || 768;
+		$rawX->{resolution_wanted} = $resolution_wanted;
+	}
+	eval { Xconfig::resolution_and_depth::configure_auto_install($rawX, $def_card, $def_monitor, $rawX); };
+
+	# try to make sure we get at least a valid 1024x768 before setting it
 	my $resolution = $rawX->get_resolution;
-	$resolution->{Depth} =  defined($cmdline{'xbpp'}) ? $cmdline{'xbpp'} : 16;
-	if (($resolution->{X} < 1024) && !defined($cmdline{'xres'})) {
+	if (!defined($resolution) ||
+	    !defined($resolution->{X}) || !defined($resolution->{Y}) || !defined($resolution->{Depth}) ||
+	    (($resolution->{X} < 1024) && !defined($cmdline{'xres'}) && !defined($cmdline{'xbpp'}))) {
 		$resolution->{X} = 1024;
 		$resolution->{Y} = 768;
+		$resolution->{Depth} = 16;
 	}
-	elsif (defined($cmdline{'xres'})) {
-		$resolution->{X} = $generic_res{$cmdline{'xres'}}[2] || 1024;
-		$resolution->{Y} = $generic_res{$cmdline{'xres'}}[3] || 768;
-	}
-	$rawX->set_resolution($resolution);
+	eval { $rawX->set_resolution($resolution); };
+	eval { $resolution = $rawX->get_resolution and print_success(); } or print_failed();
+	hwdetect_loadmod('unknown', $resolution->{X}."x".$resolution->{Y}, $resolution->{Depth}." bpp", 0);
 
 	unless ($probe) {
 		print "Writing X configuration: ";

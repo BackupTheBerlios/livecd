@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.79 2003/12/05 19:53:21 jaco Exp $
+# $Id: CHANGELOG,v 1.80 2003/12/06 17:31:50 jaco Exp $
 
 * Fri, Dec 05, 2003, 0.5.7-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -51,6 +51,8 @@
       - Fix keyboard setup for console
       - Mount all devices rw,auto unless ntfs (auto,ro)
       - Default to 16 bpp X depth
+      - Fallback to 1024x768, 16bpp if either xres|xbpp parameters
+        result in invalid res for card or detected size <= 800x600
     [linuxrc]:
       - Allow for finding the cloop image on SCSI devices as well
         by probing with all the SCSI modules
