@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.8 2004/01/24 12:03:13 jaco Exp $
+# $Id: Makefile,v 1.9 2004/01/28 06:40:34 jaco Exp $
 
 include Rules.mk
 
@@ -8,6 +8,7 @@ $(LIBRARY): $(OBJECTS)
 	$(CC) -shared -Wl,-soname \
 	      -Wl,$(LIBRARY).$(MAJORVER).$(MINORVER) \
 	      -o $(LIBRARY).$(MAJORVER).$(MINORVER).$(PATCHVER) $(OBJECTS)
+	$(STRIP) --strip-debug --strip-unneeded $(LIBRARY).$(MAJORVER).$(MINORVER).$(PATCHVER)
 	$(LN) -sf $(LIBRARY).$(MAJORVER).$(MINORVER).$(PATCHVER) $(LIBRARY).$(MAJORVER).$(MINORVER)
 	$(LN) -sf $(LIBRARY).$(MAJORVER).$(MINORVER).$(PATCHVER) $(LIBRARY)
 

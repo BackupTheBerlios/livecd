@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.18 2004/01/28 06:37:20 jaco Exp $
+# $Id: Rules.mk,v 1.19 2004/01/28 06:40:34 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -53,6 +53,7 @@ MKDIR=mkdir
 RM=rm
 RPMBUILD=rpmbuild
 SED=sed
+STRIP=strip
 TAR=tar
 XARGS=xargs
 
