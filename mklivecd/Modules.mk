@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.10 2004/01/06 13:29:16 jaco Exp $
+# $Id: Modules.mk,v 1.11 2004/01/11 13:21:59 jaco Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -89,6 +89,10 @@ DEF_SCSI_MODULES_PATH_24=\
 	drivers/scsi/a100u2w \
 	drivers/scsi/3w-xxxx
 
+# segfaults: 
+#   drivers/scsi/megaraid
+#   drivers/scsi/a100u2w
+#   drivers/scsi/sym53c8xx_2/sym53c8xx
 DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/aic7xxx/aic7xxx \
 	drivers/scsi/BusLogic \
@@ -102,7 +106,6 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/eata \
 	drivers/scsi/fdomain \
 	drivers/scsi/gdth \
-	drivers/scsi/megaraid \
 	drivers/scsi/pas16 \
 	drivers/scsi/psi240i \
 	drivers/scsi/qlogicfas \
@@ -112,7 +115,6 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/u14-34f \
 	drivers/scsi/ultrastor \
 	drivers/scsi/wd7000 \
-	drivers/scsi/a100u2w \
 	drivers/scsi/3w-xxxx
 
 # depending on kernel version, these have different names
@@ -120,8 +122,9 @@ DEF_SCSI_MODULES_OPT_PATH_24=\
 	drivers/scsi/sym53c8xx_2/sym53c8xx \
 	drivers/scsi/sym53c8xx_2/sym53c8xx_2
 
+# this one is just here to ensure we work (already included)
 DEF_SCSI_MODULES_OPT_PATH_26=\
-	drivers/scsi/sym53c8xx_2/sym53c8xx
+	drivers/scsi/3w-xxxx
 
 # these are dependancies for the above modules
 DEF_SCSI_MODULES_DEP_PATH_24=\
