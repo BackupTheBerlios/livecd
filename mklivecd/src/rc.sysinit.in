@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.8 2004/01/05 13:23:10 jaco Exp $
+# $Id: rc.sysinit.in,v 1.9 2004/01/08 07:25:47 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -315,7 +315,10 @@ setuproot() {
 setupinit() {
 	# perform hwdetect if not disabled
 	if `/bin/grep -iqv hwdetect=no /proc/cmdline`; then
+		OLDPATH=$PATH
+		export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 		/initrd/usr/sbin/hwdetect
+		export PATH=$OLDPATH
 	fi
 
 	# Don't run depmod (must be run before imaging system)
