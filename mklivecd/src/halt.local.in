@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: halt.local.in,v 1.11 2003/12/13 18:15:14 jaco Exp $
+# $Id: halt.local.in,v 1.12 2003/12/19 12:53:30 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/usr/bin:/initrd/sbin:/initrd/usr/sbin:/bin:/usr/bin:/sbin:/usr/sbin
@@ -42,6 +42,9 @@ HALTCMD="$1"
 # should we eject the CD?
 EJECT=1
 grep -q noeject /proc/cmdline && EJECT=
+
+# do we have a cloop module?
+CLOOP=`lsmod | grep -iq cloop && echo 1`
 
 # We probably want to be able to localise this:
 MSG="Remove the CD, and press [Enter] to power the computer off"
@@ -106,9 +109,11 @@ docmd   "Unmounting $MNTLIVECD" \
 	"umount $MNTLIVECD 2>/dev/null"
 
 # Unload the cloop module before trying to umount/eject CD
-docmd   "Removing cloop module" \
-	"losetup -d /dev/cloop/0" \
-	"rmmod cloop >/dev/null 2>/dev/null"
+if [ -n "$CLOOP" ]; then
+	docmd   "Removing cloop module" \
+		"losetup -d /dev/cloop/0" \
+		"rmmod cloop >/dev/null 2>/dev/null"
+fi
 
 # Turn on autoeject of CD-Rom
 # (Stolen from the knoppix-reboot script)

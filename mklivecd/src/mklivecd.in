@@ -22,7 +22,7 @@
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.69 2003/12/14 06:40:52 jaco Exp $
+# $Id: mklivecd.in,v 1.70 2003/12/19 12:53:30 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -49,12 +49,14 @@ modules="@DEF_MODULES_PATH@ @DEF_MODULES_DEP_PATH@ @DEF_SCSI_MODULES_PATH@ @DEF_
 excludedirs="^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/lock/subsys$ ^/var/run$ ^/var/tmp$"
 excludefiles="^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*[.]rpmnew$ .*[.]rpmsave$ /[.]bash_history$ /[.]fonts[.]cache-[0-9]$ /[.]xauth.* /[.]xsession-errors$"
 cloopimg=""
-LIVECDISOCLP="livecd.iso.clp"
+LIVECDISOCLP="livecd.clp"
 
 # compression options
 loopcmp="create_compressed_fs"
 loopmod="drivers/block/cloop.o"
 blocksize=64
+blockgiven=
+squashfs=
 
 # translucency options
 transmod="fs/translucency.o"
@@ -124,12 +126,14 @@ Image generation:
                                (default: off)
 
 Compression options:
-   --blocksize=<size>          Compression blocksize in K (default: 64)
-   --looptype=<cloop|bzloop>   Create a cloop or bzloop image. The bzloop option
-                               is utilising the experimental bzloop kernel
-                               module. bzloop should not be considdered as
+   --blocksize=<size>          Compression blocksize in K (default: 64 for cloop
+                               and bzloop, 32 for squashfs)
+   --looptype=<clp|bzlp|sqfs>  Create a cloop (clp option), bzloop (bzlp option)
+                               or squashfs (sqfs option) image. The bzloop option
+                               is utilising the experimental bzloop kernel module.
+                               As such, bzloop should not be considdered as
                                stable and might have unintended side-effects on
-                               the created LiveCD. (default: cloop)
+                               the created LiveCD. (default: clp)
 
 Boot options:
    --bootopt=<opt>[,<opt>]     List of comma-seperated extra options to add to
@@ -412,7 +416,7 @@ $e"
 
 		# create the cloop image
 		if [ -z `which $loopcmp` ]; then
-			echo "ERROR: '$loopcmp' does not exist on your machine. You need to install an updated version of the cloop-utils package." >&2
+			echo "ERROR: '$loopcmp' does not exist on your machine. You need to install an updated version of the cloop-utils or the squashfs-tools package, depending on your options." >&2
 			exit 1
 		fi
 		if [ -z `which mkisofs` ]; then
@@ -420,18 +424,27 @@ $e"
 			exit 1
 		fi
 		REALSIZE=$[$blocksize*1024]
-		MKISOCMD="nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST -sort $SORTLIST -hide-rr-moved -cache-inodes -no-bak -pad $verbose $verbose $rootdir"
-		[ -z "$verbose" ] && MKISOCMD="$MKISOCMD 2>/dev/null"
-		if [ -n "$lowmem" ]; then
-			do_cmd "$MKISOCMD >$TMPISO"
-			CMD="$loopcmp $TMPISO $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
-			[ -z "$verbose" ] && CMD="$CMD 2>/dev/null"
-			do_cmd "$CMD"
-			do_cmd "rm -rf $TMPISO"
+		if [ -z "$squashfs" ]; then
+			MKISOCMD="nice -n 19 mkisofs -R -exclude-list $EXCLUDELIST -sort $SORTLIST -hide-rr-moved -cache-inodes -no-bak -pad $verbose $verbose $rootdir"
+			[ -z "$verbose" ] && MKISOCMD="$MKISOCMD 2>/dev/null"
+			if [ -n "$lowmem" ]; then
+				do_cmd "$MKISOCMD >$TMPISO"
+				CMD="$loopcmp $TMPISO $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
+				[ -z "$verbose" ] && CMD="$CMD 2>/dev/null"
+				do_cmd "$CMD"
+				do_cmd "rm -rf $TMPISO"
+			else
+				CMD="$MKISOCMD | $loopcmp - $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
+				[ -z "$verbose" ] && CMD="$CMD 2>/dev/null"
+				do_cmd "$CMD"
+			fi
 		else
-			CMD="$MKISOCMD | $loopcmp - $REALSIZE >$LIVECDCLOOPDIR/$LIVECDISOCLP"
-			[ -z "$verbose" ] && CMD="$CMD 2>/dev/null"
+			EXCLUDES=`cat $EXCLUDELIST | xargs`
+			MKSQFSCMD="nice -n 19 $loopcmp $rootdir $LIVECDCLOOPDIR/$LIVECDISOCLP"
+			[ -n "$verbose" ] && MKSQFSCMD="$MKSQFSCMD -info"
+			CMD="$MKSQFSCMD -e $EXCLUDES"
 			do_cmd "$CMD"
+			do_cmd "chmod 644 $LIVECDCLOOPDIR/$LIVECDISOCLP"
 		fi
 		[ -n "$cloopimg" ] && do_cmd "ln $LIVECDCLOOPDIR/$LIVECDISOCLP $cloopimg"
 	fi
@@ -626,6 +639,7 @@ while [ $# -gt 0 ]; do
 				blocksize=$2
 				shift
 			fi
+			blockgiven=1
 			;;
 
 		--kernel*)
@@ -657,24 +671,32 @@ while [ $# -gt 0 ]; do
 
 		--looptype*)
 			if echo $1 | grep '=' >/dev/null ; then
-				loopmod="${1#--looptype=}"
+				looptype="${1#--looptype=}"
 			else
-				loopmod=$2
+				looptype=$2
 				shift
 			fi
-			if [ "$loopmod" == "cloop" ]; then
-				LIVECDISOCLP="livecd.iso.clp"
+			if [ "$looptype" == "clp" ]; then
+				LIVECDISOCLP="livecd.clp"
 				loopcmp="create_compressed_fs"
 				loopmod="drivers/block/cloop.o"
+				squashfs=
+				[ -z "$blockgiven" ] && blocksize=64
+			elif [ "$looptype" == "bzlp" ]; then
+				LIVECDISOCLP="livecd.bzlp"
+				loopcmp="create_bzfs"
+				loopmod="drivers/block/bzloop.o"
+				squashfs=
+				[ -z "$blockgiven" ] && blocksize=64
+			elif [ "$looptype" == "sqfs" ]; then
+				LIVECDISOCLP="livecd.sqfs"
+				loopcmp="mksquashfs"
+				loopmod="fs/squashfs/squashfs.o"
+				squashfs=1
+				[ -z "$blockgiven" ] && blocksize=32
 			else
-				if [ "$loopmod" == "bzloop" ]; then
-					LIVECDISOCLP="livecd.iso.bzlp"
-					loopcmp="create_bzfs"
-					loopmod="drivers/block/bzloop.o"
-				else
-					echo "ERROR: You need to specify either bzloop or cloop with the '--looptype' option" >&2
-					exit 1
-				fi
+				echo "ERROR: You need to specify either clp, bzlp or sqfs with the '--looptype' option" >&2
+				exit 1
 			fi
 			;;
 

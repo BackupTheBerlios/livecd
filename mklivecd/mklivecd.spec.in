@@ -1,4 +1,4 @@
-# $Id: mklivecd.spec.in,v 1.25 2003/12/18 07:08:15 jaco Exp $
+# $Id: mklivecd.spec.in,v 1.26 2003/12/19 12:53:30 jaco Exp $
 
 %define name	mklivecd
 %define version	@MKLIVECDVER@
@@ -14,7 +14,7 @@ License:	GPL
 Group:		System/Configuration/Boot and Init
 URL:		http://livecd.berlios.de/
 Source0:	%{name}-@ARCHIVEVER@.tar.bz2
-Requires:	busybox, cloop-utils, mkisofs
+Requires:	busybox, cloop-utils, mkisofs, squashfs-tools
 BuildRoot:	%{_tmppath}/%{name}-root
 Buildarch:	noarch
 
@@ -58,6 +58,7 @@ rm -rf %buildroot
 * @SPECDATE@ Jaco Greeff <jaco@mandrake.org> @MKLIVECDVER@-@MKLIVECDREL@mdk
 - version @ARCHIVEVER@
 - update description
+- added squashfs-tools require
 
 * Wed Dec 03 2003 Per Øyvind Karlsen <peroyvind@linux-mandrake.com> 0.5.6-2mdk
 - spec fixes

@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.3 2003/12/13 18:13:05 jaco Exp $
+# $Id: Modules.mk,v 1.4 2003/12/19 12:53:30 jaco Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -26,7 +26,9 @@ DEF_MODULES_OPT_PATH=\
 DEF_MODULES_DEP_PATH= \
 	fs/isofs/isofs.o \
 	drivers/cdrom/cdrom.o \
-	drivers/ide/ide-cd.o
+	drivers/ide/ide-cd.o \
+	drivers/misc/aes.o \
+	drivers/block/loop.o
 
 # these modules are for all the SCSI types out there
 # not available: ncr53c8xx
