@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.18 2004/01/31 11:29:12 jaco Exp $
+# $Id: rc.sysinit.in,v 1.19 2004/02/01 07:18:00 jaco Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -187,10 +187,15 @@ setuproot_overlay() {
 				case \$d in \
 					dev|proc|sys|tmp|udev) \
 						;; \
+					home|var) \
+						rm -rf /\$d ; \
+						mkdir -p /\$d $FSROOT/\$d ; \
+						/initrd/usr/sbin/lufsd.livecdfs /\$d -o uid=0,gid=0,fmask=666,dmask=777,rw_tmp=$FSROOT/\$d,ro_root=$MNTLIVECD/\$d >$FSLOG\$d ; \
+						;; \
 					*) \
 						rm -rf /\$d ; \
 						mkdir -p /\$d $FSROOT/\$d ; \
-						/initrd/usr/sbin/lufsd.livecdfs /\$d -o own_fs,uid=0,gid=0,fmask=666,dmask=777,rw_tmp=$FSROOT/\$d,ro_root=$MNTLIVECD/\$d >$FSLOG\$d ; \
+						/initrd/usr/sbin/lufsd.livecdfs /\$d -o uid=0,gid=0,rw_tmp=$FSROOT/\$d,ro_root=$MNTLIVECD/\$d >$FSLOG\$d ; \
 						;; \
 				esac ; \
 			fi ; \
@@ -200,7 +205,7 @@ setuproot_overlay() {
 		"mkdir -p /var/lock/subsys" \
 		"mkdir -p /var/log && touch /var/log/wtmp" \
 		"mkdir -p /var/run && touch /var/run/utmp" \
-		"(cd /var && rm -rf tmp && ln -sf ../tmp)"
+		"rm -rf /var/tmp && ln -sf /tmp /var/tmp"
 	set_progress
 	docmd   "Creating /etc structure" \
 		"mkdir -p /etc/livecd/hwdetect" \
@@ -329,7 +334,14 @@ setuproot() {
 	set_progress
 	
 	# create the correct root type
+	OVERLAY=
 	if [ -e /initrd/usr/sbin/lufsd.livecdfs ]; then
+		if `/bin/grep -iqv nocow /proc/cmdline`; then
+			OVERLAY=1
+		fi
+	fi
+	
+	if [ -n "$OVERLAY" ]; then
 		setuproot_overlay
 	else
 		setuproot_normal
