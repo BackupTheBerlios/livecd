@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.13 2004/01/22 14:40:02 jaco Exp $
+# $Id: Modules.mk,v 1.14 2004/01/22 14:50:01 jaco Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -19,9 +19,10 @@ DEF_MODULES_PATH_24=\
 	fs/nls/nls_iso8859-9 \
 	fs/nls/nls_utf8
 
+# modules not loaded/needed:
+#	fs/ext3/ext3
+#	fs/jbd/jbd
 DEF_MODULES_PATH_26=\
-	fs/ext3/ext3 \
-	fs/jbd/jbd \
 	fs/nls/nls_iso8859-13 \
 	fs/nls/nls_iso8859-14 \
 	fs/nls/nls_iso8859-15 \
@@ -102,12 +103,12 @@ DEF_SCSI_MODULES_PATH_24=\
 # insmod loads wrongly (no chip):
 #	drivers/scsi/53c700
 #	drivers/scsi/aacraid/aacraid
+#	drivers/scsi/aha152x
+#	drivers/scsi/aha1740
 DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/3w-xxxx \
 	drivers/scsi/advansys \
-	drivers/scsi/aha152x \
 	drivers/scsi/aha1542 \
-	drivers/scsi/aha1740 \
 	drivers/scsi/aic7xxx/aic7xxx \
 	drivers/scsi/BusLogic \
 	drivers/scsi/cpqfc \
