@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.1 2003/10/10 04:51:39 jaco Exp $
+# $Id: Modules.mk,v 1.2 2003/11/16 06:42:20 jaco Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -30,9 +30,9 @@ DEF_MODULES_DEP_PATH= \
 
 # these modules are for all the SCSI types out there
 # not available: ncr53c8xx
+# removed: drivers/scsi/aic7xxx_old.o (two modules seems to hang Adaptec controllers)
 DEF_SCSI_MODULES_PATH= \
 	drivers/scsi/aic7xxx/aic7xxx.o \
-	drivers/scsi/aic7xxx_old.o \
 	drivers/scsi/BusLogic.o \
 	drivers/scsi/NCR53c406a.o \
 	drivers/scsi/initio.o \
