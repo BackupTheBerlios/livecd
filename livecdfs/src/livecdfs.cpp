@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.12 2004/01/23 12:27:52 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.13 2004/01/23 13:00:35 jaco Exp $
  */
 
 #include <dirent.h>
@@ -293,16 +293,25 @@ LiveCDFS::doOpen(const char *file,
 	string tmppath = path->mktmp(file);
 	string openpath = string("");
 	if (flags & O_CREAT) {
-		// if we are creating a file, do so on the temp space
-		TRACE("Creating empty file='" << file << "' on temp space");
+		string dir = path->getDir(file);
+		if ((dir.length() != 0) && !path->isTmp(dir)) {
+			TRACE("Creating directory dir='" << dir << "'");
+			doMkdir(dir.c_str(), 0666); 
+		}
+	
 		openpath = tmppath;
 		created = true;
+		TRACE("Creating empty file='" << file << "' on temp space");
 	}
 	else if ((flags & O_RDWR) || (flags & O_WRONLY)) {
 		string rootpath = path->mkroot(file);
 		if (path->exists(rootpath.c_str(), S_IFREG) || path->exists(rootpath.c_str(), S_IFLNK)) {
 			if (!path->exists(tmppath.c_str(), 0)) {
-				// doesn't already exist, copy-on-write
+				string dir = path->getDir(file);
+				if ((dir.length() != 0) && !path->isTmp(dir)) {
+					TRACE("Creating directory dir='" << dir << "'");
+					doMkdir(dir.c_str(), 0666); 
+				}
 				path->copyTmp(file);
 			}
 			openpath = tmppath;
@@ -484,6 +493,12 @@ LiveCDFS::doCreate(const char *file,
 {
 	FUNC("file='" << file << "', " <<
 	     "mode=" << mode);
+	
+	string dir = path->getDir(file);
+	if ((dir.length() != 0) && !path->isTmp(dir)) {
+		TRACE("Creating directory dir='" << dir << "'");
+		doMkdir(dir.c_str(), 0666); 
+	}
 	
 	int fd = open(path->mktmp(file).c_str(), O_WRONLY | O_CREAT | O_TRUNC, mode);
 	if (fd > 0) {
