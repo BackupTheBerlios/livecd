@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.124 2004/02/27 05:35:35 jaco Exp $
+# $Id: hwdetect.in,v 1.125 2004/04/19 15:47:44 tom_kelly33 Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -618,9 +618,9 @@ sub hwdetect_getvideo {
 
 # res => [ laptop (monitor), generic (monitor), x, y ]
 my %generic_res = (
-	'640x480'   => ['Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 70 Hz',  640,  480 ],
-	'800x600'   => ['Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 70 Hz',  800,  600 ],
-	'1024x768'  => ['Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 70 Hz',  1024, 768 ],
+	'640x480'   => ['Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 60 Hz',  640,  480 ],
+	'800x600'   => ['Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 60 Hz',  800,  600 ],
+	'1024x768'  => ['Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 60 Hz',  1024, 768 ],
 	'1280x1024' => ['Generic|Flat Panel 1280x1024', 'Generic|1280x1024 @ 60 Hz', 1280, 1024],
 	'1400x1050' => ['Generic|Flat Panel 1400x1050', 'Generic|1280x1024 @ 60 Hz', 1400, 1050],
 	'1600x1400' => ['Generic|Flat Panel 1600x1200', 'Generic|1600x1200 @ 70 Hz', 1600, 1400]
@@ -1333,6 +1333,12 @@ sub hwdetect_writedisks {
 		print FSTAB "\n### ".getStr('disk_fstab_info')." $SCRIPT_NAME v$SCRIPT_VER\n";
 		open INFO, '>', "$prefix/etc/livecd/hwdetect/mounts.cfg";
 		print FSTAB "\n# USB\nnone\t/proc/bus/usb\tusbdevfs\tdefaults\t0 0\n" if ($usbfstab);
+		if ($kernel26) {
+		   print FSTAB "\n# SYSFS\nnone\t/sys sysfs\tdefaults\t0 0\n";
+		   print FSTAB "\n# PTS\nnone\t/dev/pts\tdevpts\tmode=0620\t0 0\n";
+		   print FSTAB "\n# PROC\nnone\t/proc proc\tdefaults\t0 0\n";
+		   print FSTAB "\n# TMPFS\nnone\t/tmp tmpfs\tdefaults\t0 0\n";
+                } 
 		foreach my $dev (sort keys %all_devs) {
 			print FSTAB "\n# ".$all_devs{$dev}->{info};
 			if ($all_devs{$dev}->{supermount}) {

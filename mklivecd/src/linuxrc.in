@@ -22,7 +22,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.73 2004/02/10 04:59:53 jaco Exp $
+# $Id: linuxrc.in,v 1.74 2004/04/19 15:47:44 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -127,7 +127,7 @@ printwarn() {
 }
 
 
-### print a fialure msg
+### print a failure msg
 printfail() {
 	$MOVE_TO_COL
 	echo -n "["

@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.23 2004/02/25 06:49:00 jaco Exp $
+# $Id: rc.sysinit.in,v 1.24 2004/04/19 15:47:45 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -81,7 +81,7 @@ printwarn() {
 }
 
 
-### print a fialure msg
+### print a failure msg
 printfail() {
 	$MOVE_TO_COL
 	echo -n "["
@@ -93,7 +93,7 @@ printfail() {
 }
 
 
-### execute a command/commands printing the sucess or failure msg on completion
+### execute a command/commands printing the success or failure msg on completion
 docmd() {
 	echo -n "$1: "
 	shift
@@ -194,8 +194,10 @@ setupdir_etc() {
 	
 	mkdir -p /etc/livecd/hwdetect
 	rm -rf /etc/fstab && touch /etc/fstab
-	echo 'none      /proc    proc   defaults  0 0' >/etc/fstab
+        echo '### rc.sysinit.in' >/etc/fstab
+	echo 'none      /proc    proc   defaults  0 0' >>/etc/fstab
 	echo 'none      /dev     devfs  defaults  0 0' >>/etc/fstab
+	echo 'none      /sys     sysfs  defaults  0 0' >>/etc/fstab
 	echo 'none      /dev/pts devpts mode=0620 0 0' >>/etc/fstab
 	echo '/dev/rd/3 /        tmpfs  defaults  0 0' >>/etc/fstab
 	rm -rf /etc/mtab && ln -s /proc/mounts /etc/mtab
