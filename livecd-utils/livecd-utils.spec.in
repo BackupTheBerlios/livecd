@@ -1,4 +1,4 @@
-# $Id: livecd-utils.spec.in,v 1.2 2003/11/24 05:28:24 jaco Exp $
+# $Id: livecd-utils.spec.in,v 1.3 2003/11/30 16:35:24 jaco Exp $
 
 %define name		livecd-utils
 %define version		@UTILSVER@
@@ -15,7 +15,8 @@ Group:			System/Configuration/Boot and Init
 URL:			http://livecd.berlios.de/
 Source0:		%{name}-@ARCHIVEVER@.tar.bz2
 Source1:		%{name}.icons.tar.bz2
-Requires:		zenity
+Requires:		perl-Qt
+BuildRequires:		perl-Qt
 BuildRoot:		%{_tmppath}/%{name}-root
 Buildarch:		noarch
 
@@ -46,7 +47,7 @@ mkdir -p %buildroot/%_menudir
 cat > %buildroot/%_menudir/%{name}  <<EOF
 ?package(%{name}): command="%_sbindir/livecd-install" needs="X11" \
 icon="%{name}.png" section="Configuration/Hardware" \
-title="Livecd-Install" longtitle="mklivecd Installer"
+title="LiveCD-Install" longtitle="LiveCD Installer"
 EOF
 
 %post

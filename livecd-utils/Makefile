@@ -1,16 +1,17 @@
-# $Id: Makefile,v 1.3 2003/11/24 06:01:53 jaco Exp $
+# $Id: Makefile,v 1.4 2003/11/30 16:35:24 jaco Exp $
 
 include Rules.mk
 
-all: livecd-utils
+all: livecd-install
 
 version:
 	@echo "$(PKGNAME), $(UTILSVER)-$(UTILSREL)"
 
-livecd-utils:
+livecd-install:
 	$(MKDIR) -p $(DISTDIR)
-	$(CAT) $(SRCDIR)/livecd-install \
-		>$(DISTDIR)/livecd-install
+	(cd $(SRCDIR) && $(PUIC) -x -o livecd-install.pl.in livecd-install.ui)
+	echo '#!/usr/bin/perl' >$(DISTDIR)/livecd-install
+	$(CAT) $(SRCDIR)/livecd-install.pl.in >>$(DISTDIR)/livecd-install
 
 install:
 	$(MKDIR) -p $(DESTDIR)$(SBINDIR)
@@ -28,10 +29,13 @@ spec:
 clean:
 	$(RM) -rf $(UTILSDIST)
 	$(RM) -rf $(DISTDIR)
+	$(RM) -rf $(SRCDIR)/*.pl.in
 
 dist: spec
 	$(MKDIR) -p $(UTILSDIST)/$(SRCDIR)
 	$(CP) $(DOCDIST) $(UTILSDIST)
+	$(CP) $(SRCDIST) $(UTILSDIST)/$(SRCDIR)
+	$(CP) $(SRCDIST) $(UTILSDIST)/$(SRCDIR)
 	$(CP) $(SRCDIST) $(UTILSDIST)/$(SRCDIR)
 	$(TAR) -c $(UTILSDIST) | \
 		$(BZIP2) >$(DISTDIR)/$(UTILSDIST).tar.bz2

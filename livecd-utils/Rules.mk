@@ -1,10 +1,10 @@
-# $Id: Rules.mk,v 1.3 2003/11/24 05:55:45 jaco Exp $
+# $Id: Rules.mk,v 1.4 2003/11/30 16:35:24 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
 PKGNAME=livecd-utils
 MAJORVER=0
-MINORVER=1
+MINORVER=2
 PATCHVER=0
 RELVER=1
 CVSVER=yes
@@ -49,6 +49,7 @@ GZIP=$(shell which gzip)
 INSTALL=$(shell which install)
 MD5SUM=$(shell which md5sum)
 MKDIR=$(shell which mkdir)
+PUIC=$(shell which puic)
 LN=$(shell which ln)
 RM=$(shell which rm)
 RPMBUILD=$(shell which rpmbuild)
@@ -61,10 +62,13 @@ DOCDIST=\
 	AUTHORS \
 	CHANGELOG \
 	COPYING \
+	CREDITS \
 	Makefile \
 	Rules.mk \
 	$(DISTDIR)/$(PKGNAME).spec
 
 # these are files in the src dir
 SRCDIST=\
-	$(SRCDIR)/livecd-install
+	$(SRCDIR)/livecd-install.pro \
+	$(SRCDIR)/livecd-install.ui \
+	$(SRCDIR)/livecd-install.ui.pm
