@@ -10,7 +10,7 @@
 #   where /sbin was a link to the cloop image (no longer accessible) so we
 #   either need to have our own halt or pivot_root
 #
-# $Id: halt.local.in,v 1.2 2003/11/19 05:54:14 jaco Exp $
+# $Id: halt.local.in,v 1.3 2003/11/24 13:11:44 jaco Exp $
 #
 
 # Variables
@@ -40,6 +40,9 @@ echo "Unmounting /initrd$MNTLIVECD"
 umount /initrd$MNTLIVECD 2>/dev/null
 echo "Unmounting /initrd$MNTCDROM"
 umount /initrd$MNTCDROM 2>/dev/null
+
+# Unload the cloop module before trying to eject
+rmmod cloop
 
 # Hopefully we are unmounted now, try eject
 echo "Ejecting $DEVICE"
