@@ -1,10 +1,13 @@
-# $Id: livecdfs.spec.in,v 1.1 2004/01/24 12:03:13 jaco Exp $
+# $Id: livecdfs.spec.in,v 1.2 2004/01/24 12:11:08 jaco Exp $
 
 %define name	livecdfs
 %define version	@LIVECDFSVER@
 %define release	@LIVECDFSREL@mdk
 
 %define summary	A LiveCD UnionFS implementation
+
+%define build_debug		0
+%{expand: %{?_with_debug: 	%%global build_debug 1}}
 
 Summary:	%{summary}
 Name:		%{name}
@@ -26,7 +29,11 @@ to mimic writing to a non-writable medium.
 %setup -q -n %{name}-@ARCHIVEVER@
 
 %build
-%make
+%if %{build_debug}
+	%make EXTRA_CXXFLAGS="-DDEBUG"
+%else
+	%make
+%endif
 
 %install
 rm -rf %buildroot
