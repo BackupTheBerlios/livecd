@@ -20,7 +20,7 @@
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: mklivecd.in,v 1.58 2003/11/05 12:51:18 jaco Exp $
+# $Id: mklivecd.in,v 1.59 2003/11/16 19:41:48 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -319,15 +319,17 @@ create_initrdimg() {
 	### compressed image
 	echo "* Creating compressed initrd image..." >&2
 	IMAGESIZE=`du -ks $INITRDDIR | awk '{print $1}'`
-	INODES=250
+	IMAGESIZE=$[IMAGESIZE+250] # some extra initial scratchpad space
+	INODES=1250                # some extra inodes since we are not doing /dev anymore
 	for i in `find $INITRDDIR`; do
 		INODES=$[INODES + 1];
 	done
-	for i in `find /dev`; do
-		INODES=$[INODES + 1];
-	done
+	# we are using devfs and on some installs this pushes up the
+	# inode count too high, resulting in "out-of-space" errors
+	#for i in `find /dev`; do
+	#	INODES=$[INODES + 1];
+	#done
 	IMAGESIZE=$[IMAGESIZE + INODES / 10]  # 10 inodes needs 1k
-	IMAGESIZE=$[IMAGESIZE+250]            # we run out of space on some installations, make room
 	[ -n "$verbose" ] && echo "+ Creating filesystem with size ${IMAGESIZE}KB and $INODES inodes"
 	do_cmd "dd if=/dev/zero of=$INITRD bs=1k count=$IMAGESIZE 2> /dev/null"
 	do_cmd "mke2fs -q -m 0 -F -N $INODES -s 1 $INITRD"
