@@ -22,7 +22,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: daemon.c,v 1.3 2004/01/30 21:08:49 jaco Exp $
+ * $Id: daemon.c,v 1.4 2004/01/31 11:26:03 jaco Exp $
  */
 
 #include <stdlib.h>
@@ -103,7 +103,7 @@ tempsock(char *base, char *name){
 
 int
 main(int argc, char **argv){
-    char *service, *mountpoint, *odata;
+    char *mountpoint, *odata;
     struct list_head cfg;
     struct fs_ctl *ctl;
     char tmp[256], *nopts;
@@ -113,20 +113,21 @@ main(int argc, char **argv){
 
     srandom(time(NULL));
 
-    if((argc < 5) || (strcmp(argv[3], "-o")) ){
-	ERROR("Usage: %s none <mount-point> -o [options, ...]", argv[0]);
+    if((argc < 4) || (strcmp(argv[2], "-o")) ){
+	ERROR("Usage: %s <mount-point> -o [options, ...]", argv[0]);
 	exit(1);
     }
 
-    if(argc > 5){
+    if(argc > 4){
 	TRACE("more options than expected...");
     }
     
-    service = argv[1];
-    mountpoint = argv[2];
-    odata = argv[4];
+    mountpoint = argv[1];
     
-
+    odata = malloc(strlen(argv[3])+strlen(",fs=livecdfs")+10);
+    strcpy(odata, argv[3]);
+    strcpy(odata+strlen(argv[3]), ",fs=livecdfs");
+    
     nopts = malloc(strlen(odata) + 100);
     if(!nopts){
 	ERROR("out of memory!");
@@ -154,7 +155,8 @@ main(int argc, char **argv){
 	exit(1);
     }
 
-    if((ssock = tempsock("/tmp/lufsd", tmp)) < 0)
+    mkdir("/tmp/.livecdfs", 0777);
+    if((ssock = tempsock("/tmp/.livecdfs/lufsd", tmp)) < 0)
 	exit(1);
 
     TRACE("starting filesystem master at %s", tmp);
@@ -207,7 +209,7 @@ main(int argc, char **argv){
     sprintf(nopts, "%s,server_socket=%s,server_pid=%d", nopts, tmp, pid);
 
     /* perform the mount ourselves */
-    if (mount("none", mountpoint, "lufs", MS_NOSUID | MS_NODEV, nopts) < 0) {
+    if (mount("none", mountpoint, "lufs", /*MS_NOSUID | MS_NODEV*/0, nopts) < 0) {
 	ERROR("mount failed: %s\n", strerror(errno));
 	switch(errno) {
 	case ENODEV:

@@ -1,19 +1,20 @@
-# $Id: README.USAGE,v 1.2 2004/01/30 18:22:56 jaco Exp $
+# $Id: README.USAGE,v 1.3 2004/01/31 11:26:03 jaco Exp $
 
 Usage: 
-    lufsd.livecdfs none <mount> -o fs=livecdfs,rw_tmp=<tmp>,ro_root=<root> 
+    lufsd.livecdfs <mount> -o rw_tmp=<tmp>,ro_root=<root>[,option,...] 
 
-    or
+    LiveCDFS can also be setup explicitly via the Linux User Filesystem
+    daemon (LUFSD), with either of the following commands: (This requires a
+    working installation of LUFS.)
     
-    lufsd none <mount> -o fs=livecdfs,rw_tmp=<tmp>,ro_root=<root> 
+    lufsd none <mount> -o fs=livecdfs,rw_tmp=<tmp>,ro_root=<root>[,option,...] 
     
-    or 
+        or (via mount)
     
-    mount -t lufs none <mount> -o fs=livecdfs,rw_tmp=<tmp>,ro_root=<root> 
+    mount -t lufs none <mount> -o fs=livecdfs,rw_tmp=<tmp>,ro_root=<root>[,option,...] 
 
 
 Required Options:
-    none               Don't mount a device at the specified mountpoint
     <mount>            The final mountpoint where the fs is to be visible
     rw_tmp=<tmp>       The writable space (for new files, appends, etc.)
     ro_root=<root>     The read-only root to be visible at <mount>
