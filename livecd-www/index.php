@@ -23,7 +23,7 @@
 				&nbsp;&nbsp;|&nbsp;&nbsp;
 				<a href="links.php"><font color=#c0c0c0>l i n k s</font></a>
 				&nbsp;&nbsp;|&nbsp;&nbsp;
-				<a href="http://www.linuxminicd.org/mklivecd/downloads/"><font color=#c0c0c0>d o w n l o a d</font></a>
+				<a href="http://developer.berlios.de/project/showfiles.php?group_id=1149"><font color=#c0c0c0>d o w n l o a d</font></a>
 				&nbsp;&nbsp;|&nbsp;&nbsp;
 				<a href="http://developer.berlios.de/projects/livecd/"><font color=#c0c0c0>p r o j e c t</font></a>
 				<!--&nbsp;&nbsp;|&nbsp;&nbsp;
