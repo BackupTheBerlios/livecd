@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2003/11/24 05:27:55 jaco Exp $
+# $Id: Makefile,v 1.3 2003/11/24 06:01:53 jaco Exp $
 
 include Rules.mk
 
@@ -40,6 +40,8 @@ dist: spec
 	$(RM) -rf $(UTILSDIST)
 	cd $(ICONDIR) && $(TAR) -c *.png | \
 		$(BZIP2) >../$(DISTDIR)/$(ICONSDIST).tar.bz2
+	$(MD5SUM) $(DISTDIR)/$(ICONSDIST).tar.bz2 \
+		>$(DISTDIR)/$(ICONSDIST).tar.bz2.md5
 
 rpm: dist
 	$(RPMBUILD) -ta $(DISTDIR)/$(UTILSDIST).tar.bz2
