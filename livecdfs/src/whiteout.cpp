@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: whiteout.cpp,v 1.6 2004/01/24 20:05:04 jaco Exp $
+ * $Id: whiteout.cpp,v 1.7 2004/01/25 14:28:11 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -36,10 +36,10 @@
 Whiteout *
 Whiteout::create(const string &tmp)
 {
-	FUNC("tmp='" << tmp << "'");
+	FUNC("tmp='%s'", tmp.c_str());
 	     
 	if (!Path::exists(tmp.c_str(), S_IFDIR)) {
-		ERROR("FATAL: The path specified by 'rw_tmp='" << tmp << "' does not exist as a directory.");
+		ERROR("FATAL: The path specified by 'rw_tmp='%s' does not exist as a directory.", tmp.c_str());
 		return NULL;
 	}
 	
@@ -49,7 +49,7 @@ Whiteout::create(const string &tmp)
 		return new Whiteout(tmp);
 	}
 	else {
-		ERROR("FATAL: Unable to create/read '.whiteout' in rw_tmp='" << tmp << "'");
+		ERROR("FATAL: Unable to create/read '.whiteout' in rw_tmp='%s'", tmp.c_str());
 		return NULL;
 	}
 }
@@ -57,7 +57,7 @@ Whiteout::create(const string &tmp)
 
 Whiteout::Whiteout(const string &tmp)
 {
-	FUNC("tmp='" << tmp << "'");
+	FUNC("tmp='%s'", tmp.c_str());
 	
 	this->tmp = tmp;
 	
@@ -74,7 +74,7 @@ Whiteout::~Whiteout()
 bool 
 Whiteout::isVisible(const string &path)
 {
-	FUNC("path='" << path << "'");
+	FUNC("path='%s'", path.c_str());
 
 	if (!(path.rfind(WHITEOUT) < path.length())) {
 		t_whiteout *entry = find(path);
@@ -87,8 +87,7 @@ Whiteout::isVisible(const string &path)
 void
 Whiteout::setVisible(const string &path, bool visible)
 {
-	FUNC("path='" << path << "', " <<
-	     "visible='" << visible);
+	FUNC("path='%s', visible='", path.c_str(), visible);
 	     
 	t_whiteout *entry = find(path);
 	if (visible) {
@@ -106,27 +105,27 @@ Whiteout::setVisible(const string &path, bool visible)
 t_whiteout *
 Whiteout::find(const string &path)
 {
-	FUNC("path='" << path << "'");
+	FUNC("path='%s'", path.c_str());
 	
-	TRACE("Number of whiteout entries=" << std::dec << entries.size());
+	TRACE("Number of whiteout entries=%u", entries.size());
 	for (vector<t_whiteout>::iterator i = entries.begin(); i != entries.end(); ) {
 		if (i->path == path) {
-			TRACE("Found whiteout path='" << path << "'");
+			TRACE("Found whiteout path='%s'", path.c_str());
 			return &*i;
 		} 
 		i++;
 	}
-	TRACE("Could not find whiteout path='" << path << "'");
+	TRACE("Could not find whiteout path='%s'", path.c_str());
 	return NULL;
 }
 
 void 
 Whiteout::add(const string &path) 
 {
-	FUNC("path='" << path << "'");
+	FUNC("path='%s'", path.c_str());
 	     
 	entries.push_back((t_whiteout){path});
-	TRACE("Number of whiteout entries=" << std::dec << entries.size());
+	TRACE("Number of whiteout entries=%u", entries.size());
 	
 	store("");
 }
@@ -138,7 +137,7 @@ Whiteout::erase(vector<t_whiteout>::iterator it)
 	FUNC("it=(iterator)");
 	
 	entries.erase(it);
-	TRACE("Number of whiteout entries=" << std::dec << entries.size());
+	TRACE("Number of whiteout entries=%u", entries.size());
 	
 	store("");
 }
@@ -147,7 +146,7 @@ Whiteout::erase(vector<t_whiteout>::iterator it)
 void 
 Whiteout::load(const string &path)
 {
-	FUNC("path='" << path << "'");
+	FUNC("path='%s'", path.c_str());
 	
 	string file = Path::join(Path::join(tmp, path), WHITEOUT);
 	int fd = open(file.c_str(), O_RDWR | O_CREAT, 0644);
@@ -168,16 +167,16 @@ Whiteout::load(const string &path)
 		close(fd);
 	}
 	else {
-		ERROR("Unable to open/read '.whiteout' in rw_tmp='" << tmp << "'");
+		ERROR("Unable to open/read '.whiteout' in rw_tmp='%s'", tmp.c_str());
 	}
-	TRACE("Number of whiteout entries=" << std::dec << entries.size());
+	TRACE("Number of whiteout entries=%u", entries.size());
 }
 
 
 void 
 Whiteout::store(const string &path)
 {
-	FUNC("path='" << path << "'");
+	FUNC("path='%s'", path.c_str());
 	
 	string file = Path::join(Path::join(tmp, path), WHITEOUT);
 	int fd = open(file.c_str(), O_RDWR | O_TRUNC | O_CREAT, 0644);
@@ -190,7 +189,7 @@ Whiteout::store(const string &path)
 		close(fd);
 	}
 	else {
-		ERROR("Unable to create/write '.whiteout' in rw_tmp='" << tmp << "'");
+		ERROR("Unable to create/write '.whiteout' in rw_tmp='%s'", tmp.c_str());
 	}
-	TRACE("Number of whiteout entries=" << std::dec << entries.size());
+	TRACE("Number of whiteout entries=%u", entries.size());
 }

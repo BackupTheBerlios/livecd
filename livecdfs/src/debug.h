@@ -18,43 +18,40 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: debug.h,v 1.7 2004/01/24 20:28:50 jaco Exp $
+ * $Id: debug.h,v 1.8 2004/01/25 14:28:11 jaco Exp $
  */
  
 #ifndef _DEBUG_dot_H_
 #define _DEBUG_dot_H_
 
-using namespace std;
-
-#include <iostream>
+#include <stdio.h>
 
 #undef TRACE
 #undef WARN
 #undef ERROR
 
 #define PTR(x)		(void *)x
-#define DEC(x)		std::dec << x << std::hex
 	
 #ifdef DEBUG 
-	#define HDR		__FILE__ << "(" << __LINE__ << "): "
+	#define HDR(x)		fprintf(stdout, "%s: %s(%u): %s", x, __FILE__, __LINE__, __func__)
 
-	#define FUNC(x)		cout << " INFO: " << HDR << __func__ << "(" << std::hex << x << std::dec << ")\n"
-	#define TRACE(x) 	cout << " INFO: " << HDR << __func__ << ": " << std::hex << x << std::dec << "\n"
-	#define TRACE_START()	cout << " INFO: " << HDR << "{" << "\n"
-	#define TRACE_END()	cout << " INFO: " << HDR << "}" << "\n"
+	#define FUNC(x...)	HDR(" FUNC"); fprintf(stdout, "("); fprintf(stdout, x); fprintf(stdout, ")\n")
+	#define TRACE(x...) 	HDR(" INFO"); fprintf(stdout, ": "); fprintf(stdout, x); fprintf(stdout, "\n")
+	#define TRACE_START()	HDR(" INFO"); fprintf(stdout, "{\n")
+	#define TRACE_END()	HDR(" INFO"); fprintf(stdout, "}\n")
 	#define TRACE_RET(x)	TRACE_END(); return x
 	
-	#define WARN(x)		cout << " WARN: " << HDR << std::hex << x << std::dec << "\n"
-	#define ERROR(x)	cout << "ERROR: " << HDR << std::hex << x << std::dec << "\n"
+	#define WARN(x...)	HDR(" WARN"); fprintf(stdout, ": "); fprintf(stdout, x); fprintf(stdout, "\n")
+	#define ERROR(x...)	HDR("ERROR"); fprintf(stdout, ": "); fprintf(stdout, x); fprintf(stdout, "\n")
 #else
-	#define FUNC(x)		if (0) { cout << x; }
-	#define TRACE(x) 	if (0) { cout << x; }
-	#define TRACE_START()	if (0) { cout << "0"; }
-	#define TRACE_END()	if (0) { cout << "0"; }
-	#define TRACE_RET(x)	return x;
+	#define FUNC(x...)	if (0) { fprintf(stdout, x); }
+	#define TRACE(x...) 	if (0) { fprintf(stdout, x); }
+	#define TRACE_START()	if (0) { fprintf(stdout, ""); }
+	#define TRACE_END()	if (0) { fprintf(stdout, ""); }
+	#define TRACE_RET(x)	return x
 	
-	#define WARN(x)		if (0) { cout << x; }
-	#define ERROR(x)	if (0) { cout << x; }
+	#define WARN(x...)	if (0) { fprintf(stdout, x); }
+	#define ERROR(x...)	if (0) { fprintf(stdout, x); }
 #endif
 
 #endif

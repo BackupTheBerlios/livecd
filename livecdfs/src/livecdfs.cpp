@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.18 2004/01/24 19:50:02 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.19 2004/01/25 14:28:11 jaco Exp $
  */
 
 #include <dirent.h>
@@ -43,13 +43,12 @@ t_active_livecdfs *
 LiveCDFS::findActive(const string &root, 
 		     const string &tmp)
 {
-	FUNC("root='" << root << "', " <<
-	     "tmp='"  << tmp  << "'");
+	FUNC("root='%s', tmp='%s'", root.c_str(), tmp.c_str());
 	
 	for (vector<t_active_livecdfs>::iterator i = activefs.begin(); i != activefs.end(); ) {
-		TRACE("Testing LiveCDFS instance, i=" << &*i << ", root='" << i->root << "', tmp='" << i->tmp << "'");
+		TRACE("Testing LiveCDFS instance, i=%p, root='%s', tmp='%s'", &*i, i->root.c_str(), i->tmp.c_str());
 		if ((i->root == root) && (i->tmp == tmp)) {
-			TRACE("Found existing LiveCDFS at i=" << &*i << ", fs=" << i->fs << ", root='" << root << "', tmp='" << tmp << "'");
+			TRACE("Found existing LiveCDFS at i=%p, fs=%p, root='%s', tmp='%s'", &*i, i->fs, root.c_str(), tmp.c_str());
 			return &*i;
 		} 
 		i++;
@@ -62,12 +61,12 @@ LiveCDFS::findActive(const string &root,
 t_active_livecdfs *
 LiveCDFS::findActive(const LiveCDFS* fs)
 {
-	FUNC("fs=" << fs);
+	FUNC("fs=%p", fs);
 	
 	for (vector<t_active_livecdfs>::iterator i = activefs.begin(); i != activefs.end(); ) {
-		TRACE("Testing LiveCDFS instance, i=" << &*i << ", fs=" << i->fs);
+		TRACE("Testing LiveCDFS instance, i=%p, fs=%p", &*i, i->fs);
 		if (i->fs == fs) {
-			TRACE("Found existing LiveCDFS at i=" << &*i << ", fs=" << i->fs);
+			TRACE("Found existing LiveCDFS at i=%p, fs=%p", &*i, i->fs);
 			return &*i;
 		} 
 		i++;
@@ -82,9 +81,7 @@ LiveCDFS::create(struct list_head *cfg,
 		 struct dir_cache *cache, 
 		 struct credentials *cred)
 {
-	FUNC("cfg="   << cfg   << ", " <<
-	     "cache=" << cache << ", " <<
-	     "cred="  << cred);
+	FUNC("cfg=%p, cache=%p, cred=%p", cfg, cache, cred);
 	
 	const char *opt = lu_opt_getchar(cfg, "MOUNT", "ro_root");
 	if (opt == NULL) {
@@ -122,7 +119,7 @@ LiveCDFS::create(struct list_head *cfg,
 		}
 		else {
 			activefs.push_back((t_active_livecdfs){root,tmp,1,fs});
-			TRACE("Created new LiveCDFS instance, fs=" << fs);
+			TRACE("Created new LiveCDFS instance, fs=%p", fs);
 		}
 	}
 	else {
@@ -136,22 +133,22 @@ LiveCDFS::create(struct list_head *cfg,
 void
 LiveCDFS::destroy(LiveCDFS *fs) 
 {
-	FUNC("fs=" << fs);
+	FUNC("fs=", fs);
 	
 	t_active_livecdfs *active = findActive(fs);
 	if (active != NULL) {
 		active->count--;
 		if (active->count == 0) {
-			TRACE("fs=" << fs << " not active anymore, destroying");
+			TRACE("fs=%p not active anymore, destroying", fs);
 			activefs.erase((vector<t_active_livecdfs>::iterator)active);
 			delete fs;
 		}
 		else {
-			TRACE("fs=" << fs << " still has " << active->count << " references");
+			TRACE("fs=%p still has %u references", fs, active->count);
 		}
 	}
 	else {
-		ERROR("fs=" << fs << " not found, cannot destroy");
+		ERROR("fs=%p not found, cannot destroy", fs);
 	}
 }
 
@@ -162,10 +159,7 @@ LiveCDFS::LiveCDFS(struct list_head *cfg,
 		   Path *path,
 		   Whiteout *whiteout) 
 {
-	FUNC("cfg="   << cfg   << ", "  <<
-	     "cache=" << cache << ", "  <<
-	     "cred="  << cred  << ", "  <<
-	     "path="  << path);
+	FUNC("cfg=%p, cache=%p, cred=%p, path=%p, whiteout=%p", cfg, cache, cred, path, whiteout);
 	
 	this->cfg = cfg;
 	this->cache = cache;
@@ -208,8 +202,7 @@ int
 LiveCDFS::doReaddir(const char *name, 
 		    struct directory *dir)
 {
-	FUNC("name='" << name << "', " <<
-	     "dir="   << dir);
+	FUNC("name='%s', dir=%p", name, dir);
 	
 	if (!whiteout->isVisible(name)) {
 		return -1;
@@ -225,9 +218,9 @@ LiveCDFS::doReaddir(const char *name,
 		while ((ent = readdir(tdir))) {
 			string subpath = path->join(name, ent->d_name);
 			if (whiteout->isVisible(subpath)) {
-				TRACE("Adding direntry='" << ent->d_name << "'");
+				TRACE("Adding direntry='%s'", ent->d_name);
 				if ((doStat(subpath.c_str(), &attr)) < 0) {
-					ERROR("Could not stat file='" << ent->d_name << "'");
+					ERROR("Could not stat file='%s'", ent->d_name);
 					closedir(rdir);
 					return -1;
 				}
@@ -256,9 +249,9 @@ LiveCDFS::doReaddir(const char *name,
 				i++;
 			}
 			if (!found && whiteout->isVisible(subpath)) {
-				TRACE("Adding direntry='" << ent->d_name << "'");
+				TRACE("Adding direntry='%s'", ent->d_name);
 				if ((doStat(subpath.c_str(), &attr)) < 0) {
-					ERROR("could not stat file='" << ent->d_name << "'");
+					ERROR("could not stat file='%s'", ent->d_name);
 					closedir(rdir);
 					return -1;
 				}
@@ -268,7 +261,7 @@ LiveCDFS::doReaddir(const char *name,
 		closedir(rdir);
 	}
 	else {
-		WARN("could not open directory, name='" << name << "'");
+		WARN("could not open directory, name='%s'", name);
 	}
 	
 	return 0;
@@ -279,8 +272,7 @@ int
 LiveCDFS::doStat(const char *name, 
 		 struct lufs_fattr *attr)
 {
-	FUNC("name='" << name << "', " <<
-	     "attr="  << attr);
+	FUNC("name='%s', attr=%p", name, attr);
 	
 	if (!whiteout->isVisible(name)) {
 		return -1;
@@ -289,14 +281,11 @@ LiveCDFS::doStat(const char *name,
 	string fullpath = path->mkpath(name);
 	struct stat buf;
 	if (lstat(fullpath.c_str(), &buf) < 0) {
-		WARN("Could not perform lstat on file='" << fullpath << "'");
+		WARN("Could not perform lstat on file='%s'", fullpath.c_str());
 		return -1;
 	}
 
-	TRACE("name='"       << name         << "', " << std::dec <<
-	      "buf.st_uid="  << buf.st_uid  << ", " <<
-	      "buf.st_uid="  << buf.st_uid  << ", " <<
-	      "buf.st_size=" << buf.st_size);
+	TRACE("name='%s', buf.st_uid=%u, buf.st_gid=%u, buf.st_size=%u", name, buf.st_uid, buf.st_gid, buf.st_size);
 	      
 	attr->f_mode  = buf.st_mode;
 	attr->f_nlink = buf.st_nlink;
@@ -316,9 +305,7 @@ LiveCDFS::doReadlink(const char *link,
 		     char *buf, 
 		     int buflen)
 {
-	FUNC("link='"  << link       << "', " <<
-	     "buf="    << PTR(buf)   << ", " <<
-	     "buflen=" << DEC(buflen));
+	FUNC("link='%s', buf=%p, buflen=%u", link, buf, buflen);
 	
 	if (!whiteout->isVisible(link)) {
 		return -1;
@@ -336,17 +323,14 @@ LiveCDFS::doOpen(const char *file,
 	unsigned flags = mode ^ O_ACCMODE;
 	unsigned modes = mode & O_ACCMODE;
 	
-	FUNC("file='" << file << "', " <<
-	     "mode="  << mode << " (" <<
-	     "modes=" << modes << ", " <<
-	     "flags=" << flags);
+	FUNC("file='%s', mode=%u (modes=%u, flags=%u)", file, mode, modes, flags);
 	
 	if (!whiteout->isVisible(file)) {
 		return -1;
 	}
 	
 	if (handles->find(file, flags, modes)) {
-		TRACE("file='" << file << "' already open.");
+		TRACE("file='%s' already open", file);
 		return 0;
 	}
 	
@@ -356,13 +340,13 @@ LiveCDFS::doOpen(const char *file,
 	if (flags & O_CREAT) {
 		string dir = path->getDir(file);
 		if ((dir.length() != 0) && !path->isTmp(dir)) {
-			TRACE("Creating directory dir='" << dir << "'");
+			TRACE("Creating directory dir='%s'", dir.c_str());
 			path->recurseMkdir(dir.c_str()); 
 		}
 	
 		openpath = tmppath;
 		created = true;
-		TRACE("Creating empty file='" << file << "' on temp space");
+		TRACE("Creating empty file='%s' on temp space", file);
 	}
 	else if ((flags & O_RDWR) || (flags & O_WRONLY)) {
 		string rootpath = path->mkroot(file);
@@ -376,7 +360,7 @@ LiveCDFS::doOpen(const char *file,
 			openpath = tmppath;
 		}
 		else {
-			ERROR("File='" << file << "', is not a regular file nor symlink, cannot create copy on temp space.");
+			ERROR("File='%s', is not a regular file nor symlink, cannot create copy on temp space", file);
 			return -1;
 		}
 	}
@@ -387,7 +371,7 @@ LiveCDFS::doOpen(const char *file,
 	
 	int fd = open(openpath.c_str(), flags, modes);
 	if (fd <= 0) {
-		WARN("Unable to open file='" << file << "', flags=" << flags << ", modes=" << modes);
+		WARN("Unable to open file='%s', flags=%u, modes=%u", file, flags, modes);
 		return -1;
 	}
 	else if (created) {
@@ -404,7 +388,7 @@ LiveCDFS::doOpen(const char *file,
 	// of files we are busy with.)
 	close(fd);
 	handles->add(string(file), fd, flags, modes);
-	TRACE(handles->size() << " files currently open.");
+	TRACE("%u files currently open", handles->size());
 	
 	return 0;
 }
@@ -413,19 +397,19 @@ LiveCDFS::doOpen(const char *file,
 int 
 LiveCDFS::doRelease(const char *file)
 {
-	FUNC("file='" << file << "'");
+	FUNC("file='%s'", file);
 	
 	t_handle *handle;
 	if ((handle = handles->find(file, 0xffff, 0xffff)) != NULL) {
 		int fd = handle->fd;
 		handles->erase((vector<t_handle>::iterator)handle);
-		TRACE("fd=" << fd << " for file='" << file << "' released");
+		TRACE("fd=%d, for file='%s' released", fd, file);
 	}
 	else {
-		WARN("Unable to find open handle for file='" << file << "'");
+		WARN("Unable to find open handle for file='%s'", file);
 	}
 	
-	TRACE(handles->size() << " files currently open.");
+	TRACE("%u files currently open.", handles->size());
 	return 0;
 }
 
@@ -436,26 +420,23 @@ LiveCDFS::doRead(const char *file,
 		 unsigned long count, 
 		 char *buf)
 {
-	FUNC("file='" << file        << "', " <<
-	     "offset" << DEC(offset) << ", " <<
-	     "count=" << DEC(count)  << ", " <<
-	     "buf="   << PTR(buf));
+	FUNC("file='%s', offset=%l, count=%ul, buf=%p", file, offset, count, buf);
 	
 	int fd = open(path->mkpath(file).c_str(), O_RDWR);
 	if (fd <= 0) {
-		WARN("Cannot open file='" << file << "' O_RDWR");
+		WARN("Cannot open file='%s' O_RDWR", file);
 		return -1;
 	}
 	
 	if (lseek(fd, offset, SEEK_SET) < 0) {
-		WARN("Seek for file='" << file << "', fd=" << fd << " failed");
+		WARN("Seek for file='%s', fd=%d failed", file, fd);
 		close(fd);
 		return -1;
 	}
 
 	int res = read(fd, buf, count);
 	close(fd);
-	TRACE("Read count=" << std::dec << count << ", res=" << res);
+	TRACE("Read count=%ul, res=%d", count, res);
 	return res;
 }
 
@@ -466,25 +447,23 @@ LiveCDFS::doWrite(const char *file,
 		  unsigned long count, 
 		  char *buf)
 {
-	FUNC("file='" << file        << "', " <<
-	     "offset" << DEC(offset) << ", " <<
-	     "count=" << DEC(count)  << ", " <<
-	     "buf="   << PTR(buf));
+	FUNC("file='%s', offset=%l, count=%ul, buf=%p", file, offset, count, buf);
 	
 	int fd = open(path->mkpath(file).c_str(), O_RDWR);
 	if (fd <= 0) {
-		WARN("Cannot open file='" << file << "' O_RDWR");
+		WARN("Cannot open file='%s' O_RDWR", file);
 		return fd;
 	}
 	
 	if (lseek(fd, offset, SEEK_SET) < 0) {
-		WARN("Seek for file='" << file << "', fd=" << fd << " failed");
+		WARN("Seek for file='%s', fd=%d failed", file, fd);
 		close(fd);
 		return -1;
 	}
 	
 	int res = write(fd, buf, count);
 	close(fd);
+	TRACE("Write count=%ul, res=%d", count, res);
 	return res;
 }
 
@@ -493,15 +472,14 @@ int
 LiveCDFS::doMkdir(const char *dir, 
 		  int mode)
 {
-	FUNC("dir='"  << dir  << "', " <<
-	     "mode=" << mode);
+	FUNC("dir='%s', mode=%d", dir, mode);
 	
 	int res = mkdir(path->mktmp(dir).c_str(), mode);
 	if (res >= 0) {
 		whiteout->setVisible(dir, true);
 	}
 	else {
-		ERROR("Could not create directory, dir='" << dir << "'");
+		ERROR("Could not create directory, dir='%s'", dir);
 	}
 	return res;
 }
@@ -510,12 +488,12 @@ LiveCDFS::doMkdir(const char *dir,
 int 
 LiveCDFS::doRmdir(const char *dir)
 {
-	FUNC("dir='" << dir << "'");
+	FUNC("dir='%s'", dir);
 
 	int res = 0;
 	if (path->isTmp(dir)) {
 		if ((res = rmdir(path->mktmp(dir).c_str())) < 0) {
-			ERROR("Could not remove directory, dir='" << dir << "'");
+			ERROR("Could not remove directory, dir='%s'", dir);
 		}
 	}
 	if (path->isRoot(dir)) {
@@ -528,12 +506,12 @@ LiveCDFS::doRmdir(const char *dir)
 int 
 LiveCDFS::doUnlink(const char *file)
 {
-	FUNC("file='" << file << "'");
+	FUNC("file='%s'", file);
 	
 	int res = 0;
 	if (path->isTmp(file)) {
 		if ((res = unlink(path->mktmp(file).c_str())) < 0) {
-			ERROR("Could not unlink file='" << file << "'");
+			ERROR("Could not unlink file='%s'", file);
 		}
 	}
 	if (path->isRoot(file)) {
@@ -547,12 +525,11 @@ int
 LiveCDFS::doCreate(const char *file, 
 		   int mode)
 {
-	FUNC("file='" << file << "', " <<
-	     "mode=" << mode);
+	FUNC("file='%s', mode=%d", file, mode);
 	
 	string dir = path->getDir(file);
 	if ((dir.length() != 0) && !path->isTmp(dir)) {
-		TRACE("Creating directory dir='" << dir << "'");
+		TRACE("Creating directory dir='%s'", dir.c_str());
 		path->recurseMkdir(dir); 
 	}
 	
@@ -562,7 +539,7 @@ LiveCDFS::doCreate(const char *file,
 		close(fd);
 	}
 	else {
-		ERROR("Could not create file='" << file << "', mode=" << mode);
+		ERROR("Could not create file='%s', mode=%d", file, mode);
 	}
 	return fd;
 }
@@ -572,8 +549,7 @@ int
 LiveCDFS::doRename(const char *oldname, 
 		   const char *newname)
 {
-	FUNC("old='" << oldname << "', " <<
-	     "new='" << newname << "'");
+	FUNC("old='%s', new='%s'", oldname, newname);
 	
 	if (!whiteout->isVisible(oldname)) {
 		return -1;
@@ -602,7 +578,7 @@ LiveCDFS::doRename(const char *oldname,
 		whiteout->setVisible(newname, true);
 	}
 	else {
-		ERROR("Could not rename old='" << oldname << "' top new='" << newname << "', ret=" << ret);
+		ERROR("Could not rename old='%s' to new='%s', ret=%d", oldname, newname, ret);
 	}
 	
 	return ret;
@@ -613,8 +589,7 @@ int
 LiveCDFS::doLink(const char *target, 
 		 const char *newlink)
 {
-	FUNC("target='" << target << "', " <<
-	     "link='"   << newlink << "'");
+	FUNC("target='%s', link='%s'", target, newlink);
 	
 	if (!whiteout->isVisible(target)) {
 		return -1;
@@ -622,13 +597,13 @@ LiveCDFS::doLink(const char *target,
 	
 	string dir = path->getDir(newlink);
 	if ((dir.length() != 0) && !path->isTmp(dir)) {
-		TRACE("Creating directory dir='" << dir << "' (link)");
+		TRACE("Creating directory dir='%s' (link)", dir.c_str());
 		path->recurseMkdir(dir); 
 	}
 	
 	if (!path->isDir(target)) {
 		if ((dir.length() != 0) && !path->isTmp(dir)) {
-			TRACE("Creating directory dir='" << dir << "' (target)");
+			TRACE("Creating directory dir='%s' (target)", dir.c_str());
 			path->recurseMkdir(dir); 
 		}
 	}
@@ -636,7 +611,7 @@ LiveCDFS::doLink(const char *target,
 		path->copyTmp(target);
 	}
 	
-	TRACE("Creating link, target='" << target << "', link='" << newlink << "'");
+	TRACE("Creating link, target='%s', link='%s'", target, newlink);
 	return link(target, path->mktmp(newlink).c_str());
 }
 
@@ -645,8 +620,7 @@ int
 LiveCDFS::doSymlink(const char *target, 
 		    const char *newlink)
 {
-	FUNC("target='" << target << "', " <<
-	     "link='"   << newlink << "'");
+	FUNC("target='%s', link='%s'", target, newlink);
 	     
 	if (!whiteout->isVisible(target)) {
 		return -1;
@@ -654,14 +628,14 @@ LiveCDFS::doSymlink(const char *target,
 	
 	string dir = path->getDir(newlink);
 	if ((dir.length() != 0) && !path->isTmp(dir)) {
-		TRACE("Creating directory dir='" << dir << "' (link)");
+		TRACE("Creating directory dir='%s' (link)", dir.c_str());
 		path->recurseMkdir(dir); 
 	}
 	
 	if (!path->isDir(target)) {
 		dir = path->getDir(target);
 		if ((dir.length() != 0) && !path->isTmp(dir)) {
-			TRACE("Creating directory dir='" << dir << "' (target)");
+			TRACE("Creating directory dir='%s' (target)", dir.c_str());
 			path->recurseMkdir(dir); 
 		}
 	}
@@ -669,7 +643,7 @@ LiveCDFS::doSymlink(const char *target,
 		path->copyTmp(target);
 	}
 	
-	TRACE("Creating link, target='" << target << "', link='" << newlink << "'");
+	TRACE("Creating link, target='%s', link='%s'", target, newlink);
 	return symlink(target, path->mktmp(newlink).c_str());
 }
 
@@ -678,8 +652,7 @@ int
 LiveCDFS::doSetattr(const char *file, 
 		    struct lufs_fattr *attr)
 {
-	FUNC("file='" << file << "', " <<
-	     "attr=" << attr);
+	FUNC("file='%s', attr=%p", file, attr);
 	
 	if (!whiteout->isVisible(file)) {
 		return -1;
@@ -693,22 +666,22 @@ LiveCDFS::doSetattr(const char *file,
 	struct stat buf;
 	int res;
 	if ((res = lstat(tmppath.c_str(), &buf)) < 0) {
-		ERROR("Could not perform lstat on file='" << file << "', res=" << std::dec << res);
+		ERROR("Could not perform lstat on file='%s', res=", file, res);
 		return res;
 	}
 	
 	if (buf.st_size > attr->f_size) {
-		TRACE("Truncating file to " << std::dec << attr->f_size << " bytes");
+		TRACE("Truncating file to %u bytes", attr->f_size);
 		if ((res = truncate(tmppath.c_str(), attr->f_size)) < 0) {
-			ERROR("Unable to truncate, res=" << std::dec << res);
+			ERROR("Unable to truncate, res=%u", res);
 			return res;
 		}
 	}
 	
 	if (buf.st_mode != attr->f_mode) {
-		TRACE("Set mode=" <<  attr->f_mode << ", old=" << buf.st_mode);
+		TRACE("Set mode=%u, old=%u", attr->f_mode, buf.st_mode);
 		if ((res = chmod(tmppath.c_str(), attr->f_mode)) < 0) {
-			ERROR("Unable to chmod, res=" << std::dec << res);
+			ERROR("Unable to chmod, res=%u", res);
 			return res;
 		}
 	}
@@ -717,7 +690,7 @@ LiveCDFS::doSetattr(const char *file,
 	    (buf.st_mtime != (time_t)attr->f_mtime)) {
 		struct utimbuf utim = {attr->f_atime, attr->f_mtime};
 		if ((res = utime(tmppath.c_str(), &utim)) < 0) {
-			ERROR("Unable to utime, res=" << std::dec << res);
+			ERROR("Unable to utime, res=%u", res);
 			return res;
 		}
 	}
