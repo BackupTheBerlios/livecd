@@ -1,7 +1,7 @@
 ### our version identifiers
 MAJORVER=0
 MINORVER=5
-PATCHVER=5
+PATCHVER=5-cvs
 MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
 KERNELVER=$(shell uname -r)
 
