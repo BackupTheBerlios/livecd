@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.5 2003/12/01 07:09:37 jaco Exp $
+# $Id: Rules.mk,v 1.6 2004/01/25 09:00:50 jaco Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -72,4 +72,5 @@ DOCDIST=\
 SRCDIST=\
 	$(SRCDIR)/livecd-install.pro \
 	$(SRCDIR)/livecd-install.ui \
-	$(SRCDIR)/livecd-install.ui.pm
+	$(SRCDIR)/livecd-install.ui.pm \
+	$(SRCDIR)/livecd-install-lang.pm.in
