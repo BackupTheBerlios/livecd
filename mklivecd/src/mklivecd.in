@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.72 2004/01/05 09:30:36 jaco Exp $
+# $Id: mklivecd.in,v 1.73 2004/01/05 12:23:40 jaco Exp $
 #
 
 use strict;
@@ -47,13 +47,18 @@ my $starttime      = time;
 my $workdir        = undef;
 my $kernel26       = undef;
 my $dietarch       = undef;
+my $depmod         = "/sbin/depmod";
 my $modfile        = "/etc/modules.conf";
 my $modext         = ".o";
-my $modules        = '@DEF_MODULES_PATH@ @DEF_MODULES_DEP_PATH@ @DEF_SCSI_MODULES_PATH@ @DEF_SCSI_MODULES_OPT_PATH@ @DEF_SCSI_MODULES_DEP_PATH@';
-my $modules_opt    = '@DEF_MODULES_OPT_PATH@ @DEF_SCSI_MODULES_OPT_PATH@';
-my $nodirs         = '^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/lock/subsys$ ^/var/run$ ^/var/tmp$';
-my $nofiles        = '^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*[.]rpmnew$ .*[.]rpmsave$ /[.]bash_history$ /[.]fonts[.]cache-[0-9]$ /[.]xauth.* /[.]xsession-errors$';
-my $loopmod        = "drivers/block/cloop.o";
+my $modules        = undef;
+my $modules_opt    = undef;
+my $modules_24     = '@DEF_MODULES_PATH_24@ @DEF_MODULES_DEP_PATH_24@ @DEF_SCSI_MODULES_PATH_24@ @DEF_SCSI_MODULES_OPT_PATH_24@ @DEF_SCSI_MODULES_DEP_PATH_24@';
+my $modules_opt_24 = '@DEF_MODULES_OPT_PATH_24@ @DEF_SCSI_MODULES_OPT_PATH_24@';
+my $modules_26     = '@DEF_MODULES_PATH_26@ @DEF_MODULES_DEP_PATH_26@ @DEF_SCSI_MODULES_PATH_26@ @DEF_SCSI_MODULES_OPT_PATH_26@ @DEF_SCSI_MODULES_DEP_PATH_26@';
+my $modules_opt_26 = '@DEF_MODULES_OPT_PATH_26@ @DEF_SCSI_MODULES_OPT_PATH_26@';
+my $nodirs         = '^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/lock/subsys$ ^/var/tmp$';
+my $nofiles        = '^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*[.]rpmnew$ .*[.]rpmsave$ /[.]bash_history$ /[.]fonts[.]cache-[0-9]$ /[.]xauth.* /[.]xsession-errors$ ^/var/run/';
+my $loopmod        = "drivers/block/cloop";
 my $loopcmp        = "create_compressed_fs";
 my $blocksize      = 64;
 my $finaliso       = "livecd.iso";
@@ -427,17 +432,17 @@ sub parse_options {
 	# setup executables
 	if ($o_looptype =~ /clp/) {
 		$loopcmp = "create_compressed_fs";
-		$loopmod = "drivers/block/cloop.o";
+		$loopmod = "drivers/block/cloop";
 		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 64;
 	}
 	elsif ($o_looptype =~ /bzlp/) {
 		$loopcmp = "create_bzfs";
-		$loopmod = "drivers/block/bzloop.o";
+		$loopmod = "drivers/block/bzloop";
 		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 64;
 	}
 	elsif ($o_looptype =~ /sqfs/) {
 		$loopcmp = "mksquashfs";
-		$loopmod = "fs/squashfs/squashfs.o";
+		$loopmod = "fs/squashfs/squashfs";
 		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 32;
 	}
 
@@ -446,6 +451,8 @@ sub parse_options {
 	check_dietlibc();
 	check_resolution();
 	check_root();
+
+	# pretty up
 	print "\n\n";
 }
 
@@ -460,7 +467,16 @@ sub check_kernel {
 		$kernel26 = 1;
 		$modfile = "/etc/modprobe.conf";
 		$opts{splash} = "no";
+		$depmod = "/sbin/depmod";
 		$modext = ".ko";
+		$modules = $modules_26;
+		$modules_opt = $modules_opt_26;
+	}
+	else {
+		$depmod = "/sbin/depmod-25";
+		$modext = ".o";
+		$modules = $modules_24;
+		$modules_opt = $modules_opt_24;
 	}
 }
 
@@ -591,7 +607,7 @@ sub create_initrd {
 			}
 		}
 	}
-	do_cmd(":>$dir$modfile ; depmod -a --basedir $dir --config $dir$modfile 2>/dev/null", ++$pos);
+	do_cmd(":>$dir$modfile ; depmod -a --basedir $dir --config $dir$modfile 2>/dev/null", ++$pos) unless(defined($kernel26));
 
 	# get sizes
 	my $size = get_exec("du -ks $dir | awk '{print \$1}'");
