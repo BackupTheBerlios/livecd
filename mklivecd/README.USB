@@ -1,4 +1,4 @@
-# $Id: README.USB,v 1.1 2004/01/25 06:51:40 jaco Exp $
+# $Id: README.USB,v 1.2 2004/01/25 07:00:05 jaco Exp $
 
 The devices are certified to work/not to work with the LiveCD "home=usb" boot
 option. I you are have tested another key that does not appear on this list, 
@@ -15,6 +15,7 @@ The following keys have been tested as of 25 January 2004:
 
 | Manufacturer           | Name/Model                      |  Size  | Working |
 +------------------------+---------------------------------+--------+---------+
+| 3SYSTEM                | USBFlashDisk                    |  256MB |   YES   |
 | Lexar Media            | PN 9343 version A               |   64MB |   YES   |
 | Micro Advantage        | Quick Drive                     |   64MB |   YES   |
 | Mecer                  | Mobile Hard Disk                |  128MB |   YES   |
