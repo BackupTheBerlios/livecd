@@ -5,7 +5,7 @@
 </head>
 <body bgcolor="#FFFFFF" marginheight="10" marginwidth="10" link=#0050a0 vlink=#0050a0 alink=#000000>
 <center>
-<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<table width="850" border="0" cellspacing="0" cellpadding="0">
 	<tr><td bgcolor="#000000">
 		<table width="100%" border="0" cellspacing="2" cellpadding="0">
 			<tr><td bgcolor=#305080>
@@ -21,15 +21,15 @@
 				&nbsp;&nbsp;|&nbsp;&nbsp;
 				<a href="about.php"><font color=#c0c0c0>a b o u t</font></a>
 				&nbsp;&nbsp;|&nbsp;&nbsp;
-				<a href="http://www.linuxminicd.org/mklivecd/downloads/"><font color=#c0c0c0>d o w n l o a d</font></a>
-				&nbsp;&nbsp;|&nbsp;&nbsp;
 				<a href="links.php"><font color=#c0c0c0>l i n k s</font></a>
 				&nbsp;&nbsp;|&nbsp;&nbsp;
-				<a href="http://developer.berlios.de/projects/livecd/"><font color=#c0c0c0>p r o j e c t</font></a>
+				<a href="http://www.linuxminicd.org/mklivecd/downloads/"><font color=#c0c0c0>d o w n l o a d</font></a>
 				&nbsp;&nbsp;|&nbsp;&nbsp;
+				<a href="http://developer.berlios.de/projects/livecd/"><font color=#c0c0c0>p r o j e c t</font></a>
+				<!--&nbsp;&nbsp;|&nbsp;&nbsp;
 				<a href="http://developer.berlios.de/bugs/?group_id=1149"><font color=#c0c0c0>b u g s</font></a>
 				&nbsp;&nbsp;|&nbsp;&nbsp;
-				<a href="http://developer.berlios.de/cvs/?group_id=1149"><font color=#c0c0c0>c v s</font></a>
+				<a href="http://developer.berlios.de/cvs/?group_id=1149"><font color=#c0c0c0>c v s</font></a>-->
 				</b></small></font>
 			</td></tr>
 		</table>
