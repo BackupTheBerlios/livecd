@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: main.cpp,v 1.2 2004/01/21 19:21:03 jaco Exp $
+ * $Id: main.cpp,v 1.3 2004/01/23 17:56:05 jaco Exp $
  */
  
 #include <lufs/proto.h>
@@ -54,8 +54,7 @@ livecdfs_free(void *fs)
 	FUNC("fs=" << fs);
 	
 	TRACE_START();
-	LiveCDFS *p = (LiveCDFS*)fs;
-	delete p;
+	LiveCDFS::destroy((LiveCDFS*)fs);
 	TRACE_END();
 }
 

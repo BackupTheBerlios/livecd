@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.h,v 1.4 2004/01/23 13:36:58 jaco Exp $
+ * $Id: livecdfs.h,v 1.5 2004/01/23 17:56:05 jaco Exp $
  */
 
 #ifndef _LIVECDFS_dot_H_
@@ -42,6 +42,7 @@ typedef struct active_livecdfs
 {
 	string root;
 	string tmp;
+	int count;
 	LiveCDFS *fs;
 } t_active_livecdfs;
 
@@ -66,6 +67,8 @@ public:
 				struct dir_cache *, 
 				struct credentials *);
 				
+	static void destroy(LiveCDFS *fs);
+	
 	LiveCDFS(struct list_head *, 
 		 struct dir_cache *, 
 		 struct credentials *,

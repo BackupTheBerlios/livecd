@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: livecdfs.cpp,v 1.14 2004/01/23 13:36:58 jaco Exp $
+ * $Id: livecdfs.cpp,v 1.15 2004/01/23 17:56:05 jaco Exp $
  */
 
 #include <dirent.h>
@@ -121,14 +121,38 @@ LiveCDFS::create(struct list_head *cfg,
 			ERROR("Could not create new LiveCDFS instance");
 		}
 		else {
-			activefs.push_back((t_active_livecdfs){root,tmp,fs});
+			activefs.push_back((t_active_livecdfs){root,tmp,1,fs});
 			TRACE("Created new LiveCDFS instance, fs=" << fs);
 		}
 	}
 	else {
 		fs = active->fs;
+		active->count++;
 	}
 	return fs;
+}
+
+
+void
+LiveCDFS::destroy(LiveCDFS *fs) 
+{
+	FUNC("fs=" << fs);
+	
+	t_active_livecdfs *active = findActive(fs);
+	if (active != NULL) {
+		active->count--;
+		if (active->count == 0) {
+			TRACE("fs=" << fs << " not active anymore, destroying");
+			activefs.erase((vector<t_active_livecdfs>::iterator)active);
+			delete fs;
+		}
+		else {
+			TRACE("fs=" << fs << " still has " << active->count << " references");
+		}
+	}
+	else {
+		ERROR("fs=" << fs << " not found, cannot destroy");
+	}
 }
 
 
@@ -161,8 +185,6 @@ LiveCDFS::~LiveCDFS()
 	delete path;
 	delete whiteout;
 	delete handles;
-	
-	activefs.erase((vector<t_active_livecdfs>::iterator)findActive(this));
 }
 
 
@@ -356,7 +378,7 @@ LiveCDFS::doOpen(const char *file,
 			openpath = tmppath;
 		}
 		else {
-			ERROR("File, file='" << file << "', is not a regular file nor symlink, cannot create copy on temp space.");
+			ERROR("File='" << file << "', is not a regular file nor symlink, cannot create copy on temp space.");
 			return -1;
 		}
 	}
@@ -559,7 +581,38 @@ LiveCDFS::doRename(const char *oldname,
 		return -1;
 	}
 	
-	return -1;
+	if (path->isDir(oldname)) {
+		// Ok, yes I'm playing lazy - with directories, a rename
+		// means that the old ceases to exist (whiteout), but the
+		// new directory should contain the contents of the old
+		// one. Pretty easy if it is only on temp, but not so
+		// easy if it is on the root directory... (Amd we don't
+		// really want to copy all the contents over, now do we?)
+		ERROR("Rename of directories is currently not implemented");
+		return -1;
+	}
+	
+	string sold = path->mktmp(oldname);
+	string snew = path->mktmp(newname);
+	if (!path->exists(sold.c_str(), 0)) {
+		string dir = path->getDir(oldname);
+		if ((dir.length() != 0) && !path->isTmp(dir)) {
+			TRACE("Creating directory dir='" << dir << "'");
+			doMkdir(dir.c_str(), 0666); 
+		}
+		path->copyTmp(oldname);
+	}
+	
+	int ret = rename(sold.c_str(), snew.c_str());
+	if (ret > 0) {
+		whiteout->setVisible(oldname, false);
+		whiteout->setVisible(newname, true);
+	}
+	else {
+		ERROR("Could not rename old='" << oldname << "' top new='" << newname << "', ret=" << ret);
+	}
+	
+	return ret;
 }
 
 

@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.cpp,v 1.5 2004/01/23 12:39:49 jaco Exp $
+ * $Id: path.cpp,v 1.6 2004/01/23 17:56:05 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -160,10 +160,19 @@ Path::exists(const string &path,
 		}
 	}
 	else {
-		ERROR("errno=" << errno << " on stat('" << path << "', &buf");
+		ERROR("errno=" << errno << " on stat('" << path << "', &buf)");
 	}
 	
 	return false;
+}
+
+
+bool 
+Path::isDir(const string &path)
+{
+	FUNC("path='" << path << "'");
+	
+	return exists(mkpath(path).c_str(), S_IFDIR);
 }
 
 
