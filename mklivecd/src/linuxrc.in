@@ -19,13 +19,14 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.18 2003/10/07 09:06:59 jaco Exp $
+# $Id: linuxrc.in,v 1.19 2003/10/09 11:24:00 jaco Exp $
 #
 
 ### global variables
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
 umask 022
 FOUND_MDKISO=""
+OPT_MODULES="@DEF_MODULES_OPT@"
 DEP_MODULES="@DEF_MODULES_DEP@ @DEF_SCSI_MODULES_DEP@"
 SCSI_MODULES="@DEF_SCSI_MODULES@" # these are for the SCSI drivers
 FOUND_SCSI=""
@@ -115,6 +116,7 @@ docmd() {
 loadmod() {
 	MODULE="/lib/modules/$KERNELVER/kernel/$1.o"
 	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
+	[ ! -f $MODULE ] && return 1
 	insmod $MODULE $2 2>&1 >/dev/null && return 0 || return 1
 }
 
@@ -177,11 +179,14 @@ findcloop() {
 
 	# load basic modules
 	echo -n "Loading basic cdrom modules: "
+	for i in $OPT_MODULES; do
+		loadmod $i
+	done
 	ALL_LOADED=1
 	for i in $DEP_MODULES; do
-		loadmod $i || ALL_LOADED=0
+		loadmod $i || ALL_LOADED=
 	done
-	[ $ALL_LOADED -gt 0 ] && printok || printfail
+	[ -n "$ALL_LOADED" ] && printok || printfail
 
 	# probe the SCSI devices
 	echo -n "Probing SCSI devices: "
@@ -189,7 +194,7 @@ findcloop() {
 	for i in $SCSI_MODULES; do
 		loadmod $i && SCSI_FOUND=1
 	done
-	[ $SCSI_FOUND -gt 0 ] && printok || printfail
+	[ -n "$SCSI_FOUND" ] && printok || printfail
 
 	# do the loop
 	echo -n "Finding compressed loop image: "
@@ -275,114 +280,154 @@ createramdisk() {
 
 	# Check for sufficient memory to mount extra ramdisk for /etc, /home, /root, /var
 	if test -n "$TOTALMEM" -a "$TOTALMEM" -gt "$MINLEFT"; then
-		docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
-			"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
-			"mkdir -p $MNTRAMDISK/initrd" \
-			"echo '0x0100' >/proc/sys/kernel/real-root-dev" \
-			"pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
-			"cd /" \
-			"touch fastboot" \
-			"mkdir -p /lib" \
-			"cd /initrd$MNTLIVECD/lib ; \
-			 for f in *; do \
-			 	case \$f in \
-					dev-state) \
-						mkdir -p /lib/\$f ; \
-						;; \
-					modules) \
-						mkdir -p /lib/\$f ; \
-						for k in \$f/*; do \
-							if \`echo \$k | grep -q \$f/$KERNELVER\`; then \
-								mkdir -p /lib/\$k ; \
-								for s in \$k/*; do \
-									if [ -f /initrd$MNTLIVECD/lib/\$s ]; then \
-										cp /initrd$MNTLIVECD/lib/\$s /lib/\$s ; \
-										chmod 644 /lib/\$s ; \
-									else \
-										mkdir -p /lib/\$s ; \
-										for d in \`find \$s -type d\`; do \
-											mkdir -p /lib/\$d || true; \
-											for m in \$d/*; do \
-												[ -f /initrd$MNTLIVECD/lib/\$m ] && ln -sf /initrd$MNTLIVECD/lib/\$m /lib/\$m || true; \
+		if [ -d /proc/sys/translucency ]; then
+			docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
+				"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
+				"mkdir -p $MNTRAMDISK/initrd" \
+				"echo '0x0100' >/proc/sys/kernel/real-root-dev" \
+				"pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
+				"cd /" \
+				"touch fastboot" \
+				"cd /initrd$MNTLIVECD ; \
+				for d in *; do \
+					if [ -d /initrd$MNTLIVECD/var/\$d ]; then \
+						case \$d in \
+							dev|proc|mnt|tmp) \
+								mkdir -p /\$d || true ; \
+								;;
+							*) \
+								ln -sf /initrd$MNTLIVECD/\$d /\$d || true; \
+								;; \
+						esac \
+					fi \
+				done" \
+				"mount -n --move /initrd/dev /dev" \
+				"mount -n --move /initrd/proc /proc" \
+				"mkdir -p /tmp/livecd && echo '/ -> /tmp/livecd' >/proc/sys/translucency/0" \
+				"ln -sf /initrd$MNTCDROM /mnt/cdrom" \
+				"chmod 777 /tmp" \
+				"mkdir -p /var/lock/subsys" \
+				"mkdir -p /var/log && touch /var/log/wtmp" \
+				"mkdir -p /var/run && touch /var/run/utmp" \
+				"mkdir -p /etc/livecd/hwdetect" \
+				"rm -rf /etc/fstab && touch /etc/fstab" \
+				"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
+				"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
+				"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
+				"rm -rf /etc/mtab && touch /etc/mtab" \
+				"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
+				"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
+				"rm -rf /etc/rc.d/rc5.d/S05harddrake"
+		else
+			docmd   "Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
+				"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
+				"mkdir -p $MNTRAMDISK/initrd" \
+				"echo '0x0100' >/proc/sys/kernel/real-root-dev" \
+				"pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
+				"cd /" \
+				"touch fastboot" \
+				"mkdir -p /lib" \
+				"cd /initrd$MNTLIVECD/lib ; \
+				for f in *; do \
+					case \$f in \
+						dev-state) \
+							mkdir -p /lib/\$f ; \
+							;; \
+						modules) \
+							mkdir -p /lib/\$f ; \
+							for k in \$f/*; do \
+								if \`echo \$k | grep -q \$f/$KERNELVER\`; then \
+									mkdir -p /lib/\$k ; \
+									for s in \$k/*; do \
+										if [ -f /initrd$MNTLIVECD/lib/\$s ]; then \
+											cp /initrd$MNTLIVECD/lib/\$s /lib/\$s ; \
+											chmod 644 /lib/\$s ; \
+										else \
+											mkdir -p /lib/\$s ; \
+											for d in \`find \$s -type d\`; do \
+												mkdir -p /lib/\$d || true; \
+												for m in \$d/*; do \
+													[ -f /initrd$MNTLIVECD/lib/\$m ] && ln -sf /initrd$MNTLIVECD/lib/\$m /lib/\$m || true; \
+												done \
 											done \
-										done \
-									fi \
+										fi \
+									done \
+								else \
+									ln -sf /initrd$MNTLIVECD/lib/\$k /lib/\$k || true; \
+								fi \
+							done \
+							;; \
+						*) \
+							ln -sf /initrd$MNTLIVECD/lib/\$f /lib/\$f || true; \
+							;; \
+					esac \
+				done" \
+				"ln -sf /initrd$MNTLIVECD/bin" \
+				"ln -sf /initrd$MNTLIVECD/boot" \
+				"ln -sf /initrd$MNTLIVECD/opt" \
+				"ln -sf /initrd$MNTLIVECD/sbin" \
+				"ln -sf /initrd$MNTLIVECD/usr" \
+				"mkdir -p /dev && mount -n --move /initrd/dev /dev" \
+				"mkdir -p /proc && mount -n --move /initrd/proc /proc" \
+				"mkdir -p /mnt && ln -sf /initrd$MNTCDROM /mnt/cdrom" \
+				"mkdir -p /tmp && chmod 777 /tmp"
+			docmd   "Creating /var structure" \
+				"mkdir -p /var" \
+				"cd /initrd$MNTLIVECD/var ; \
+				for d in *; do \
+					if [ -d /initrd$MNTLIVECD/var/\$d ]; then \
+						case \$d in \
+							cache|db|local|lock|log|mail|nis|opt|preserve|run|spool|yp) \
+								mkdir -p /var/\$d || true ; \
+								for s in \$d/*; do \
+									[ -d /initrd$MNTLIVECD/var/\$s ] && mkdir -p /var/\$s || true; \
 								done \
-							else \
-								ln -sf /initrd$MNTLIVECD/lib/\$k /lib/\$k || true; \
-							fi \
-						done \
-						;; \
-					*) \
-						ln -sf /initrd$MNTLIVECD/lib/\$f /lib/\$f || true; \
-						;; \
-				esac \
-			done" \
-			"ln -sf /initrd$MNTLIVECD/bin" \
-			"ln -sf /initrd$MNTLIVECD/boot" \
-			"ln -sf /initrd$MNTLIVECD/opt" \
-			"ln -sf /initrd$MNTLIVECD/sbin" \
-			"ln -sf /initrd$MNTLIVECD/usr" \
-			"mkdir -p /dev && mount -n --move /initrd/dev /dev" \
-			"mkdir -p /proc && mount -n --move /initrd/proc /proc" \
-			"mkdir -p /mnt && ln -sf /initrd$MNTCDROM /mnt/cdrom" \
-			"mkdir -p /tmp && chmod 777 /tmp"
-		docmd   "Creating /var structure" \
-			"mkdir -p /var" \
-			"cd /initrd$MNTLIVECD/var ; \
-			for d in *; do \
-				if [ -d /initrd$MNTLIVECD/var/\$d ]; then \
-					case \$d in \
-						cache|db|local|lock|log|mail|nis|opt|preserve|run|spool|yp) \
-							mkdir -p /var/\$d || true ; \
-							for s in \$d/*; do \
-								[ -d /initrd$MNTLIVECD/var/\$s ] && mkdir -p /var/\$s || true; \
-							done \
-							;; \
-						tmp|lib)
-							;;
-						*) \
-							ln -sf /initrd$MNTLIVECD/var/\$d /var/\$d || true; \
-							;; \
-					esac \
-				fi \
-			done" \
-			"mkdir -p /var/lib" \
-			"cd /initrd$MNTLIVECD/var/lib ;
-			for d in *; do \
-				if [ -d /initrd$MNTLIVECD/var/lib/\$d ]; then \
-					case \$d in \
-						rpm|urpmi) \
-							ln -sf /initrd$MNTLIVECD/var/lib/\$d /var/lib/\$d || true; \
-							;; \
-						*) \
-							mkdir -p /var/lib/\$d || true ; \
-							for s in \$d/*; do \
-								[ -d /initrd$MNTLIVECD/var/lib/\$s ] && mkdir -p /var/lib/\$s || true; \
-							done \
-							;; \
-					esac \
-				fi \
-			done" \
-			"mkdir -p /var/lock/subsys" \
-			"mkdir -p /var/log && touch /var/log/wtmp" \
-			"mkdir -p /var/run && touch /var/run/utmp" \
-			"ln -s /tmp /var/tmp"
-		docmd   "Creating /etc structure" \
-			"cp -a /initrd$MNTLIVECD/etc /" \
-			"mkdir -p /etc/livecd/hwdetect" \
-			"chmod a+rw /etc" \
-			"rm -rf /etc/fstab && touch /etc/fstab" \
-			"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
-			"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
-			"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
-			"rm -rf /etc/mtab && touch /etc/mtab" \
-			"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
-			"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
-			"rm -rf /etc/rc.d/rc5.d/S05harddrake"
-		docmd   "Creating user directories" \
-			"cp -a /initrd$MNTLIVECD/root /" \
-			"cp -a /initrd$MNTLIVECD/home /"
+								;; \
+							tmp|lib)
+								;;
+							*) \
+								ln -sf /initrd$MNTLIVECD/var/\$d /var/\$d || true; \
+								;; \
+						esac \
+					fi \
+				done" \
+				"mkdir -p /var/lib" \
+				"cd /initrd$MNTLIVECD/var/lib ;
+				for d in *; do \
+					if [ -d /initrd$MNTLIVECD/var/lib/\$d ]; then \
+						case \$d in \
+							rpm|urpmi) \
+								ln -sf /initrd$MNTLIVECD/var/lib/\$d /var/lib/\$d || true; \
+								;; \
+							*) \
+								mkdir -p /var/lib/\$d || true ; \
+								for s in \$d/*; do \
+									[ -d /initrd$MNTLIVECD/var/lib/\$s ] && mkdir -p /var/lib/\$s || true; \
+								done \
+								;; \
+						esac \
+					fi \
+				done" \
+				"mkdir -p /var/lock/subsys" \
+				"mkdir -p /var/log && touch /var/log/wtmp" \
+				"mkdir -p /var/run && touch /var/run/utmp" \
+				"ln -s /tmp /var/tmp"
+			docmd   "Creating /etc structure" \
+				"cp -a /initrd$MNTLIVECD/etc /" \
+				"mkdir -p /etc/livecd/hwdetect" \
+				"chmod a+rw /etc" \
+				"rm -rf /etc/fstab && touch /etc/fstab" \
+				"echo 'none      /proc proc  defaults 0 0' >/etc/fstab" \
+				"echo 'none      /dev  devfs defaults 0 0' >>/etc/fstab" \
+				"echo '/dev/rd/3 /     ext2  defaults 0 0' >>/etc/fstab" \
+				"rm -rf /etc/mtab && touch /etc/mtab" \
+				"rm -rf /etc/modules.conf && touch /etc/modules.conf" \
+				"rm -rf /etc/rc.d/rc3.d/S05harddrake" \
+				"rm -rf /etc/rc.d/rc5.d/S05harddrake"
+			docmd   "Creating user directories" \
+				"cp -a /initrd$MNTLIVECD/root /" \
+				"cp -a /initrd$MNTLIVECD/home /"
+		fi
 	else
 		$SETCOLOR_FAIL
 		echo ""

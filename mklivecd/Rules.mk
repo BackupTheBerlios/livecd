@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.13 2003/10/07 06:28:07 jaco Exp $
+# $Id: Rules.mk,v 1.14 2003/10/09 11:24:00 jaco Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -16,6 +16,7 @@ nls_iso8859-5 nls_iso8859-6 nls_iso8859-7 nls_iso8859-8 nls_iso8859-9 \
 nls_utf8
 
 # these are the dependancies for the above
+DEF_MODULES_OPT=translucency zlib_inflate
 DEF_MODULES_DEP=isofs cdrom ide-cd
 
 # these modules are for all the SCSI types out there

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.22 2003/10/07 06:28:07 jaco Exp $
+# $Id: Makefile,v 1.23 2003/10/09 11:24:00 jaco Exp $
 
 include Rules.mk
 
@@ -17,6 +17,7 @@ mklivecd:
 		$(SED) -e 's/@MKLIVECDVER@/$(ARCHIVEVER)/g' | \
 		$(SED) -e 's/@KERNELVER@/$(KERNELVER)/g' | \
 		$(SED) -e 's/@DEF_MODULES@/$(DEF_MODULES)/g' | \
+		$(SED) -e 's/@DEF_MODULES_OPT@/$(DEF_MODULES_OPT)/g' | \
 		$(SED) -e 's/@DEF_MODULES_DEP@/$(DEF_MODULES_DEP)/g' | \
 		$(SED) -e 's/@DEF_SCSI_MODULES@/$(DEF_SCSI_MODULES)/g' | \
 		$(SED) -e 's/@DEF_SCSI_MODULES_DEP@/$(DEF_SCSI_MODULES_DEP)/g' \
@@ -28,6 +29,7 @@ mklivecd:
 		$(SED) -e 's/@DEF_RESOLUTION@/$(DEF_RESOLUTION)/g' | \
 		$(SED) -e 's/@DEF_VGAMODE@/$(DEF_VGAMODE)/g' | \
 		$(SED) -e 's/@DEF_MODULES@/$(DEF_MODULES)/g' | \
+		$(SED) -e 's/@DEF_MODULES_OPT@/$(DEF_MODULES_OPT)/g' | \
 		$(SED) -e 's/@DEF_MODULES_DEP@/$(DEF_MODULES_DEP)/g' | \
 		$(SED) -e 's/@DEF_SCSI_MODULES@/$(DEF_SCSI_MODULES)/g' | \
 		$(SED) -e 's/@DEF_SCSI_MODULES_DEP@/$(DEF_SCSI_MODULES_DEP)/g' \
