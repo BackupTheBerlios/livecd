@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.5 2003/09/30 09:32:51 jaco Exp $
+# $Id: linuxrc.in,v 1.6 2003/10/01 13:52:06 jaco Exp $
 #
 
 ### global variables
@@ -290,9 +290,20 @@ createramdisk() {
 			"pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
 			"cd /" \
 			"touch fastboot" \
+			"mkdir -p /lib" \
+			"cd /initrd$MNTLIVECD/lib ; \
+			 for f in *; do \
+			 	case \$f in \
+					dev-state) \
+						mkdir -p /lib/\$f ; \
+						;; \
+					*) \
+						ln -sf /initrd$MNTLIVECD/lib/\$f /lib/\$f || true; \
+						;; \
+				esac \
+			done" \
 			"ln -sf /initrd$MNTLIVECD/bin" \
 			"ln -sf /initrd$MNTLIVECD/boot" \
-			"ln -sf /initrd$MNTLIVECD/lib" \
 			"ln -sf /initrd$MNTLIVECD/opt" \
 			"ln -sf /initrd$MNTLIVECD/sbin" \
 			"ln -sf /initrd$MNTLIVECD/usr" \

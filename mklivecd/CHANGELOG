@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.18 2003/10/01 13:20:49 jaco Exp $
+# $Id: CHANGELOG,v 1.19 2003/10/01 13:52:06 jaco Exp $
 
 * Wed, Oct 01, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -47,6 +47,7 @@
       - Only make symlinks to /var/lib/{rpm,urpmi} directories, the
         rest are actual writables
       - Complete rework of creation of /var directories
+      - Allow rw access to /lib/dev-state
     [mklivecd]:
       - Changed default blocksize back to 64K (sane default for
         fastest operation in decompressing the compressed image)
