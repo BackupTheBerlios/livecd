@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.h,v 1.4 2004/01/23 17:56:05 jaco Exp $
+ * $Id: path.h,v 1.5 2004/01/24 17:56:13 jaco Exp $
  */
  
 #ifndef _PATH_dot_H_
@@ -66,6 +66,9 @@ public:
 	
 	string getDir(const string &);
 	string getDir(const char *path) { return getDir(string(path)); }
+	
+	void recurseMkdir(const string &, const string &root = "/");
+	void recurseMkdir(const char *path) { recurseMkdir(string(path)); }
 	
 public:
 	static string join(const string &, 

@@ -18,7 +18,7 @@
  *
  * The latest version of this file can be found at http://livecd.berlios.de
  *
- * $Id: path.cpp,v 1.6 2004/01/23 17:56:05 jaco Exp $
+ * $Id: path.cpp,v 1.7 2004/01/24 17:56:13 jaco Exp $
  */
 
 #include <fcntl.h>
@@ -82,6 +82,12 @@ bool
 Path::copyTmp(const string &path)
 {
 	FUNC("path='" << path << "'");
+	
+	string dir = getDir(path);
+	if ((dir.length() != 0) && !isTmp(dir)) {
+		TRACE("Creating directory dir='" << dir << "'");
+		recurseMkdir(dir); 
+	}
 	
 	bool ret = false;
 	struct stat buf;
@@ -181,8 +187,45 @@ Path::getDir(const string &path)
 {
 	FUNC("path='" << path << "'");
 	
-	int pos = path.rfind("/");
-	string dir = string(path, 0, pos);
+	string dir = path;
+	if (!isDir(path)) {
+		dir = string(path, 0, path.rfind("/"));
+	}
 	TRACE("dir='" << dir << "'");
 	return dir;
+}
+
+
+void
+Path::recurseMkdir(const string &path,
+		   const string &root) 
+{
+	FUNC("path='" << path << "', " <<
+	     "root='" << root << "'");
+	
+	if (exists(mktmp(join(root, path)).c_str(), 0)) {
+		TRACE("Already existing (tmp) root='" << root << "', path='" << path << "'");
+		return;
+	}
+	
+	if (!exists(mktmp(root).c_str(), 0)) {
+		TRACE("Making root='" << root << "'");
+		if (mkdir(mktmp(root).c_str(), 0666) != 0) {
+			ERROR("Creation of root='" << root << "' failed");
+			return;
+		}
+	}
+	else {
+		TRACE("Already existing (tmp) root='" << root << "'");
+	}
+	
+	int pos = path.find("/", 1);
+	if (pos > 0) {
+		recurseMkdir(path.substr(pos), join(root, path.substr(0, pos)));
+	}
+	else {
+		string dir = join(root, path);
+		TRACE("Making dir='" << dir << "'");
+		mkdir(mktmp(dir).c_str(), 0666);
+	}
 }
