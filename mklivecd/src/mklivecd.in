@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.49 2003/10/15 07:31:40 jaco Exp $
+# $Id: mklivecd.in,v 1.50 2003/10/30 07:11:15 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -509,7 +509,7 @@ while [ $# -gt 0 ]; do
 				excludes=$2
 				shift
 			fi
-			for e in `echo $excludes | sed -e 's/,/ /'`; do
+			for e in `echo $excludes | sed -e 's/,/ /g'`; do
 				excludedirs="$excludedirs $e"
 			done
 			;;
@@ -521,7 +521,7 @@ while [ $# -gt 0 ]; do
 				excludes=$2
 				shift
 			fi
-			for e in `echo $excludes | sed -e 's/,/ /'`; do
+			for e in `echo $excludes | sed -e 's/,/ /g'`; do
 				excludefiles="$excludefiles $e"
 			done
 			;;
