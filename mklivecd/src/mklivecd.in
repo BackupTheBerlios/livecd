@@ -19,7 +19,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.13 2003/10/02 11:31:08 jaco Exp $
+# $Id: mklivecd.in,v 1.14 2003/10/02 11:45:12 jaco Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -43,10 +43,15 @@ excludedirs="^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/
 excludefiles="^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*[.]rpmnew$ .*[.]rpmsave$ /[.]bash_history$ /[.]fonts[.]cache-[0-9]$ /[.]xauth.* /[.]xsession-errors$"
 cloopimg=""
 LIVECDISOCLP="livecd.iso.clp"
+
+# compression options
 loopcmp="create_compressed_fs"
 loopmod="cloop"
 blocksize=64
+
+# boot options
 keyboard=""
+bootmsg=""
 
 usage () {
 	echo "Usage:" >&2
@@ -83,6 +88,7 @@ usage () {
 	echo "       (unintended) side-effects." >&2
 	echo "" >&2
 	echo "Boot options:" >&2
+	echo "    --bootmsg=<boot.msg>       Use boot.msg as the isolinux message display" >&2
 	echo "    --keyboard=<language>      Specify a different keyboard layout (default: @DEF_KEYBOARD@)" >&2
 	echo "" >&2
 	echo "Examples:" >&2
@@ -253,6 +259,9 @@ create_isolinux() {
 	do_cp /usr/lib/syslinux/isolinux.bin $ISOLINUXDIR/isolinux.bin
 	do_cmd "cat /usr/share/mklivecd/isolinux.cfg | sed -e 's/\@BOOT_KEYB\@/$keyboard/g' >$ISOLINUXDIR/isolinux.cfg"
 	do_cp ${rootdir}/boot/vmlinuz-$kernel $ISOLINUXDIR/vmlinuz
+	if [ -n "$bootmsg" ]; then
+		do_cp $bootmsg $ISOLINUXDIR/boot.msg
+	fi
 	do_cmd "dd if=/dev/zero of=$ISOLINUXDIR/boot.cat bs=1k count=2 2> /dev/null"
 }
 
@@ -381,6 +390,19 @@ while [ $# -gt 0 ]; do
 				shift
 			fi
 			keyboard="keyb=$language"
+			;;
+
+		--bootmsg*)
+			if echo $1 | grep '=' >/dev/null ; then
+				bootmsg=`echo $1 | sed 's/^--bootmsg=//'`
+			else
+				bootmsg=$2
+				shift
+			fi
+			if [ ! -f "$bootmsg" ]; then
+				echo "ERROR: The specified boot message, '$bootmsg' could not be found." >&2
+				exit 1
+			fi
 			;;
 
 		--version)
