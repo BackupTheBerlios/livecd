@@ -1,6 +1,11 @@
-# $Id: CHANGELOG,v 1.53 2003/10/10 09:44:58 jaco Exp $
+# $Id: CHANGELOG,v 1.54 2003/10/15 07:30:01 jaco Exp $
 
 * Thu, Oct 09, 2003, 0.5.7-cvs
+  + Buchan Milne <bgmilne@cae.co.za>:
+    [mklivecd]:
+      - Add support ('--extraisofiles' option) for adding
+        additional files to the root of the LiveCD ISO image
+        (ie to see when browsing the CD normally)
   + Jaco Greeff <jaco@linuxminicd.org>:
     [Rules.mk]:
       - Created list for default normal and SCSI modules
