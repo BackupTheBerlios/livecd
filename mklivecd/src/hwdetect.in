@@ -21,7 +21,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.75 2004/01/07 09:15:06 jaco Exp $
+# $Id: hwdetect.in,v 1.76 2004/01/07 10:20:42 jaco Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -195,7 +195,7 @@ sub hwdetect_init {
 	my @devfspid = fuzzy_pidofs(qr/\bdevfsd\b/);
 	$owndevfsd = 0 if (scalar(@devfspid) > 0);
 	if ((-e '/dev/.devfsd') && (-e '/sbin/devfsd') && ($owndevfsd > 0)) {
-		system("/sbin/devfsd /dev 2>/dev/null");
+		system("PATH=/sbin devfsd /dev 2>/dev/null"); # funny arrangement to allow us to kill it later
 	}
 
 	print_success();
