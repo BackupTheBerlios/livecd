@@ -20,7 +20,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.73 2004/01/05 12:23:40 jaco Exp $
+# $Id: mklivecd.in,v 1.74 2004/01/05 12:28:05 jaco Exp $
 #
 
 use strict;
@@ -263,6 +263,9 @@ sub set_progress {
 	$progress_last = $curr;
 	my $num = int($progress_last/$progress_inc) - $progress_curr;
 	if (defined($opts{verbose}) && defined($text)) {
+		$text =~ s/\[//g;
+		$text =~ s/\]//g;
+		$text =~ s/\+//g;
 		if (!defined($progress_text) || !($text =~ m/^$progress_text$/)) {
 			if (defined($thr) || ($progress_timer == -1)) {
 				$progress_text = $text;
