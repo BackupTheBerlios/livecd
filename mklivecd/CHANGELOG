@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.35 2003/10/04 10:53:28 jaco Exp $
+# $Id: CHANGELOG,v 1.36 2003/10/04 13:20:53 jaco Exp $
 
 * Sat, Oct 04, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -62,6 +62,7 @@
       - Complete rework of creation of /var directories
       - Allow rw access to /lib/dev-state
       - Call hwdetect at end of sequence, before init
+      - Allow for a non-hwdetect override with hwdetect=no
     [mklivecd]:
       - Changed default blocksize back to 64K (sane default for
         fastest operation in decompressing the compressed image)

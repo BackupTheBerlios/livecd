@@ -19,7 +19,7 @@
 #
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 #
-# $Id: linuxrc.in,v 1.8 2003/10/04 09:50:12 jaco Exp $
+# $Id: linuxrc.in,v 1.9 2003/10/04 13:20:53 jaco Exp $
 #
 
 ### global variables
@@ -387,20 +387,23 @@ createramdisk() {
 
 ### setup for init of the actual mdk image
 setupinit() {
+	# perform hwdetect if not disabled
+	if `grep -iqv hwdetect=no /proc/cmdline`; then
+		/initrd/usr/sbin/hwdetect
+	fi
+
 	# do we just want to complete the initrd (debug)?
 	if `grep -iq livecd=initrd /proc/cmdline`; then
+		# exit, allowing us to debug
 		execshell
 	else
-		# prepare for Mandrake init
-		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
-		/initrd/usr/sbin/hwdetect
-
 		# clean up
 		docmd   "Unmounting /proc filesystem" \
 			"umount /proc"
 
 		### go to mdk init
 		echo "Starting Mandrake Linux init sequence ..."
+		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
 	fi
 }
 
