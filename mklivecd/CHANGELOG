@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.14 2003/10/01 08:10:44 jaco Exp $
+# $Id: CHANGELOG,v 1.15 2003/10/01 08:29:52 jaco Exp $
 
 * Wed, Oct 01, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -27,6 +27,7 @@
       - Add RPM release information for spec file generation
       - Added 'make rpm' target for building both the noarch and
         src RPMS
+      - Build all targets to DISTDIR
     [README]:
       - Include CVS location
     [hwdetect]:
