@@ -1,4 +1,4 @@
-# $Id: CHANGELOG,v 1.40 2003/10/04 22:09:58 jaco Exp $
+# $Id: CHANGELOG,v 1.41 2003/10/05 07:04:38 jaco Exp $
 
 * Sat, Oct 04, 2003, 0.5.6-cvs
   + Buchan Milne <bgmilne@cae.co.za>:
@@ -8,6 +8,7 @@
         on the image'd system (normal as well as chroot)
       - Avoid premature shell expansion polluting the exclude list
       - Optimised command-line parsing to not use redundant echo's
+      - Added bootsplash theme support with '--theme' option
     [mklivecd.spec]:
       - Updated to allow for rpmbuild -ta <tarball> to work for
         a CVS snapshot generated via 'make dist'
