@@ -28,7 +28,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.22 2004/01/25 09:41:02 jaco Exp $
+# $Id: livecd-install.ui.pm,v 1.23 2004/01/25 10:54:08 jaco Exp $
 #
 
 #use LCDLang;
@@ -150,6 +150,57 @@ sub pageSelected # SLOT: ( const QString & )
 	}
 }
 
+sub initLang 
+{
+	setCaption(trUtf8(getStr('caption')));
+	
+	setTitle(page, trUtf8(getStr('scr_1_title')));
+	tlWelcome->setText(trUtf8(getStr('scr_1_text')));
+	
+	setTitle(page_2, trUtf8(getStr('scr_2_title')));
+	tlWelcome_2_3->setText(trUtf8(getStr('scr_2_text')));
+	groupBox16->setTitle(trUtf8(getStr('scr_2_req')));
+	textLabel5->setText(trUtf8(getStr('scr_2_swap')));
+	textLabel1->setText(trUtf8(getStr('scr_2_root')));
+	groupBox16_2->setTitle(trUtf8(getStr('scr_2_opt')));
+	textLabel1_2->setText(trUtf8(getStr('scr_2_home')));
+	textLabel5_2->setText(trUtf8(getStr('scr_2_var')));
+	textLabel5_2_2->setText(trUtf8(getStr('scr_2_tmp')));
+	cbTmpFormat->setText(trUtf8(getStr('scr_2_fmt')));
+	cbVarFormat->setText(trUtf8(getStr('scr_2_fmt')));
+	cbHomeFormat->setText(trUtf8(getStr('scr_2_fmt')));
+	cbRootFormat->setText(trUtf8(getStr('scr_2_fmt')));
+	cbSwapFormat->setText(trUtf8(getStr('scr_2_fmt')));
+	
+	setTitle(page_3, trUtf8(getStr('scr_3_title')));
+	textLabel1_3->setText(trUtf8(getStr('scr_3_text')));
+	lvVerify->header()->setLabel(0, trUtf8(getStr('scr_3_mnt')));
+	lvVerify->header()->setLabel(1, trUtf8(getStr('scr_3_dev')));
+	lvVerify->header()->setLabel(2, trUtf8(getStr('scr_3_fmt')));
+	lvVerify->clear();
+	my $item = Qt::ListViewItem(lvVerify, undef);
+	
+	setTitle(page_4, trUtf8(getStr('scr_4_title')));
+	textLabel1_3_2->setText(trUtf8(getStr('scr_4_text')));
+	tlInstInfo->setText("");
+	groupBox3->setTitle(trUtf8(getStr('scr_4_progress')));
+	textLabel2->setText(trUtf8(getStr('scr_4_fmt')));
+	textLabel2_2->setText(trUtf8(getStr('scr_4_copy')));
+	textLabel2_2_2->setText(trUtf8(getStr('scr_4_overall')));
+	tlOverall->setText(trUtf8("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining')));
+	tlFormat->setText(trUtf8("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining')));
+	tlCopy->setText(trUtf8("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining')));
+	
+	setTitle(page_5, trUtf8(getStr('scr_5_title')));
+	textLabel1_3_2_2->setText(trUtf8(getStr('scr_5_text')));
+	bInstall->setText(trUtf8(getStr('btn_inst')));
+	
+	setTitle(page_6, trUtf8(getStr('scr_6_title')));
+	tlWelcome_2->setText(trUtf8(getStr('scr_6_text')));
+	buttonGroup2->setTitle( "" );
+	rbNoReboot->setText(trUtf8(getStr('scr_6_no')));
+	rbReboot->setText(trUtf8(getStr('scr_6_yes')));
+}
 
 sub init
 {
@@ -160,6 +211,7 @@ sub init
 	$lang = getMyLang();
 	
 	print getStr('script_init')."\n";
+	initLang();
 	do_system("mkdir -p $mnt");
 	print getStr('done')."\n";
 }
@@ -202,10 +254,10 @@ sub timerEvent
 		my $elapsed_s = fmtTime($elapsed);
 		if ($pb_o_num > 0) {
 			my $remain_s = fmtTime(($elapsed/$pb_o_num)*($pb_o_tot-$pb_o_num));
-			tlOverall->setText("$elapsed_s Elapsed, $remain_s Remaining");
+			tlOverall->setText("$elapsed_s ".getStr('time_elapsed').", $remain_s ".getStr('time_remaining'));
 		}
 		else {
-			tlOverall->setText("$elapsed_s Elapsed, $elapsed_s Remaining");
+			tlOverall->setText("$elapsed_s ".getStr('time_elapsed').", $elapsed_s ".getStr('time_remaining'));
 		}
 		pbOverall->setProgress($pb_o_num, $pb_o_tot);
 
@@ -214,10 +266,10 @@ sub timerEvent
 		$elapsed_s = fmtTime($elapsed);
 		if ($pb_f_num > 0) {
 			my $remain_s = fmtTime(($elapsed/$pb_f_num)*($pb_f_tot-$pb_f_num));
-			tlFormat->setText("$elapsed_s Elapsed, $remain_s Remaining");
+			tlFormat->setText("$elapsed_s ".getStr('time_elapsed').", $remain_s ".getStr('time_remaining'));
 		}
 		else {
-			tlFormat->setText("$elapsed_s Elapsed, $elapsed_s Remaining");
+			tlFormat->setText("$elapsed_s ".getStr('time_elapsed').", $elapsed_s ".getStr('time_remaining'));
 		}
 		pbFormat->setProgress($pb_f_num, $pb_f_tot);
 
@@ -226,10 +278,10 @@ sub timerEvent
 		$elapsed_s = fmtTime($elapsed);
 		if ($pb_c_num > 0) {
 			my $remain_s = fmtTime(($elapsed/$pb_c_num)*($pb_c_tot-$pb_c_num));
-			tlCopy->setText("$elapsed_s Elapsed, $remain_s Remaining");
+			tlCopy->setText("$elapsed_s ".getStr('time_elapsed').", $remain_s ".getStr('time_remaining'));
 		}
 		else {
-			tlCopy->setText("$elapsed_s Elapsed, $elapsed_s Remaining");
+			tlCopy->setText("$elapsed_s ".getStr('time_elapsed').", $elapsed_s ".getStr('time_remaining'));
 		}
 		pbCopy->setProgress($pb_c_num, $pb_c_tot);
 	}
@@ -245,15 +297,15 @@ sub scanPartitions
     this->setNextEnabled($page, 0);
 
     if (this->cbRoot->count() eq 0) {
-	this->cbRoot->insertItem("(none)");
+	this->cbRoot->insertItem(getStr('part_none'));
 	this->cbRoot->setCurrentItem(0);
-	this->cbSwap->insertItem("(none)");
+	this->cbSwap->insertItem(getStr('part_none'));
 	this->cbSwap->setCurrentItem(0);
-	this->cbHome->insertItem("(none)");
+	this->cbHome->insertItem(getStr('part_none'));
 	this->cbHome->setCurrentItem(0);
-	this->cbVar->insertItem("(none)");
+	this->cbVar->insertItem(getStr('part_none'));
 	this->cbVar->setCurrentItem(0);
-	this->cbTmp->insertItem("(none)");
+	this->cbTmp->insertItem(getStr('part_none'));
 	this->cbTmp->setCurrentItem(0);
 
 	do_system("mkdir -p $prefix/etc/livecd/hwdetect");
@@ -304,41 +356,41 @@ sub showVerify
 {
     if (this->cbRoot->currentText() =~ m/none/) {
 	emit back();
-	Qt::MessageBox::warning(undef, "Missing root", "You have to specify a root (/) partition", "Retry");
+	Qt::MessageBox::warning(undef, getStr('part_no_root_t'), getStr('part_no_root'), getStr('btn_retry'));
     }
     elsif (this->cbSwap->currentText() =~ m/none/) {
 	emit back();
-	Qt::MessageBox::warning(undef, "Missing swap", "You have to specify a swap partition", "Retry");
+	Qt::MessageBox::warning(undef, getStr('part_no_swap_t'), getStr('part_no_swap'), getStr('btn_retry'));
     }
     elsif (!(this->cbHome->currentText() =~ m/none/) &&
            (this->cbHome->currentText() eq this->cbRoot->currentText())) {
 	emit back();
-	Qt::MessageBox::warning(undef, "Overlapping home", "The home (/home) partition is the same as the root (/) partition.", "Retry");
+	Qt::MessageBox::warning(undef, getStr('part_o_home_t'), getStr('part_o_home'), getStr('btn_retry'));
     }
     elsif (!(this->cbVar->currentText() =~ m/none/) &&
            (this->cbVar->currentText() eq this->cbRoot->currentText())) {
 	emit back();
-	Qt::MessageBox::warning(undef, "Overlapping var", "The var (/var) partition is the same as the root (/) partition.", "Retry");
+	Qt::MessageBox::warning(undef, getStr('part_o_var_t'), getStr('part_o_var'), getStr('btn_retry'));
     }
     elsif (!(this->cbVar->currentText() =~ m/none/) &&
            (this->cbVar->currentText() eq this->cbHome->currentText())) {
 	emit back();
-	Qt::MessageBox::warning(undef, "Overlapping var/home", "The var (/var) partition is the same as the home (/home) partition.", "Retry");
+	Qt::MessageBox::warning(undef, getStr('part_o_varhome_t'), getStr('part_o_varhome'), getStr('btn_retry'));
     }
     elsif (!(this->cbTmp->currentText() =~ m/none/) &&
            (this->cbTmp->currentText() eq this->cbRoot->currentText())) {
 	emit back();
-	Qt::MessageBox::warning(undef, "Overlapping temp", "The temp (/tmp) partition is the same as the root (/) partition.", "Retry");
+	Qt::MessageBox::warning(undef, getStr('part_o_tmp_t'), getStr('part_o_tmp'), getStr('btn_retry'));
     }
     elsif (!(this->cbTmp->currentText() =~ m/none/) &&
            (this->cbTmp->currentText() eq this->cbHome->currentText())) {
 	emit back();
-	Qt::MessageBox::warning(undef, "Overlapping temp", "The temp (/tmp) partition is the same as the home (/home) partition.", "Retry");
+	Qt::MessageBox::warning(undef, getStr('part_o_tmphome_t'), getStr('part_o_tmphome'), getStr('btn_retry'));
     }
     elsif (!(this->cbTmp->currentText() =~ m/none/) &&
            (this->cbTmp->currentText() eq this->cbVar->currentText())) {
 	emit back();
-	Qt::MessageBox::warning(undef, "Overlapping temp/var", "The temp (/tmp) partition is the same as the var (/var) partition.", "Retry");
+	Qt::MessageBox::warning(undef, getStr('part_o_tmpvar_t'), getStr('part_o_tmpvar'), getStr('btn_retry'));
     }
     else {
 	this->lvVerify->clear();
@@ -349,39 +401,39 @@ sub showVerify
 	$item = Qt::ListViewItem(this->lvVerify, $item);
 	$text = this->cbSwap->currentText();
 	($swappart, @rest) = split(/,/, $text);
-	$item->setText(0, "(swap)");
+	$item->setText(0, getStr('part_name_swap'));
 	$item->setText(1, $text);
-	$item->setText(2, "Yes") if (this->cbSwapFormat->isChecked());
+	$item->setText(2, getStr('yes')) if (this->cbSwapFormat->isChecked());
 	unless (this->cbTmp->currentText() =~ m/none/) {
 	    $item = Qt::ListViewItem(this->lvVerify, $item);
 	    $text = this->cbTmp->currentText();
 	    ($tmppart, @rest) = split(/,/, $text);
-	    $item->setText(0, "/tmp");
+	    $item->setText(0, getStr('part_name_tmp'));
 	    $item->setText(1, $text);
-	    $item->setText(2, "Yes") if (this->cbTmpFormat->isChecked());
+	    $item->setText(2, getStr('yes')) if (this->cbTmpFormat->isChecked());
 	}
 	unless (this->cbVar->currentText() =~ m/none/) {
 	    $item = Qt::ListViewItem(this->lvVerify, $item);
 	    $text = this->cbVar->currentText();
 	    ($varpart, @rest) = split(/,/, $text);
-	    $item->setText(0, "/var");
+	    $item->setText(0, getStr('part_name_var'));
 	    $item->setText(1, $text);
-	    $item->setText(2, "Yes") if (this->cbVarFormat->isChecked());
+	    $item->setText(2, getStr('yes')) if (this->cbVarFormat->isChecked());
 	}
 	unless (this->cbHome->currentText() =~ m/none/) {
 	    $item = Qt::ListViewItem(this->lvVerify, $item);
 	    $text = this->cbHome->currentText();
 	    ($homepart, @rest) = split(/,/, $text);
-	    $item->setText(0, "/home");
+	    $item->setText(0, getStr('part_name_home'));
 	    $item->setText(1, $text);
-	    $item->setText(2, "Yes") if (this->cbHomeFormat->isChecked());
+	    $item->setText(2, getStr('yes')) if (this->cbHomeFormat->isChecked());
 	}
 	$item = Qt::ListViewItem(this->lvVerify, $item);
 	$text = this->cbRoot->currentText();
 	($rootpart, @rest) = split(/,/, $text);
-	$item->setText(0, "/");
+	$item->setText(0, getStr('part_name_root'));
 	$item->setText(1, $text);
-	$item->setText(2, "Yes") if (this->cbRootFormat->isChecked());
+	$item->setText(2, getStr('yes')) if (this->cbRootFormat->isChecked());
     }
 }
 
@@ -394,7 +446,7 @@ sub showInstall
 
 	$this->setBackEnabled($page, 0) unless ($destroy);
 	$this->setNextEnabled($page, 0) unless ($destroy);
-	$infotext = "Scanning available directories" unless ($destroy);
+	$infotext = getStr('inst_scan') unless ($destroy);
 
 	my $fmtsteps = 0;
 	$fmtsteps++ if ($this->cbRootFormat->isChecked());
@@ -474,11 +526,11 @@ sub showInstall
 		doCopy("/", @rootdirs) unless ($destroy);
 	}
 
-	$infotext = "Creating /etc/fstab";
+	$infotext = getStr('inst_fstab');
 	print "$infotext\n";
 	writeFstab($devs) unless ($destroy);
 
-	$infotext = "Installation completed. Please press Next to continue.";
+	$infotext = getStr('inst_done');
 	print "$infotext\n";
 	$this->setNextEnabled($page, 1) unless ($destroy);
 	sleep(1);
@@ -558,8 +610,8 @@ sub formatPart
     my ($dev, $devs) = @_;
 
     if (!$destroy) {
-        print "Formatting:\n$dev (".$fsnames{$devs->{$dev}{type}}.")\n";
-	$infotext = "Formatting:\n$dev (".$fsnames{$devs->{$dev}{type}}.")" unless ($destroy);
+        print getStr('fmt_title')."\n$dev (".$fsnames{$devs->{$dev}{type}}.")\n";
+	$infotext = getStr('fmt_title')."\n$dev (".$fsnames{$devs->{$dev}{type}}.")" unless ($destroy);
 
 	if (!defined($debug)) {
 		my @options = ();
@@ -609,7 +661,7 @@ sub copyDir
 
 	if (!$destroy) {
 		chomp($dir);
-		$infotext = "Copying from $from:\n$dir" unless ($destroy);
+		$infotext = getStr('copy_title')." $from:\n$dir" unless ($destroy);
 
 		if (!defined($debug)) {
 			do_system("mkdir -p \"$mnt/$dir\"");
@@ -627,7 +679,7 @@ sub copyDir
 sub showBootloader
 {
 	this->setBackEnabled($page, 0);
-	this->lbBootloader->insertItem("$rootpart (Bootsector of partition)");
+	this->lbBootloader->insertItem("$rootpart ".getStr('boot_bs'));
 
 	my @drives = ();
 	foreach my $dev (sort keys %devs) {
@@ -640,7 +692,7 @@ sub showBootloader
 		push @drives, $dev unless ($found);
 		}
 	}
-	this->lbBootloader->insertItem("$_ (Master boot record of drive)") foreach (@drives);
+	this->lbBootloader->insertItem("$_ ".getStr('boot_mbr')) foreach (@drives);
 	this->lbBootloader->setCurrentItem(0);
 }
 
@@ -708,7 +760,7 @@ sub writeFstab {
 		fs::write_fstab($hdds, $mnt);
 
 		open FSTAB, '>', "$mnt/etc/fstab";
-		print FSTAB "\n### entries below this line were automatically added by LiveCD install\n";
+		print FSTAB "\n### ".getStr('fstab_info')."\n";
 		print FSTAB "\nnone"."\t"."/proc"."\t"."proc"."\t"."defaults"."\t"."0 0";
 		print FSTAB "\nnone"."\t"."/dev"."\t"."devfs"."\t"."defaults"."\t"."0 0";
 		print FSTAB "\n";
