@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.56 2005/03/13 22:02:10 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.57 2005/05/31 22:56:34 ikerekes Exp $
 #
 
 #use LCDLang;
@@ -554,6 +554,7 @@ sub showInstall
 		@changesdirs = qx(find $changes/ -type d -mount | sed -s 's,$changes,,') unless ($destroy);
 		print "scalar(changesdirs)=".scalar(@changesdirs)."\n";
 		$copysteps = $copysteps + scalar(@changesdirs);
+		$pb_c_tot = $copysteps;
 	}
 	else {
 		@dirs = qx(find $initrd/ -type d -mount | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root | grep -v ^/etc | grep -v ^/lib/dev-state) unless ($destroy);
@@ -575,11 +576,12 @@ sub showInstall
 		@devstatedirs = qx(find /lib/dev-state -type d -mount) unless ($destroy);
 		print "scalar(devstatedirs)=".scalar(@devstatedirs)."\n";
 		$copysteps = $copysteps + scalar(@devstatedirs);
+		$pb_c_tot = $copysteps;
 	}
-	$pb_c_tot = $copysteps;
+#	$pb_c_tot = $copysteps;
 	$pb_c_num = 0;
 
-	my $totsteps = $copysteps+$fmtsteps;
+	my $totsteps = $pb_c_tot+$fmtsteps;
 	$pb_o_tot = $totsteps;
 	$pb_o_num = 0;
 
