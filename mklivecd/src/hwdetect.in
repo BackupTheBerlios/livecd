@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.155 2005/06/02 14:39:58 ikerekes Exp $
+# $Id: hwdetect.in,v 1.156 2005/06/02 14:49:07 ikerekes Exp $
 #
 
 use strict;
@@ -733,7 +733,7 @@ sub hwdetect_getxfree() {
         
 	# set the desired res, and override if failed and we are not safe
 	my $resolution;
-	eval { $resolution = Xconfig::resolution_and_depth::configure_auto_install($rawX, $def_card, $def_monitors, $old_X) };
+	eval { $resolution = Xconfig::resolution_and_depth::configure_resolution($rawX, $def_card, $def_monitors, $old_X) };
 	if (!defined($resolution) && defined($resolution_wanted) && !defined($cmdline{safex})) {
 		eval { $rawX->set_resolution($resolution_wanted) };
 		eval { $resolution = $rawX->get_resolution };
