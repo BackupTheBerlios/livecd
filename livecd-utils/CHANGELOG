@@ -1,4 +1,5 @@
-# $Id: CHANGELOG,v 1.9 2005/03/13 22:02:10 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.10 2005/06/02 15:13:47 ikerekes Exp $
+* 2005-06-02 various fixes to fix progress-bar in livecd-install, extend satalist, and fix bootsplash creation
 
 * 2005-03-13 works with unionfs, thanks to ikerek & etjr
 	- removed ata_piix (already present)

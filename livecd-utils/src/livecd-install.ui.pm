@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.57 2005/05/31 22:56:34 ikerekes Exp $
+# $Id: livecd-install.ui.pm,v 1.58 2005/06/02 15:11:01 ikerekes Exp $
 #
 
 #use LCDLang;
@@ -98,6 +98,7 @@ my $pb_o_tot      : shared = 0;
 
 my @satalist = qw(libata sd_mod ata_piix scsi_mod sr_mod sg a100u2w
 		advansys aha152x aha1542 aic7xxx BusLogic fdomain gdth
+		sata_sis ehci-hcd usb-storage
 		megaraid sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc);
 
 my %devs   = ();
@@ -840,6 +841,7 @@ sub showBootloader
 		}
 	}
 	do_system("chroot $mnt /sbin/mkinitrd -v $with $initrd $kernelver");
+	do_system("chroot $mnt /usr/share/bootsplash/scripts/make-boot-splash $initrd 800x600");
 
 	### Update /etc/sysconfig/installkernel file for future kernel changes
 	if ($with ne '') {
