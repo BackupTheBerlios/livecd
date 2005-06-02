@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.154 2005/03/03 16:34:27 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.155 2005/06/02 14:39:58 ikerekes Exp $
 #
 
 use strict;
@@ -519,7 +519,8 @@ sub hwdetect_initusb() {
 			# "printer" should be in as well? (does cups stuff :(
 			print "    " . getStr('usb_load') . ": ";
 			my $num = 0;
-			my @modules = $kernel26 ? ('input', 'usb-storage', 'visor', 'usbmouse', 'usbhid') : ('input', 'mousedev', 'keybdev', 'usb-storage', 'visor');
+		#	my @modules = $kernel26 ? ('input', 'usb-storage', 'visor', 'usbmouse', 'usbhid') : ('input', 'mousedev', 'keybdev', 'usb-storage', 'visor');
+			my @modules = $kernel26 ? ('input', 'usb-storage', 'visor') : ('input', 'mousedev', 'keybdev', 'usb-storage', 'visor');
 			$num += modprobe("-q", $_) foreach @modules;
 			!$num ? $probe ? print_warning() : print_failed() : print_loaded();
 		}
