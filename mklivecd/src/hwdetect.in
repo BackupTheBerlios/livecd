@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.157 2005/06/02 20:08:54 ikerekes Exp $
+# $Id: hwdetect.in,v 1.158 2005/06/03 03:32:19 ikerekes Exp $
 #
 
 use strict;
@@ -783,7 +783,7 @@ sub hwdetect_getsound() {
 			
 			# sound card specifics not defaulted in MDK
 			$modules_conf->set_options('snd-via82xx', 'index=0 dxs_support=2') if $driver =~ /via82xx/;
-			$modules_conf->set_options('snd-card-intel8x0', 'snd_ac97_clock=41194') if $driver =~ /intel8x0/;
+#			$modules_conf->set_options('snd-card-intel8x0', 'snd_ac97_clock=41194') if $driver =~ /intel8x0/;
 			
 			$num++;
 			# hwdetect_loadmod($card->{driver}, ...) makes alsa break since the init scripts
