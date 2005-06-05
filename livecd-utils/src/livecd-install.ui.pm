@@ -29,13 +29,13 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.59 2005/06/05 15:25:30 ikerekes Exp $
+# $Id: livecd-install.ui.pm,v 1.60 2005/06/05 21:21:53 ikerekes Exp $
 #
 
 #use LCDLang;
 
 use strict;
-use threads;
+#use threads;
 use threads::shared;
 
 use lib qw(/usr/lib/libDrakX);
