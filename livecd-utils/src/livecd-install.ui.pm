@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.58 2005/06/02 15:11:01 ikerekes Exp $
+# $Id: livecd-install.ui.pm,v 1.59 2005/06/05 15:25:30 ikerekes Exp $
 #
 
 #use LCDLang;
@@ -1182,8 +1182,9 @@ sub deleteGuest # SLOT: ( )
 	my $result  = "";
 
 	# Delete the guest account and report - not found, deleted ok, error
-	$comm="/usr/sbin/userdel -r guest";
-	$result = do_system2("/bin/echo $comm | chroot $mnt");
+#	$comm="/usr/sbin/userdel -r guest";
+#	$result = do_system2("/bin/echo $comm | chroot $mnt");
+	$result = do_system2("/bin/echo userdel -r guest | chroot $mnt");
 	print "\nDEBUG: Delete Guest result = $result\n";
         if ($result eq "1536") {
 	   Qt::MessageBox::information (this, getStr('caption'), getStr('guest_not_found'));
