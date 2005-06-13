@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.158 2005/06/03 03:32:19 ikerekes Exp $
+# $Id: hwdetect.in,v 1.159 2005/06/13 01:52:21 ikerekes Exp $
 #
 
 use strict;
@@ -739,12 +739,12 @@ sub hwdetect_getxfree() {
 		eval { $resolution = $rawX->get_resolution };
 	}
 
-	# try to make sure we have at least a valid 800x600 before finally setting it
+	# try to make sure we have at least a valid 1024x768 before finally setting it
 	if (!defined($resolution) ||
 	    !defined($resolution->{X}) || !defined($resolution->{Y}) || !defined($resolution->{Depth}) ||
-	    ($resolution->{X} < 800 && !defined($cmdline{xres}) && !defined($cmdline{xbpp}))) {
-		$resolution->{X} = 800;
-		$resolution->{Y} = 600;
+	    ($resolution->{X} < 1024 && !defined($cmdline{xres}) && !defined($cmdline{xbpp}))) {
+		$resolution->{X} = 1024;
+		$resolution->{Y} = 768;
 		$resolution->{Depth} = 16;
 	}
 	eval { $rawX->set_resolution($resolution) };
