@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.49 2005/02/26 17:29:50 tom_kelly33 Exp $
+# $Id: rc.sysinit.in,v 1.50 2005/06/19 15:33:17 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -532,12 +532,12 @@ execshell
 ###### MAIN ######
 echo "--- MKLIVECD RC.SYSINIT ------------"
 
-OPTION=`getbootoption union`
-if [ $OPTION ]; then
-	echo "Union option = $OPTION"
-        do_union ""
-else 
+OPTION=`getbootoption unionfs`
+if [ "$OPTION" = "no" ]; then
+	echo "Unionfs option = $OPTION"
 	setuproot ""
+else 
+	do_union ""
 fi
 setupinit ""
 echo "--- Exiting MKLIVECD RC.SYSINIT ----"

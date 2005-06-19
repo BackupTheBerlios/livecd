@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.159 2005/06/13 01:52:21 ikerekes Exp $
+# $Id: hwdetect.in,v 1.160 2005/06/19 15:33:17 tom_kelly33 Exp $
 #
 
 use strict;
@@ -733,7 +733,14 @@ sub hwdetect_getxfree() {
         
 	# set the desired res, and override if failed and we are not safe
 	my $resolution;
-	eval { $resolution = Xconfig::resolution_and_depth::configure_resolution($rawX, $def_card, $def_monitors, $old_X) };
+	# PCLOS P9 
+	if (-e "/etc/pclinuxos-release") {
+		eval { $resolution = Xconfig::resolution_and_depth::configure_resolution($rawX, $def_card, $def_monitors, $old_X) };
+	}
+	# Mandriva Cooker
+	if (-e "/etc/mandriva-release") {
+	  	eval { $resolution = Xconfig::resolution_and_depth::configure_auto_install($rawX, $def_card, $def_monitors, $old_X) };
+	}
 	if (!defined($resolution) && defined($resolution_wanted) && !defined($cmdline{safex})) {
 		eval { $rawX->set_resolution($resolution_wanted) };
 		eval { $resolution = $rawX->get_resolution };

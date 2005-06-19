@@ -1,4 +1,9 @@
-# $Id: CHANGELOG,v 1.150 2005/06/03 03:12:38 ikerekes Exp $
+# $Id: CHANGELOG,v 1.151 2005/06/19 15:33:17 tom_kelly33 Exp $
+* 2005=06-19 added cdrom to Modules.mk (safe if missing)
+	     hwdetect:resolution check pclos/mandriva
+	     mklivecd - add safeboot, remove cow references
+             rc.sysinit.in - default use unionfs unless unionfs=no	
+
 * 2005-06-02 added sata_sis to the satalist in hwdetect as per Texstar request
 * 2005-06-01 applied Texstar’s fixes to hwdetect, to fix xres and MS wireless mouse not able to move the cursor 			sidewise
 
