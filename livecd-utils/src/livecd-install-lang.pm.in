@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install-lang.pm.in,v 1.20 2005/01/15 16:28:34 tom_kelly33 Exp $
+# $Id: livecd-install-lang.pm.in,v 1.21 2005/06/30 02:26:59 ikerekes Exp $
 #
 
 package fMain;
@@ -117,6 +117,7 @@ my %strings = (
 	'part_name_var'    => [ "/var", "/var", "/var", "/var", "/var", "/var", undef ],
 	'part_name_home'   => [ "/home", "/home", "/home", "/home", "/home", "/home", undef ],
 	'part_name_root'   => [ "/", "/", "/", "/", "/", "/", undef ],
+	 'root_small'       => [ "Caution root is < 2.5 Gig", "Caution root is < 2.5 Gig", "Caution root is < 2.5 Gig", "Caution root is < 2.5 Gig", "Caution root is < 2.5 Gig", undef ],
 
 	'function_error'   => [ "System function error, return value:", "Errore di sistema, valore restituito:", "Systemfunktionsfehler, Fehlerrückgabe:", "Erreur fonction systeme, retourner la valeur:", "Sistem işleyişinde hata, dönen değer:", "Hệ thống bị lỗi, lỗi là:", undef ],
         'missing_value'    => [ "A value is missing. Please include login and password twice.", "Manca un valore. Per favore inserisci login e password due volte.", "Ein Wert fehlt. Bitte geben sie login und Kennwort zweimal an.", "Il manque une valeur. Inserer svp une deuxieme fois votre nom utilisateur et votre mot de passe.", "Bir değer eksik. Lütfen bir kere daha kullanıcı adı ve parolanızı giriniz.", "Thông tin chưa đầy đủ. Vui lòng điền người dùng và mật khẩu 2 lần", undef ],

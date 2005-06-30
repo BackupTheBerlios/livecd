@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.60 2005/06/05 21:21:53 ikerekes Exp $
+# $Id: livecd-install.ui.pm,v 1.61 2005/06/30 02:26:59 ikerekes Exp $
 #
 
 #use LCDLang;
@@ -516,6 +516,12 @@ sub showVerify
 	$item->setText(0, getStr('part_name_root'));
 	$item->setText(1, $text);
 	$item->setText(2, getStr('yes')) if (this->cbRootFormat->isChecked());
+	###  Warn if root is smaller than 2.5 Gig
+	my $rootsize = `df --block-size=1024 /$rootpart | tail -1`;
+	my @list=split(" ", $rootsize);
+	if ($list[1] < 2500000) {
+		Qt::MessageBox::information(undef,getStr('caption'), getStr('root_small'));
+	 }
     }
 }
 
@@ -1254,7 +1260,7 @@ sub createUser # SLOT: ( )
 
 	# Add the user
 	if ($realname eq "") {
-	   $comm = "\"useradd -g '"."$username"."' -d '"."/home/$username"."' -s /bin/bash  -m -k /etc/skel -p foo '"."$username"."'\"";
+	   $comm = "\"useradd -g '"."$username"."' -d '"."/home/$username"."' -s /bin/bash -G audio,video  -m -k /etc/skel -p foo '"."$username"."'\"";
 	} else {
 	   $comm = "\"useradd -g '"."$username"."' -d '"."/home/$username"."' -s /bin/bash -c '"."$realname"."' -m -k /etc/skel -p foo '"."$username"."'\"";
 	}
