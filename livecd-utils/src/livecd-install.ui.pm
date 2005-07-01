@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.61 2005/06/30 02:26:59 ikerekes Exp $
+# $Id: livecd-install.ui.pm,v 1.62 2005/07/01 19:03:08 ikerekes Exp $
 #
 
 #use LCDLang;
@@ -517,11 +517,15 @@ sub showVerify
 	$item->setText(1, $text);
 	$item->setText(2, getStr('yes')) if (this->cbRootFormat->isChecked());
 	###  Warn if root is smaller than 2.5 Gig
-	my $rootsize = `df --block-size=1024 /$rootpart | tail -1`;
+	do_system("mkdir -p $mnt");
+        do_system("mount  $rootpart $mnt");
+#	my $rootsize = `df --block-size=1024 /$rootpart | tail -1`;
+	my $rootsize = `df --block-size=1024 $mnt | tail -1`;
 	my @list=split(" ", $rootsize);
 	if ($list[1] < 2500000) {
 		Qt::MessageBox::information(undef,getStr('caption'), getStr('root_small'));
 	 }
+	do_system("umount $mnt");
     }
 }
 
