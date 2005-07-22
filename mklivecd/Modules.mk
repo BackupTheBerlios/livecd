@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.24 2005/06/23 01:12:17 ikerekes Exp $
+# $Id: Modules.mk,v 1.25 2005/07/22 05:47:53 ikerekes Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -108,11 +108,9 @@ DEF_SCSI_MODULES_PATH_24=\
 #	drivers/scsi/aha1740
 DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/3w-xxxx \
-#	drivers/scsi/advansys \
 	drivers/scsi/aha1542 \
 	drivers/scsi/aic7xxx/aic7xxx \
 	drivers/scsi/BusLogic \
-#	drivers/scsi/cpqfc \
 	drivers/scsi/dmx3191d \
 	drivers/scsi/dtc \
 	drivers/scsi/eata \
@@ -133,6 +131,8 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/ultrastor \
 	drivers/scsi/wd7000 \
 	drivers/message/fusion/mptscsih
+#	drivers/scsi/advansys \
+#	drivers/scsi/cpqfc \
 
 # depending on kernel version, these have different names
 DEF_SCSI_MODULES_OPT_PATH_24=\
