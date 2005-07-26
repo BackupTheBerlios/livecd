@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.25 2005/07/22 05:47:53 ikerekes Exp $
+# $Id: Modules.mk,v 1.26 2005/07/26 04:44:30 ikerekes Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -123,7 +123,6 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/psi240i \
 	drivers/scsi/qlogicfas \
 	drivers/scsi/qlogicfc \
-	drivers/scsi/qlogicisp \
 	drivers/scsi/sym53c416 \
 	drivers/scsi/t128 \
 	drivers/scsi/tmscsim \
@@ -133,6 +132,7 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/message/fusion/mptscsih
 #	drivers/scsi/advansys \
 #	drivers/scsi/cpqfc \
+#	drivers/scsi/qlogicisp \
 
 # depending on kernel version, these have different names
 DEF_SCSI_MODULES_OPT_PATH_24=\
