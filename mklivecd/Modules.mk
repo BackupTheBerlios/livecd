@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.26 2005/07/26 04:44:30 ikerekes Exp $
+# $Id: Modules.mk,v 1.27 2005/09/11 15:04:40 ikerekes Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -34,6 +34,13 @@ DEF_MODULES_PATH_26=\
 	fs/nls/nls_iso8859-6 \
 	fs/nls/nls_iso8859-7 \
 	fs/nls/nls_iso8859-9 \
+        fs/jbd/jbd \
+        fs/ext3/ext3 \
+        fs/reiserfs/reiserfs \
+        fs/fat/fat \
+        fs/msdos/msdos \
+        fs/vfat/vfat \
+        fs/ntfs/ntfs \
 	fs/nls/nls_utf8
 
 # these are the dependancies for the above
@@ -47,6 +54,8 @@ DEF_MODULES_DEP_PATH_24=\
 	fs/isofs/isofs \
 	drivers/cdrom/cdrom \
 	drivers/ide/ide-cd \
+        drivers/scsi/ata_piix \
+        drivers/scsi/libata \
 	drivers/misc/aes \
 	drivers/block/loop
 
