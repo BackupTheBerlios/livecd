@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.93 2005/02/26 06:25:26 tom_kelly33 Exp $
+# $Id: linuxrc.in,v 1.94 2005/09/11 15:27:14 ikerekes Exp $
 #
 
 ### global variables
@@ -37,7 +37,7 @@ SCSI_MODULES_24="@DEF_SCSI_MODULES_24@ @DEF_SCSI_MODULES_OPT_24@" # these are fo
 USB_MODULES_24="@DEF_USB_MODULES_24@"
 USB_MODULES_DRV_24="@DEF_USB_MODULES_DRV_24@"
 OPT_MODULES_26="@DEF_MODULES_OPT_26@"
-DEP_MODULES_26="@DEF_MODULES_DEP_26@ @DEF_SCSI_MODULES_DEP_26@"
+DEP_MODULES_26="@DEF_MODULES_26@ @DEF_MODULES_DEP_26@ @DEF_SCSI_MODULES_DEP_26@"
 SCSI_MODULES_26="@DEF_SCSI_MODULES_26@ @DEF_SCSI_MODULES_OPT_26@" # these are for the SCSI drivers
 USB_MODULES_26="@DEF_USB_MODULES_26@"
 USB_MODULES_DRV_26="@DEF_USB_MODULES_DRV_26@"
@@ -180,6 +180,163 @@ set_progress() {
 		progress=$(($progress_max*($progress_num+1)/$progress_full));
 		echo "show $progress" >/proc/splash
 	fi
+}
+
+# ===========================================================
+# discovery functions
+# ===========================================================
+
+# List all CD-ROMs
+# by using /proc entries
+#
+list_cdrom_devices()
+{
+   #if [ -n "`cmdline_parameter nocd`" ]; then return 1; fi
+   for CDDEVICE in `cat /proc/sys/dev/cdrom/info | head -n 3 | tail -n 1 | cut -d ":" -f 2`; do
+      echo "/dev/$CDDEVICE"
+   done
+}
+
+# List all partition devices
+# take list of all partitions and output unique disks.
+# Return empty result when nohd parameter was given.
+#
+list_partition_devices()
+{
+   #if [ -n "`cmdline_parameter nohd`" ]; then return 1; fi
+   for part in `cat /proc/partitions|tail  +3|cut -d"h" -f2`
+   do
+   echo "/dev/h$part"
+   done
+}
+
+# List all disk devices
+#
+list_disk_devices()
+{
+   list_partition_devices | grep  "[0-9]"
+}
+
+# List all block devices
+#
+list_block_devices()
+{
+   list_disk_devices
+   list_cdrom_devices
+}
+
+# ===========================================================
+# hardware preparation functions
+# ===========================================================
+
+# Create block devices to /dev described by /sys entries
+#
+create_block_devices()
+{
+   echolog "creating /dev entries for block devices"
+   ls -A1d /sys/block/*/dev /sys/block/*/*/dev 2>/dev/null | grep -v loop | while read BLOCK; do
+      DEVICE="/dev/`basename \`dirname $BLOCK\``"
+      if [ ! -b $DEVICE ]; then
+         MINORMAJOR="`head -n 1 $BLOCK | tr ':' ' '`"
+         mknod $DEVICE b $MINORMAJOR
+      fi
+   done
+}
+
+# modprobe kernel modules needed for the LiveCD
+#
+find_hd_ide_cdroms()
+{
+    ## Initialise
+    echo -n "  Loading basic cdrom modules for Kernel 2.6"
+    ## Load basic modules
+    for i in $OPT_MODULES; do
+        loadmod $i
+    done
+    set_progress
+
+    ALL_LOADED=1
+    for i in $DEP_MODULES; do
+        loadmod $i || ALL_LOADED=
+    done
+    sleep 2
+    [ -n "$ALL_LOADED" ] && printloaded || printfail
+    set_progress
+
+    echo -n  "starting USB support"
+    ## Probe the USB devices.
+    dousb=`grep -iq nousb /proc/cmdline || echo 1`
+    if [ -n "$dousb" ]; then
+        echo -n "  Probing USB devices: "
+        USB_FOUND=1
+        for i in $USB_MODULES; do
+            loadmod $i || USB_FOUND=
+        done
+        sleep 2
+        for i in $USB_MODULES_DRV; do
+            loadmod $i
+        done
+        sleep 2
+        [ -n "$USB_FOUND" ] && printloaded || printok
+    fi
+    set_progress
+    sleep 9
+
+ create_block_devices
+ CDROM_LIST=`list_block_devices`
+}
+find_scsi_cdroms() {
+        CDROM_LIST=""
+        ## Probe the SCSI devices.
+        doscsi=`grep -iq noscsi /proc/cmdline || echo 1`
+        if [ -n "$doscsi" ]; then
+                echo -n "  Probing SCSI devices: "
+                SCSI_FOUND=
+                for i in $SCSI_MODULES; do
+                        loadmod $i && SCSI_FOUND=1
+                done
+                sleep 3
+                [ -n "$SCSI_FOUND" ] && printloaded || printok
+        fi
+
+        ## Kernel 26 udev additions
+        if [ $KERNEL26 ]; then
+                ## Search for cdrom devices and add them to CDROM_LIST
+                ## Check for ide channels.
+                for ide_channel in /proc/ide/ide[0-9]
+                do
+
+                ## If there are no ide channels found, then skip this
+                        if [ ! -d "$ide_channel" ]; then
+                                echo "  No ide channels found"
+                                break
+                        fi
+
+                ## Try each ide device to see if we can find the cd-rom drive (up to 20 - hdt)
+                        for ide_device in hda hdb hdc hdd hde hdf hdg hdh hdi hdj hdk hdl hdm hdn hdo hdp hdq hdr hds hdt
+                        do
+                                device_media_file="$ide_channel/$ide_device/media"
+                                if [ -e "$device_media_file" ]; then
+                                        grep -i "cdrom" $device_media_file > /dev/null 2>&1
+                                        if [ $? -eq 0 ]; then
+                                                CDROM_LIST="$CDROM_LIST /dev/$ide_device"
+                                        fi
+                                fi
+                        done
+                done
+
+                ## Check for scsi cds, usb cd, usb flash
+                for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99] /dev/sd[a-b][0-99]
+                do
+                        if [ -e "$scsi_cdrom" ]; then
+                                CDROM_LIST="$CDROM_LIST $scsi_cdrom"
+                        fi
+                done
+        fi
+
+        echo -n "  CDROMs and devices found: $CDROM_LIST"
+        printok
+        set_progress
 }
 
 
@@ -376,13 +533,13 @@ findcdroms() {
 findcloop() {
 	## Now try to find and mount the boot CD (we use ID as identification)
 	echo -n "  Searching for the loop image: "
-        for i in $CDROM_LIST; do
+        for i in $1; do
 		CDDEV="$i"
 		$MOVE_TO_COL
 		$SETCOLOR_OK
 		echo "$i"
 		$SETCOLOR_NORMAL
-		ISOTYPE="iso9660"
+		ISOTYPE="$2"
 		# echo "mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null"
 		if `mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null`; then
 			echo -n "  CDROM mounted"
@@ -453,15 +610,6 @@ findcloop() {
 		fi
 	done
 
-	if [ -z "$LOOPMNT" ]; then
-		printfail
-		$SETCOLOR_FAIL
-		echo ""
-		echo "ERROR: Unable to mount loop filesystem,"
-		echo "       Dropping you to a limited shell."
-		$SETCOLOR_NORMAL
-		execshell
-	fi
 }
 
 
@@ -618,8 +766,72 @@ useswap() {
 initialise    ""
 printwelcome  ""
 createramdisk ""
-findcdroms    ""
-findcloop     ""
+#findcdroms    ""
+#findcloop     ""
+
+# try to find the comressed loop device. If not found try modprobing
+# the scsi kernel modules and repeat the find procedure again
+find_hd_ide_cdroms
+echo "$CDROM_LIST"
+bootfrom=`grep -iq bootfrom /proc/cmdline || echo 1`
+        if [ -n "$bootfrom" ]; then
+            SOURCE_DEV=$(cat  /proc/cmdline|tr ' ' '\n'|sed -n 'bootfrom=/s/.*//p'|tail -1)
+            LOOP_DEV=$(echo $SOURCE_DEV|gawk -F/ '{print $1 "/" $2 "/" $3}')
+            ISO_PATH=$(echo $SOURCE_DEV|sed "s|$LOOP_DEV||g" )
+            case "$ISO_PATH" in /*.[iI][sS][oO]) ;; *) ISO_PATH="" ;; esac
+
+            mkdir -p /part
+            if [ -n "$ISO_PATH" ]; then
+                mount -r -o ro $LOOP_DEV /part
+                losetup /dev/loop/1 /part$ISO_PATH
+                mount -r -t iso9660 /dev/loop/1 $MNTCDROM && printok || printfail
+                losetup /dev/loop/0 $MNTCDROM/livecd.sqfs
+                mount -r -t squashfs /dev/loop/0 $MNTLIVECD && LOOPMNT=1
+            else
+                findcloop "$LOOP_DEV" "auto"
+            fi
+        fi
+
+echo "I am after bootfrom" "$LOOPMOUNT"
+echo "type exit or ctrl+D to continue
+execshell
+
+if [ -z "$LOOPMOUNT" ]; then
+    findcloop "$CDROM_LIST" "auto"
+    echo "I am after findcloop"
+    echo "$LOOPMOUNT"
+fi
+
+# found on hd or ide cdrom?
+
+if [ -z "$LOOPMOUNT" ]; then
+        find_scsi_cdroms
+        findcloop "$CDROM_LIST" "iso9660"
+fi
+
+# found on scsi_cdrom?
+# I am not sure if we still need it?
+
+#if [ -z "$LOOPMOUNT ]; then
+#        find_old_cdroms
+#        findcloop "$CDROM_LIST" "auto"
+#fi
+
+# found on old_cdrom?
+
+if [ -z "$LOOPMOUNT" ]; then
+        printfail
+        $SETCOLOR_FAIL
+        echo ""
+        echo "ERROR: Unable to mount the livecd"
+        echo "       Dropping you to a limited shell."
+        $SETCOLOR_NORMAL
+        execshell
+fi
+
+printok
+
 echo "--- Exiting LINUXRC ----------------"
 exec /etc/rc.d/rc.sysinit <dev/console >dev/console 2>&1
 exit 0
+
