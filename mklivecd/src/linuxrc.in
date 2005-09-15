@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.94 2005/09/11 15:27:14 ikerekes Exp $
+# $Id: linuxrc.in,v 1.95 2005/09/15 02:31:31 ikerekes Exp $
 #
 
 ### global variables
@@ -233,7 +233,7 @@ list_block_devices()
 #
 create_block_devices()
 {
-   echolog "creating /dev entries for block devices"
+   #echolog "creating /dev entries for block devices"
    ls -A1d /sys/block/*/dev /sys/block/*/*/dev 2>/dev/null | grep -v loop | while read BLOCK; do
       DEVICE="/dev/`basename \`dirname $BLOCK\``"
       if [ ! -b $DEVICE ]; then
@@ -775,8 +775,8 @@ find_hd_ide_cdroms
 echo "$CDROM_LIST"
 bootfrom=`grep -iq bootfrom /proc/cmdline || echo 1`
         if [ -n "$bootfrom" ]; then
-            SOURCE_DEV=$(cat  /proc/cmdline|tr ' ' '\n'|sed -n 'bootfrom=/s/.*//p'|tail -1)
-            LOOP_DEV=$(echo $SOURCE_DEV|gawk -F/ '{print $1 "/" $2 "/" $3}')
+            SOURCE_DEV=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/bootfrom/ {print}'|awk -F"=" '{print $2}')
+            LOOP_DEV=$(echo $SOURCE_DEV|awk -F/ '{print $1 "/" $2 "/" $3}')
             ISO_PATH=$(echo $SOURCE_DEV|sed "s|$LOOP_DEV||g" )
             case "$ISO_PATH" in /*.[iI][sS][oO]) ;; *) ISO_PATH="" ;; esac
 
