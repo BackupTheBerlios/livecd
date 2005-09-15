@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.95 2005/09/15 02:31:31 ikerekes Exp $
+# $Id: linuxrc.in,v 1.96 2005/09/15 05:17:48 ikerekes Exp $
 #
 
 ### global variables
@@ -773,7 +773,7 @@ createramdisk ""
 # the scsi kernel modules and repeat the find procedure again
 find_hd_ide_cdroms
 echo "$CDROM_LIST"
-bootfrom=`grep -iq bootfrom /proc/cmdline || echo 1`
+bootfrom=`grep -iq bootfrom /proc/cmdline && echo 1`
         if [ -n "$bootfrom" ]; then
             SOURCE_DEV=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/bootfrom/ {print}'|awk -F"=" '{print $2}')
             LOOP_DEV=$(echo $SOURCE_DEV|awk -F/ '{print $1 "/" $2 "/" $3}')
@@ -792,19 +792,19 @@ bootfrom=`grep -iq bootfrom /proc/cmdline || echo 1`
             fi
         fi
 
-echo "I am after bootfrom" "$LOOPMOUNT"
-echo "type exit or ctrl+D to continue
-execshell
+echo "I am after bootfrom" "$LOOPMNT"
+echo "type exit or ctrl+D to continue"
+#execshell
 
-if [ -z "$LOOPMOUNT" ]; then
+if [ -z "$LOOPMNT" ]; then
     findcloop "$CDROM_LIST" "auto"
     echo "I am after findcloop"
-    echo "$LOOPMOUNT"
+    echo "$LOOPMNT"
 fi
 
 # found on hd or ide cdrom?
 
-if [ -z "$LOOPMOUNT" ]; then
+if [ -z "$LOOPMNT" ]; then
         find_scsi_cdroms
         findcloop "$CDROM_LIST" "iso9660"
 fi
@@ -812,14 +812,14 @@ fi
 # found on scsi_cdrom?
 # I am not sure if we still need it?
 
-#if [ -z "$LOOPMOUNT ]; then
+#if [ -z "$LOOPMNT ]; then
 #        find_old_cdroms
 #        findcloop "$CDROM_LIST" "auto"
 #fi
 
 # found on old_cdrom?
 
-if [ -z "$LOOPMOUNT" ]; then
+if [ -z "$LOOPMNT" ]; then
         printfail
         $SETCOLOR_FAIL
         echo ""
