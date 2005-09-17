@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.27 2005/09/11 15:04:40 ikerekes Exp $
+# $Id: Modules.mk,v 1.28 2005/09/17 22:05:17 ikerekes Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -34,6 +34,7 @@ DEF_MODULES_PATH_26=\
 	fs/nls/nls_iso8859-6 \
 	fs/nls/nls_iso8859-7 \
 	fs/nls/nls_iso8859-9 \
+	fs/nls/nls_cp437 \
         fs/jbd/jbd \
         fs/ext3/ext3 \
         fs/reiserfs/reiserfs \
