@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.96 2005/09/15 05:17:48 ikerekes Exp $
+# $Id: linuxrc.in,v 1.97 2005/09/17 22:04:23 ikerekes Exp $
 #
 
 ### global variables
@@ -204,9 +204,9 @@ list_cdrom_devices()
 list_partition_devices()
 {
    #if [ -n "`cmdline_parameter nohd`" ]; then return 1; fi
-   for part in `cat /proc/partitions|tail  +3|cut -d"h" -f2`
+   for part in `cat /proc/partitions|tail  +3|awk '{print $4}'`
    do
-   echo "/dev/h$part"
+   echo "/dev/$part"
    done
 }
 
@@ -539,8 +539,7 @@ findcloop() {
 		$SETCOLOR_OK
 		echo "$i"
 		$SETCOLOR_NORMAL
-		ISOTYPE="$2"
-		# echo "mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null"
+		for ISOTYPE in iso9660 vfat ext3 reiserfs ntfs; do
 		if `mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null`; then
 			echo -n "  CDROM mounted"
 			# try to find either the .iso, .clp, .bzlp or .sqfs loop image
@@ -608,6 +607,7 @@ findcloop() {
 			fi
 			`umount $MNTCDROM 2>&1 >/dev/null`
 		fi
+		done
 	done
 
 }
@@ -788,7 +788,7 @@ bootfrom=`grep -iq bootfrom /proc/cmdline && echo 1`
                 losetup /dev/loop/0 $MNTCDROM/livecd.sqfs
                 mount -r -t squashfs /dev/loop/0 $MNTLIVECD && LOOPMNT=1
             else
-                findcloop "$LOOP_DEV" "auto"
+                findcloop "$LOOP_DEV"
             fi
         fi
 
@@ -797,7 +797,7 @@ echo "type exit or ctrl+D to continue"
 #execshell
 
 if [ -z "$LOOPMNT" ]; then
-    findcloop "$CDROM_LIST" "auto"
+    findcloop "$CDROM_LIST" 
     echo "I am after findcloop"
     echo "$LOOPMNT"
 fi
@@ -806,7 +806,7 @@ fi
 
 if [ -z "$LOOPMNT" ]; then
         find_scsi_cdroms
-        findcloop "$CDROM_LIST" "iso9660"
+        findcloop "$CDROM_LIST" 
 fi
 
 # found on scsi_cdrom?
@@ -814,7 +814,7 @@ fi
 
 #if [ -z "$LOOPMNT ]; then
 #        find_old_cdroms
-#        findcloop "$CDROM_LIST" "auto"
+#        findcloop "$CDROM_LIST" 
 #fi
 
 # found on old_cdrom?
