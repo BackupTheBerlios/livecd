@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.160 2005/06/19 15:33:17 tom_kelly33 Exp $
+# $Id: hwdetect.in,v 1.161 2005/09/25 06:11:11 ikerekes Exp $
 #
 
 use strict;
@@ -560,6 +560,7 @@ sub hwdetect_getsata() {
 		return
 	}
 	my @satalist = qw(libata ata_piix sg sata_sis
+        ahci ata_adma pata_pdc2027x sata_qstor sata_sil24 sata_sis sata_sx4 sata_uli sx8
 		sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc);
 
 #        my @satalist = qw(libata sd_mod ata_piix scsi_mod sr_mod sg a100u2w

@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.31 2004/09/14 18:49:47 tom_kelly33 Exp $
+# $Id: Rules.mk,v 1.32 2005/09/25 06:12:29 ikerekes Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -9,8 +9,8 @@ DEF_KEYBOARD=us
 # these two parameters need to match up to allow splash to work
 # The preferred way to change/override this is with a
 #     make DEF_RESOLUTION=800x600 DEF_VGAMODE=788
-DEF_RESOLUTION=1024x768
-DEF_VGAMODE=791
+DEF_RESOLUTION=800x600
+DEF_VGAMODE=788
 
 # splash progress bar parameters
 # MAX_SPLASH: default: 65534. With a patched bootsplash, the

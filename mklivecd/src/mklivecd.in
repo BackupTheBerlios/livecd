@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.145 2005/09/14 00:43:34 ikerekes Exp $
+# $Id: mklivecd.in,v 1.146 2005/09/25 06:11:12 ikerekes Exp $
 #
 
 use strict;
@@ -78,7 +78,7 @@ my $o_looptype     = "sqfs";
 my $o_keyboard     = '@DEF_KEYBOARD@';
 my $o_resolution   = '@DEF_RESOLUTION@';
 my $o_vgamode      = '@DEF_VGAMODE@';
-my $o_splash       = "yes";
+my $o_splash       = "silent";
 my $o_kernel       = get_exec("uname -r");
 my $o_timeout      = 150;
 my %opts           = ( # these are all the options with defaults
@@ -177,7 +177,7 @@ Boot options:
    --resolution <res>              Specify the resolution for the framebuffer 
                                    output device. (Either resolution or normal)
                                    (default: $o_resolution)
-   --splash <yes|no>               Create the LiveCD with bootsplash support if
+   --splash <silent|verbose|no>    Create the LiveCD with bootsplash support if
                                    available on the root filesystem. 
                                    (default: $o_splash)
    --fstab <options>               Override the default options for the fstab on
@@ -205,7 +205,7 @@ Behaviour:
 
 Examples:
     $0 --nodir ^/usr/src/RPM,^/root/tmp livecd.iso
-    $0 --blocksize 224 --bootopt splash=silent livecd.iso
+    $0 --blocksize 224 --splash=silent livecd.iso
 
 ";
 	exit(1);
@@ -430,7 +430,7 @@ sub parse_options {
 	#print STDERR "\nWARNING: Sort option ignored for 'sqfs' (squashfs) looptype" if (defined($opts{sort}) && ($o_looptype =~ /sqfs/));
 	die_("\nFATAL: Kernel (--kernel) '".$o_kernel."' not installed on the root image. (Directory '".$o_root."/lib/modules/".$o_kernel."' does not exist.)\n") if (!(-d $o_root."/lib/modules/".$o_kernel));
 	die_("\nFATAL: Extra ISO directory (--isoextrafiles) '".$opts{isoextrafiles}."' does not exist\n") if (defined($opts{isoextrafiles}) && !(-d $opts{isoextrafiles}));
-	die_("\nFATAL: Unknown splash (--splash) option '$o_splash'\n") unless ($o_splash =~ /yes|no/);
+	die_("\nFATAL: Unknown splash (--splash) option '$o_splash'\n") unless ($o_splash =~ /silent|verbose|no/);
 	die_("\nFATAL: Work directory (--workdir) '".$opts{workdir}."' does not exist\n") if (defined($
 opts{workdir}) && !(-d $opts{workdir}));
 
@@ -728,7 +728,7 @@ sub create_initrd {
 	do_cmd("(cd $workdir/livecd/isolinux ; gzip -9 initrd)",            ++$pos);
 
 	# make splash
-	if ($o_splash =~ m/yes/) {
+	if ($o_splash !~ m/no/) {
 	do_cmd("mv -f $initrd.gz $o_root/tmp ; \
 		chroot $o_root /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz $o_resolution; \
 		mv -f $o_root/tmp/initrd.gz $workdir/livecd/isolinux", ++$pos);
@@ -863,6 +863,7 @@ sub create_isolinux {
 	} else {
 		$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=mount vga=$o_vgamode keyb=$o_keyboard";
 	}	
+	$appopt .= " splash=$o_splash" if ($o_splash !~ m/no/);
 	$appopt = "$appopt fastboot=yes automatic=method:cdrom ramdisk_size=32000" if (!defined($kernel26));
 	$appopt = "$appopt fstab=".$opts{fstab} if (defined($opts{fstab}));
 	$appopt = "$appopt home=usb" if (defined($opts{usbhome}));
@@ -1007,10 +1008,10 @@ MAIN: {
 #		keyboard::write(keyboard::lang2keyboard($o_keyboard));
 #	}
 
-	do_cmd("rm -f $o_root/usr/X11R6/lib/X11/xkb/compiled");
-	do_cmd("rm -f $o_root/usr/X11R6/lib/X11/xdm/authdir");
-	do_cmd("cd $o_root && ln -sf $o_root/var/lib/xkb $o_root/usr/X11R6/lib/X11/xkb/compiled");
-	do_cmd("cd $o_root && ln -sf $o_root/var/lib/xdm $o_root/usr/X11R6/lib/X11/xdm/authdir");
+#	do_cmd("rm -f $o_root/usr/X11R6/lib/X11/xkb/compiled");
+#	do_cmd("rm -f $o_root/usr/X11R6/lib/X11/xdm/authdir");
+#	do_cmd("cd $o_root && ln -sf $o_root/var/lib/xkb $o_root/usr/X11R6/lib/X11/xkb/compiled");
+#	do_cmd("cd $o_root && ln -sf $o_root/var/lib/xdm $o_root/usr/X11R6/lib/X11/xdm/authdir");
 
 	create_compressed();
 	create_isolinux();

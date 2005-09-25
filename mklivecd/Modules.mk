@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.28 2005/09/17 22:05:17 ikerekes Exp $
+# $Id: Modules.mk,v 1.29 2005/09/25 06:12:27 ikerekes Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -119,7 +119,9 @@ DEF_SCSI_MODULES_PATH_24=\
 DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/3w-xxxx \
 	drivers/scsi/aha1542 \
+        drivers/scsi/ahci \
 	drivers/scsi/aic7xxx/aic7xxx \
+        drivers/scsi/ata_piix \
 	drivers/scsi/BusLogic \
 	drivers/scsi/dmx3191d \
 	drivers/scsi/dtc \
@@ -133,6 +135,16 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/psi240i \
 	drivers/scsi/qlogicfas \
 	drivers/scsi/qlogicfc \
+        drivers/scsi/sata_nv \
+        drivers/scsi/sata_promise \
+        drivers/scsi/sata_qstor \
+        drivers/scsi/sata_sil \
+        drivers/scsi/sata_sis \
+        drivers/scsi/sata_svw \
+        drivers/scsi/sata_sx4 \
+        drivers/scsi/sata_uli \
+        drivers/scsi/sata_via \
+        drivers/scsi/sata_vsc \
 	drivers/scsi/sym53c416 \
 	drivers/scsi/t128 \
 	drivers/scsi/tmscsim \
@@ -163,6 +175,7 @@ DEF_SCSI_MODULES_DEP_PATH_24=\
 
 DEF_SCSI_MODULES_DEP_PATH_26=\
 	drivers/scsi/scsi_mod \
+	drivers/scsi/libata \
 	drivers/scsi/sr_mod \
 	drivers/scsi/sg \
 	drivers/scsi/sd_mod \
