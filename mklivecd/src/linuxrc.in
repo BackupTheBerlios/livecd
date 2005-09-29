@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.97 2005/09/17 22:04:23 ikerekes Exp $
+# $Id: linuxrc.in,v 1.98 2005/09/29 03:36:28 ikerekes Exp $
 #
 
 ### global variables
@@ -529,18 +529,28 @@ findcdroms() {
         set_progress
 }
 
+mountit(){
+# Usage: mountit src dst "options"
+    BUILTIN_FS="iso9660 vfat ext3 reiserfs ntfs"
+    for fs in $BUILTIN_FS; do
+	test -b $1 && mount -t $fs $3 $1 $2 >/dev/null 2>&1 && return 0
+    done
+    return 1
+}
 
 findcloop() {
 	## Now try to find and mount the boot CD (we use ID as identification)
 	echo -n "  Searching for the loop image: "
+	PRINTK=`cat /proc/sys/kernel/printk`
+	echo "0" >/proc/sys/kernel/printk
         for i in $1; do
 		CDDEV="$i"
 		$MOVE_TO_COL
 		$SETCOLOR_OK
 		echo "$i"
 		$SETCOLOR_NORMAL
-		for ISOTYPE in iso9660 vfat ext3 reiserfs ntfs; do
-		if `mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null`; then
+		#for ISOTYPE in iso9660 vfat ext3 reiserfs ntfs; do
+		if mountit $CDDEV $MNTCDROM ; then
 			echo -n "  CDROM mounted"
 			# try to find either the .iso, .clp, .bzlp or .sqfs loop image
 			LOOPTYPE=""
@@ -607,9 +617,8 @@ findcloop() {
 			fi
 			`umount $MNTCDROM 2>&1 >/dev/null`
 		fi
-		done
 	done
-
+	echo "$PRINTK" >/proc/sys/kernel/printk
 }
 
 
@@ -771,8 +780,13 @@ createramdisk ""
 
 # try to find the comressed loop device. If not found try modprobing
 # the scsi kernel modules and repeat the find procedure again
+
 find_hd_ide_cdroms
-echo "$CDROM_LIST"
+
+if [ -n "$DEBUG" ]; then
+    echo "$CDROM_LIST"
+fi
+
 bootfrom=`grep -iq bootfrom /proc/cmdline && echo 1`
         if [ -n "$bootfrom" ]; then
             SOURCE_DEV=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/bootfrom/ {print}'|awk -F"=" '{print $2}')
@@ -792,9 +806,11 @@ bootfrom=`grep -iq bootfrom /proc/cmdline && echo 1`
             fi
         fi
 
-echo "I am after bootfrom" "$LOOPMNT"
-echo "type exit or ctrl+D to continue"
-#execshell
+if [ -n "$DEBUG" ]; then
+    echo "I am after bootfrom" "$LOOPMNT"
+#    echo "type exit or ctrl+D to continue"
+#    execshell
+fi
 
 if [ -z "$LOOPMNT" ]; then
     findcloop "$CDROM_LIST" 
