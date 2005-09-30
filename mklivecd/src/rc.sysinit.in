@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.52 2005/09/27 05:16:04 ikerekes Exp $
+# $Id: rc.sysinit.in,v 1.53 2005/09/30 01:15:06 ikerekes Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -493,6 +493,12 @@ do_union () {
    rm /$UNIONMOD # Don't waste memory
    mkdir /union
    mkdir /changes
+   CHANGESDEV=`grep -iq changes /proc/cmdline && echo 1`
+   if [ -n "$CHANGESDEV" ]; then
+	CHANGESDEV=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/changes/ {print}'|awk -F"=" '{print $2}')
+	mount $CHANGESDEV/changes /changes
+	echo "nodetect">>/proc/cmdline  #skip hwdetect
+   fi		    
    mount -t unionfs -o dirs=/changes=rw:/initrd/loopfs=ro unionfs /union
 
    export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
