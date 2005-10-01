@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.53 2005/09/30 01:15:06 ikerekes Exp $
+# $Id: rc.sysinit.in,v 1.54 2005/10/01 03:34:39 ikerekes Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -411,7 +411,9 @@ setuproot() {
 ### setup for init of the actual mdk image
 setupinit() {
 	# perform hwdetect if not disabled
-	if [ `/bin/grep -iqv hwdetect=no /proc/cmdline` -a  `/bin/grep -iqv nodetect /proc/cmdline` ]; then
+	if [ `/bin/grep -iq hwdetect=no /proc/cmdline` ] || [ `/bin/grep -iq nodetect /proc/cmdline` ]; then
+		echo "-- rc.sysinit: Skipping hwdetect -----------"
+	else 
 		if [ -e /initrd/usr/sbin/hwdetect ]; then
 			echo "-- rc.sysinit: Starting hwdetect -----------"
 			OLDPATH=$PATH
@@ -422,8 +424,6 @@ setupinit() {
 		else
 			echo "-- rc.sysinit: Missing hwdetect ------------"
 		fi
-	else 
-		echo "-- rc.sysinit: Skipping hwdetect -----------"
 	fi
 
 	# Don't run depmod (must be run before imaging system)
@@ -463,9 +463,19 @@ setupinit() {
 	docmd   "  Unmounting /sys filesystem" \
 		"umount /sys"
 
+	# turn off kernel logging
+	echo "0" >/proc/sys/kernel/printk
+	
+	# clean up /proc/bus/usb (needed to be able to clean up /proc)
+#	docmd   "  Unmounting /proc/bus/usb filesystem" \
+		umount /proc/bus/usb
+	
+        # turn back on kernel logging
+	echo "6" >/proc/sys/kernel/printk
+
 	# clean up /proc (init mounts it via rc.sysinit)
-	#docmd   "  Unmounting /proc filesystem" \
-	#	"umount /proc"
+	docmd   "  Unmounting /proc filesystem" \
+		"umount /proc"
 
 	# display some info
 	distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
