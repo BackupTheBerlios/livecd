@@ -23,27 +23,33 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.162 2005/09/26 03:36:29 ikerekes Exp $
+# $Id: hwdetect.in,v 1.163 2005/10/01 03:32:36 ikerekes Exp $
 #
 
-use strict;
+#use strict;
 use lib qw(/usr/lib/libDrakX);
 
-use Getopt::Long;
-#use standalone;
-$ENV{SHARE_PATH} ||= "/usr/share";
-
+use standalone;
 use c;
 use common;
-use do_pkgs;
-use fsedit;
-use fs;
 use detect_devices;
+use Getopt::Long;
 use harddrake::data;
 use harddrake::autoconf;
 use harddrake::sound;
-use keyboard;
 use modules;
+use Storable qw(store retrieve);
+my $modules_conf = modules::any_conf->read;
+my $DEF_KEYBOARD   = "us";
+use fsedit;
+use fs;
+use Getopt::Long;
+
+#$ENV{SHARE_PATH} ||= "/usr/share";
+
+
+use do_pkgs;
+use keyboard;
 use mouse;
 
 use Xconfig::card;
@@ -57,12 +63,6 @@ use Xconfig::xfree;
 
 use MDK::Common::File;
 use MDK::Common::System;
-
-#use lib qw(/usr/lib/libDrakX);
-#use standalone;
-#use common;
-#use modules;
-use Storable qw(store retrieve);
 
 ### global constants
 my $SCRIPT_NAME    = "hwdetect";
@@ -1417,11 +1417,11 @@ MAIN: { print "\n$COLOR_YELLOW"."HWDETECT - MAIN ---------------$COLOR_NORMAL\n"
 #	hwdetect_readconf();
 	
 	# probe buses
-	unless (defined($fdisk)) {
-		hwdetect_probepci();
-		hwdetect_initusb();
-		hwdetect_initpcmcia();
-	}
+#	unless (defined($fdisk)) {
+#		hwdetect_probepci();
+#		hwdetect_initusb();
+#		hwdetect_initpcmcia();
+#	}
 	
 	# Configure USB_CONTROLLERS - writes to /etc/modprobe.conf
 	
@@ -1432,14 +1432,14 @@ MAIN: { print "\n$COLOR_YELLOW"."HWDETECT - MAIN ---------------$COLOR_NORMAL\n"
 	
 	
 	# Configure PCMCIA_CONTROLLER - writes to etc/sysconfig/pcmcia
-#	if ($cmdline !~ "nopcmcia") {
-#	harddrake::autoconf::pcmcia(keys %ID ? first(values(%ID))->{driver} : '');
-#	$modules_conf->write;
-#	}
-#	else {
-#	    disable_service('pcmcia');
-#	    }
-#	    
+	if ($cmdline !~ "nopcmcia") {
+	harddrake::autoconf::pcmcia(keys %ID ? first(values(%ID))->{driver} : '');
+	$modules_conf->write;
+	}
+	else {
+	    disable_service('pcmcia');
+	    }
+	    
 	    
 	    # Configure AUDIO - writes to /etc/modprobe.conf
 	    # automatic sound slots configuration
