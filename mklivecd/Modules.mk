@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.29 2005/09/25 06:12:27 ikerekes Exp $
+# $Id: Modules.mk,v 1.30 2005/10/08 14:23:40 ikerekes Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -23,17 +23,8 @@ DEF_MODULES_PATH_24=\
 #	fs/ext3/ext3
 #	fs/jbd/jbd
 DEF_MODULES_PATH_26=\
-	fs/nls/nls_iso8859-13 \
-	fs/nls/nls_iso8859-14 \
-	fs/nls/nls_iso8859-15 \
 	fs/nls/nls_iso8859-1 \
 	fs/nls/nls_iso8859-2 \
-	fs/nls/nls_iso8859-3 \
-	fs/nls/nls_iso8859-4 \
-	fs/nls/nls_iso8859-5 \
-	fs/nls/nls_iso8859-6 \
-	fs/nls/nls_iso8859-7 \
-	fs/nls/nls_iso8859-9 \
 	fs/nls/nls_cp437 \
         fs/jbd/jbd \
         fs/ext3/ext3 \
@@ -117,11 +108,9 @@ DEF_SCSI_MODULES_PATH_24=\
 #	drivers/scsi/aha152x
 #	drivers/scsi/aha1740
 DEF_SCSI_MODULES_PATH_26=\
-	drivers/scsi/3w-xxxx \
 	drivers/scsi/aha1542 \
-        drivers/scsi/ahci \
+	drivers/scsi/ahci \
 	drivers/scsi/aic7xxx/aic7xxx \
-        drivers/scsi/ata_piix \
 	drivers/scsi/BusLogic \
 	drivers/scsi/dmx3191d \
 	drivers/scsi/dtc \
@@ -135,22 +124,24 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/psi240i \
 	drivers/scsi/qlogicfas \
 	drivers/scsi/qlogicfc \
-        drivers/scsi/sata_nv \
-        drivers/scsi/sata_promise \
-        drivers/scsi/sata_qstor \
-        drivers/scsi/sata_sil \
-        drivers/scsi/sata_sis \
-        drivers/scsi/sata_svw \
-        drivers/scsi/sata_sx4 \
-        drivers/scsi/sata_uli \
-        drivers/scsi/sata_via \
-        drivers/scsi/sata_vsc \
+	drivers/scsi/sata_nv \
+	drivers/scsi/sata_promise \
+	drivers/scsi/sata_qstor \
+	drivers/scsi/sata_sil \
+	drivers/scsi/sata_sis \
+	drivers/scsi/sata_svw \
+	drivers/scsi/sata_sx4 \
+	drivers/scsi/sata_uli \
+	drivers/scsi/sata_via \
+	drivers/scsi/sata_vsc \
+	drivers/scsi/pata_pdc2027x \
 	drivers/scsi/sym53c416 \
 	drivers/scsi/t128 \
 	drivers/scsi/tmscsim \
 	drivers/scsi/u14-34f \
 	drivers/scsi/ultrastor \
 	drivers/scsi/wd7000 \
+	drivers/block/sx8 \
 	drivers/message/fusion/mptscsih
 #	drivers/scsi/advansys \
 #	drivers/scsi/cpqfc \
@@ -175,8 +166,9 @@ DEF_SCSI_MODULES_DEP_PATH_24=\
 
 DEF_SCSI_MODULES_DEP_PATH_26=\
 	drivers/scsi/scsi_mod \
-	drivers/scsi/libata \
 	drivers/scsi/sr_mod \
+        drivers/scsi/libata \
+	drivers/scsi/ata_piix \
 	drivers/scsi/sg \
 	drivers/scsi/sd_mod \
 	drivers/message/fusion/mptbase
