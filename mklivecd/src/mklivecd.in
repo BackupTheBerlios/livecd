@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.146 2005/09/25 06:11:12 ikerekes Exp $
+# $Id: mklivecd.in,v 1.147 2005/10/08 14:28:48 ikerekes Exp $
 #
 
 use strict;
@@ -692,7 +692,7 @@ sub create_initrd {
 					$opt = "$opt$modext";
 					$modopt = 1 if ($opt =~ m/$mod/);
 				}
-				die_("\nFATAL: unable to find kernel module '$mod'\n") unless (defined($modopt) || $mod=~'cdrom');
+			#	die_("\nFATAL: unable to find kernel module '$mod'\n") unless (defined($modopt) || $mod=~'cdrom');
 				set_progress(++$pos, $modpath);
 			}
 		}
