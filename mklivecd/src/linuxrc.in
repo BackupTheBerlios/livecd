@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.98 2005/09/29 03:36:28 ikerekes Exp $
+# $Id: linuxrc.in,v 1.99 2005/10/08 14:26:59 ikerekes Exp $
 #
 
 ### global variables
@@ -31,30 +31,16 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/initrd/bin:/initrd/sbin:/initrd/usr/b
 umask 022
 DEBUG=
 FOUND_ISO=""
-OPT_MODULES_24="@DEF_MODULES_OPT_24@"
-DEP_MODULES_24="@DEF_MODULES_DEP_24@ @DEF_SCSI_MODULES_DEP_24@"
-SCSI_MODULES_24="@DEF_SCSI_MODULES_24@ @DEF_SCSI_MODULES_OPT_24@" # these are for the SCSI drivers
-USB_MODULES_24="@DEF_USB_MODULES_24@"
-USB_MODULES_DRV_24="@DEF_USB_MODULES_DRV_24@"
-OPT_MODULES_26="@DEF_MODULES_OPT_26@"
-DEP_MODULES_26="@DEF_MODULES_26@ @DEF_MODULES_DEP_26@ @DEF_SCSI_MODULES_DEP_26@"
-SCSI_MODULES_26="@DEF_SCSI_MODULES_26@ @DEF_SCSI_MODULES_OPT_26@" # these are for the SCSI drivers
-USB_MODULES_26="@DEF_USB_MODULES_26@"
-USB_MODULES_DRV_26="@DEF_USB_MODULES_DRV_26@"
-OPT_MODULES="$OPT_MODULES_24"
-DEP_MODULES="$DEP_MODULES_24"
-SCSI_MODULES="$SCSI_MODULES_24" # these are for the SCSI drivers
+OPT_MODULES="@DEF_MODULES_OPT_26@"
+DEP_MODULES="@DEF_MODULES_26@ @DEF_MODULES_DEP_26@ @DEF_SCSI_MODULES_DEP_26@"
+SCSI_MODULES="@DEF_SCSI_MODULES_26@ @DEF_SCSI_MODULES_OPT_26@" # these are for the SCSI drivers
+USB_MODULES="@DEF_USB_MODULES_26@"
+USB_MODULES_DRV="@DEF_USB_MODULES_DRV_26@"
+
 FOUND_SCSI=""
-USB_MODULES="$USB_MODULES_24"
-USB_MODULES_DRV="$USB_MODULES_DRV_24"
 FOUND_USB=""
-BASEIMG="livecd"          # name of the base cloop image, with a .clp (cloop), .bzlp (bzloop)
-                          # or .sqfs (squashfs) extension, this is the compressed loop image
-LOOPBEXT=".bzlp"          # extension for the above
-LOOPCEXT=".clp"           # extension for the above
+BASEIMG="livecd"          # name of the base cloop image, with a .sqfs (squashfs) extension
 LOOPSEXT=".sqfs"
-LOOPIEXT=".iso"
-LOOPZEXT=".ziso"
 ISOTYPE="iso9660"
 MEDIACHECK="isolinux/mediacheck"
 DEVICES=""                # list of all ide/scsi cd-type devices
@@ -73,13 +59,13 @@ CLOOPVER="@CLOOPVER@"
 MNTCDROM=initrd/cdrom
 MNTLIVECD=initrd/loopfs
 MNTRAMDISK=/ramfs
-KERNEL26=
-MODEXT=".o"
+KERNEL26=1
+MODEXT=".ko"
 
 ### progress indicator
 progress_num=0
 progress_full=@VAL_SPLASH_FULL@
-progress_max=@MAX_SPLASH@
+progress_max=32768
 progress_on=1
 
 ### screen colors
@@ -134,7 +120,7 @@ printfail() {
 	$MOVE_TO_COL
 	echo -n "["
 	$SETCOLOR_FAIL
-	echo -n "FAILED"
+	echo -n "DONE"
 	$SETCOLOR_NORMAL
 	echo "]"
 	return 0
@@ -182,70 +168,10 @@ set_progress() {
 	fi
 }
 
-# ===========================================================
-# discovery functions
-# ===========================================================
-
-# List all CD-ROMs
-# by using /proc entries
-#
-list_cdrom_devices()
-{
-   #if [ -n "`cmdline_parameter nocd`" ]; then return 1; fi
-   for CDDEVICE in `cat /proc/sys/dev/cdrom/info | head -n 3 | tail -n 1 | cut -d ":" -f 2`; do
-      echo "/dev/$CDDEVICE"
-   done
-}
-
-# List all partition devices
-# take list of all partitions and output unique disks.
-# Return empty result when nohd parameter was given.
-#
-list_partition_devices()
-{
-   #if [ -n "`cmdline_parameter nohd`" ]; then return 1; fi
-   for part in `cat /proc/partitions|tail  +3|awk '{print $4}'`
-   do
-   echo "/dev/$part"
-   done
-}
-
-# List all disk devices
-#
-list_disk_devices()
-{
-   list_partition_devices | grep  "[0-9]"
-}
-
-# List all block devices
-#
-list_block_devices()
-{
-   list_disk_devices
-   list_cdrom_devices
-}
-
-# ===========================================================
-# hardware preparation functions
-# ===========================================================
-
-# Create block devices to /dev described by /sys entries
-#
-create_block_devices()
-{
-   #echolog "creating /dev entries for block devices"
-   ls -A1d /sys/block/*/dev /sys/block/*/*/dev 2>/dev/null | grep -v loop | while read BLOCK; do
-      DEVICE="/dev/`basename \`dirname $BLOCK\``"
-      if [ ! -b $DEVICE ]; then
-         MINORMAJOR="`head -n 1 $BLOCK | tr ':' ' '`"
-         mknod $DEVICE b $MINORMAJOR
-      fi
-   done
-}
 
 # modprobe kernel modules needed for the LiveCD
 #
-find_hd_ide_cdroms()
+find_cdroms()
 {
     ## Initialise
     echo -n "  Loading basic cdrom modules for Kernel 2.6"
@@ -263,7 +189,8 @@ find_hd_ide_cdroms()
     [ -n "$ALL_LOADED" ] && printloaded || printfail
     set_progress
 
-    echo -n  "starting USB support"
+    echo -n  "  starting USB support"
+    printok
     ## Probe the USB devices.
     dousb=`grep -iq nousb /proc/cmdline || echo 1`
     if [ -n "$dousb" ]; then
@@ -280,65 +207,69 @@ find_hd_ide_cdroms()
         [ -n "$USB_FOUND" ] && printloaded || printok
     fi
     set_progress
-    sleep 9
+    sleep 6
 
- create_block_devices
- CDROM_LIST=`list_block_devices`
-}
-find_scsi_cdroms() {
-        CDROM_LIST=""
-        ## Probe the SCSI devices.
-        doscsi=`grep -iq noscsi /proc/cmdline || echo 1`
-        if [ -n "$doscsi" ]; then
-                echo -n "  Probing SCSI devices: "
-                SCSI_FOUND=
-                for i in $SCSI_MODULES; do
-                        loadmod $i && SCSI_FOUND=1
-                done
-                sleep 3
-                [ -n "$SCSI_FOUND" ] && printloaded || printok
-        fi
+    #find_scsi_cdroms
+    ## Probe the SCSI devices.
+    doscsi=`grep -iq noscsi /proc/cmdline || echo 1`
+    if [ -n "$doscsi" ]; then
+          echo -n "  Probing SCSI devices: "
+          SCSI_FOUND=
+          for i in $SCSI_MODULES; do
+                loadmod $i && SCSI_FOUND=1
+          done
+          sleep 3
+          [ -n "$SCSI_FOUND" ] && printloaded || printok
+     fi
 
-        ## Kernel 26 udev additions
-        if [ $KERNEL26 ]; then
-                ## Search for cdrom devices and add them to CDROM_LIST
-                ## Check for ide channels.
-                for ide_channel in /proc/ide/ide[0-9]
-                do
+     ## Kernel 26 udev additions
+     ## Search for cdrom devices and add them to CDROM_LIST
+     ## Check for ide channels.
+     for ide_channel in /proc/ide/ide[0-9]
+          do
+              ## If there are no ide channels found, then skip this
+              if [ ! -d "$ide_channel" ]; then
+                     echo "  No ide channels found"
+                     break
+              fi
 
-                ## If there are no ide channels found, then skip this
-                        if [ ! -d "$ide_channel" ]; then
-                                echo "  No ide channels found"
-                                break
-                        fi
+              ## Try each ide device to see if we can find the cd-rom drive (up to 20 - hdt)
+              for ide_device in hda hdb hdc hdd hde hdf hdg hdh hdi hdj hdk hdl hdm hdn hdo hdp hdq hdr hds hdt
+                   do
+                      device_media_file="$ide_channel/$ide_device/media"
+                      if [ -e "$device_media_file" ]; then
+                               grep -i "cdrom" $device_media_file > /dev/null 2>&1
+                               if [ $? -eq 0 ]; then
+                                       CDROM_LIST="$CDROM_LIST /dev/$ide_device"
+                               fi
+                       fi
+                    done
+              done
 
-                ## Try each ide device to see if we can find the cd-rom drive (up to 20 - hdt)
-                        for ide_device in hda hdb hdc hdd hde hdf hdg hdh hdi hdj hdk hdl hdm hdn hdo hdp hdq hdr hds hdt
-                        do
-                                device_media_file="$ide_channel/$ide_device/media"
-                                if [ -e "$device_media_file" ]; then
-                                        grep -i "cdrom" $device_media_file > /dev/null 2>&1
-                                        if [ $? -eq 0 ]; then
-                                                CDROM_LIST="$CDROM_LIST /dev/$ide_device"
-                                        fi
-                                fi
-                        done
-                done
+       ## Check for scsi cds, usb cd, usb flash
+       for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99] /dev/sd[a-b][0-99]
+             do
+                 if [ -e "$scsi_cdrom" ]; then
+                      CDROM_LIST="$CDROM_LIST $scsi_cdrom"
+                 fi
+             done
 
-                ## Check for scsi cds, usb cd, usb flash
-                for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99] /dev/sd[a-b][0-99]
-                do
-                        if [ -e "$scsi_cdrom" ]; then
-                                CDROM_LIST="$CDROM_LIST $scsi_cdrom"
-                        fi
-                done
-        fi
-
-        echo -n "  CDROMs and devices found: $CDROM_LIST"
+#        echo -n "  CDROMs and devices found: $CDROM_LIST"
         printok
         set_progress
 }
 
+# Display debugging info if debug is on. Allow extended echo chars.  #
+dbg()
+{
+    if [ -n "$DEBUG" ]; then
+       echo
+       $SETCOLOR_FAIL
+       echo -e "DBG: ${@}"
+       $SETCOLOR_NORMAL
+       echo
+    fi 
+}
 
 ### initialise
 initialise() {
@@ -356,39 +287,17 @@ initialise() {
 
 	# some kernel specifics
 	KERNELVER=`uname -r`
-	KVMAJOR=`expr "$KERNELVER" : "\([^.]\+\)\..*"`
-	KVMINOR=`expr "$KERNELVER" : "[^.]\+\.\([^.]\+\)\..*"`
-	if [ $KVMAJOR -eq 2 ] && [ $KVMINOR -gt 5 ]; then
-		KERNEL26=1
-		MODEXT=".ko"
-		OPT_MODULES="$OPT_MODULES_26"
-		DEP_MODULES="$DEP_MODULES_26"
-		SCSI_MODULES="$SCSI_MODULES_26"
-		USB_MODULES="$USB_MODULES_26"
-		USB_MODULES_DRV="$USB_MODULES_DRV_26"
-	fi
-
+	KERNEL26=1
+	MODEXT=".ko"
+	
         # Unhide the udev files
-	if [ $KERNEL26 ]; then 
-		docmd "  Restoring udev files" \
-		"mv /sbin/tmp/* /sbin"	
-	fi	
+	docmd "  Restoring udev files" \
+	"mv /sbin/tmp/* /sbin"	
+
 	# debugging?
 	DEBUG=`grep -iq debug /proc/cmdline && echo 1`
 	set_progress
 }
-
-
-### show the welcome message
-printwelcome() {
-	### now print the welcome screen
-#	$SETCOLOR_WARN
-#	echo ""
-#	echo "Welcome to $NAME_VERSION_STR, $KERNELVER"
-#	echo ""
-	$SETCOLOR_NORMAL
-}
-
 
 ### this is if we are to execute a limited shell
 execshell() {
@@ -433,101 +342,6 @@ checkmd5() {
 }
 
 
-findcdroms() {
-
-## Search for cdrom devices. 
-## Maybe we should not use /proc anymore, but use sysfs instead?
-	## Initialise
-	if [ $KERNEL26 ]; then 
-		CDROM_LIST=""
-        	echo -n "  Loading basic cdrom modules for Kernel 2.6"
-	else
-		echo -n "  Loading basic cdrom modules for kernel 2.4"
-		CDROM_LIST="/dev/cdroms/cdrom?"
-	fi
-	
-	## Load basic modules
-	for i in $OPT_MODULES; do
-		loadmod $i
-	done
-	set_progress
-
-	ALL_LOADED=1
-	for i in $DEP_MODULES; do
-		loadmod $i || ALL_LOADED=
-	done
-	sleep 2
-	[ -n "$ALL_LOADED" ] && printloaded || printfail
-	set_progress
-
-	## Probe the USB devices.
-	dousb=`grep -iq nousb /proc/cmdline || echo 1`
-	if [ -n "$dousb" ]; then
-		echo -n "  Probing USB devices: "
-		USB_FOUND=1
-		for i in $USB_MODULES; do
-			loadmod $i || USB_FOUND=
-		done
-		sleep 2
-		for i in $USB_MODULES_DRV; do
-			loadmod $i
-		done
-		sleep 2
-		[ -n "$USB_FOUND" ] && printloaded || printok
-	fi
-	set_progress
-
-	## Probe the SCSI devices.
-	doscsi=`grep -iq noscsi /proc/cmdline || echo 1`
-	if [ -n "$doscsi" ]; then
-		echo -n "  Probing SCSI devices: "
-		SCSI_FOUND=
-		for i in $SCSI_MODULES; do
-			loadmod $i && SCSI_FOUND=1
-		done
-		sleep 3
-		[ -n "$SCSI_FOUND" ] && printloaded || printok
-	fi
-
-	## Kernel 26 udev additions
-	if [ $KERNEL26 ]; then
-		## Search for cdrom devices and add them to CDROM_LIST
-		## Check for ide channels.
-		for ide_channel in /proc/ide/ide[0-9]
-		do
-
-		## If there are no ide channels found, then skip this
-			if [ ! -d "$ide_channel" ]; then
-				echo "  No ide channels found"
-				break
-			fi
-
-		## Try each ide device to see if we can find the cd-rom drive (up to 20 - hdt)
-			for ide_device in hda hdb hdc hdd hde hdf hdg hdh hdi hdj hdk hdl hdm hdn hdo hdp hdq hdr hds hdt
-			do
-				device_media_file="$ide_channel/$ide_device/media"
-				if [ -e "$device_media_file" ]; then
-					grep -i "cdrom" $device_media_file > /dev/null 2>&1
-					if [ $? -eq 0 ]; then
-						CDROM_LIST="$CDROM_LIST /dev/$ide_device"
-					fi
-				fi
-			done
-		done
-
-		## Check for scsi cds, usb cd, usb flash
-		for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99] /dev/sd[a-b][0-99]
-		do
-			if [ -e "$scsi_cdrom" ]; then
-				CDROM_LIST="$CDROM_LIST $scsi_cdrom"
-			fi
-		done
-	fi
-
-	echo -n "  CDROMs and devices found: $CDROM_LIST"
-	printok
-        set_progress
-}
 
 mountit(){
 # Usage: mountit src dst "options"
@@ -549,35 +363,15 @@ findcloop() {
 		$SETCOLOR_OK
 		echo "$i"
 		$SETCOLOR_NORMAL
-		#for ISOTYPE in iso9660 vfat ext3 reiserfs ntfs; do
 		if mountit $CDDEV $MNTCDROM ; then
-			echo -n "  CDROM mounted"
-			# try to find either the .iso, .clp, .bzlp or .sqfs loop image
+			dbg "Mounted $CDDEV\n"
+			# try to find either the .sqfs loop image
 			LOOPTYPE=""
-			if [ -f $MNTCDROM/$BASEIMG$LOOPBEXT ]; then
-			LOOPTYPE="$LOOPBEXT"
-			DEVLOOP="/dev/bzloop/0"
-			LOOPMOD="bzloop"
-			elif [ -f $MNTCDROM/$BASEIMG$LOOPCEXT ]; then
-				LOOPTYPE="$LOOPCEXT"
-				DEVLOOP="/dev/cloop/0"
-				LOOPMOD="cloop"
-			elif [ -f $MNTCDROM/$BASEIMG$LOOPSEXT ]; then
+			if [ -f $MNTCDROM/$BASEIMG$LOOPSEXT ]; then
 				LOOPTYPE="$LOOPSEXT"
 				DEVLOOP="/dev/loop/0"
 				LOOPMOD="squashfs"
 				ISOTYPE="squashfs"
-			elif [ -f $MNTCDROM/$BASEIMG$LOOPIEXT ]; then
-				LOOPTYPE="$LOOPIEXT"
-				DEVLOOP="/dev/loop/0"
-				LOOPMOD=
-			elif [ -f $MNTCDROM/$BASEIMG$LOOPZEXT ]; then
-				LOOPTYPE="$LOOPZEXT"
-				DEVLOOP="/dev/loop/0"
-				LOOPMOD=
-			else echo "$BASEIMG$LOOPTYPE NOT FOUND on $i"
-				echo "Mount command was:"
-				echo "mount -r -t $ISOTYPE $CDDEV $MNTCDROM 2>&1 >/dev/null"
 			fi
 
 			# if it exists, load the correct module and mount
@@ -638,7 +432,6 @@ createramdisk() {
 
 	# Check for sufficient memory to mount extra ramdisk for /etc, /home, /root, /var
 	if test -n "$TOTALMEM" -a "$TOTALMEM" -gt "$MINLEFT"; then
-	   if [ $KERNEL26 ]; then 
 		docmd   "  Creating 2.6 root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
 			"mkdir -p $MNTRAMDISK" \
 			"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
@@ -671,121 +464,31 @@ createramdisk() {
 
 			echo -n "  Starting udevstart"
 			( `/sbin/udevstart >/dev/null 2>/dev/null` & ) && printok || printfail
-
-	    else # 2.4 kernel
-                docmd   "  Creating 2.4 root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
-                        "mkdir -p $MNTRAMDISK" \
-                        "mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
-                        "mkdir -p $MNTRAMDISK/initrd" \
-                        "echo '0x0100' >/proc/sys/kernel/real-root-dev" \
-                        "pivot_root $MNTRAMDISK $MNTRAMDISK/initrd" \
-                        "mkdir -p /proc && mount -n -t proc none /proc" \
-                        "mkdir -p /dev && mount -n -t devfs none /dev" \
-                        "mkdir -p /sys /udev" \
-                        "mkdir -p /tmp && chmod 777 /tmp" \
-                        "cd /" \
-                        "ln -s /initrd/bin" \
-                        "ln -s /initrd/boot" \
-                        "ln -s /initrd/etc" \
-                        "ln -s /initrd/opt" \
-                        "ln -s /initrd/lib" \
-                        "ln -s /initrd/sbin"
-	    fi 
 		set_progress
 	else
 		$SETCOLOR_FAIL
 		echo ""
 		echo "ERROR: Insufficient memory to create ramdisk."
-		echo "       Press [y] to initialize virtual swap area creation process,"
-		echo "       Otherwise, you will be dropped to a limited shell."
-		read choice
-
-		if [ "$choice" = "y" ]; then
-			useswap "";
-		else
-			echo -n "You did not select 'y', so dropping you to a limited shell."
-                	$SETCOLOR_NORMAL
-                	execshell
-		fi
+		echo "you will be dropped to a limited shell."
+		$SETCOLOR_NORMAL
+                execshell
         fi
 }
 
-useswap() {
-	DOSPARTITIONS=""
-   
-	# Find all DOS partitions
-	if [ -f /proc/partitions ]; then
-		partitions=""
-		for p in $(awk 'BEGIN{old="__start"}{if($0==old){exit}else{old=$0;if($4&&$4!="name"){print $4}}}' /proc/partitions); do
-			case $p in
-			hd?|sd?) partitions="$partitions /dev/$p"; ;;
-			*) ;;
-			esac
-		done
-  
-		if [ -n "$partitions" ]; then
-			foundp="$(LANG=C LC_ALL=C fdisk -l $partitions 2>/dev/null)"
-			for p in `echo "$foundp" | awk '/^\/dev\//{if(/FAT/){print $1}}'`; do
-				d="/mnt/${p##*/}"
-				if mount -o ro -t vfat $p $d 2>/dev/null; then
-					[ ! -f $d/livecd.swp ] && DOSPARTITIONS="$DOSPARTITIONS $p"
-					umount $d
-				fi
-			done
-		fi
-	fi
-  
-	if [ -n "$DOSPARTITIONS" ]; then
-		for p in $DOSPARTITIONS; do
-			d="/mnt/${p##*/}"
-			f="$d/livecd.swp"
-			if mount -o umask=000,rw -t vfat $p $d; then
-				AVAIL=$(df -m $d | awk '/^\/dev\//{print $4}')
-				if [ "$AVAIL" -lt 128 ]; then
-					$SETCOLOR_FAIL
-					echo -n "Sorry, not enough free space on $p. At least 128 MB required. Dropping you to a limited shell"
-					$SETCOLOR_NORMAL
-					umount $d
-					execshell
-				else
-					rm -f "$TMP"
-					IN="128"
-					$SETCOLOR_NORMAL
-					echo -n "creating temporary swap partition"
-					dd if=/dev/zero of="$f" bs=1000k count="$IN" && \
-					mkswap -v1 "$f" && swapon -v "$f" 2>/dev/null && \
-					echo "$f swap swap defaults 0 0" >>/etc/fstab
-					if [ "$?" = "0" ]; then
-						$SETCOLOR_NORMAL
-						echo -n "Temporary swap file successfully created."
-					fi
-					umount "$d" 2>/dev/null
-					mount -o remount,ro $d
-				fi
-			fi
-		done
-	else
-		echo -n "Sorry, no dos partitions available. dropping you to a limited shell."
-		$SETCOLOR_NORMAL
-		execshell
-	fi
-}
 
 ### main script entry point
 initialise    ""
-printwelcome  ""
+$SETCOLOR_NORMAL
 createramdisk ""
-#findcdroms    ""
-#findcloop     ""
 
-# try to find the comressed loop device. If not found try modprobing
-# the scsi kernel modules and repeat the find procedure again
+# try to find all the cdrom and partitions
+# 
 
-find_hd_ide_cdroms
+find_cdroms
 
-if [ -n "$DEBUG" ]; then
-    echo "$CDROM_LIST"
-fi
+dbg "Devices to check: $CDROM_LIST\n"
+
+# First see if bootfrom= cheatcode is given, Try that one first
 
 bootfrom=`grep -iq bootfrom /proc/cmdline && echo 1`
         if [ -n "$bootfrom" ]; then
@@ -795,7 +498,7 @@ bootfrom=`grep -iq bootfrom /proc/cmdline && echo 1`
             case "$ISO_PATH" in /*.[iI][sS][oO]) ;; *) ISO_PATH="" ;; esac
 
             mkdir -p /part
-            if [ -n "$ISO_PATH" ]; then
+            if [ -n "$ISO_PATH" ]; then #ISO_PATH doesn't work yet
                 mount -r -o ro $LOOP_DEV /part
                 losetup /dev/loop/1 /part$ISO_PATH
                 mount -r -t iso9660 /dev/loop/1 $MNTCDROM && printok || printfail
@@ -804,36 +507,13 @@ bootfrom=`grep -iq bootfrom /proc/cmdline && echo 1`
             else
                 findcloop "$LOOP_DEV"
             fi
+	    dbg "I am after bootfrom. The LOOPMNT is: $LOOPMNT\n"
         fi
 
-if [ -n "$DEBUG" ]; then
-    echo "I am after bootfrom" "$LOOPMNT"
-#    echo "type exit or ctrl+D to continue"
-#    execshell
-fi
-
 if [ -z "$LOOPMNT" ]; then
-    findcloop "$CDROM_LIST" 
-    echo "I am after findcloop"
-    echo "$LOOPMNT"
+    findcloop "$CDROM_LIST"
+    dbg "I am after find_cloop The LOOPMNT is: $LOOPMNT\n"
 fi
-
-# found on hd or ide cdrom?
-
-if [ -z "$LOOPMNT" ]; then
-        find_scsi_cdroms
-        findcloop "$CDROM_LIST" 
-fi
-
-# found on scsi_cdrom?
-# I am not sure if we still need it?
-
-#if [ -z "$LOOPMNT ]; then
-#        find_old_cdroms
-#        findcloop "$CDROM_LIST" 
-#fi
-
-# found on old_cdrom?
 
 if [ -z "$LOOPMNT" ]; then
         printfail
@@ -844,8 +524,6 @@ if [ -z "$LOOPMNT" ]; then
         $SETCOLOR_NORMAL
         execshell
 fi
-
-printok
 
 echo "--- Exiting LINUXRC ----------------"
 exec /etc/rc.d/rc.sysinit <dev/console >dev/console 2>&1
