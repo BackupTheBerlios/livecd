@@ -23,10 +23,9 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.163 2005/10/01 03:32:36 ikerekes Exp $
+# $Id: hwdetect.in,v 1.164 2005/10/08 14:25:34 ikerekes Exp $
 #
 
-#use strict;
 use lib qw(/usr/lib/libDrakX);
 
 use standalone;
@@ -44,8 +43,6 @@ my $DEF_KEYBOARD   = "us";
 use fsedit;
 use fs;
 use Getopt::Long;
-
-#$ENV{SHARE_PATH} ||= "/usr/share";
 
 
 use do_pkgs;
@@ -195,37 +192,6 @@ sub print_failed() {
 	print "]\n";
 }
 
-sub print_hash {
-	my ($hash, $pre, $in) = @_;
-	$pre = "" unless defined($pre);
-	print "$pre<device>\n" unless defined($in);
-	foreach my $key (keys %$hash) {
-		my $value = $hash->{$key};
-		print "$pre\t<$key>";
-		if (defined($value)) {
-			print $value;
-			if (ref($value) eq "HASH") {
-				print_hash($value, "$pre\t", 1);
-				print "$pre\t";
-			}
-			elsif (ref($value) eq "ARRAY") {
-				if (scalar(@$value) > 0) {
-					print "\n";
-					foreach my $elem (@$value) {
-						print "$pre\t$elem\n";
-						if (ref($elem) eq "HASH") {
-							print_hash($elem, "$pre\t", 1);
-						}
-					}
-					print "$pre\t";
-				}
-			}
-		}
-		print "</$key>\n";
-	}	
-	print "$pre</device>\n" unless defined($in);
-}
-
 sub print_device {
 	my ($_module, $vendor, $desc) = @_;
 	print "    ";
@@ -261,42 +227,9 @@ sub hwdetect_init() {
 	%strings = getStrings();
 	%languages = getLanguages();
 	$lang = getMyLang();
-	
 	# start now
-	print getStr('script_start') . " ($SCRIPT_NAME v$SCRIPT_VER): ";
-
-	# get kernel version
-	$kernel_ver = get_exec("uname -r");
-	my $major = get_exec(qq(expr "$kernel_ver" : "\\([^.]\\+\\)\\..*"));
-	my $minor = get_exec(qq(expr "$kernel_ver" : "[^.]\\+\\.\\([^.]\\+\\)\\..*"));
-	if ($major == 2 && $minor >= 5) {
-		$kernel26 = 1;
-	}
-
-	if ($kernel26 ne "1") {
-		# start devfsd (if not already running)
-		my @devfspid = fuzzy_pidofs(qr/\bdevfsd\b/);
-		$owndevfsd = 0 if scalar(@devfspid) > 0;
-		if (-e '/dev/.devfsd' && -e '/sbin/devfsd' && $owndevfsd > 0) {
-			system("PATH=/sbin devfsd /dev 2>/dev/null"); # funny arrangement to allow us to kill it later
-		}
-	}
-
-	print_success();
-	set_progress();
 }
 
-sub hwdetect_deinit() {
-	if ($kernel26 ne "1") {
-		# kill devfsd (if we started it), it is to be started again
-		# the in init scripts
-		my @devfspid = fuzzy_pidofs(qr/\bdevfsd\b/);
-		if ($owndevfsd > 0 && scalar(@devfspid) > 0) {
-			system("kill -TERM " . $devfspid[0] . " 2>/dev/null");
-		}
-	}
-	set_progress();
-}
 
 sub is_mounted {
 	my ($point) = @_;
@@ -361,23 +294,6 @@ sub modprobe {
 	is_loaded($module);
 }
 
-sub hwdetect_get_mediatype {
-	my ($media_type) = @_;
-	my @rets;
-	foreach my $device (@all_devices) {
-		push(@rets, $device) if $device->{media_type} =~ /$media_type/;
-	}
-	@rets;
-}
-
-sub hwdetect_get_bustype {
-	my ($bus_type) = @_;
-	my @rets;
-	foreach my $device (@all_devices) {
-		push(@rets, $device) if $device->{bus} =~ /$bus_type/;
-	}
-	@rets;
-}
 
 sub hwdetect_loadmod {
 	my ($module, $vendor, $desc, $delay) = @_;
@@ -393,243 +309,9 @@ sub hwdetect_loadmod {
 	print "\n" unless $done;
 }
 
-sub read_proc_cpu() {
-	my (@cpus, $cpu);
-	foreach (cat_("/proc/cpuinfo")) {
-		if (/^processor/) { # ix86 specific
-			push @cpus, $cpu if $cpu;
-			$cpu = {};
-		}
-		if (/^([^\t]*).*:\s(.*)$/) {
-              $cpu->{$1} = $2 if $1;
-          }
-	}
-	push @cpus, $cpu;
-	@cpus;
-}
-
-sub read_proc_mem() {
-	my ($mem);
-	foreach (cat_("/proc/meminfo")) {
-		if (/\:/) {
-              if (/^([^\t]*).*:\s(.*)$/) {
-                  $mem->{$1} = $2 if $1;
-              }
-		}
-	}
-	$mem;
-}
-
-sub hwdetect_getmachine() {
-	print getStr('arch_probe') . ": ";
-	my @probed_cpus;
-	my $probed_mem;
-	eval { @probed_cpus = read_proc_cpu() };
-	eval { $probed_mem = read_proc_mem() };
-	print scalar(@probed_cpus) . " " . getStr('arch_cpus') . ", " . rmws($probed_mem->{MemTotal}) . " " . getStr('arch_mem_found');
-	scalar @probed_cpus && $probed_mem ? print_success() : print_failed();
-	foreach my $cpu (@probed_cpus) {
-		hwdetect_loadmod('unknown', $cpu->{vendor_id}, $cpu->{'model name'} . " " . $cpu->{'cpu MHz'} . "MHz " . $cpu->{'cache size'});
-		print_hash($cpu) if $debug;
-	}
-	if ($probed_mem) {
-		hwdetect_loadmod('unknown', getStr('avail_mem'), rmws($probed_mem->{MemFree}) . " " . getStr('of_mem') . " " .  rmws($probed_mem->{MemTotal}));
-		hwdetect_loadmod('unknown', getStr('avail_swap'), rmws($probed_mem->{SwapFree}) . " " . getStr('of_mem') . " " .  rmws($probed_mem->{SwapTotal})) if $haveswap > 0;
-		print_hash($probed_mem) if $debug;
-	}
-	set_progress();
-}
-
-sub hwdetect_probepci() {
-	print getStr('pci_probe') . ": ";
-	my @all_pci;
-	my @all_bridge;
-	my %pciid;
-	eval { @all_pci = detect_devices::pci_probe() and print_success() } or print_failed();
-	foreach my $pci (@all_pci) {
-		# make sure we display a single type only once
-		unless (defined($pciid{$pci->{id}})) {
-			$pciid{$pci->{id}} = 1;
-			my ($probed_vendor, $probed_desc) = split(/\|/, $pci->{description});
-			if ($pci->{media_type} =~ /SERIAL_USB/ && !defined($cmdline{nousb})) {
-				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc, 5);
-				$modules_conf->add_probeall("usb-interface", $pci->{driver}) unless $probe;
-				print "\$modules_conf->add_probeall('usb-interface', '" . $pci->{driver} . "')\n" if $debug;
-			}
-			elsif ($pci->{media_type} =~ /STORAGE_SCSI/ && !defined($cmdline{noscsi})) {
-				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
-				$modules_conf->add_probeall("scsi_hostadapter", $pci->{driver}) unless $probe;
-				print "\$modules_conf->add_probeall('scsi_hostadapter', '" . $pci->{driver} . "')\n" if $debug;
-			}
-			elsif ($pci->{media_type} =~ /BRIDGE_CARDBUS/ && !defined($cmdline{nopcmcia})) {
-				unless (is_loaded($pci->{driver})) {
-					my %popts;
-					foreach my $opt (cat_("/etc/sysconfig/pcmcia")) {
-						chomp($opt);
-						my ($name, $value) = split(/=/, $opt);
-						$popts{$name} = $value;
-					}
-					$popts{PCMCIA} = "yes";
-					$popts{PCIC} = $pci->{driver};
-					
-					# this should be decent file operations!
-					system(":> /etc/sysconfig/pcmcia");
-					foreach my $opt (sort keys %popts) {
-						system("echo '" . $opt . "=" . $popts{$opt} . "' >>/etc/sysconfig/pcmcia");
-					}
-				}
-				hwdetect_loadmod($pci->{driver}, $probed_vendor, $probed_desc);
-			}
-			elsif ($pci->{media_type} =~ /BRIDGE_/) {
-				push(@all_bridge, $pci);
-			}
-		}
-		print_hash($pci) if $debug;
-	}
-
-	# display all the bridges for which we are not loading drivers
-	foreach my $bridge (@all_bridge) {
-		my ($probed_vendor, $probed_desc) = split(/\|/, $bridge->{description});
-		hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
-	}
-
-	# determine the type of busses we need to initialise now
-	$havepcmcia = 1 if is_loaded('pcmcia_core');
-	$haveusb = 1 if is_loaded('usbcore');
-	set_progress();
-}
-
-sub hwdetect_initpcmcia() {
-	if ($havepcmcia > 0 && !defined($cmdline{nopcmcia})) {
-		print getStr('pcmcia_init') . ": ";
-		print_success();
-		print "    " . getStr('pcmcia_load') . ": ";
-		my $num = 0;
-		my @modules = ('ds');
-		$num += modprobe("-q", $_) foreach @modules;
-		!$num ? $probe ? print_warning() : print_failed() : print_loaded();
-	}
-	else {
-		system("rm -rf /etc/rc.d/rc?.d/*pcmcia");
-	}
-	set_progress();
-}
-
-sub hwdetect_initusb() {
-	if ($haveusb > 0 && !defined($cmdline{nousb})) {
-		print getStr('usb_init') . ": ";
-		if (-e '/proc/bus/usb') {
-			print_success();
-			if (is_mounted('/proc/bus/usb')) {
-				$ownprocusb = 0;
-				$usbfstab = 1;
-			}
-			else {
-				$usbfstab = mount("    " . getStr('usb_mount') . ": ", "-n", "usbfs", "none", "/proc/bus/usb");
-			}
-
-			### load the usb modules that are not loaded automatically
-			# "printer" should be in as well? (does cups stuff :(
-			print "    " . getStr('usb_load') . ": ";
-			my $num = 0;
-		#	my @modules = $kernel26 ? ('input', 'usb-storage', 'visor', 'usbmouse', 'usbhid') : ('input', 'mousedev', 'keybdev', 'usb-storage', 'visor');
-			my @modules = $kernel26 ? ('input', 'usb-storage', 'visor') : ('input', 'mousedev', 'keybdev', 'usb-storage', 'visor');
-			$num += modprobe("-q", $_) foreach @modules;
-			!$num ? $probe ? print_warning() : print_failed() : print_loaded();
-		}
-		else {
-			print_failed();
-		}
-	}
-	set_progress();
-}
 
 sub hwdetect_deinitusb() {
-	if ($haveusb > 0 &&
-		-e '/proc/bus/usb' && !defined($cmdline{nousb})) {
-		umount(getStr('usb_umount'), "/proc/bus/usb") if $ownprocusb > 0;
-	}
-	set_progress();
-}
-
-sub hwdetect_probeall() {
-	print getStr('all_probe') . ": ";
-	@all_devices = ();
-	eval { detect_devices::probeSerialDevices() };
-	eval { @all_devices = detect_devices::probeall() };
-	scalar @all_devices ? print_success() : print_failed();
-	set_progress();
-}
-
-sub hwdetect_getsata() {
-	my $sata;
-	my $total = 0;
-	my $res = "";
-
-	# Return if noscsi
-	if (defined($cmdline{noscsi})) {
-		print getStr('skip_sata');
-		print_success();
-		return
-	}
-	my @satalist = qw(libata ata_piix sg sata_sis
-	ahci ata_adma pata_pdc2027x sata_qstor sata_sil24 sata_sis sata_sx4 sata_uli sx8
-	sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc);
-
-#        my @satalist = qw(libata sd_mod ata_piix scsi_mod sr_mod sg a100u2w
-#                advansys aha152x aha1542 aic7xxx BusLogic fdomain gdth
-#                megaraid sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc);
-
-	print getStr('mod_loaded') . ": ";	
-	foreach $sata (@satalist) {
-		$res = modprobe("", $sata);
-		if ($res eq 0) {
-			print "$sata "; 
-			$total+=1;
-		}
-	}
-	print "\nTotal SATA modules loaded = $total";
-	print_success();
-}
-
-sub hwdetect_getkeyb() {
-	print getStr('keyboard_probe') . ": ";
-	my $probed_keyb = { KEYBOARD => $cmdline{keyb} };
-	my $probed_desc = keyboard::keyboard2text($probed_keyb);
-	unless (defined($probed_desc)) {
-		$probed_keyb = { KEYBOARD => $DEF_KEYBOARD };
-		$probed_desc = keyboard::keyboard2text($probed_keyb);
-	}
-	print_success();
-	hwdetect_loadmod('unknown', "", $probed_desc);
-	print_hash($probed_keyb) if $debug;
-	$probed_keyb;
-}
-
-sub hwdetect_getmouse() {
-	print getStr('mouse_probe') . ": ";
-	my $probed_vendor = "";
-	my $probed_desc = "";
-	my $device;
-	my $probed_mouse;
-	eval { $probed_mouse = mouse::detect($modules_conf) and print_success() } or print_failed();
-	if ($probed_mouse->{device} =~ /usbmouse/) {
-		my @probed_mice = hwdetect_get_mediatype('Mouse');
-		if (scalar @probed_mice) {
-			$device = $probed_mice[0];
-			($probed_vendor, $probed_desc) = split(/\|/, $device->{description});
-		}
-	}
-	#elsif ($probed_mouse->{device} =~ /psaux/) {
-	#	# http://lists.berlios.de/pipermail/minicd-scripts/2003-October/000229.html
-	#	unless ($probed_mouse->{XMOUSETYPE} =~ /GlidePoint/) {
-	#		$probed_mouse->{XMOUSETYPE} = $kernel26 ? 'ExplorerPS/2' : 'auto'; # X will auto-detect the protocol
-	#		$probed_mouse->{nbuttons} = 4;  # get ZAxisMapping right (needed for wheel)
-	#	}
-	#}
-	hwdetect_loadmod('unknown', $probed_vendor, $probed_mouse->{type} . " " . $probed_mouse->{name} . " " . $probed_desc);
-	print_hash($probed_mouse) if $debug;
-	$probed_mouse;
+	system("umount /proc/bus/usb 2>/dev/null");
 }
 
 sub hwdetect_getvideo() {
@@ -669,6 +351,9 @@ sub hwdetect_getvideo() {
 					$probed_card->{Driver} = $probed_card->{Driver2};
 					$probed_card->{use_DRI_GLX} = 1;
 					$module = $probed_card->{Driver2};
+				}
+				if ($probed_card->{Driver} eq 'ati'){
+				$probed_card->{use_DRI_GLX} = 1;
 				}
 			}
 			$card->{VideoRam} = $cmdline{xram} if defined($cmdline{xram});
@@ -724,8 +409,8 @@ sub hwdetect_getmonitors {
 }
 
 sub hwdetect_getxfree() {
-	my $def_keyboard = hwdetect_getkeyb();
-	my $def_mouse = hwdetect_getmouse();
+#	my $def_keyboard = hwdetect_getkeyb();
+#	my $def_mouse = hwdetect_getmouse();
 	my $def_card = hwdetect_getvideo();
 	my $rawX = Xconfig::default::configure(undef, $def_keyboard, $def_mouse);
 	my $def_monitors = hwdetect_getmonitors($rawX);
@@ -774,158 +459,13 @@ sub hwdetect_getxfree() {
 
 	unless ($probe) {
 		print getStr('x_write') . ": ";
-		eval { mouse::write(undef, $def_mouse) };
-		eval { keyboard::write($def_keyboard) };
+#		eval { mouse::write(undef, $def_mouse) };
+#		eval { keyboard::write($def_keyboard) };
 		eval { $rawX->write and print_success() } or print_failed();
 	}
-	set_progress();
+#	set_progress();
 }
 
-sub hwdetect_getsound() {
-	my @probed_cards;
-	unless (defined($cmdline{nosound})) {
-		print getStr('sound_probe') . ": ";
-		eval { @probed_cards = hwdetect_get_mediatype('MULTIMEDIA_AUDIO') };
-		print scalar(@probed_cards) . " " . getStr('found');
-		scalar @probed_cards ? print_success() : print_failed();
-		my $num = 0;
-		foreach my $card (@probed_cards) {
-			my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
-			my $sndnum = "sound$num";
-			my $driver = $card->{driver};
-			$driver = $cmdline{sound} if defined($cmdline{sound});
-			$driver = $cmdline{$sndnum} if defined($cmdline{$sndnum});
-			$modules_conf->set_alias("sound-slot-$num", $driver);
-			print "\$modules_conf->set_alias('sound-slot-$num', '$driver')\n" if $debug;
-			if ($card->{options} && $driver eq $card->{driver}) {
-				$modules_conf->set_options($driver, $card->{options}); 
-				print "\$modules_conf->set_options($driver, " . $card->{options} . ")\n" if $debug;
-			}
-			
-			# sound card specifics not defaulted in MDK
-			$modules_conf->set_options('snd-via82xx', 'index=0 dxs_support=2') if $driver =~ /via82xx/;
-#			$modules_conf->set_options('snd-card-intel8x0', 'snd_ac97_clock=41194') if $driver =~ /intel8x0/;
-			
-			$num++;
-			# hwdetect_loadmod($card->{driver}, ...) makes alsa break since the init scripts
-			# want to load the correct module.
-			hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
-			print_hash($card) if $debug;
-		}
-	}
-	system("rm -rf /etc/rc.d/rc?.d/*alsa /etc/rc.d/rc?.d/sound") unless scalar(@probed_cards) || $probe;
-	set_progress();
-}
-
-sub hwdetect_getnetwork() {
-	my @probed_cards;
-	unless (defined($cmdline{nonetwork})) {
-		print getStr('network_probe') . ": ";
-		eval { @probed_cards = hwdetect_get_mediatype('NETWORK_ETHERNET|NETWORK_OTHER') };
-		print scalar(@probed_cards) . " " . getStr('found');
-		scalar @probed_cards ? print_success() : print_failed();
-		my $num = 0;
-		foreach my $card (@probed_cards) {
-			my ($probed_vendor, $probed_desc) = split(/\|/, $card->{description});
-			my $ethnum = "eth$num";
-			my $driver = $card->{driver};
-			$driver = $cmdline{eth} if defined($cmdline{eth});
-			$driver = $cmdline{$ethnum} if defined($cmdline{$ethnum});
-			
-			$modules_conf->set_alias("eth$num", $driver) unless $probe;
-			print "\$modules_conf->set_alias('eth$num', '$driver')\n" if $debug;
-			
-			$num++;
-			# don't load driver, only add to /etc/modules.conf (as with sound)
-			hwdetect_loadmod('unknown', $probed_vendor, $probed_desc);
-			print_hash($card) if $debug;
-		}
-		## Turn off IPV6
-		if ($kernel26) {
-			$modules_conf->set_alias('net-pf-10', 'off');
-			print "\$modules_conf->set_alias('net-pf-10', 'off')\n" if $debug;
-			print "IPV6 turned off \n";
-		}
-	}
-	system("rm -rf /etc/rc.d/rc?.d/*network") unless scalar(@probed_cards) || $probe;
-	set_progress();
-}
-
-sub hwdetect_getprinters() {
-	print getStr('printer_probe') . ": ";
-	my @probed_printers;
-	#eval { require printer::detect; @probed_printers = local_detect() };
-	print scalar(@probed_printers) . " " . getStr('found');
-	scalar @probed_printers ? print_success() : print_failed();
-	system("rm -rf /etc/rc.d/rc?.d/*cups") unless scalar(@probed_printers);
-	foreach my $printer (@probed_printers) {
-		print_hash($printer) if $debug;
-	}
-	set_progress();
-}
-
-sub hwdetect_getserial() {
-	print getStr('serial_probe') . ": ";
-	my @probed_devices;
-	print scalar(@probed_devices) . " " . getStr('found');
-	print " " . getStr('not_impl');
-	print_warning();
-	set_progress();
-}
-
-sub hwdetect_getusb() {
-	if (-e '/proc/bus/usb/devices' && !defined($cmdline{nousb})) {
-		print getStr('usb_probe') . ": ";
-		my @probed_devices;
-		eval { @probed_devices = hwdetect_get_bustype('USB') };
-		my @usable_devices;
-		foreach my $device (@probed_devices) {
-			unless ($device->{media_type} =~ /^Hub/ ||
-				($device->{media_type} =~ /Mouse/ ||
-				$device->{description} =~ /Hub/)) {
-				push(@usable_devices, $device);
-			}
-		}
-		print scalar(@usable_devices) . " " . getStr('found');
-		scalar @probed_devices ? print_success() : print_failed();
-		foreach my $device (@usable_devices) {
-			my ($probed_vendor, $probed_desc) = split(/\|/, $device->{description});
-			hwdetect_loadmod($device->{driver}, $probed_vendor, $probed_desc);
-			print_hash($device) if $debug;
-		}
-	}
-	set_progress();
-}
-
-sub hwdetect_printall() {
-	if ($debug) {
-		print_hash($_) foreach @all_devices;
-	}
-}
-
-sub hwdetect_readconf() {
-	print getStr('mod_read') . ": ";
-	$modules_conf = modules::any_conf->read;
-	print_success();
-	set_progress();
-}
-
-sub hwdetect_writeconf() {
-	unless ($probe) {
-		print getStr('mod_write') . ": ";
-		system(":> $prefix/etc/modules.conf"); # clear first
-		system(":> $prefix/etc/modprobe.conf"); # clear first
-		$modules::prefix = undef;
-		$modules::prefix = $prefix;
-		if ($kernel26) {
-			modules::modprobe_conf::write($modules_conf);
-		} else {
-			modules::any_conf::write($modules_conf);
-		}
-		print_success();
-	}
-	set_progress();
-}
 
 # descriptive name, type (or auto), mount defaults
 my %fstypes = (
@@ -1272,7 +812,7 @@ sub hwdetect_getdisks() {
 	$num = keys %all_devs;
 	print "$num " . getStr('found');
 	print_success();
-	set_progress();
+#	set_progress();
 }
 
 
@@ -1364,7 +904,7 @@ sub hwdetect_writedisks() {
 		close $INFO;
 		print_success();
 	}
-	set_progress();
+#	set_progress();
 }
 
 # start all swap partitions
@@ -1373,7 +913,7 @@ sub hwdetect_swapon() {
 		print getStr('swap_activate') . ": ";
 		system("/sbin/swapon -a -e") ? print_failed() : print_success();
 	}
-	set_progress();
+#	set_progress();
 }
 
 sub nothing () {};
@@ -1397,7 +937,7 @@ sub version () {
 sub enable_service {
     run_program::run('/sbin/chkconfig', '--level', 5, $_[0], 'on');
 }
-    
+
 sub disable_service {
     run_program::run('/sbin/chkconfig', '--del', $_[0], 'on');
 }
@@ -1414,93 +954,143 @@ MAIN: { print "\n$COLOR_YELLOW"."HWDETECT - MAIN ---------------$COLOR_NORMAL\n"
 
 	# initialise
 	hwdetect_init();
-#	hwdetect_readconf();
-	
+
 	# probe buses
-#	unless (defined($fdisk)) {
-#		hwdetect_probepci();
-#		hwdetect_initusb();
-#		hwdetect_initpcmcia();
-#	}
-	
+	unless (defined($fdisk)) {
 	# Configure USB_CONTROLLERS - writes to /etc/modprobe.conf
-	
-	if (!defined($cmdline{nousb})) {
-	modules::load_category($modules_conf, 'bus/usb');
-	$modules_conf->write;
-	}
-	
-	
+	config_usb();
 	# Configure PCMCIA_CONTROLLER - writes to etc/sysconfig/pcmcia
-	if ($cmdline !~ "nopcmcia") {
-	harddrake::autoconf::pcmcia(keys %ID ? first(values(%ID))->{driver} : '');
-	$modules_conf->write;
-	}
-	else {
-	    disable_service('pcmcia');
-	    }
-	    
-	    
-	    # Configure AUDIO - writes to /etc/modprobe.conf
-	    # automatic sound slots configuration
-	    
-	if (!defined($cmdline{nosound})) {
-	rm_rf("/etc/asound.state") if -e "/etc/asound.state";
-	harddrake::sound::configure_sound_slots($modules_conf);
-	$modules_conf->write;
-	}
-	else {
-	    disable_service('sound');
-	}
-		
+	config_pcmcia();
+	# Configure AUDIO - writes to /etc/modprobe.conf
+	# automatic sound slots configuration
+	config_sound();
 	#Configure ETHERNET - writes to /etc/modprobe.conf
-		
-	if (!defined($cmdline{nonetwork})) {
-	    $modules_conf->remove_alias_regexp('^(wlan|eth)[0-9]*$');
-	    modules::load_category($modules_conf, 'network/main|gigabit|usb|wireless|firewire|pcmcia');
-	    require network::ethernet;
-	    network::ethernet::update_iftab();
-	    network::ethernet::configure_eth_aliases($modules_conf);
-	    $modules_conf->set_alias('net-pf-10', 'off');
-	    $modules_conf->write;
+	config_network();
+	#Configure VIDEO - writes to /etc/X11/xorg.conf & /etc/modprobe.preload for agp drivers
+	config_video();
+	#Configure MOUSE - writes to /etc/sysconfig/mouse
+	config_mouse();
+	#Configure KEYBOARD routine goes here if $cmdline keyb
+	config_keyboard();
+	#Configure sata drives
+	config_sata();
+	}
+	
+# New hwdetect routines
+sub config_usb() {
+	if (!defined($cmdline{nousb})) {
+		print getStr('usb_init'); 
+		modules::load_category($modules_conf, 'bus/usb');
+		$modules_conf->write;
+		print_success();
+	}
+}
+
+sub config_pcmcia() {
+	if (!defined($cmdline{nopcmcia})) {
+		print getStr('pcmcia_probe');
+		harddrake::autoconf::pcmcia(keys %ID ? first(values(%ID))->{driver} : '');
+		$modules_conf->write;
+		print_success();
 	}
 	else {
-	    disable_service('network');
+		disable_service('pcmcia');
 	}
-		    
-	#Configure VIDEO - writes to /etc/X11/xorg.conf & /etc/modprobe.preload for agp drivers
+}
+
+sub config_sound() {
+	if (!defined($cmdline{nosound})) {
+		print getStr('sound_probe');
+		rm_rf("/etc/asound.state") if -e "/etc/asound.state";
+		harddrake::sound::configure_sound_slots($modules_conf);
+		$modules_conf->write;
+		print_success();
+	}
+	else {
+		disable_service('sound');
+	}
+}
+
+sub config_network() {		
+	if (!defined($cmdline{nonetwork})) {
+		print getStr('network_probe');
+		$modules_conf->remove_alias_regexp('^(wlan|eth)[0-9]*$');
+		modules::load_category($modules_conf, 'network/main|gigabit|usb|wireless|firewire|pcmcia');
+		require network::ethernet;
+		network::ethernet::update_iftab();
+		network::ethernet::configure_eth_aliases($modules_conf);
+		$modules_conf->set_alias('net-pf-10', 'off');
+		$modules_conf->write;
+		print_success();
+	}
+	else {
+		disable_service('network');
+	}
+}
+
+sub config_video() {
 	if (!defined($cmdline{xres}) && !defined($cmdline{xbpp}) && !defined($cmdline{xdrv})) {
-		    harddrake::autoconf::xconf($modules_conf, {});
-	    $modules_conf->write;
+		print getStr('video_probe');
+		harddrake::autoconf::xconf($modules_conf, {});
+		$modules_conf->write;
+		print_success();
 	}
 	# If user specifies xres,xbpp or xdrv then use routine from original hwdetect below
 	else {
 	    hwdetect_getxfree();
 	}
-	
-	#Configure MOUSE - writes to /etc/sysconfig/mouse
-	
+}
+
+sub config_mouse() {
+	print getStr('mouse_probe');	
 	harddrake::autoconf::mouse_conf($modules_conf);
 	$modules_conf->write;
-	
-	#Configure KEYBOARD routine goes here if $cmdline keyb
+	print_success();
+}
+
+sub config_keyboard() {
+	print getStr('keyboard_probe');
 	if (defined($cmdline{keyb})) {
-	    my $probed_keyb = { KEYBOARD => $cmdline{keyb} };
-	    my $probed_desc = keyboard::keyboard2text($probed_keyb);
-	    unless (defined($probed_desc)) {
-		$probed_keyb = { KEYBOARD => $DEF_KEYBOARD };
-		$probed_desc = keyboard::keyboard2text($probed_keyb);
-	    }
+		my $probed_keyb = { KEYBOARD => $cmdline{keyb} };
+		my $probed_desc = keyboard::keyboard2text($probed_keyb);
+		unless (defined($probed_desc)) {
+			$probed_keyb = { KEYBOARD => $DEF_KEYBOARD };
+			$probed_desc = keyboard::keyboard2text($probed_keyb);
+	    	}
 	}
+	print_success();
+}
+
+sub config_sata() {
+	print "Probing for sata: ";
+	my $sata;
+	my $total = 0;
+	my $res = "";
+
+	# Return if nosata
+	if (defined($cmdline{noscsi})) {
+		print getStr('skip_sata');
+		print_success();
+		return
+	}
+	my @satalist = 	my @satalist = qw(libata ata_piix sg sata_sis
+	ahci ata_adma pata_pdc2027x sata_qstor sata_sil24 sata_sis sata_sx4 sata_uli sx8
+	sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc);
+
+#	print getStr('mod_loaded') . ": ";
+	foreach $sata (@satalist) {
+		$res = modprobe("", $sata);
+		if ($res eq 0) {
+#			print "$sata "; 
+			$total+=1;
+		}
+	}
+	print "Modules loaded = $total";
+	print_success();
+}	
 						    
-#	# CONFIGURE TIMEZONE? - writes to etc/sysconfig/clock
-#	require timezone;
-#	timezone::write($o->{timezone});
-						    
-	# Turn on  numlock if computer isnt laptop?
-	detect_devices::isLaptop() or enable_service('numlock');
-						    
-						    
+
+
 	# CONFIGURE FSTAB here only for hard drive partitions and such Dont put in floppy or cdrom entries	
 	# get disks
 	print "\n$COLOR_YELLOW"."HWDETECT: Starting getdisks\n$COLOR_NORMAL";
@@ -1508,12 +1098,10 @@ MAIN: { print "\n$COLOR_YELLOW"."HWDETECT - MAIN ---------------$COLOR_NORMAL\n"
 	hwdetect_writedisks();
 	if (defined($fdisk)) {
 		hwdetect_swapon();
-		hwdetect_getmachine();
 	}
 	
 	# deinit
 	hwdetect_deinitusb() unless ($fdisk);
-	hwdetect_deinit();
 	print "\n$COLOR_YELLOW"."HWDETECT - DONE ---------------$COLOR_NORMAL\n";
 }
 
