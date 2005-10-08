@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.54 2005/10/01 03:34:39 ikerekes Exp $
+# $Id: rc.sysinit.in,v 1.55 2005/10/08 14:30:51 ikerekes Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -118,11 +118,9 @@ docmd() {
 
 ### load a module
 loadmod() {
-	EXT=".ko"
-	MODULE="/lib/modules/$KERNELVER/kernel/$1$EXT"
+	MODULE="/lib/modules/$KERNELVER/kernel/$1.ko"
 	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
 	[ ! -f $MODULE ] && return 1
-	#insmod $MODULE $2 2>&1 >/dev/null && return 0 || return 1
 	insmod $MODULE $2 && return 0 || return 1
 }
 
@@ -168,20 +166,6 @@ execshell() {
 	$SHELL
 }
 
-
-### setup a directory as overlay (cow)
-setupdir_cow() { # mount-directory, [extra options]
-	mountdir=$1
-	lufsopt=$2
-	
-	LUFSD_OPTS="rw_tmp=$FSROOT/$mountdir,ro_root=$MNTLIVECD/$mountdir"
-	[ -n "$lufsopt" ] && LUFSD_OPTS="$lufsopt,$LUFSD_OPTS"
-	
-	rm -rf /$mountdir && mkdir -p /$mountdir $FSROOT/$mountdir
-	/initrd/usr/sbin/lufsd.livecdfs /$mountdir -o $LUFSD_OPTS >$FSLOG$mountdir
-}
-
-
 ### setup an arbitrary directory
 setupdir_dir() { # rootdir
 	rootdir=$1
@@ -195,28 +179,17 @@ setupdir_dir() { # rootdir
 setupdir_etc() {
 	echo -n "  Building /etc structure: "
 	
-	if [ -n "$COW" ]; then
-		setupdir_cow "etc" "dmask=755"
-	else
-		rm -rf /etc && cp -a $MNTLIVECD/etc /
-	fi
-
+	rm -rf /etc && cp -a $MNTLIVECD/etc /
+	
 	mkdir -p /etc/livecd/hwdetect
 	rm -rf /etc/fstab && touch /etc/fstab
 
         echo '### LIVECD rc.sysinit ###' >/etc/fstab
-	if [ "$KERNEL24" = "1" ]; then
-		echo 'none      /proc    proc   defaults  0 0' >>/etc/fstab
-		echo 'none      /dev     devfs  defaults  0 0' >>/etc/fstab
-		echo 'none      /dev/pts devpts mode=0620 0 0' >>/etc/fstab
-		echo '/dev/rd/3 /        tmpfs  defaults  0 0' >>/etc/fstab
-	else
-		echo 'none      /proc    proc   defaults  0 0' >>/etc/fstab
-		echo 'none      /sys     sysfs  defaults  0 0' >>/etc/fstab
-		echo 'none      /dev/pts devpts mode=0620 0 0' >>/etc/fstab
-		echo '/dev/rd/3 /        tmpfs  defaults  0 0' >>/etc/fstab
-	fi
-
+	echo 'none      /proc    proc   defaults  0 0' >>/etc/fstab
+	echo 'none      /sys     sysfs  defaults  0 0' >>/etc/fstab
+	echo 'none      /dev/pts devpts mode=0620 0 0' >>/etc/fstab
+	echo '/dev/rd/3 /        tmpfs  defaults  0 0' >>/etc/fstab
+	
 	rm -f /etc/mtab && touch /etc/mtab
 	rm -rf /etc/modules.conf && touch /etc/modules.conf
 	rm -rf /etc/rc.d/rc3.d/S05harddrake
@@ -229,12 +202,8 @@ setupdir_etc() {
 
 ### setup the /home structure
 setupdir_home() {
-	if [ -n "$COW" ]; then
-		setupdir_cow "home" "fmask=666,dmask=777"
-	else
-		echo -n "  Building /home structure: "
-		cp -a $MNTLIVECD/home /
-	fi
+	echo -n "  Building /home structure: "
+	cp -a $MNTLIVECD/home /
 	printok
 	set_progress
 }
@@ -243,48 +212,44 @@ setupdir_home() {
 ### setup the /lib structure
 setupdir_lib() {
 	echo -n "  Building /lib structure: "
-		
-	if [ -n "$COW" ]; then
-		setupdir_cow "lib" "dmask=755"
-	else
-		rm -rf /lib && mkdir -p /lib
-		cd $MNTLIVECD/lib/
-		for f in *; do
-			case $f in
-				dev-state)
-					mkdir -p /lib/$f
-					;;
-				modules)
-					mkdir -p /lib/$f
-					for k in $f/*; do
-						if `echo $k | grep -q $f/$KERNELVER`; then
-							mkdir -p /lib/$k
-							for s in $k/*; do
-								if [ -f $MNTLIVECD/lib/$s ]; then
-									cp $MNTLIVECD/lib/$s /lib/$s
-									chmod 644 /lib/$s
-								else
-									mkdir -p /lib/$s
-									for d in `find $s -type d`; do
-										mkdir -p /lib/$d || true
-										for m in $d/*; do
-											[ -f $MNTLIVECD/lib/$m ] && ln -sf $MNTLIVECD/lib/$m /lib/$m || true
-										done
+	
+	rm -rf /lib && mkdir -p /lib
+	cd $MNTLIVECD/lib/
+	for f in *; do
+		case $f in
+			dev-state)
+				mkdir -p /lib/$f
+			;;
+			modules)
+				mkdir -p /lib/$f
+				for k in $f/*; do
+					if `echo $k | grep -q $f/$KERNELVER`; then
+						mkdir -p /lib/$k
+						for s in $k/*; do
+							if [ -f $MNTLIVECD/lib/$s ]; then
+								cp $MNTLIVECD/lib/$s /lib/$s
+								chmod 644 /lib/$s
+							else
+								mkdir -p /lib/$s
+								for d in `find $s -type d`; do
+									mkdir -p /lib/$d || true
+									for m in $d/*; do
+										[ -f $MNTLIVECD/lib/$m ] && ln -sf $MNTLIVECD/lib/$m /lib/$m || true
 									done
-								fi
-							done
-						else
-							ln -sf $MNTLIVECD/lib/$k /lib/$k || true
-						fi
-					done
-					;;
-				*)
-					ln -sf $MNTLIVECD/lib/$f /lib/$f || true
-					;;
-			esac
-		done
-		cd /
-	fi
+								done
+							fi
+						done
+					else
+						ln -sf $MNTLIVECD/lib/$k /lib/$k || true
+					fi
+				done
+			;;
+			*)
+				ln -sf $MNTLIVECD/lib/$f /lib/$f || true
+			;;
+		esac
+	done
+	cd /
 
 	printok
 	set_progress
@@ -295,12 +260,7 @@ setupdir_lib() {
 setupdir_root() {
 	echo -n "  Building /root structure: "
 	
-	if [ -n "$COW" ]; then
-		setupdir_cow "root"
-	else
-		#execshell
-		cp -a $MNTLIVECD/root / 
-	fi
+	cp -a $MNTLIVECD/root / 
 	
 	printok
 	set_progress
@@ -310,37 +270,33 @@ setupdir_root() {
 ### setup a /var structure
 setupdir_var() {
 	echo -n "  Building /var structure: "
-	if [ -n "$COW" ]; then
-		setupdir_cow "var" "dmask=777,fmask=666"
-	else
-		PREV=
-		rm -rf /var && mkdir -p /var
-		for d in `find $MNTLIVECD/var/ -type d`; do
-			CURR=${d#$MNTLIVECD/var/}
-			[ -n "$PREV" ] && CURR="$PREV $CURR"
-			if [ -e "$MNTLIVECD/var/$CURR" ]; then
-				d="$CURR"
-				case $d in
-					tmp*)
-						;;
-					lib/menu*|lib/rpm*|lib/nxserver/nxhome*|lib/urpmi*|lib/samba*|lib/gnome*|lib/mysql*)
-						[ ! -e "/var/$d" ] && ln -sf "$MNTLIVECD/var/$d" "/var/$d" || true
-						;;
-					cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|xkb*|yp*)
-						mkdir -p "/var/$d" || true
-						$MNTLIVECD/bin/chown --reference="$MNTLIVECD/var/$d" "/var/$d"
-						$MNTLIVECD/bin/chmod --reference="$MNTLIVECD/var/$d" "/var/$d"
-						;;
-					*)
-						[ ! -e "/var/$d" ] && ln -sf "$MNTLIVECD/var/$d" "/var/$d" || true
-						;;
-				esac
-				CURR=
-			fi
-			PREV="$CURR"
-		done
-	fi
-	
+	PREV=
+	rm -rf /var && mkdir -p /var
+	for d in `find $MNTLIVECD/var/ -type d`; do
+		CURR=${d#$MNTLIVECD/var/}
+		[ -n "$PREV" ] && CURR="$PREV $CURR"
+		if [ -e "$MNTLIVECD/var/$CURR" ]; then
+			d="$CURR"
+			case $d in
+				tmp*)
+					;;
+				lib/menu*|lib/rpm*|lib/nxserver/nxhome*|lib/urpmi*|lib/samba*|lib/gnome*|lib/mysql*)
+					[ ! -e "/var/$d" ] && ln -sf "$MNTLIVECD/var/$d" "/var/$d" || true
+					;;
+				cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|xkb*|yp*)
+					mkdir -p "/var/$d" || true
+					$MNTLIVECD/bin/chown --reference="$MNTLIVECD/var/$d" "/var/$d"
+					$MNTLIVECD/bin/chmod --reference="$MNTLIVECD/var/$d" "/var/$d"
+					;;
+				*)
+					[ ! -e "/var/$d" ] && ln -sf "$MNTLIVECD/var/$d" "/var/$d" || true
+					;;
+			esac
+			CURR=
+		fi
+		PREV="$CURR"
+	done
+		
 	mkdir -p /var/lock/subsys
 	mkdir -p /var/log && touch /var/log/wtmp && touch /var/log/messages
 	mkdir -p /var/run && touch /var/run/utmp
@@ -353,24 +309,6 @@ setupdir_var() {
 
 ### Setup the root fs
 setuproot() {
-	# check for overlay support
-	COW="" 
-	if [ -e /initrd/usr/sbin/lufsd.livecdfs ]; then
-		if `/bin/grep -iqv nocow /proc/cmdline`; then
-			COW=1
-			FSROOT="/tmp/.livecdfs"
-			FSLOG="$FSROOT/trace."
-			docmd   "  Initialising overlay filesystem" \
-				"mkdir -p $FSROOT" \
-				"cp -a $MNTLIVECD/etc/alternatives /etc" \
-				"rm -rf /lib  && ln -sf $MNTLIVECD/lib  /lib"  \
-				"rm -rf /sbin && ln -sf $MNTLIVECD/sbin /sbin" \
-				"rm -rf /usr  && ln -sf $MNTLIVECD/usr  /usr" \
-				"$MNTLIVECD/sbin/modprobe lufs"
-		fi
-	fi
-	set_progress
-	
 	for d in $MNTLIVECD/*; do
 		d=${d#$MNTLIVECD/}
 		if [ -d $MNTLIVECD/$d ]; then
@@ -407,13 +345,25 @@ setuproot() {
 	set_progress
 }
 
+mountit(){
+# Usage: mountit src dst "options"
+    BUILTIN_FS="iso9660 vfat ext3 reiserfs ntfs"
+    for fs in $BUILTIN_FS; do
+	test -b $1 && mount -t $fs $3 $1 $2 >/dev/null 2>&1 && return 0
+    done
+    return 1
+}
+
 
 ### setup for init of the actual mdk image
 setupinit() {
-	# perform hwdetect if not disabled
-	if [ `/bin/grep -iq hwdetect=no /proc/cmdline` ] || [ `/bin/grep -iq nodetect /proc/cmdline` ]; then
-		echo "-- rc.sysinit: Skipping hwdetect -----------"
-	else 
+	echo "6" >/proc/sys/kernel/printk
+        # perform hwdetect if not disabled
+	OPTION=`getbootoption hwdetect`
+	if [ ! -d $CHANGES/etc ]; then
+	    if [ "$OPTION" = "no" ] || [ "`grep nodetect /proc/cmdline`" ]; then
+	    	echo "-- rc.sysinit: Skipping hwdetect -----------"
+	    else 
 		if [ -e /initrd/usr/sbin/hwdetect ]; then
 			echo "-- rc.sysinit: Starting hwdetect -----------"
 			OLDPATH=$PATH
@@ -424,8 +374,8 @@ setupinit() {
 		else
 			echo "-- rc.sysinit: Missing hwdetect ------------"
 		fi
-	fi
-
+	    fi
+       fi
 	# Don't run depmod (must be run before imaging system)
 	/bin/sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
 
@@ -463,14 +413,9 @@ setupinit() {
 	docmd   "  Unmounting /sys filesystem" \
 		"umount /sys"
 
-	# turn off kernel logging
+	# clean up /proc/bus/usb (needed to be able to clean up /proc) quetly
 	echo "0" >/proc/sys/kernel/printk
-	
-	# clean up /proc/bus/usb (needed to be able to clean up /proc)
-#	docmd   "  Unmounting /proc/bus/usb filesystem" \
-		umount /proc/bus/usb
-	
-        # turn back on kernel logging
+	umount /proc/bus/usb
 	echo "6" >/proc/sys/kernel/printk
 
 	# clean up /proc (init mounts it via rc.sysinit)
@@ -502,14 +447,20 @@ do_union () {
    fi
    rm /$UNIONMOD # Don't waste memory
    mkdir /union
-   mkdir /changes
-   CHANGESDEV=`grep -iq changes /proc/cmdline && echo 1`
+   mkdir /initrd/changes
+   CHANGES=/changes
+   CHANGESDEV=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/changes/ {print}'|awk -F"=" '{print $2}')
    if [ -n "$CHANGESDEV" ]; then
-	CHANGESDEV=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/changes/ {print}'|awk -F"=" '{print $2}')
-	mount $CHANGESDEV/changes /changes
-	echo "nodetect">>/proc/cmdline  #skip hwdetect
+   	if mountit  $CHANGESDEV /initrd/changes; then
+	    CHANGES=/initrd/changes/changes
+	else
+	    echo "Failed to mount $CHANGESDEV changes partition"
+	fi    
    fi		    
-   mount -t unionfs -o dirs=/changes=rw:/initrd/loopfs=ro unionfs /union
+
+   mkdir $CHANGES
+
+   mount -t unionfs -o dirs=$CHANGES=rw:/initrd/loopfs=ro unionfs /union
 
    export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
    echo "6" > /proc/sys/kernel/printk # enable kernel messages
@@ -519,7 +470,7 @@ do_union () {
 	d=${d#$MNTLIVECD/}
 	if [ -d $MNTLIVECD/$d ]; then
 		case $d in
-		dev|proc|sys|mnt|tmp|udev|initrd)  	# Remain in RAM
+		dev|proc|sys|mnt|tmp|udev|initrd|changes)  	# Remain in RAM
 		;;
 		*)					# Any extra/custom dirs
 		rm -f $d && ln -s /union/$d /$d		# Replace link
