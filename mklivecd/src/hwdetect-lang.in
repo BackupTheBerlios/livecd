@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect-lang.in,v 1.8 2005/02/14 06:56:35 tom_kelly33 Exp $
+# $Id: hwdetect-lang.in,v 1.9 2005/10/09 23:58:07 ikerekes Exp $
 #
 
 sub getLanguages() {
@@ -52,6 +52,7 @@ sub getStrings() {
 	'all_probe'        => [ "Probing devices",  undef ],
 	'found'            => [ "found", undef ], # 10 ***found***
 
+	'pcmcia_probe'     => [ "Detecting PCMCIA devices",  undef ],
 	'pcmcia_init'      => [ "Initialising PCMCIA controllers",  undef ],
 	'pcmcia_load'      => [ "Loading base PCMCIA modules",  undef ],
 
