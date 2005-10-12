@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.147 2005/10/08 14:28:48 ikerekes Exp $
+# $Id: mklivecd.in,v 1.148 2005/10/12 03:05:30 ikerekes Exp $
 #
 
 use strict;
@@ -37,7 +37,6 @@ use threads::shared;
 
 ### useful functions
 sub get_exec { my $r = qx($_[0]); chomp($r); $r; };
-#sub cat_ { local *F; open F, $_[0] or return; my @l = <F>; wantarray() ? @l : join('', @l); };
 
 ### global "constants"
 my $PROG_VERSION   = '@MKLIVECDVER@';
@@ -56,8 +55,7 @@ my $modfile        = "/etc/modules.conf";
 my $modext         = ".o";
 my $modules        = undef;
 my $modules_opt    = undef;
-my $modules_24     = '@DEF_MODULES_PATH_24@ @DEF_MODULES_DEP_PATH_24@ @DEF_MODULES_OPT_PATH_24@ @DEF_SCSI_MODULES_PATH_24@ @DEF_SCSI_MODULES_OPT_PATH_24@ @DEF_SCSI_MODULES_DEP_PATH_24@ @DEF_USB_MODULES_PATH_24@ @DEF_USB_MODULES_DRV_PATH_24@';
-my $modules_opt_24 = '@DEF_MODULES_OPT_PATH_24@ @DEF_SCSI_MODULES_OPT_PATH_24@ @DEF_USB_MODULES_DRV_PATH_24@';
+
 my $modules_26     = '@DEF_MODULES_PATH_26@ @DEF_MODULES_DEP_PATH_26@ @DEF_MODULES_OPT_PATH_26@ @DEF_SCSI_MODULES_PATH_26@ @DEF_SCSI_MODULES_OPT_PATH_26@ @DEF_SCSI_MODULES_DEP_PATH_26@ @DEF_USB_MODULES_PATH_26@ @DEF_USB_MODULES_DRV_PATH_26@';
 my $modules_opt_26 = '@DEF_MODULES_OPT_PATH_26@ @DEF_SCSI_MODULES_OPT_PATH_26@ @DEF_USB_MODULES_DRV_PATH_26@';
 my $nodirs         = '^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/tmp$ ^/var/tmp$';
@@ -471,22 +469,10 @@ opts{workdir}) && !(-d $opts{workdir}));
 	push @{$opts{nodir}}, split(/ /, $nodirs);
 
 	# setup executables
-	if ($o_looptype =~ /iso/) {
-		$loopcmp = undef;
-		$loopmod = undef;
-		$blocksize = 0;
-		$mkisofs_opts = "-z" if $o_looptype =~ /ziso/;
-	}
-	elsif ($o_looptype =~ /clp/) {
-		$loopcmp = "/usr/bin/create_compressed_fs";
-		$loopmod = "drivers/block/cloop";
-		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 64;
-	}
-	elsif ($o_looptype =~ /sqfs/) {
-		$loopcmp = "/usr/bin/mksquashfs";
-		$loopmod = "fs/squashfs/squashfs";
-		$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 32;
-	}
+	
+	$loopcmp = "/usr/bin/mksquashfs";
+	$loopmod = "fs/squashfs/squashfs";
+	$blocksize = defined($opts{blocksize}) ? $opts{blocksize} : 32;
 
 	# do other things before starting
 	check_kernel();
@@ -503,24 +489,13 @@ opts{workdir}) && !(-d $opts{workdir}));
 ### check for the kernel version
 sub check_kernel {
 	# this should really be perl regex's
-	my $major = get_exec("expr \"$o_kernel\" : \"\\([^.]\\+\\)\\..*\"");
-	my $minor = get_exec("expr \"$o_kernel\" : \"[^.]\\+\\.\\([^.]\\+\\)\\..*\"");
 
-	if (($major == 2) && ($minor >= 5)) {
-		$kernel26 = 1;
-		$modfile = "/etc/modprobe.conf";
-		$depmod = "/sbin/depmod-25";
-		$modext = ".ko";
-		$modules = $modules_26;
-		$modules_opt = $modules_opt_26;
-	}
-	else {
-		$kernel26 = 0;
-		$depmod = "/sbin/depmod";
-		$modext = ".o";
-		$modules = $modules_24;
-		$modules_opt = $modules_opt_24;
-	}
+	$kernel26 = 1;
+	$modfile = "/etc/modprobe.conf";
+	$depmod = "/sbin/depmod-25";
+	$modext = ".ko";
+	$modules = $modules_26;
+	$modules_opt = $modules_opt_26;
 }
 
 
@@ -639,39 +614,27 @@ sub create_initrd {
 	do_copy($o_root."etc/inittab",            644, "$dir/etc/inittab",             ++$pos);
 	do_copy($o_root."sbin/init",              755, "$dir/sbin/init.dynamic",       ++$pos);
 	do_copy($o_root."lib/libc.so.6",            0, "$dir/lib",                     ++$pos);
-#	do_copy($o_root."lib/libm.so.6",	    0, "$dir/lib",		       ++$pos);
 	do_copy($o_root."lib/ld-linux.so.2",        0, "$dir/lib",                     ++$pos);
-#	do_copy("/usr/sbin/lufsd.livecdfs",       755, "$dir/usr/sbin/lufsd.livecdfs", ++$pos) if (defined($opts{cow}));
-	if ($kernel26 == 1) {
-		# Copy but hide the udev binaries
-		do_cmd("mkdir $dir/sbin/tmp",			++$pos);
-		do_copy($o_root."/sbin/udev*",	  755, "$dir/sbin/tmp",			++$pos);
 
-		do_cmd("cp -a $o_root/etc/udev $dir/etc",	++$pos); 
-		do_cmd("cp -a $o_root/etc/dev.d $dir/etc",	++$pos);
-		do_cmd("cp -a $o_root/etc/hotplug $dir/etc",	++$pos);
-		do_cmd("cp -a $o_root/etc/hotplug.d $dir/etc",	++$pos);
-		do_cmd("cp -a $o_root/etc/sysconfig $dir/etc",	++$pos);
+	
+	# Copy but hide the udev binaries
+	do_cmd("mkdir $dir/sbin/tmp",			++$pos);
+	do_copy($o_root."/sbin/udev*",	  755, "$dir/sbin/tmp",			++$pos);
+	do_cmd("cp -a $o_root/etc/udev $dir/etc",	++$pos); 
+	do_cmd("cp -a $o_root/etc/dev.d $dir/etc",	++$pos);
+	do_cmd("cp -a $o_root/etc/hotplug $dir/etc",	++$pos);
+	do_cmd("cp -a $o_root/etc/hotplug.d $dir/etc",	++$pos);
+	do_cmd("cp -a $o_root/etc/sysconfig $dir/etc",	++$pos);
 
-		do_cmd("mknod $dir/dev/initrd b 1 250", ++$pos);
-		do_cmd("mknod $dir/dev/console c 5 1",  ++$pos);
-		do_cmd("mknod $dir/dev/null c 1 3",     ++$pos);
-		do_cmd("mknod $dir/dev/systty c 4 0",   ++$pos);
-		do_cmd("mknod $dir/dev/ram b 1 1",      ++$pos);
-		do_cmd("mknod $dir/dev/tty$_ c 4 $_",   ++$pos) foreach((1,2,3,4));
-		do_cmd("mknod $dir/dev/lvm b 109 0",    ++$pos);
+	do_cmd("mknod $dir/dev/initrd b 1 250", ++$pos);
+	do_cmd("mknod $dir/dev/console c 5 1",  ++$pos);
+	do_cmd("mknod $dir/dev/null c 1 3",     ++$pos);
+	do_cmd("mknod $dir/dev/systty c 4 0",   ++$pos);
+	do_cmd("mknod $dir/dev/ram b 1 1",      ++$pos);
+	do_cmd("mknod $dir/dev/tty$_ c 4 $_",   ++$pos) foreach((1,2,3,4));
+	do_cmd("mknod $dir/dev/lvm b 109 0",    ++$pos);
 
-	} else {
-		# create devices
-		do_cmd("mknod $dir/dev/initrd b 1 250", ++$pos);
-		do_cmd("mknod $dir/dev/console c 5 1",  ++$pos);
-		do_cmd("mknod $dir/dev/null c 1 3",     ++$pos);
-		do_cmd("mknod $dir/dev/systty c 4 0",   ++$pos);
-		do_cmd("mknod $dir/dev/ram b 1 1",      ++$pos);
-		do_cmd("mknod $dir/dev/tty$_ c 4 $_",   ++$pos) foreach((1,2,3,4));
-		do_cmd("mknod $dir/dev/lvm b 109 0",    ++$pos);
-	}
-
+	
 	# copy modules
 	foreach my $mod (@allmods) {
 		my $modpath = $o_root."lib/modules/$o_kernel/kernel/$mod$modext";
@@ -752,15 +715,7 @@ sub create_compressed {
 		if (defined($opts{nodir})) {
 			my $ex = join("\n", @{$opts{nodir}});
 			do_cmd("(find $o_root -type d 2>/dev/null | sed -e 's,^$o_root,/,g' | grep '$ex' | sed 's,^/,$o_root,' >>$workdir/excludes.list)", ++$pos);
-			#my @dirs = ();
-			#foreach my $tmp (cat_("$workdir/excludes.tmp.list")) {
-			#	my $found = 0;
-			#	foreach my $dir (@dirs) {
-			#		$found = 1 if ($tmp =~ m/^$dir/);
-			#	}
-			#	push @dirs, $tmp unless ($found);
-			#}
-			#do_cmd("echo \"$_\" >> $workdir/excludes.list") foreach (@dirs);
+
 		}
 		if (defined($opts{nofile})) {
 			my $ex = join("\n", @{$opts{nofile}});
@@ -801,18 +756,10 @@ sub create_compressed {
 			start_progress("Creating loop image", 10001);
 			my $iso = "mkisofs $mkisofs_opts -R -exclude-list $workdir/excludes.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v";
 			$iso = "$iso -sort $workdir/sort.list" if (defined($opts{sort})); 
-			#$iso = defined($loopcmp) ? "$iso $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype" : "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
-			if (defined($loopcmp)) {
-				$iso = "$iso $o_root | $loopcmp - $size >$workdir/livecd/livecd.$o_looptype";
-			} elsif ($o_looptype =~ /ziso/) {
-				my $gzroot = "$workdir/gzroot/";
-				system("mkzftree -z 3 $o_root $gzroot");
-				cp_af($_, "$gzroot/boot/") foreach glob_("$o_root/boot/*");
-				$o_root = $gzroot;
-				$iso = "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
-			} else {
-				$iso = "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
-			}
+			
+			
+			$iso = "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
+			
 			$iso = "($iso) 2>&1";
 			print "DEBUG: $iso\n" if (defined($opts{debug}));
 			open CMP, "$iso |" or die_("\nFATAL: Unable to execute '$iso'\n");
@@ -998,20 +945,12 @@ MAIN: {
 	parse_options();
 
 	create_initrd();
-#	if (-e "$o_root/etc/init.d/harddrake") {
-#		Storable::store({ dummy => 'nothing' } , "$o_root/etc/sysconfig/harddrake2/previous_hw");
-#		run_program::rooted($o_root, "chkconfig", "--add", "harddrake");
-#	}
+
 #	{
 #		local $::prefix = $o_root;
 #		require keyboard;
 #		keyboard::write(keyboard::lang2keyboard($o_keyboard));
 #	}
-
-#	do_cmd("rm -f $o_root/usr/X11R6/lib/X11/xkb/compiled");
-#	do_cmd("rm -f $o_root/usr/X11R6/lib/X11/xdm/authdir");
-#	do_cmd("cd $o_root && ln -sf $o_root/var/lib/xkb $o_root/usr/X11R6/lib/X11/xkb/compiled");
-#	do_cmd("cd $o_root && ln -sf $o_root/var/lib/xdm $o_root/usr/X11R6/lib/X11/xdm/authdir");
 
 	create_compressed();
 	create_isolinux();
