@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.164 2005/10/08 14:25:34 ikerekes Exp $
+# $Id: hwdetect.in,v 1.165 2005/10/12 03:03:09 ikerekes Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -1095,6 +1095,10 @@ sub config_sata() {
 	# get disks
 	print "\n$COLOR_YELLOW"."HWDETECT: Starting getdisks\n$COLOR_NORMAL";
 	hwdetect_getdisks();
+	if ( -e "$prefix/etc/fstab") {
+		system("cp $prefix/etc/fstab $prefix/etc/fstab.hwdetect.save");
+		print "The original $prefix/etc/fstab saved  as $prefix/etc/fstab.hwdetect.save";
+	}
 	hwdetect_writedisks();
 	if (defined($fdisk)) {
 		hwdetect_swapon();
