@@ -21,14 +21,25 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.55 2005/10/08 14:30:51 ikerekes Exp $
+# $Id: rc.sysinit.in,v 1.56 2005/10/12 03:06:13 ikerekes Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 
-MNTCDROM=/initrd/cdrom
-MNTLIVECD=/initrd/loopfs
+#common variables 
+
+MNTCDROM=initrd/cdrom
+MNTLIVECD=initrd/loopfs
 KERNELVER=`uname -r`
+MNTRAMDISK=/ramfs
+KERNEL26=1
+MODEXT=".ko"
+
+### progress indicator
+progress_num=0
+progress_full=@VAL_SPLASH_FULL@
+progress_max=32768
+progress_on=1
 
 ### screen colors
 RES_COL=65
@@ -40,106 +51,167 @@ SETCOLOR_NORMAL="echo -en \\033[0;39m"
 SETCOLOR_CLEAR="echo -en \\033c"
 SETCOLOR_CEOL="echo -en \\033[0G\\033[K"
 
-### progress indicator
-progress_num=@VAL_SPLASH_LINUXRC@
-progress_full=@VAL_SPLASH_FULL@
-progress_max=@MAX_SPLASH@
-progress_on=1
-
-### some kernel specifics
-KVMAJOR=`expr "$KERNELVER" : "\([^.]\+\)\..*"`
-KVMINOR=`expr "$KERNELVER" : "[^.]\+\.\([^.]\+\)\..*"`
-if [ $KVMAJOR -eq 2 ] && [ $KVMINOR -lt 5 ]; then
-	KERNEL24=1
-fi
+#common (library) functions
 
 ### print a success msg
 printok() {
-	$MOVE_TO_COL
-	echo -n "[  "
-	$SETCOLOR_OK
-	echo -n "OK"
-	$SETCOLOR_NORMAL
-	echo "  ]"
-	return 0
+        $MOVE_TO_COL
+        echo -n "[  "
+        $SETCOLOR_OK
+        echo -n "OK"
+        $SETCOLOR_NORMAL
+        echo "  ]"
+        return 0
 }
-
 
 ### print a loaded success msg
 printloaded() {
-	$MOVE_TO_COL
-	echo -n "["
-	$SETCOLOR_OK
-	echo -n "LOADED"
-	$SETCOLOR_NORMAL
-	echo "]"
-	return 0
+        $MOVE_TO_COL
+        echo -n "["
+        $SETCOLOR_OK
+        echo -n "LOADED"
+        $SETCOLOR_NORMAL
+        echo "]"
+        return 0
 }
 
 
 ### print a warning msg
 printwarn() {
-	$MOVE_TO_COL
-	echo -n "[ "
-	$SETCOLOR_WARN
-	echo -n "WARN"
-	$SETCOLOR_NORMAL
-	echo " ]"
-	return 0
+        $MOVE_TO_COL
+        echo -n "[ "
+        $SETCOLOR_WARN
+        echo -n "WARN"
+        $SETCOLOR_NORMAL
+        echo " ]"
+        return 0
 }
 
 
 ### print a failure msg
 printfail() {
-	$MOVE_TO_COL
-	echo -n "["
-	$SETCOLOR_FAIL
-	echo -n "FAILED"
-	$SETCOLOR_NORMAL
-	echo "]"
-	return 0
+        $MOVE_TO_COL
+        echo -n "["
+        $SETCOLOR_FAIL
+        echo -n "DONE"
+        $SETCOLOR_NORMAL
+        echo "]"
+        return 0
 }
 
+### print error message and exit to limited shell
+printfatal() {
+	printfail
+	$SETCOLOR_FAIL
+	echo ""
+	echo "$1"
+	shift
+	while [ $# -gt 0 ]; do
+		echo "$1"
+		shift
+	done
+	echo ""
+	echo "       Dropping you to a limited shell."
+	$SETCOLOR_NORMAL
+	execshell
+}
 
 ### execute a command/commands printing the success or failure msg on completion
 docmd() {
-	echo -n "$1: "
-	shift
-	CMD="($1)"
-	shift
-	while [ $# -gt 0 ]; do
-		CMD="$CMD && ($1)"
-		shift
-	done
-	#(eval "$CMD") && printok || printfail
-	(eval "$CMD") 2>&1 >/dev/null && printok || printfail
+        echo -n "$1: "
+        shift
+        CMD="($1)"
+        shift
+        while [ $# -gt 0 ]; do
+                CMD="$CMD && ($1)"
+                shift
+        done
+        (eval "$CMD") 2>&1 >/dev/null && printok || printfail
 }
 
 
 ### load a module
 loadmod() {
-	MODULE="/lib/modules/$KERNELVER/kernel/$1.ko"
-	[ ! -f $MODULE ] && MODULE="/initrd$MODULE"
-	[ ! -f $MODULE ] && return 1
-	insmod $MODULE $2 && return 0 || return 1
+        MODULE="/lib/modules/$KERNELVER/kernel/$1$MODEXT"
+        [ ! -f $MODULE ] && MODULE="/initrd$MODULE"
+        [ ! -f $MODULE ] && return 1
+        if [ -n "$DEBUG" ]; then
+                RET=0
+                echo -n "$MODULE: "
+                insmod $MODULE $2 && RET=0 || RET=1
+                echo "($RET)"
+                return $RET
+        else
+                (insmod $MODULE $2 2>&1)>/dev/null && return 0 || return 1
+        fi
 }
 
 
 ### set progress bar
 set_progress() {
-	silent=`grep -i splash=silent /proc/cmdline`
-	if [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
-		progress_num=$(($progress_num+1));
-		progress=$(($progress_max*($progress_num+1)/$progress_full));
-		echo "show $progress" >/proc/splash
-	fi
+        silent=`grep -i splash=silent /proc/cmdline`
+        if [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
+                progress_num=$(($progress_num+1));
+                progress=$(($progress_max*($progress_num+1)/$progress_full));
+                echo "show $progress" >/proc/splash
+        fi
+}
+
+dbg()
+{
+    	  if [ -n "$DEBUG" ]; then
+       	echo
+       	$SETCOLOR_FAIL
+       	echo -e "DBG: ${@}"
+       	$SETCOLOR_NORMAL
+       	echo
+    	  fi 
+}
+
+### this is if we are to execute a limited shell
+execshell() {
+        export HOSTNAME="localhost.localdomain"
+        export PS1="$ "
+        export PS2="> "
+        export PS4="+ "
+        echo "6" >/proc/sys/kernel/printk
+
+        # find the best shell available to us at this point
+        if [ -e /bin/bash ]; then
+                echo "  Loading /bin/bash"
+                export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
+                SHELL="/bin/bash"
+        elif [ -e /initrd/bin/ash ]; then
+                echo "  Loading /initrd/bin/ash"
+                export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
+                SHELL="/initrd/bin/ash"
+        else
+                export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+                if [ -e /bin/ash ]; then
+                        echo "  Loading /bin/ash"
+                        SHELL="/bin/ash"
+                else
+                        echo "  Loading /bin/busybox ash"
+                        SHELL="/bin/busybox ash"
+                fi
+        fi
+        exec $SHELL
+}
+
+mountit(){
+# Usage: mountit src dst "options"
+    	  BUILTIN_FS="iso9660 vfat ext3 reiserfs ntfs"
+    	  for fs in $BUILTIN_FS; do
+        	test -b $1 && mount -t $fs $3 $1 $2 >/dev/null 2>&1 && return 0
+    	  done
+    	  return 1
 }
 
 ### function to get the value of an option from the kernel command line
 getbootoption() {
 	option="$1"
-	val=`$MNTLIVECD/bin/sed -r -e "s/(.*)${option}=([[:alnum:]-]*)(.*)/\2/i" /proc/cmdline`
-	if [ -n "$val" -a "$val" != "`$MNTLIVECD/bin/cat /proc/cmdline`" ]; then
+	val=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/$option/ {print}'|awk -F"=" '{print $2}')
+	if [ -n "$val" -a "$val" != "`cat /proc/cmdline`" ]; then
 		echo $val
 		return 0
 	else
@@ -147,24 +219,19 @@ getbootoption() {
 	fi
 }
 
-### this is if we are to execute a limited shell
-execshell() {
-	export HOSTNAME="localhost.localdomain"
-	export PS1="$ "
-	export PS2="> "
-	export PS4="+ "
-	echo "6" >/proc/sys/kernel/printk
-
-	# find the best shell available to us at this point
-	if [ -e /bin/bash ]; then
-		export PATH=$PATH:/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
-		SHELL="/initrd/bin/ash"
+### function to check for an option from the kernel command line
+checkbootoption() {
+	if [ `grep -iq $1 /proc/cmdline` ]; then
+		return 0
 	else
-		export PATH=$PATH:/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
-		SHELL="/initrd/bin/ash"
+		return 1
 	fi
-	$SHELL
 }
+
+#--------------------------------------------------------------------#
+# rc.sysinit subroutines                                             #
+# Display debugging info if debug is on. Allow extended echo chars.  #
+#--------------------------------------------------------------------#
 
 ### setup an arbitrary directory
 setupdir_dir() { # rootdir
@@ -345,15 +412,6 @@ setuproot() {
 	set_progress
 }
 
-mountit(){
-# Usage: mountit src dst "options"
-    BUILTIN_FS="iso9660 vfat ext3 reiserfs ntfs"
-    for fs in $BUILTIN_FS; do
-	test -b $1 && mount -t $fs $3 $1 $2 >/dev/null 2>&1 && return 0
-    done
-    return 1
-}
-
 
 ### setup for init of the actual mdk image
 setupinit() {
@@ -415,7 +473,7 @@ setupinit() {
 
 	# clean up /proc/bus/usb (needed to be able to clean up /proc) quetly
 	echo "0" >/proc/sys/kernel/printk
-	umount /proc/bus/usb
+	umount /proc/bus/usb  >/dev/null 2>&1
 	echo "6" >/proc/sys/kernel/printk
 
 	# clean up /proc (init mounts it via rc.sysinit)
@@ -432,59 +490,57 @@ setupinit() {
 }
 
 do_union () {
-
-   echo "Setting up UNIONFS"
-   UNIONMOD=unionfs.ko
-   cp `find /initrd/loopfs/lib/modules/$KERNELVER/kernel -name $UNIONMOD* ` /
-   # unzip if zipped
-   if [ -e /$UNIONMOD.gz ]; then
-	gunzip /$UNIONMOD.gz
-   fi
-   insmod /$UNIONMOD
-   if [ $? != "0" ]; then 
-	echo "Failed to load unionfs module."
-	execshell
-   fi
-   rm /$UNIONMOD # Don't waste memory
-   mkdir /union
-   mkdir /initrd/changes
-   CHANGES=/changes
-   CHANGESDEV=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/changes/ {print}'|awk -F"=" '{print $2}')
-   if [ -n "$CHANGESDEV" ]; then
-   	if mountit  $CHANGESDEV /initrd/changes; then
-	    CHANGES=/initrd/changes/changes
-	else
-	    echo "Failed to mount $CHANGESDEV changes partition"
-	fi    
-   fi		    
-
-   mkdir $CHANGES
-
-   mount -t unionfs -o dirs=$CHANGES=rw:/initrd/loopfs=ro unionfs /union
-
-   export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
-   echo "6" > /proc/sys/kernel/printk # enable kernel messages
-
-   ## Make the directories writeable
-   for d in $MNTLIVECD/*; do
-	d=${d#$MNTLIVECD/}
-	if [ -d $MNTLIVECD/$d ]; then
-		case $d in
-		dev|proc|sys|mnt|tmp|udev|initrd|changes)  	# Remain in RAM
-		;;
-		*)					# Any extra/custom dirs
-		rm -f $d && ln -s /union/$d /$d		# Replace link
-		;;
-		esac
-	else
-	   ln -s /union/$d /$d  ## link the files
+	echo "Setting up UNIONFS"
+	UNIONMOD=unionfs.ko
+	cp `find /initrd/loopfs/lib/modules/$KERNELVER/kernel -name $UNIONMOD* ` /
+	# unzip if zipped
+	if [ -e /$UNIONMOD.gz ]; then
+		gunzip /$UNIONMOD.gz
 	fi
-   done
+	insmod /$UNIONMOD
+	if [ $? != "0" ]; then 
+		printfatal "Failed to load unionfs module."
+	fi
+	rm /$UNIONMOD # Don't waste memory
+	mkdir /union
+	mkdir /initrd/changes
+	CHANGES=/changes
+	CHANGESDEV=`getbootoption changes`
+	if [ -n "$CHANGESDEV" ]; then
+		if mountit  $CHANGESDEV /initrd/changes; then
+			CHANGES=/initrd/changes/changes
+		else
+			echo "Failed to mount $CHANGESDEV changes partition"
+		fi
+	fi 
+	mkdir $CHANGES
 
-   ## fix /var/tmp
-   rm -f /var/tmp; ln -s /tmp /var/tmp
+	mount -t unionfs -o dirs=$CHANGES=rw:/initrd/loopfs=ro unionfs /union
 
-return 0
+	export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
+	echo "6" > /proc/sys/kernel/printk # enable kernel messages
+
+	## Make the directories writeable
+	for d in $MNTLIVECD/*; do
+		d=${d#$MNTLIVECD/}
+		if [ -d $MNTLIVECD/$d ]; then
+			case $d in
+				dev|proc|sys|mnt|tmp|udev|initrd|changes)  	# Remain in RAM
+			;;
+				*)					# Any extra/custom dirs
+				rm -f $d && ln -s /union/$d /$d		# Replace link
+			;;
+			esac
+		else
+	   		ln -s /union/$d /$d  ## link the files
+		fi
+	done
+
+	## fix /var/tmp
+	rm -f /var/tmp; ln -s /tmp /var/tmp
+
+	return 0
+
 ## Testing section 
 echo "Starting a shell for testing purposes."
 echo -n "Enter '"
