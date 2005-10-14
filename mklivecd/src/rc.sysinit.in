@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.56 2005/10/12 03:06:13 ikerekes Exp $
+# $Id: rc.sysinit.in,v 1.57 2005/10/14 01:27:48 ikerekes Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -210,8 +210,8 @@ mountit(){
 ### function to get the value of an option from the kernel command line
 getbootoption() {
 	option="$1"
-	val=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/$option/ {print}'|awk -F"=" '{print $2}')
-	if [ -n "$val" -a "$val" != "`cat /proc/cmdline`" ]; then
+	val=`$MNTLIVECD/bin/sed -r -e "s/(.*)${option}=([[:alnum:]-]*)(.*)/\2/i" /proc/cmdline`
+	if [ -n "$val" -a "$val" != "`$MNTLIVECD/bin/cat /proc/cmdline`" ]; then
 		echo $val
 		return 0
 	else
@@ -505,7 +505,7 @@ do_union () {
 	mkdir /union
 	mkdir /initrd/changes
 	CHANGES=/changes
-	CHANGESDEV=`getbootoption changes`
+	CHANGESDEV=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/changes/ {print}'|awk -F"=" '{print $2}')
 	if [ -n "$CHANGESDEV" ]; then
 		if mountit  $CHANGESDEV /initrd/changes; then
 			CHANGES=/initrd/changes/changes
@@ -513,6 +513,7 @@ do_union () {
 			echo "Failed to mount $CHANGESDEV changes partition"
 		fi
 	fi 
+	dbg "The CHANGESDEV is $CHANGESDEV, the CHANGES is $CHANGES \n"
 	mkdir $CHANGES
 
 	mount -t unionfs -o dirs=$CHANGES=rw:/initrd/loopfs=ro unionfs /union

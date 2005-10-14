@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.100 2005/10/12 03:04:18 ikerekes Exp $
+# $Id: linuxrc.in,v 1.101 2005/10/14 01:27:48 ikerekes Exp $
 #
 
 ### global variables
@@ -239,8 +239,8 @@ mountit(){
 ### function to get the value of an option from the kernel command line
 getbootoption() {
 	option="$1"
-	val=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/$option/ {print}'|awk -F"=" '{print $2}')
-	if [ -n "$val" -a "$val" != "`cat /proc/cmdline`" ]; then
+	val=`$MNTLIVECD/bin/sed -r -e "s/(.*)${option}=([[:alnum:]-]*)(.*)/\2/i" /proc/cmdline`
+	if [ -n "$val" -a "$val" != "`$MNTLIVECD/bin/cat /proc/cmdline`" ]; then
 		echo $val
 		return 0
 	else
@@ -284,11 +284,7 @@ initialise() {
         "mv /sbin/tmp/* /sbin"
 
         # debugging?
-	if `checkbootoption debug`; then
-		DEBUG=1
-	else
-		DEBUG=""
-	fi
+	DEBUG=`grep -iq debug /proc/cmdline && echo 1`
         set_progress
 }
 
@@ -309,7 +305,7 @@ find_cdroms() {
 	[ -n "$ALL_LOADED" ] && printloaded || printfail
 	set_progress
 
-	echo -n  "  starting USB support"
+	echo -n  "  Starting USB support"
 	printok
 	## Probe the USB devices.
 	dousb=`grep -iq nousb /proc/cmdline || echo 1`
@@ -513,9 +509,9 @@ find_cdroms ""
 dbg "Devices to check: $CDROM_LIST\n"
 
 # First see if bootfrom= cheatcode is given, Try that one first
-
-SOURCE_DEV=`getbootoption bootfrom`
-if [ -n "$SOURCE_DEV" ]; then
+bootfrom=`grep -iq bootfrom /proc/cmdline && echo 1`
+if [ -n "$bootfrom" ]; then
+	SOURCE_DEV=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/bootfrom/ {print}'|awk -F"=" '{print $2}')
 	LOOP_DEV=$(echo $SOURCE_DEV|awk -F/ '{print $1 "/" $2 "/" $3}')
 	ISO_PATH=$(echo $SOURCE_DEV|sed "s|$LOOP_DEV||g" )
 	case "$ISO_PATH" in /*.[iI][sS][oO]) ;; *) ISO_PATH="" ;; esac

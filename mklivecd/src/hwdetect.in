@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.165 2005/10/12 03:03:09 ikerekes Exp $
+# $Id: hwdetect.in,v 1.166 2005/10/14 01:27:18 ikerekes Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -818,7 +818,7 @@ sub hwdetect_getdisks() {
 
 # write the disk stuff
 sub hwdetect_writedisks() {
-	print "\n  hwdetect_writedisks \n";
+	print "\n"; # hwdetect_writedisks \n";
 	unless ($probe) {
 		print getStr('disk_write') . ":\n";
 		# get persistent partitions and set their mountpoints,
@@ -1014,6 +1014,7 @@ sub config_sound() {
 sub config_network() {		
 	if (!defined($cmdline{nonetwork})) {
 		print getStr('network_probe');
+		print_success();
 		$modules_conf->remove_alias_regexp('^(wlan|eth)[0-9]*$');
 		modules::load_category($modules_conf, 'network/main|gigabit|usb|wireless|firewire|pcmcia');
 		require network::ethernet;
@@ -1021,7 +1022,6 @@ sub config_network() {
 		network::ethernet::configure_eth_aliases($modules_conf);
 		$modules_conf->set_alias('net-pf-10', 'off');
 		$modules_conf->write;
-		print_success();
 	}
 	else {
 		disable_service('network');
