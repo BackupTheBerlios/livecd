@@ -20,7 +20,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install-lang.pm.in,v 1.22 2005/10/31 00:34:49 ikerekes Exp $
+# $Id: livecd-install-lang.pm.in,v 1.23 2005/11/01 15:29:04 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -99,7 +99,7 @@ my %strings = (
        'time_remaining'   => [ "Remaining", "Rimanente","Verbleibend", "Restant", "Kalan", "CÃ²n láº¡i", "Hátralévõ idõ", undef ],
        'part_none'        => [ "(XX)", "(XX)", "(XX)", "(XX)", "(XX)", "(XX)", "(XX)", undef ],
        'part_no_root_t'   => [ "Missing root", "Manca root", "Vermisse root", "Manque root", "KÃ¶k KullanÄ±cÄ± Eksik", "ChÆ°a cÃ³ vÃ¹ng root", "Hiányzik a root", undef ],
-       'part_no_root'     => [ "You have to specify a root (/) partition.", "Devi specificare una partizione di root (/).", "Es muss eine root (/) Partition spezifiziert werden.", "Vous devez specifier une partition administrateur (/).", "Bir kÃ¶k dizin (/) belirlemelisiniz.", "Báº¡n pháº£i chá»? Ä?á»?nh vÃ¹ng root (/)", "Adjon meg egy root (/) partíciót." undef ],
+       'part_no_root'     => [ "You have to specify a root (/) partition.", "Devi specificare una partizione di root (/).", "Es muss eine root (/) Partition spezifiziert werden.", "Vous devez specifier une partition administrateur (/).", "Bir kÃ¶k dizin (/) belirlemelisiniz.", "Báº¡n pháº£i chá»? Ä?á»?nh vÃ¹ng root (/)", "Adjon meg egy root (/) partíciót.", undef ],
        'part_no_swap_t'   => [ "Missing swap", "Manca swap", "Vermisse swap", "Manque swap", "Takas AlanÄ± Eksik", "ChÆ°a cÃ³ swap", "Hiányzó swap", undef ],
        'part_no_swap'     => [ "You have to specify a swap partition", "Devi pecificare una partizione di swap", "Es muss eine swap Partition spezifiziert werden.", "Vous devez specifier une partition swap", "Bir takasa alanÄ± belirlemelisiniz", "Báº¡n pháº£i chá»? Ä?á»?nh vÃ¹ng swap", "Adjon meg egy swap partíciót", undef ],
        'part_o_home_t'    => [ "Overlapping home", "Sovrapposizione di home", "Ã?berschneidung mit home", "Imbrication home", "home Ã§akÄ±Å?Ä±yor", "VÃ¹ng home bá»? trÃ¹ng nhau", "Átfedõ home", undef ],
@@ -114,7 +114,7 @@ my %strings = (
        'part_o_tmphome'   => [ "The temp (/tmp) partition is the same as the home (/home) partition.", "La partizione temp (/tmp) Ã¨ la stessa di home (/home).",  "Die temp (/tmp) Partition ist die gleiche wie die home (/home) Partition.", "La partiton temp (/tmp) est identique a la partition home (/home)", "GeÃ§iciler dizini (/tmp) ile ev dizini (/home) aynÄ±lar", "VÃ¹ng temp (/tmp) bá»? trÃ¹ng vá»?i vÃ¹ng home (/home)", "A temp (/tmp) és a home partíció (/home) megegyezik.", undef ],
        'part_o_tmpvar_t'  => [ "Overlapping temp/var", "Sovrapposizione di temp/var", "Ã?berschneidung temp/var", "Imbrication temp/var", "tmp/var Ã§akÄ±Å?Ä±yor", "temp/var bá»? trÃ¹ng nhau", "Átfedõ temp/var", undef ],
        'part_o_tmpvar'    => [ "The temp (/tmp) partition is the same as the var (/var) partition.", "La partizione temp (/tmp) Ã¨ la stessa di var (/var).", "Die temp (/tmp) Partition ist die gleiche wie die (/var) Partition", "La partition temp (/tmp) est identique ï¿½la partition var (/var)", "GeÃ§iciler dizini (/tmp) ile deÄ?iÅ?kenler dizini (/var) aynÄ±lar", "VÃ¹ng temp (/tmp) bá»? trÃ¹ng vá»?i vÃ¹ng var (/var)", "A temp (/tmp) és a home partíció (/var) megegyezik.", undef ],
-       'part_name_swap'   => [ "(swap)", "(swap)", "(swap)", "(swap)", "(swap)", "(swap)",(swap)", "(swap)",undef ],
+       'part_name_swap'   => [ "(swap)", "(swap)", "(swap)", "(swap)", "(swap)", "(swap)","(swap)", "(swap)",undef ],
        'part_name_tmp'    => [ "/tmp", "/tmp", "/tmp", "/tmp", "/tmp", "/tmp", "/tmp",undef ],
        'part_name_var'    => [ "/var", "/var", "/var", "/var", "/var", "/var", "/var", undef ],
        'part_name_home'   => [ "/home", "/home", "/home", "/home", "/home", "/home", "/home", undef ],
@@ -124,7 +124,7 @@ my %strings = (
        'function_error'   => [ "System function error, return value:", "Errore di sistema, valore restituito:", "Systemfunktionsfehler, FehlerrÃ¼ckgabe:", "Erreur fonction systeme, retourner la valeur:", "Sistem iÅ?leyiÅ?inde hata, dÃ¶nen deÄ?er:", "Há»? thá»?ng bá»? lá»?i, lá»?i lÃ:", "Rendszer mûködési hiba, hibakód:", undef ],
        'missing_value'    => [ "A value is missing. Please include login and password twice.", "Manca un valore. Per favore inserisci login e password due volte.", "Ein Wert fehlt. Bitte geben sie login und Kennwort zweimal an.", "Il manque une valeur. Inserer svp une deuxieme fois votre nom utilisateur et votre mot de passe.", "Bir deÄ?er eksik. LÃ¼tfen bir kere daha kullanÄ±cÄ± adÄ± ve parolanÄ±zÄ± giriniz.", "ThÃ´ng tin chÆ°a Ä?áº§y Ä?á»§. Vui lÃ²ng Ä?iá»n ngÆ°á»i dÃ¹ng vÃ máº­t kháº©u 2 láº§n", "A szükséges értékek hiányoznak, kérem adja meg a login és jelszó párost kétszer.", undef ],
        'logging_yes'      => [ "Logging has been activated.", "Log Ã¨ stato attivato", "Protokoll wurde aktiviert.", "L'utilisateur a Ã©tÃ© activÃ©", "Tutanaklama etkinleÅ?tirildi", "ÄÄ?ng nháº­p Ä?Ã£ Ä?Æ°á»£c chá»n", "A rendszernaplózás aktiválva lett",  undef ],
-       'logging_no'       => [ "Logging has been deactivated.", "Log Ã¨ stato disattivato", "Protokoll wurde deaktiviert.", "L'utilisateur a Ã©tÃ© desactivÃ©.", "Tutanaklama iptal edildi.", "ÄÄ?ng nháº­p Ä?Ã£ Ä?Æ°á»£c táº¯t", "A rendszernaplózás le lett állítva." undef ],
+       'logging_no'       => [ "Logging has been deactivated.", "Log Ã¨ stato disattivato", "Protokoll wurde deaktiviert.", "L'utilisateur a Ã©tÃ© desactivÃ©.", "Tutanaklama iptal edildi.", "ÄÄ?ng nháº­p Ä?Ã£ Ä?Æ°á»£c táº¯t", "A rendszernaplózás le lett állítva.", undef ],
 
        'pword_no_sq'      => [ "' <- is not permitted.", " ' <- non Ã¨ permessa", " ' <- ist nicht erlaubt.", " ' <- ï¿½blanc n'est pas permis.", "<- izinli deÄ?il", "' <- khÃ´ng Ä?Æ°á»£c bá» trá»?ng", "' <- nem engedéyezett", undef ],
        'pword_null'       => [ "A null password is not permitted.", "La password vuota non Ã¨ permessa", "Ein leeres Kennwort ist nicht erlaubt.", "Un mot de passe ï¿½blanc n'est pas permis.", "BoÅ? parola giremezsiniz.", "Máº­t kháº©u khÃ´ng Ä?Æ°á»£c bá» trá»?ng", "Üres jelszó nem engedélyezett, jelszó megadása kötelezõ.", undef ],
@@ -134,7 +134,7 @@ my %strings = (
        'pword_updated'    => [ "User exists. Password has been updated.", "Utente giÃ esistente. La password Ã¨ stata modificata", "Benutzer existiert. Kennwort wurde erneuert.", "Utilisateur existant. Le mot de passe a Ã©tÃ© mise a jour.", "Mevcut KullanÄ±cÄ±. Parola GÃ¼ncellendi.", "NgÆ°á»i dÃ¹ng Ä?Ã£ cÃ³ sáºµn. Máº­t kháº©u Ä?Ã£ Ä?Æ°á»£c cáº­p nháº­t", "A felhasználó létezik, a jelszó frissítve lett.", undef ],
 
        'user'             => [ "User ", "Utente ", "Benutzer ", "Utilisateur ", "KullanÄ±cÄ±", "NgÆ°á»i dÃ¹ng", "Felhasználó ", undef ],
-       'user_added'       => [ " was added successfully.", " Ã© stato aggiunto con successo", " wurde erfolgreich hinzugefgt.", " a Ã©tÃ© ajoutÃ© avec succes", " baÅ?arÄ±yla eklendi.", "Ä?Ã£ Ä?Æ°á»£c thÃªm thÃnh cÃ´ng", "hozzáadása megtörtént." undef ],
+       'user_added'       => [ " was added successfully.", " Ã© stato aggiunto con successo", " wurde erfolgreich hinzugefgt.", " a Ã©tÃ© ajoutÃ© avec succes", " baÅ?arÄ±yla eklendi.", "Ä?Ã£ Ä?Æ°á»£c thÃªm thÃnh cÃ´ng", "hozzáadása megtörtént.", undef ],
        'guest_del_ok'     => [ "Guest account has been deleted.", "L'account 'guest' Ã¨ stato rimosso", "Guest Zugang wurde gelÃ¶scht.", "Le compte invitÃ© 'guest' a Ã©tÃ© supprimÃ©", "ZiyaretÃ§i hesabÄ± silindi.", "TÃi khoáº£n cá»§a ngÆ°á»i dÃ¹ng Guest Ä?Ã£ Ä?Æ°á»£c xÃ³a", "Guest felhasználó törölve.", undef ],
        'guest_not_found'  => [ "Account 'guest' was not found.", "L'account 'guest' non Ã¨ stato trovato", "Zugang 'Guest' wurde nicht gefunden.", "Le compte invitÃ© 'guest' n'a pas Ã©tÃ© trouvÃ©", "ZiyaretÃ§i hesabÄ± bulunamadÄ±.", "TÃi khoáº£n 'guest' khÃ´ng tÃ¬m tháº¥y.", "Guest felhasználót nem találtam", undef ],
        'inst_scan'        => [ "Scanning available directories", "Analisi delle cartelle disponibili", "Durchsuche verfgbare Verzeichnisse.", "Recherche le repertoire disponible", "Mevcut dizinler araÅ?tÄ±rÄ±lÄ±yor.", "Äang dÃ² cÃ¡c thÆ° má»¥c", "Rendelkezésreálló könyvtárak ellenõrzése", undef ],
@@ -147,7 +147,7 @@ my %strings = (
 
        'boot_bs'          => [ "(Bootsector of partition)", "(Settore di boot della partizione", "(Bootsektor der Partition)", "(Secteur de demarrage de la partition)", "BÃ¶lÃ¼mlemenin bootsector'Ä± (aÃ§Ä±lÄ±Å? alanÄ±)", "(Bootsector cá»§a vÃ¹ng Ä?Ä©a)", "(A partíció bootszektora)", undef ],
        'boot_mbr'         => [ "(Master boot record of drive)", "Master boot record del disco", "(Master boot rekord des Laufwerks)", "(Enregistrement du demarrage principal du Disque)", "Diskin master boot record'u (ana aÃ§Ä±lÄ±Å? kaydÄ±)", "(Master boot record cá»§a Ä?Ä©a cá»©ng)", "(A merevlemez MBR-ja)", undef ],
-       'bl_written'       => [ "Bootloader written", "Bootloader scritto", "Bootlader geschrieben", "Fichier chargement demarrage ecrit", "AÃ§Ä±lÄ±Å? yÃ¼kleyicisi yazÄ±ldÄ±", "Bootloader Ä?Ã£ Ä?Æ°á»£c ghi xuá»?ng", "Rendszerbetöltõ telepítve." undef ],
+       'bl_written'       => [ "Bootloader written", "Bootloader scritto", "Bootlader geschrieben", "Fichier chargement demarrage ecrit", "AÃ§Ä±lÄ±Å? yÃ¼kleyicisi yazÄ±ldÄ±", "Bootloader Ä?Ã£ Ä?Æ°á»£c ghi xuá»?ng", "Rendszerbetöltõ telepítve.", undef ],
        'fstab_info'       => [ "Automatically added by livecd-install", "Aggiunto automaticamente da livecd-istall", "Automatisch von livecd-install hinzugefÃ¼gt", "Automatiquement ajoutÃ© par l'installation du livecd", "Livecd-install tarafÄ±ndan otomatik olarak eklendi", "ÄÆ°á»£c thÃªm vÃo bá»?i chÆ°Æ¡ng trÃ¬nh livecd-install", "Automatikusan hozzáadta a lvecd-install", undef ],
 
        'scr_1_title'      => [ "Step 1 of 6: Welcome", "Passo 1 di 6: Benvenuto", "Schritt 1 von 6: Willkommen", "Etape 1 sur 6: Bienvenue", "AdÄ±m 1 / 6: HoÅ?geldiniz",  "BÆ°á»?c 1 cá»§a 6: ThÃ¢n chÃo", "1/6 lépés: Üdvözöljük", undef ],
@@ -164,7 +164,7 @@ my %strings = (
        'scr_2_fmt'        => [ "Format", "Formatta", "Format", "Formater", "BiÃ§imle", "Format", "Formázandó", undef ],
        'scr_2_req'        => [ "Required Partitions", "Partizioni Richieste", "Erforderliche Partitionen", "partition requise", "Gereken BÃ¶lÃ¼mlemeler", "VÃ¹ng Ä?Ä©a pháº£i cÃ³", "Szükséges partíció", undef ],
        'scr_2_opt'        => [ "Optional Partitions", "Partizioni Opzionali", "Optionale Partitionen", "parition optionelle", "SeÃ§imsel BÃ¶lÃ¼mlemeler", "VÃ¹ng Ä?Ä©a nÃªn cÃ³", "Opcionális partíció", undef ],
-       'scr_2_swap'       => [ "Swap device:", "Dispositivo di Swap:", "Swap Vorrichtung", "Swap device:", "Takas cihazÄ±:", "VÃ¹ng swap:", "Swap eszköz:" undef ],
+       'scr_2_swap'       => [ "Swap device:", "Dispositivo di Swap:", "Swap Vorrichtung", "Swap device:", "Takas cihazÄ±:", "VÃ¹ng swap:", "Swap eszköz:", undef ],
        'scr_2_root'       => [ "Root (/) device:", "Dispositivo di Root (/):", "Root (/) Vorrichtung", "Root / device", "KÃ¶k / cihazÄ±",  "VÃ¹ng root (/):", "Root (/) eszköz:", undef ],
        'scr_2_home'       => [ "Home (/home) device:", "Dispositivo di Home (/home):", "Home (/home) Vorrichtung", "Home /home device", "Ev /home cihazÄ±", "VÃ¹ng home (/home)", "Home(/home) eszköz:", undef ],
        'scr_2_var'        => [ "Var (/var) device:", "Dispositivo di Var (/var):",  "Var (/var) Vorrichtung", "Var /var device", "DeÄ?iÅ?ken /var cihazÄ±", "VÃ¹ng var (/var)", "Var (/var) eszköz:", undef ],
