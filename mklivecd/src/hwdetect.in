@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.167 2005/10/17 00:02:46 ikerekes Exp $
+# $Id: hwdetect.in,v 1.168 2005/11/13 07:12:26 ikerekes Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -983,6 +983,7 @@ sub config_usb() {
 		modules::load_category($modules_conf, 'bus/usb');
 		$modules_conf->write;
 		print_success();
+		set_progress();
 	}
 }
 
@@ -992,9 +993,11 @@ sub config_pcmcia() {
 		harddrake::autoconf::pcmcia(keys %ID ? first(values(%ID))->{driver} : '');
 		$modules_conf->write;
 		print_success();
+		set_progress();
 	}
 	else {
 		disable_service('pcmcia');
+		set_progress();
 	}
 }
 
@@ -1005,9 +1008,11 @@ sub config_sound() {
 		harddrake::sound::configure_sound_slots($modules_conf);
 		$modules_conf->write;
 		print_success();
+		set_progress();
 	}
 	else {
 		disable_service('sound');
+		set_progress();
 	}
 }
 
@@ -1022,9 +1027,12 @@ sub config_network() {
 		network::ethernet::configure_eth_aliases($modules_conf);
 		$modules_conf->set_alias('net-pf-10', 'off');
 		$modules_conf->write;
+		print_success();
+		set_progress();
 	}
 	else {
 		disable_service('network');
+		set_progress();
 	}
 }
 
@@ -1034,10 +1042,12 @@ sub config_video() {
 		harddrake::autoconf::xconf($modules_conf, {});
 		$modules_conf->write;
 		print_success();
+		set_progress();
 	}
 	# If user specifies xres,xbpp or xdrv then use routine from original hwdetect below
 	else {
 	    hwdetect_getxfree();
+	    set_progress();
 	}
 }
 
@@ -1046,6 +1056,7 @@ sub config_mouse() {
 	harddrake::autoconf::mouse_conf($modules_conf);
 	$modules_conf->write;
 	print_success();
+	set_progress();
 }
 
 sub config_keyboard() {
@@ -1057,8 +1068,12 @@ sub config_keyboard() {
 			$probed_keyb = { KEYBOARD => $DEF_KEYBOARD };
 			$probed_desc = keyboard::keyboard2text($probed_keyb);
 	    	}
+                        keyboard::setxkbmap($probed_keyb);
+                        keyboard::configure_xorg($probed_keyb);
+                        keyboard::write($probed_keyb);
 	}
 	print_success();
+	set_progress();
 }
 
 sub config_sata() {
@@ -1095,11 +1110,13 @@ sub config_sata() {
 	# get disks
 	print "\n$COLOR_YELLOW"."HWDETECT: Starting getdisks\n$COLOR_NORMAL";
 	hwdetect_getdisks();
+	set_progress();
 	if ( -e "$prefix/etc/fstab") {
 		system("cp $prefix/etc/fstab $prefix/etc/fstab.hwdetect.save");
 		print "The original $prefix/etc/fstab saved  as $prefix/etc/fstab.hwdetect.save";
 	}
 	hwdetect_writedisks();
+	set_progress();
 	if (defined($fdisk)) {
 		hwdetect_swapon();
 	}
