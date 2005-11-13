@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.101 2005/10/14 01:27:48 ikerekes Exp $
+# $Id: linuxrc.in,v 1.102 2005/11/13 07:10:28 ikerekes Exp $
 #
 
 ### global variables
@@ -229,7 +229,7 @@ execshell() {
 
 mountit(){
 # Usage: mountit src dst "options"
-    	  BUILTIN_FS="iso9660 vfat ext3 reiserfs ntfs"
+    	  BUILTIN_FS="iso9660 vfat ext3 ext2 msdos reiserfs ntfs"
     	  for fs in $BUILTIN_FS; do
         	test -b $1 && mount -t $fs $3 $1 $2 >/dev/null 2>&1 && return 0
     	  done
