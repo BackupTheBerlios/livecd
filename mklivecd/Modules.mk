@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.30 2005/10/08 14:23:40 ikerekes Exp $
+# $Id: Modules.mk,v 1.31 2005/11/13 07:09:09 ikerekes Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -171,6 +171,7 @@ DEF_SCSI_MODULES_DEP_PATH_26=\
 	drivers/scsi/ata_piix \
 	drivers/scsi/sg \
 	drivers/scsi/sd_mod \
+	driveers/scsi/scsi_transport_spi \
 	drivers/message/fusion/mptbase
 
 DEF_USB_MODULES_PATH_24=\
