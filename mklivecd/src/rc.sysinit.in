@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.59 2005/11/13 07:11:07 ikerekes Exp $
+# $Id: rc.sysinit.in,v 1.60 2005/11/26 15:44:21 ikerekes Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -259,8 +259,8 @@ setupdir_etc() {
 	
 	rm -f /etc/mtab && touch /etc/mtab
 	rm -rf /etc/modules.conf && touch /etc/modules.conf
-	rm -rf /etc/rc.d/rc3.d/S05harddrake
-	rm -rf /etc/rc.d/rc5.d/S05harddrake
+#	rm -rf /etc/rc.d/rc3.d/S05harddrake
+#	rm -rf /etc/rc.d/rc5.d/S05harddrake
 	
 	printok
 	set_progress
