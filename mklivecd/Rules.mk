@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.32 2005/09/25 06:12:29 ikerekes Exp $
+# $Id: Rules.mk,v 1.33 2005/11/26 15:38:58 ikerekes Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -16,13 +16,13 @@ DEF_VGAMODE=788
 # MAX_SPLASH: default: 65534. With a patched bootsplash, the
 # preferred way to change/override this is with a
 #     make MAX_SPLASH=32767
-MAX_SPLASH=65534
+MAX_SPLASH=32768
 
 ### no more user-editable parameters after this line
 
 # various script number of splash steps
 VAL_SPLASH_LINUXRC=6
-VAL_SPLASH_SYSINIT=7
+VAL_SPLASH_SYSINIT=1
 VAL_SPLASH_HWDETECT=17
 VAL_SPLASH_FULL=20
 
