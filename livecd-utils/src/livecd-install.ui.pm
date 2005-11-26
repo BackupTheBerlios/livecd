@@ -29,13 +29,13 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.64 2005/11/01 15:29:04 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.65 2005/11/26 15:32:34 ikerekes Exp $
 #
 
 #use LCDLang;
 
 use strict;
-#use threads;
+use threads;
 use threads::shared;
 
 use lib qw(/usr/lib/libDrakX);
@@ -100,7 +100,7 @@ my @satalist = qw(libata sd_mod ata_piix scsi_mod sr_mod sg a100u2w
 		advansys aha152x aha1542 aic7xxx BusLogic fdomain gdth
 		ahci ata_adma pata_pdc2027x sata_qstor sata_sil24 sata_sis sata_sx4 sata_uli sx8
 		sata_sis ehci-hcd usb-storage
-		megaraid sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc);
+		megaraid sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc scsi_transport_spi);
 
 my %devs   = ();
 
@@ -154,8 +154,6 @@ sub pageSelected # SLOT: ( const QString & )
 		cbLanguage->insertItem('Turkish - tr');
 		cbLanguage->setCurrentItem(1);
 		cbLanguage->insertItem('Vietnamese - vi');
-		cbLanguage->setCurrentItem(1);
-		cbLanguage->insertItem('Hungarian - hu');
 		cbLanguage->setCurrentItem(0); ## Language 1st item
 
 		## Make mount, remove swap and nfs
@@ -538,6 +536,8 @@ sub showInstall
 	my ($this, $page, $devs) = @_;
 
 	$isBusy = 1;
+	my $cdromdev = qx(cat /proc/mounts|grep initrd\/cdrom|awk '{print \$1}');
+	do_system("eject -x 24 $cdromdev");
 
 	$this->setBackEnabled($page, 0) unless ($destroy);
 	$this->setNextEnabled($page, 0) unless ($destroy);
@@ -628,7 +628,6 @@ sub showInstall
 		do_system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
 		do_system("mkdir -p $mnt/var/lock/subsys ; chmod -R 755 $mnt/var/lock/subsys");
 		do_system("mkdir -p $mnt/var/run/netreport ; chmod -R 755 $mnt/var/run/netreport ; touch $mnt/var/run/utmp");
-		#do_system("rm -f $mnt/etc/mtab ; touch $mnt/etc/mtab");
 		do_system("touch $mnt/halt");
 		do_system("cd $mnt/var ; ln -s ../tmp") unless (-e "$mnt/var/tmp");
 	}
@@ -853,7 +852,14 @@ sub showBootloader
 			$with = "$with"." --with $sata";
 		}
 	}
-	do_system("chroot $mnt /sbin/mkinitrd -v $with $initrd $kernelver");
+	do_system("chroot $mnt /sbin/mkinitrd -v --force-usb $with $initrd $kernelver");
+ 	do_system("chroot $mnt /sbin/chkconfig --del usbhome");
+	do_system("chroot $mnt /sbin/chkconfig --add anacron");
+	do_system("chroot $mnt /sbin/chkconfig --add atd");
+	do_system("chroot $mnt /sbin/chkconfig --add crond");
+	do_system("chroot $mnt /sbin/chkconfig --add cups");
+	do_system("chroot $mnt /sbin/chkconfig --add hplip");
+	do_system("chroot $mnt /bin/rm -f /etc/LIVECD");
 	do_system("chroot $mnt /usr/share/bootsplash/scripts/make-boot-splash $initrd 800x600");
 
 	### Update /etc/sysconfig/installkernel file for future kernel changes
@@ -879,7 +885,7 @@ sub showBootloader
 
 	this->setBackEnabled($page, 0);
 	this->lbBootloader->clear();
-	this->lbBootloader->insertItem("--"." Do not install");
+#	this->lbBootloader->insertItem("--"." Do not install");
 	this->lbBootloader->insertItem("$rootpart ".getStr('boot_bs'));
 
 	my @drives = ();
@@ -897,7 +903,7 @@ sub showBootloader
 	    }
 	}
 	this->lbBootloader->insertItem("$_ ".getStr('boot_mbr')) foreach (@drives);
-	this->lbBootloader->setCurrentItem(0);
+	this->lbBootloader->setCurrentItem(1);
     }
 }
 
@@ -938,7 +944,7 @@ image=$kernel
 	initrd=$initrd
 ";
 		if ($kernel26 eq "1") { 
-			print LILO "append=\"devfs=nomount acpi=ht nomce splash=silent\"\n"; # Use udev
+			print LILO "append=\"noapic nolapic acpi=ht nomce splash=silent\"\n"; # Use udev
 		} else {
 			print LILO "append=\"devfs=mount splash=silent\"\n"; # Use devfs
 		}
@@ -1197,17 +1203,12 @@ sub deleteGuest # SLOT: ( )
 	# Delete the guest account and report - not found, deleted ok, error
 #	$comm="/usr/sbin/userdel -r guest";
 #	$result = do_system2("/bin/echo $comm | chroot $mnt");
-	$result = do_system2("/bin/echo userdel -r guest | chroot $mnt");
+
+	$result = do_system("chroot $mnt /bin/touch /etc/delete-guest-account | chroot $mnt");
 	print "\nDEBUG: Delete Guest result = $result\n";
-        if ($result eq "1536") {
-	   Qt::MessageBox::information (this, getStr('caption'), getStr('guest_not_found'));
-        } elsif ($result eq "0") {
-           Qt::MessageBox::information (this, getStr('caption'), getStr('guest_del_ok'))
-	} else { 
-           $message = getStr('function_error')."$result";
-           Qt::MessageBox::information (this, getStr('caption'), $message);
+ 	$message = "Guest account will be deleted on first boot";
+          Qt::MessageBox::information (this, getStr('caption'), $message);
 	}
-}
 
 
 sub createUser # SLOT: ( )
