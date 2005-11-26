@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.168 2005/11/13 07:12:26 ikerekes Exp $
+# $Id: hwdetect.in,v 1.169 2005/11/26 15:40:36 ikerekes Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -39,7 +39,6 @@ use harddrake::sound;
 use modules;
 use Storable qw(store retrieve);
 my $modules_conf = modules::any_conf->read;
-my $DEF_KEYBOARD   = "us";
 use fsedit;
 use fs;
 use Getopt::Long;
@@ -107,7 +106,6 @@ my $old_X;
 my $usbfstab	  = 0;
 my $modules_conf = modules::any_conf->read;
 my %cmdline;
-my $DEF_KEYBOARD   = "us";
 
 ### progress stuff
 my $progress_now  = @VAL_SPLASH_LINUXRC@+@VAL_SPLASH_SYSINIT@;
@@ -205,7 +203,7 @@ sub print_device {
 sub set_progress() {
 	if ($progress_on &&
 	    -e '/proc/splash'  &&
-	    $cmdline{splash} =~ /yes/) {
+	    $cmdline{splash} =~ /silent/) {
 		my $pos = ($progress_max*(++$progress_now+1))/$progress_full;
 		system("echo 'show $pos' >/proc/splash");
 	}
@@ -974,6 +972,8 @@ MAIN: { print "\n$COLOR_YELLOW"."HWDETECT - MAIN ---------------$COLOR_NORMAL\n"
 	config_keyboard();
 	#Configure sata drives
 	config_sata() unless (`lsmod|grep sata`);
+	#Configure numlock
+	config_numlock();
 	}
 	
 # New hwdetect routines
@@ -1006,6 +1006,7 @@ sub config_sound() {
 		print getStr('sound_probe');
 		rm_rf("/etc/asound.state") if -e "/etc/asound.state";
 		harddrake::sound::configure_sound_slots($modules_conf);
+		append_to_file('/etc/modprobe.conf', "blacklist audio\nblacklist snd-usb-audio\n");
 		$modules_conf->write;
 		print_success();
 		set_progress();
@@ -1019,7 +1020,6 @@ sub config_sound() {
 sub config_network() {		
 	if (!defined($cmdline{nonetwork})) {
 		print getStr('network_probe');
-		print_success();
 		$modules_conf->remove_alias_regexp('^(wlan|eth)[0-9]*$');
 		modules::load_category($modules_conf, 'network/main|gigabit|usb|wireless|firewire|pcmcia');
 		require network::ethernet;
@@ -1068,9 +1068,9 @@ sub config_keyboard() {
 			$probed_keyb = { KEYBOARD => $DEF_KEYBOARD };
 			$probed_desc = keyboard::keyboard2text($probed_keyb);
 	    	}
-                        keyboard::setxkbmap($probed_keyb);
-                        keyboard::configure_xorg($probed_keyb);
-                        keyboard::write($probed_keyb);
+                keyboard::setxkbmap($probed_keyb);
+                keyboard::configure_xorg($probed_keyb);
+                keyboard::write($probed_keyb);
 	}
 	print_success();
 	set_progress();
@@ -1090,7 +1090,7 @@ sub config_sata() {
 	}
 	my @satalist = 	my @satalist = qw(libata ata_piix sg sata_sis
 	ahci ata_adma pata_pdc2027x sata_qstor sata_sil24 sata_sis sata_sx4 sata_uli sx8
-	sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc);
+	sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc scsi_transport_spi);
 
 #	print getStr('mod_loaded') . ": ";
 	foreach $sata (@satalist) {
@@ -1104,6 +1104,9 @@ sub config_sata() {
 	print_success();
 }	
 						    
+sub config_numlock() {
+	detect_devices::isLaptop() or enable_service('numlock');
+}
 
 
 	# CONFIGURE FSTAB here only for hard drive partitions and such Dont put in floppy or cdrom entries	
