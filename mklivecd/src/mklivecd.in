@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.148 2005/10/12 03:05:30 ikerekes Exp $
+# $Id: mklivecd.in,v 1.149 2005/11/26 15:41:52 ikerekes Exp $
 #
 
 use strict;
@@ -806,7 +806,7 @@ sub create_isolinux {
 	# write config
 	my $appopt;
 	if ($kernel26 == 1) {
-		$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=nomount psmouse.proto=imps acpi=ht nomce vga=$o_vgamode keyb=$o_keyboard";
+		$appopt = "initrd=initrd.gz root=/dev/rd/3 noapic nolapic psmouse.proto=imps acpi=ht nomce vga=$o_vgamode keyb=$o_keyboard";
 	} else {
 		$appopt = "initrd=initrd.gz root=/dev/rd/3 devfs=mount vga=$o_vgamode keyb=$o_keyboard";
 	}	
