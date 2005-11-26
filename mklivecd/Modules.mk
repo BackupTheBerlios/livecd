@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.32 2005/11/13 14:44:40 ikerekes Exp $
+# $Id: Modules.mk,v 1.33 2005/11/26 15:38:07 ikerekes Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -139,13 +139,13 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/t128 \
 	drivers/scsi/tmscsim \
 	drivers/scsi/u14-34f \
-	drivers/scsi/ultrastor \
 	drivers/scsi/wd7000 \
 	drivers/block/sx8 \
 	drivers/message/fusion/mptscsih
 #	drivers/scsi/advansys \
 #	drivers/scsi/cpqfc \
 #	drivers/scsi/qlogicisp \
+#	drivers/scsi/ultrastor \
 
 # depending on kernel version, these have different names
 DEF_SCSI_MODULES_OPT_PATH_24=\
