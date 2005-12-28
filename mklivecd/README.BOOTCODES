@@ -1,4 +1,5 @@
-# $Id: README.BOOTCODES,v 1.3 2004/02/01 07:18:00 jaco Exp $
+# $Id: README.BOOTCODES,v 1.4 2005/12/28 02:12:27 ikerekes Exp $
+                                                                                                                                                                                                                                                               
 
 LiveCD bootcodes: These codes allow you to override the LiveCD defaults to 
 modify the boot process for your specific needs. The codes can be used on 
@@ -12,38 +13,33 @@ can be accessed from:
 
 http://livecd.berlios.de
 
-The following codes are available as of 28 January 2004:
+The following codes are available as of 01 December 2005:
 
-initrd                  Only boot the initrd, not the actual CD.
-			This option is (mostly) only useful to
-			LiveCD developers.
-			
+livecd bootfrom=<dev>   Boots the livehd from a disk partition instead of the cdrom
+			The <dev> can be any msdos, vfat, ntfs, ext2, ext3, reiserfs filesystem 
+			on IDE, SCSI, or USB disk specified in the same format as the root= lilo parameter
+			the filesystem has to have the /isolinux directory and the livecd.sqfs file copied to the root
+
+livecd changes=<dev>    When the livecd boots in unionfs mode, it will write the changes into the <dev>/changes
+			directory instead of the memory. All the changes, in this way, made persistent. The format of 				the <dev> is the same as the bootfrom <dev>. They can be the same partition (preferable) or it 				can be a different one. If the /changes directory doesnt exist on first invocation, it will be 			automatically created. 
+
 livecd debug            Prints usefull information (for developers)
 			from the various scripts while loading
 			the LiveCD.
-
-livecd eth=<module>     Override the detected network card module with
-			the one specified. If you have multiple cards,
-			eth[012]=<module> will override a specific
-			card only, eg. eth1=e100 will override the
-			module for eth1.
 
 livecd fstab=<opts>     Override the default generation of the
 			fstab. Valid options, combined with ","
 			are the following: auto or noauto and
 			ro or rw.
 
-livecd home=usb         Copy the user's home directory to a USB
-			memory stick/pen device when attached.
-			Once done, the option does not need to
-			be specified on subsequent boots.
-
 livecd hostname=<host>  Sets the hostname for the machine, as
 			specified by <host>, eg. mybox.cool.com
+			the parameter modifies the DHCP_HOSTNAME in the 
+			/etc/sysconfig/network-scripts/ifcfg-eth* scripts
 
 livecd lang=<lang>      Override the default language (en), for
 			the boot scripts and (eventually) CD
-			language selection.
+			language selection. Currently only the lang=en is working
 
 livecd keyb=<mapping>   Use a different keyboard layout mapping
 			from the one the LiveCD was built with.
@@ -147,13 +143,9 @@ livecd md5sum           Checks the MD5 sum of the iso image,
 			verifying the integrity of the downloaded 
 			and running iso.
 
-livecd nocow            Don't use LiveCDFS copy-on-write (COW) file
-			overlay mounts, even if available on the LiveCD. 
-			This option overrides COW support, resorting
-			to the normal file operation.
-
 livecd noeject          Disable the ejection of the CD on
-			shutdown (power-down) or reboot.
+			shutdown (power-down) or reboot. Currently the 
+			eject option disabled
 
 livecd nodetect         Don't run the hardware detection script,
 			booting with the default hardware
@@ -173,15 +165,16 @@ livecd nousb            Disable the probing of USB devices at boot.
 			Do not use this option when booting from a
 			USB device since the boot will fail.
 
-livecd safex		Don't allow our specified xbpp, xres result in
+livecd xauto		Don't allow our specified xbpp, xres result in
 			an invalid configuration. If the user-specified
 			resolution will not work for the current card, 
 			allow fallback to a safe detection default.
 
-livecd sound=<module>   Override the detected sound card module with
-			the one specified. If you have multiple cards,
-			sound[012]=<module> will override a specific
-			card only. 
+livecd unionfs=no        Don't use unionfs copy-on-write (COW) file
+			overlay mounts, even if available on the LiveCD. 
+			This option overrides unionfs support, resorting
+			to the normal file operation. (Slower, more memory 
+			required, but safer)
 
 livecd xbpp=<depth>     Specify the bitdepth for X. <depth> can
 			be one of 8, 15, 16, 24 or 32.
@@ -196,4 +189,25 @@ livecd xres=<res>       Specify the resolution for X. <res> can
 			be one of 800x600, 1024x768, 1280x1024 or
 			1600x1400.
 
+Besides the above mentioned bootcodes, the isolinux will accept all the normal kernel
+Boot codes i.e. 	vga=xxx for the framebuffer resolution,
+			Splash=verbose|silent to turn on or off the splash screen
+          		Acpi apic lapic parameters
+			If the very last parameter is a numeral (i.e. 3) this is the runlevel the livecd 
+			will be booted. 
+Full documentation can be found in /usr/src/linux/Documentation/kernel-parameters.txt 
+
+Single function bootcodes are boot codes which dont need the livecd in front.
+
 mediacheck              Same as livecd md5sum
+
+initrd                  Only boot the initrd, not the actual CD.
+			This option is (mostly) only useful to
+			LiveCD developers.
+
+memtest		Runs the built in memory (RAM) diagnostic program
+			
+safeboot          	Boots the livecd with almost no detection. Equivalent to boot with the 
+			livecd acpi=off vga=normal keyb=us noapic nolapic noscsi nopcmcia nomce unionfs=no
+
+
