@@ -29,17 +29,21 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.65 2005/11/26 15:32:34 ikerekes Exp $
+# $Id: livecd-install.ui.pm,v 1.66 2006/01/08 21:35:17 tom_kelly33 Exp $
 #
 
 #use LCDLang;
 
 use strict;
-use threads;
-use threads::shared;
+
+# Use threads if available
+my $threadmod = "threads";
+my $usethread = "";
+eval "use $threadmod";
+if ($@) { $usethread="no" } else { $usethread="yes" }
+if ($usethread="yes") {eval "use threads::shared"}
 
 use lib qw(/usr/lib/libDrakX);
-
 use fs;
 
 #my $debug   : shared = undef;
@@ -154,8 +158,9 @@ sub pageSelected # SLOT: ( const QString & )
 		cbLanguage->insertItem('Turkish - tr');
 		cbLanguage->setCurrentItem(1);
 		cbLanguage->insertItem('Vietnamese - vi');
+		#cbLanguage->setCurrentItem(1);
+		#cbLanguage->insertItem('Hungarian - hu');
 		cbLanguage->setCurrentItem(0); ## Language 1st item
-
 		## Make mount, remove swap and nfs
 		do_system("mkdir -p $mnt");  # make mountpoint
 		do_system2("swapoff -a");    # swap may change
@@ -184,7 +189,11 @@ sub pageSelected # SLOT: ( const QString & )
 		$time_o_start = time;
 		$time_o_run = 1;
 		this->startTimer(500);
-		threads->new(\&showInstall, this, $page, \%devs);
+		if ($usethread="yes") {
+			threads->new(\&showInstall, this, $page, \%devs);
+		} else {
+			showInstall(this, $page, \%devs);
+		}
 	}
 	elsif ($title =~ m/ 5/) {
 		showBootloader();
@@ -296,7 +305,9 @@ sub destroy
 
 	# notify threads that we are to die and keep
 	# looping until we don't have a thread anymore
-	this->killTimers();
+	if ($usethread="yes") {
+		this->killTimers();
+	}
 	
 	$destroy = 1;
 	sleep(1) while ($isBusy);
