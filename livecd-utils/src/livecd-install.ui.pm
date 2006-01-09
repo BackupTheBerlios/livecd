@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.66 2006/01/08 21:35:17 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.67 2006/01/09 21:22:57 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -41,7 +41,7 @@ my $threadmod = "threads";
 my $usethread = "";
 eval "use $threadmod";
 if ($@) { $usethread="no" } else { $usethread="yes" }
-if ($usethread="yes") {eval "use threads::shared"}
+if ($usethread eq "yes") {eval "use threads::shared"}
 
 use lib qw(/usr/lib/libDrakX);
 use fs;
@@ -189,7 +189,7 @@ sub pageSelected # SLOT: ( const QString & )
 		$time_o_start = time;
 		$time_o_run = 1;
 		this->startTimer(500);
-		if ($usethread="yes") {
+		if ($usethread eq "yes") {
 			threads->new(\&showInstall, this, $page, \%devs);
 		} else {
 			showInstall(this, $page, \%devs);
