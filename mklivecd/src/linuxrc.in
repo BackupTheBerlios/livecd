@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.102 2005/11/13 07:10:28 ikerekes Exp $
+# $Id: linuxrc.in,v 1.103 2006/01/09 05:28:45 tom_kelly33 Exp $
 #
 
 ### global variables
@@ -400,7 +400,7 @@ findcloop() {
                         LOOPTYPE=""
                         if [ -f $MNTCDROM/$BASEIMG$LOOPSEXT ]; then
                                 LOOPTYPE="$LOOPSEXT"
-                                DEVLOOP="/dev/loop/0"
+                                DEVLOOP="/dev/loop0"
                                 LOOPMOD="squashfs"
                                 ISOTYPE="squashfs"
                         fi
@@ -521,8 +521,8 @@ if [ -n "$bootfrom" ]; then
 		mount -r -o ro $LOOP_DEV /part
 		losetup /dev/loop/1 /part$ISO_PATH
 		mount -r -t iso9660 /dev/loop/1 $MNTCDROM && printok || printfail
-		losetup /dev/loop/0 $MNTCDROM/livecd.sqfs
-		mount -r -t squashfs /dev/loop/0 $MNTLIVECD && LOOPMNT=1
+		losetup /dev/loop0 $MNTCDROM/livecd.sqfs
+		mount -r -t squashfs /dev/loop0 $MNTLIVECD && LOOPMNT=1
 	else
 		findcloop "$LOOP_DEV"
 	fi
