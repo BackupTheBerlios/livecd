@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.67 2006/01/09 21:22:57 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.68 2006/01/11 03:19:37 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -185,6 +185,9 @@ sub pageSelected # SLOT: ( const QString & )
 	elsif ($title =~ m/ 4/) {
 		this->setBackEnabled($page, 0);
 		this->setNextEnabled($page, 0);
+		if ($usethread eq "no") {
+		        Qt::MessageBox::information (this, getStr('caption'), 'Press OK to start. Progress disabled. Please wait.');
+		}
 		doEvents();
 		$time_o_start = time;
 		$time_o_run = 1;
