@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.60 2005/11/26 15:44:21 ikerekes Exp $
+# $Id: rc.sysinit.in,v 1.61 2006/03/19 15:14:52 ikerekes Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -420,8 +420,18 @@ setupinit() {
 	OPTION=`getbootoption hwdetect`
 	if [ ! -d $CHANGES/etc ]; then
 	    if [ "$OPTION" = "no" ] || [ "`grep nodetect /proc/cmdline`" ]; then
-	    	echo "-- rc.sysinit: Skipping hwdetect -----------"
-	    else 
+		SKIP="yes"
+	    fi	
+	else
+	    if [ "$OPTION" = "yes" ]; then
+		SKIP="no"
+	    else
+                SKIP="yes"
+	    fi
+	fi	
+	if [ "$SKIP" = "yes" ]; then
+		echo "-- rc.sysinit: Skipping hwdetect -----------"
+	else 
 		if [ -e /initrd/usr/sbin/hwdetect ]; then
 			echo "-- rc.sysinit: Starting hwdetect -----------"
 			OLDPATH=$PATH
@@ -432,7 +442,6 @@ setupinit() {
 		else
 			echo "-- rc.sysinit: Missing hwdetect ------------"
 		fi
-	    fi
        fi
 	# Don't run depmod (must be run before imaging system)
 	/bin/sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
