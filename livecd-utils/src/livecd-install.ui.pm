@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.68 2006/01/11 03:19:37 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.69 2006/03/19 15:34:20 ikerekes Exp $
 #
 
 #use LCDLang;
@@ -102,7 +102,7 @@ my $pb_o_tot      : shared = 0;
 
 my @satalist = qw(libata sd_mod ata_piix scsi_mod sr_mod sg a100u2w
 		advansys aha152x aha1542 aic7xxx BusLogic fdomain gdth
-		ahci ata_adma pata_pdc2027x sata_qstor sata_sil24 sata_sis sata_sx4 sata_uli sx8
+		ahci ata_adma sata_qstor sata_sil24 sata_sis sata_sx4 sata_uli sx8
 		sata_sis ehci-hcd usb-storage
 		megaraid sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc scsi_transport_spi);
 
@@ -866,7 +866,7 @@ sub showBootloader
 			$with = "$with"." --with $sata";
 		}
 	}
-	do_system("chroot $mnt /sbin/mkinitrd -v --force-usb $with $initrd $kernelver");
+	do_system("chroot $mnt /sbin/mkinitrd -v $with --force-usb $initrd $kernelver");
  	do_system("chroot $mnt /sbin/chkconfig --del usbhome");
 	do_system("chroot $mnt /sbin/chkconfig --add anacron");
 	do_system("chroot $mnt /sbin/chkconfig --add atd");
