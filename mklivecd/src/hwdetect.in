@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.169 2005/11/26 15:40:36 ikerekes Exp $
+# $Id: hwdetect.in,v 1.170 2006/03/19 15:13:46 ikerekes Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -1089,7 +1089,7 @@ sub config_sata() {
 		return
 	}
 	my @satalist = 	my @satalist = qw(libata ata_piix sg sata_sis
-	ahci ata_adma pata_pdc2027x sata_qstor sata_sil24 sata_sis sata_sx4 sata_uli sx8
+	ahci ata_adma sata_qstor sata_sil24 sata_sis sata_sx4 sata_uli sx8
 	sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc scsi_transport_spi);
 
 #	print getStr('mod_loaded') . ": ";

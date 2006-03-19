@@ -1,4 +1,4 @@
-# $Id: Modules.mk,v 1.33 2005/11/26 15:38:07 ikerekes Exp $
+# $Id: Modules.mk,v 1.34 2006/03/19 15:13:02 ikerekes Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
@@ -134,7 +134,6 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/sata_uli \
 	drivers/scsi/sata_via \
 	drivers/scsi/sata_vsc \
-	drivers/scsi/pata_pdc2027x \
 	drivers/scsi/sym53c416 \
 	drivers/scsi/t128 \
 	drivers/scsi/tmscsim \
@@ -142,6 +141,7 @@ DEF_SCSI_MODULES_PATH_26=\
 	drivers/scsi/wd7000 \
 	drivers/block/sx8 \
 	drivers/message/fusion/mptscsih
+#	drivers/scsi/pata_pdc2027x \
 #	drivers/scsi/advansys \
 #	drivers/scsi/cpqfc \
 #	drivers/scsi/qlogicisp \
