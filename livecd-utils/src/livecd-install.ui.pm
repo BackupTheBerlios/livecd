@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.70 2006/03/24 07:06:54 ikerekes Exp $
+# $Id: livecd-install.ui.pm,v 1.71 2006/03/29 05:17:13 ikerekes Exp $
 #
 
 #use LCDLang;
@@ -662,6 +662,7 @@ sub showInstall
 	$infotext = getStr('inst_fstab');
 	print "$infotext\n";
 	writeFstab($devs) unless ($destroy);
+	do_system("grep -v \/mnt\/cdrom $mnt/etc/fstab>/tmp/fstab;mv /tmp/fstab $mnt/etc/fstab");
 
 	# re-establish original inittab
 	do_system("cp -a /initrd/etc/inittab $mnt/etc/");
