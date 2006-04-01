@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.149 2005/11/26 15:41:52 ikerekes Exp $
+# $Id: mklivecd.in,v 1.150 2006/04/01 23:01:22 ikerekes Exp $
 #
 
 use strict;
@@ -610,7 +610,7 @@ sub create_initrd {
 	do_copy("/usr/share/mklivecd/linuxrc",    755, "$dir/linuxrc",                 ++$pos);
 	do_copy("/usr/share/mklivecd/rc.sysinit", 755, "$dir/etc/rc.d/rc.sysinit",     ++$pos);
 	do_copy("/usr/sbin/hwdetect",             755, "$dir/usr/sbin/hwdetect",       ++$pos);
-#	do_copy("/usr/share/mklivecd/halt.local", 755, "$dir/sbin/halt.local",         ++$pos);
+	do_copy("/usr/share/mklivecd/halt.local", 755, "$dir/sbin/halt.local",         ++$pos);
 	do_copy($o_root."etc/inittab",            644, "$dir/etc/inittab",             ++$pos);
 	do_copy($o_root."sbin/init",              755, "$dir/sbin/init.dynamic",       ++$pos);
 	do_copy($o_root."lib/libc.so.6",            0, "$dir/lib",                     ++$pos);
@@ -621,7 +621,9 @@ sub create_initrd {
 	do_cmd("mkdir $dir/sbin/tmp",			++$pos);
 	do_copy($o_root."/sbin/udev*",	  755, "$dir/sbin/tmp",			++$pos);
 	do_cmd("cp -a $o_root/etc/udev $dir/etc",	++$pos); 
-	do_cmd("cp -a $o_root/etc/dev.d $dir/etc",	++$pos);
+	if (-e "$o_root/etc/dev.d") {
+	    do_cmd("cp -a $o_root/etc/dev.d $dir/etc",	++$pos);
+	}  
 	do_cmd("cp -a $o_root/etc/hotplug $dir/etc",	++$pos);
 	do_cmd("cp -a $o_root/etc/hotplug.d $dir/etc",	++$pos);
 	do_cmd("cp -a $o_root/etc/sysconfig $dir/etc",	++$pos);
