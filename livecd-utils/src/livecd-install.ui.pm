@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.71 2006/03/29 05:17:13 ikerekes Exp $
+# $Id: livecd-install.ui.pm,v 1.72 2006/04/16 06:53:06 ikerekes Exp $
 #
 
 #use LCDLang;
@@ -313,6 +313,9 @@ sub destroy
 	
 	$destroy = 1;
 	sleep(1) while ($isBusy);
+ 
+	do_system("find $mnt -name '.wh*' -exec rm -f {} \\;");
+
 	print "\nunmounting \n";
 	do_system("umount -l $mnt/home") if (defined($homepart));
 	do_system("umount -l $mnt/var") if (defined($varpart));
