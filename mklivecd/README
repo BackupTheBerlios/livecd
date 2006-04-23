@@ -1,4 +1,4 @@
-# $Id: README,v 1.5 2004/01/27 12:25:56 jaco Exp $
+# $Id: README,v 1.6 2006/04/23 01:55:14 tom_kelly33 Exp $
 
 The latest stable version of the package can alway be found at
 the following URL:
@@ -33,7 +33,7 @@ including subscription details can be found at:
     http://lists.berlios.de/mailman/listinfo/livecd-devel
 
 Patches, suggestions, flames and general comments are always
-welcome at the above adress. Good luck!
+welcome at the above address. Good luck!
 
     - Jaco Greeff <jaco@linuxminicd.org>,
       Wed, Nov 05, 2003

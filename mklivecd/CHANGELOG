@@ -1,5 +1,7 @@
-# $Id: CHANGELOG,v 1.151 2005/06/19 15:33:17 tom_kelly33 Exp $
-* 2005=06-19 added cdrom to Modules.mk (safe if missing)
+# $Id: CHANGELOG,v 1.152 2006/04/23 01:55:14 tom_kelly33 Exp $
+* 2006-04-22 added Ivan as author, various changes
+             cut new release 0.6.0
+* 2005-06-19 added cdrom to Modules.mk (safe if missing)
 	     hwdetect:resolution check pclos/mandriva
 	     mklivecd - add safeboot, remove cow references
              rc.sysinit.in - default use unionfs unless unionfs=no	

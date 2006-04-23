@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.33 2005/11/26 15:38:58 ikerekes Exp $
+# $Id: Rules.mk,v 1.34 2006/04/23 01:55:14 tom_kelly33 Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -30,8 +30,8 @@ VAL_SPLASH_FULL=20
 # manager as part of making a new release
 PKGNAME=mklivecd
 MAJORVER=0
-MINORVER=5
-PATCHVER=9
+MINORVER=6
+PATCHVER=0
 RELVER=1
 CVSVER=yes
 
