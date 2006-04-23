@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.95 2006/01/11 03:19:35 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.96 2006/04/23 03:09:47 tom_kelly33 Exp $
 #
 
 package fMain;
@@ -243,7 +243,7 @@ sub getStr {
 }
 # Form implementation generated from reading ui file 'livecd-install.ui'
 #
-# Created: Tue Jan 10 21:57:25 2006
+# Created: Sat Apr 22 23:09:32 2006
 #      by: The PerlQt User Interface Compiler (puic)
 #
 # WARNING! All changes made in this file will be lost!
@@ -3839,7 +3839,7 @@ sub languageChange
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.95 2006/01/11 03:19:35 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.96 2006/04/23 03:09:47 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -3912,9 +3912,8 @@ my $pb_o_tot      : shared = 0;
 
 my @satalist = qw(libata sd_mod ata_piix scsi_mod sr_mod sg a100u2w
 		advansys aha152x aha1542 aic7xxx BusLogic fdomain gdth
-		ahci ata_adma pata_pdc2027x sata_qstor sata_sil24 sata_sis sata_sx4 sata_uli sx8
-		sata_sis ehci-hcd usb-storage
-		megaraid sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc scsi_transport_spi);
+		ahci ata_adma sata_qstor sata_sil24 sata_sis sata_sx4 sata_uli sx8
+		megaraid sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc scsi_transport_spi ehci-hcd usb-storage);
 
 my %devs   = ();
 
@@ -4124,6 +4123,9 @@ sub destroy
 	
 	$destroy = 1;
 	sleep(1) while ($isBusy);
+ 
+	do_system("find $mnt -name '.wh*' -exec rm -f {} \\;");
+
 	print "\nunmounting \n";
 	do_system("umount -l $mnt/home") if (defined($homepart));
 	do_system("umount -l $mnt/var") if (defined($varpart));
@@ -4473,6 +4475,7 @@ sub showInstall
 	$infotext = getStr('inst_fstab');
 	print "$infotext\n";
 	writeFstab($devs) unless ($destroy);
+	do_system("grep -v \/mnt\/cdrom $mnt/etc/fstab>/tmp/fstab;mv /tmp/fstab $mnt/etc/fstab");
 
 	# re-establish original inittab
 	do_system("cp -a /initrd/etc/inittab $mnt/etc/");
@@ -4676,7 +4679,7 @@ sub showBootloader
 			$with = "$with"." --with $sata";
 		}
 	}
-	do_system("chroot $mnt /sbin/mkinitrd -v --force-usb $with $initrd $kernelver");
+	do_system("chroot $mnt /sbin/mkinitrd -v $with --force-usb $initrd $kernelver");
  	do_system("chroot $mnt /sbin/chkconfig --del usbhome");
 	do_system("chroot $mnt /sbin/chkconfig --add anacron");
 	do_system("chroot $mnt /sbin/chkconfig --add atd");
@@ -5161,7 +5164,7 @@ sub cbLanguage_act # SLOT: ( const QString & )
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install,v 1.95 2006/01/11 03:19:35 tom_kelly33 Exp $
+# $Id: livecd-install,v 1.96 2006/04/23 03:09:47 tom_kelly33 Exp $
 #
 
 package main;

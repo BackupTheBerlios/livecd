@@ -1,11 +1,11 @@
-# $Id: Rules.mk,v 1.8 2004/12/31 21:37:49 tom_kelly33 Exp $
+# $Id: Rules.mk,v 1.9 2006/04/23 03:09:47 tom_kelly33 Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
 PKGNAME=livecd-utils
 MAJORVER=0
-MINORVER=2
-PATCHVER=1
+MINORVER=3
+PATCHVER=0
 RELVER=1
 CVSVER=yes
 

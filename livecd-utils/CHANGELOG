@@ -1,5 +1,6 @@
-# $Id: CHANGELOG,v 1.11 2005/11/01 15:29:04 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.12 2006/04/23 03:09:47 tom_kelly33 Exp $
 
+* 2006-04-22 Ivan as author, new release
 * 2005-11-01 Hungarian lang added
 
 * 2005-06-02 various fixes to fix progress-bar in livecd-install, extend satalist, and fix bootsplash creation
