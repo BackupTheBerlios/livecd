@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.34 2006/04/23 01:55:14 tom_kelly33 Exp $
+# $Id: Rules.mk,v 1.35 2006/04/23 03:36:23 tom_kelly33 Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
@@ -39,7 +39,7 @@ CVSVER=yes
 MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
 ifeq "$(CVSVER)" "yes"
 	CVSDATE=$(shell date +%Y%m%d)
-	MKLIVECDREL=0.$(CVSDATE).$(RELVER)
+	MKLIVECDREL=$(CVSDATE).$(RELVER)
 	ARCHIVEVER=$(MKLIVECDVER)-$(CVSDATE)
 else
 	MKLIVECDREL=$(RELVER)
