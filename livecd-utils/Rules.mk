@@ -1,4 +1,4 @@
-# $Id: Rules.mk,v 1.9 2006/04/23 03:09:47 tom_kelly33 Exp $
+# $Id: Rules.mk,v 1.10 2006/04/23 03:38:23 tom_kelly33 Exp $
 
 # Version identifiers: These should only be changed by the release
 # manager as part of making a new release
@@ -12,8 +12,8 @@ CVSVER=yes
 # Automatic variable updates, leave alone
 UTILSVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
 ifeq "$(CVSVER)" "yes"
-	CVSDATE=$(shell date +cvs.%Y%m%d)
-	UTILSREL=0.$(CVSDATE).$(RELVER)
+	CVSDATE=$(shell date +%Y%m%d)
+	UTILSREL=$(CVSDATE).$(RELVER)
 	ARCHIVEVER=$(UTILSVER)-$(CVSDATE)
 else
 	UTILSREL=$(RELVER)
