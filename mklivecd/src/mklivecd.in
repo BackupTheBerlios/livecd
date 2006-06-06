@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.151 2006/06/06 02:36:07 ikerekes Exp $
+# $Id: mklivecd.in,v 1.152 2006/06/06 03:57:24 ikerekes Exp $
 #
 
 use strict;
@@ -64,6 +64,7 @@ my $loopmod        = undef;
 my $loopcmp        = undef;
 my $blocksize      = 32;
 my $finaliso       = "livecd.iso";
+my $loader         = "isolinux/isolinux.bin";
 my $md5sum	   = undef;
 my $mkisofs_opts   = "";	# Fix for concat of undef in iso looptype
 
@@ -77,6 +78,7 @@ my $o_keyboard     = '@DEF_KEYBOARD@';
 my $o_resolution   = '@DEF_RESOLUTION@';
 my $o_vgamode      = '@DEF_VGAMODE@';
 my $o_splash       = "silent";
+my $o_bootloader   = "iso";
 my $o_kernel       = get_exec("uname -r");
 my $o_timeout      = 150;
 my %opts           = ( # these are all the options with defaults
@@ -87,7 +89,8 @@ my %opts           = ( # these are all the options with defaults
 	'resolution' => \$o_resolution,
 	'splash'     => \$o_splash,
 	'kernel'     => \$o_kernel,
-	'timeout'    => \$o_timeout
+	'timeout'    => \$o_timeout,
+	'bootloader' => \$o_bootloader
 );
 
 
@@ -163,6 +166,8 @@ Boot options:
    --bootkey <key=msg>             Display 'msg' on key 'key' from isolinux.
    --bootimg <img>                 Use 'img' (LSS format) as the isolinux.
                                    background display image.
+   --bootloader <iso|grub|usb>     The bootloader to use on the livecd i.e. isolinux, 
+                                   GRUB or syslinux for usb stick
    --mdkboot                       Use the Mandrake boot image extension to
                                    display the boot message.
    --timeout <sec>                 Specify the default ISO Linux prompt timeout
@@ -406,6 +411,7 @@ sub parse_options {
 		'volumeid=s',
 		'preparer=s',
 		'publisher=s',
+		'bootloader=s',
 		'md5sum',
 		'usbhome'
 	);
@@ -548,6 +554,7 @@ sub check_root {
 ### see if we are indeed root
 sub check_apps {
 	die_("\nFATAL: The '/usr/bin/mkisofs' program is not available, please install the correct package\n") unless (-f '/usr/bin/mkisofs');
+	die("\nFATAL: The Grub program is not available, please install the correct package\n") unless (-f '/lib/grub/i386-pc/stage2_eltorito' || ($o_bootloader =~ m/^grub/));
 	die("\nFATAL: The '$loopcmp' program is not available, please install the correct package\n") unless (!defined($loopcmp) || -f $loopcmp);
 }
 
@@ -683,6 +690,7 @@ sub create_initrd {
 	my $initrd = "$workdir/livecd/isolinux/initrd";
 	my $mnt = "$workdir/initrd.mnt";
 	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos);
+	do_cmd("mkdir -p $workdir/livecd/boot/grub",                        ++$pos);
 	do_cmd("dd if=/dev/zero of=$initrd bs=1k count=$size 2> /dev/null", ++$pos);
 	do_cmd("mke2fs -q -m 0 -F -N $inodes -s 1 $initrd",                 ++$pos);
 	do_cmd("mkdir -p $mnt ; mount -o loop -t ext2 $initrd $mnt",        ++$pos);
@@ -799,6 +807,9 @@ sub create_isolinux {
 	do_copy($bin, 644, "$workdir/livecd/isolinux/isolinux.bin", ++$pos);
 	die_("\nFATAL: The kernel '".$o_root."boot/vmlinuz-$o_kernel' does not exist on your machine.\n") unless (-f $o_root."boot/vmlinuz-$o_kernel");
 	do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/isolinux/vmlinuz", ++$pos);
+	do_copy($o_root."boot/memtest*.*.bin", 644, "$workdir/livecd/isolinux/memtest", ++$pos);
+	do_copy($o_root."lib/grub/i386-pc/stage2_eltorito", 644, "$workdir/livecd/boot/grub/stage2_eltorito", ++$pos);
+	do_copy($o_root."boot/grub/mdv*.xpm.gz", 644, "$workdir/livecd/boot/grub/pclinuxos.xpm.gz", ++$pos);
 	do_copy("/usr/bin/mediacheck", 755, "$workdir/livecd/isolinux/mediacheck", ++$pos);
 
 	# copy messages
@@ -845,6 +856,55 @@ sub create_isolinux {
 	print CFG "    kernel vmlinuz\n";
 	print CFG "    append livecd=livecd md5sum $appopt\n";
 	close CFG;
+
+	open CFG, '>', "$workdir/livecd/boot/grub/menu.lst";
+	print CFG "default 0\n";
+	print CFG "timeout 30\n";
+	print CFG "color 2\n";
+	print CFG "shade 1\n";
+	print CFG "splashimage (cd)/boot/grub/pclinuxos.xpm.gz\n\n";
+	print CFG "title livecd with default parameters\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt\n";
+	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
+	print CFG "title safeboot\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd root=/dev/rd/3 acpi=off vga=normal keyb=us noapic nolapic noscsi nopcmcia nomce unionfs=no\n";
+	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
+	print CFG "title MediaCheck - Checks the md5sum of the cd\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd md5sum $appopt\n";
+	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
+	print CFG "title MEMTEST - memory test\n";
+	print CFG "kernel (cd)/isolinux/memtest\n\n\n";
+	print CFG "title EXTRA MENU - English\n";
+	print CFG "configfile (cd)/boot/grub/extra_e.lst\n";
+	close CFG;
+
+	open CFG, '>', "$workdir/livecd/boot/grub/extra_e.lst";
+	print CFG "default 0\n";
+	print CFG "timeout 30\n";
+	print CFG "color 2\n";
+	print CFG "shade 1\n";
+	print CFG "splashimage (cd)/boot/grub/pclinuxos.xpm.gz\n\n";
+	print CFG "title Framebuffer Mode 1280x1024\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt xdrv=fbset xres=1280x1024 xbpp=16\n";
+	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
+	print CFG "title Framebuffer Mode 1024x768\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt xdrv=fbset xres=1024x768 xbpp=16\n";
+	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
+	print CFG "title Framebuffer Mode 800x600\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt xdrv=fbset xres=800x600 xbpp=16\n";
+	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
+	print CFG "title Console only\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz $appopt 3\n";
+	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
+	print CFG "title BOOT - Floppy\n";
+	print CFG "chainloader (fd0)+1\n";
+	print CFG "title Poor man install from /dev/sda1\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt bootfrom=/dev/sda1 changes=/dev/sda1\n\n\n";
+	print CFG "title BACK - Standard options\n";
+	print CFG "configfile (cd)/boot/grub/menu.lst\n";
+	close CFG;
+
+
 	set_progress(++$pos, "$workdir/livecd/isolinux/isolinux.cfg");
 
 	# create boot catalogue
@@ -871,15 +931,21 @@ sub create_finaliso {
 
 	# create actual iso
 	$opts{isoextrafiles} = "" unless (defined($opts{isoextrafiles}));
+	if ($o_bootloader =~ m/^grub/) {
+		$loader = "boot/grub/stage2_eltorito";
+	}
+	elsif ($o_bootloader =~ m/^iso/) {
+		$loader = "isolinux/isolinux.bin";
+	}
 	my $cmd="mkisofs -pad -l -R -J -v -v \\\
-		-V '".$opts{volumeid}."' \\\
-		-A '".$opts{application}."' \\\
-		-p '".$opts{preparer}."' \\\
-		-P '".$opts{publisher}."' \\\
-		-b isolinux/isolinux.bin -c isolinux/boot.cat -hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table -sort $workdir/sort_iso.list -o $finaliso $workdir/livecd/ ".$opts{isoextrafiles}." 2>&1";
-	open ISO, "$cmd |" or die_("\nFATAL: Unable to execute '$cmd'\n");
-	my $line;
-	while ($line = <ISO>) {
+                  -V '".$opts{volumeid}."' \\\
+                  -A '".$opts{application}."' \\\
+                  -p '".$opts{preparer}."' \\\
+                  -P '".$opts{publisher}."' \\\
+                  -b $loader -c isolinux/boot.cat -hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table -sort $workdir/sort_iso.list -o $finaliso $workdir/livecd/ ".$opts{isoextrafiles}." 2>&1";
+          open ISO, "$cmd |" or die_("\nFATAL: Unable to execute '$cmd'\n");
+          my $line;
+          while ($line = <ISO>) {
 		if ($line =~ m/done, estimate/) {
 			$line =~ s/^ //g while ($line =~ m/^ /);
 			my ($per, @rest) = split(/ /, $line);
