@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.72 2006/04/16 06:53:06 ikerekes Exp $
+# $Id: livecd-install.ui.pm,v 1.73 2006/06/06 02:37:34 ikerekes Exp $
 #
 
 #use LCDLang;
@@ -209,10 +209,10 @@ sub pageSelected # SLOT: ( const QString & )
 	}
 }
 
-sub initLang 
+sub initLang
 {
 	setCaption(getStr('caption'));
-	
+
 	setTitle(page, getStr('scr_1_title'));
 	tbWelcome->setText(getStr('scr_1_text'));
 	bDiskPartitioner->setText(getStr('btn_disk_part'));
@@ -231,7 +231,7 @@ sub initLang
 	cbHomeFormat->setText(getStr('scr_2_fmt'));
 	cbRootFormat->setText(getStr('scr_2_fmt'));
 	cbSwapFormat->setText(getStr('scr_2_fmt'));
-	
+
 	setTitle(page_3, getStr('scr_3_title'));
 	textLabel1_3->setText(getStr('scr_3_text'));
 	lvVerify->header()->setLabel(0, getStr('scr_3_mnt'));
@@ -239,7 +239,7 @@ sub initLang
 	lvVerify->header()->setLabel(2, getStr('scr_3_fmt'));
 	lvVerify->clear();
 	my $item = Qt::ListViewItem(lvVerify, undef);
-	
+
 	setTitle(page_4, getStr('scr_4_title'));
 	textLabel1_3_2->setText(getStr('scr_4_text'));
 	tlInstInfo->setText("");
@@ -251,15 +251,15 @@ sub initLang
 	tlFormat->setText("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining'));
 	tlCopy->setText("00:00:00 ".getStr('time_elapsed').", 00:00:00 ".getStr('time_remaining'));
 
-	# Page 5	
+	# Page 5
 	setTitle(page_5, getStr('scr_5_title'));
 	textLabel1_3_2_2->setText(getStr('scr_5_text'));
         textLabel52->setText(getStr('scr_52'));
 	bInstall->setText(getStr('btn_inst'));
 	bLogging_yes->setText(getStr('btn_logging_yes'));
 	bLogging_no->setText(getStr('btn_logging_no'));
- 
-	# Page 6	
+
+	# Page 6
 	setTitle(page_6, getStr('scr_6_title'));
 	tlWelcome_2->setText(getStr('scr_6_text'));
 
@@ -310,10 +310,10 @@ sub destroy
 	if ($usethread="yes") {
 		this->killTimers();
 	}
-	
+
 	$destroy = 1;
 	sleep(1) while ($isBusy);
- 
+
 	do_system("find $mnt -name '.wh*' -exec rm -f {} \\;");
 
 	print "\nunmounting \n";
@@ -574,13 +574,14 @@ sub showInstall
 		$pb_f_num = 1;
 	}
 	#threads->new(\&timeThread, this, $page, time, this->pbOverall, this->tlOverall) unless ($destroy);
-        my $union = qx(lsmod|grep unionfs|cut -f1 -d' ');
-	
+
+  my $union = qx(lsmod|grep unionfs|cut -f1 -d' ');
+
 	if ($union == "unionfs") {       #Unionfs mount
 		@dirs = qx(find $initrd/ -type d -mount | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev) unless ($destroy);
 		print "scalar(dirs)=".scalar(@dirs)."\n";
 		my $copysteps = scalar(@dirs);
-	
+
 		@changesdirs = qx(find $changes/ -type d -mount | sed -s 's,$changes,,') unless ($destroy);
 		print "scalar(changesdirs)=".scalar(@changesdirs)."\n";
 		$copysteps = $copysteps + scalar(@changesdirs);
@@ -632,10 +633,11 @@ sub showInstall
 		do_system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
 		do_system("mkdir -p $mnt/tmp ; chmod 777 $mnt/tmp");
 		do_system("mkdir -p $mnt/var ; chmod 755 $mnt/var");
+    do_system("mkdir -p $mnt/sys ; chmod 755 $mnt/sys");
 		do_system("mount -t ".$devs->{$homepart}{type}." $homepart $mnt/home") if (defined($homepart));
 		do_system("mount -t ".$devs->{$varpart}{type}." $varpart $mnt/var") if (defined($varpart));
 		do_system("mount -t ".$devs->{$tmppart}{type}." $tmppart $mnt/tmp") if (defined($tmppart));
-	
+
 		do_system("mkdir -p $mnt/initrd ; chmod 755 $mnt/initrd");
 		do_system("mkdir -p $mnt/home ; chmod 755 $mnt/home");
 		do_system("mkdir -p $mnt/dev ; chmod 755 $mnt/dev");
@@ -647,18 +649,18 @@ sub showInstall
 		do_system("touch $mnt/halt");
 		do_system("cd $mnt/var ; ln -s ../tmp") unless (-e "$mnt/var/tmp");
 	}
-	
+
 	unless (defined($nocopy)) {
 		doCopy($initrd, @dirs) unless ($destroy);
 		if ($union == "unionfs") {       #Unionfs mount
 			doCopy($changes, @changesdirs) unless ($destroy);
-		}	
+		}
 		else {
 			doCopy("/", @etcdirs) unless ($destroy);
 			doCopy("/", @homedirs) unless ($destroy);
 			doCopy("/", @rootdirs) unless ($destroy);
 			doCopy("/", @devstatedirs) unless ($destroy);
-		}	
+		}
 
 	}
 
@@ -679,7 +681,7 @@ sub showInstall
 
 	$time_c_run = -1;
 	$time_o_run = -1;
-	
+
 	print "showInstall(): Done.\n";
 }
 
@@ -885,7 +887,7 @@ sub showBootloader
 		my $line = '';
 		open ( INSTALLKERNEL, "+< $mnt/etc/sysconfig/installkernel");
         	@FILELINES = <INSTALLKERNEL>;  ## Read the file into an array
-        	## Find the line INITRDOPTS="" and insert $with 
+        	## Find the line INITRDOPTS="" and insert $with
         	foreach $line (@FILELINES) {
         		next unless substr($line,0,10) eq "INITRDOPTS";
         		substr($line, 12, 0)=$with." ";  # Insert "--with sata " values
@@ -941,7 +943,7 @@ sub doLoaderInstall # SLOT: ( )
 		my $kbdmap = "$mnt/usr/lib/kbd/keymaps/livecd.map";
 		do_system("mkdir -p $mnt/usr/lib/kbd/keymaps ; dumpkeys >$kbdmap");
 		do_system("keytab-lilo.pl $kbdmap $kbdmap >$mnt/boot/livecd.klt");
-		
+
 		do_system("mkdir -p $mnt/etc");
 		do_system("cp $mnt/etc/lilo.conf $mnt/etc/lilo.conf.old");
 
@@ -960,7 +962,7 @@ image=$kernel
 	root=$rootpart
 	initrd=$initrd
 ";
-		if ($kernel26 eq "1") { 
+		if ($kernel26 eq "1") {
 			print LILO "append=\"noapic nolapic acpi=ht nomce splash=silent\"\n"; # Use udev
 		} else {
 			print LILO "append=\"devfs=mount splash=silent\"\n"; # Use devfs
@@ -1175,7 +1177,7 @@ sub writeRootPW # SLOT: (  )
 	my($check) = @_;
 	my $result = "";
 	my $message = "";
-	# Get both root passwords 
+	# Get both root passwords
 	my $pw1 = lineEdit1->text();
 	my $pw2 = lineEdit2->text();
 
@@ -1199,7 +1201,7 @@ sub writeRootPW # SLOT: (  )
 	# Passwords ok - now write to disk
 	$result = do_system2("/bin/echo '"."$pw1"."' | chroot $mnt /usr/bin/passwd --stdin root");
         print "\nDEBUG: Password: $result\n";
-	if ($result eq "0") {	 
+	if ($result eq "0") {
 	   Qt::MessageBox::information( this, getStr('caption'), getStr('pword_ok'));
 	} else {
            $message = getStr('function_error')."$result";
@@ -1235,7 +1237,7 @@ sub createUser # SLOT: ( )
         my $comm    = "";
         my $error   = "";
         my $result  = "";
- 
+
         # Get inputs (realname optional)
 	my $username = lineEditLogin->text();
         my $realname = lineEditReal->text();
@@ -1309,7 +1311,7 @@ sub createUser # SLOT: ( )
 	   return;
 	}
 	if ($message eq "update") {
-	   Qt::MessageBox::information (this, getStr('caption'), getStr('pword_updated')); 
+	   Qt::MessageBox::information (this, getStr('caption'), getStr('pword_updated'));
         } else {
 	   $message = getStr('user')."$username".getStr('user_added');
 	   Qt::MessageBox::information (this, getStr('caption'), $message);

@@ -21,12 +21,12 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.61 2006/03/19 15:14:52 ikerekes Exp $
+# $Id: rc.sysinit.in,v 1.62 2006/06/06 02:36:40 ikerekes Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 
-#common variables 
+#common variables
 
 MNTCDROM=/initrd/cdrom
 MNTLIVECD=/initrd/loopfs
@@ -165,7 +165,7 @@ dbg()
        	echo -e "DBG: ${@}"
        	$SETCOLOR_NORMAL
        	echo
-    	  fi 
+    	  fi
 }
 
 ### this is if we are to execute a limited shell
@@ -245,9 +245,9 @@ setupdir_dir() { # rootdir
 ### setup an /etc structure
 setupdir_etc() {
 	echo -n "  Building /etc structure: "
-	
+
 	rm -rf /etc && cp -a $MNTLIVECD/etc /
-	
+
 	mkdir -p /etc/livecd/hwdetect
 	rm -rf /etc/fstab && touch /etc/fstab
 
@@ -256,12 +256,12 @@ setupdir_etc() {
 	echo 'none      /sys     sysfs  defaults  0 0' >>/etc/fstab
 	echo 'none      /dev/pts devpts mode=0620 0 0' >>/etc/fstab
 	echo '/dev/rd/3 /        tmpfs  defaults  0 0' >>/etc/fstab
-	
+
 	rm -f /etc/mtab && touch /etc/mtab
 	rm -rf /etc/modules.conf && touch /etc/modules.conf
 #	rm -rf /etc/rc.d/rc3.d/S05harddrake
 #	rm -rf /etc/rc.d/rc5.d/S05harddrake
-	
+
 	printok
 	set_progress
 }
@@ -279,7 +279,7 @@ setupdir_home() {
 ### setup the /lib structure
 setupdir_lib() {
 	echo -n "  Building /lib structure: "
-	
+
 	rm -rf /lib && mkdir -p /lib
 	cd $MNTLIVECD/lib/
 	for f in *; do
@@ -326,9 +326,9 @@ setupdir_lib() {
 ### setup the /root structure
 setupdir_root() {
 	echo -n "  Building /root structure: "
-	
-	cp -a $MNTLIVECD/root / 
-	
+
+	cp -a $MNTLIVECD/root /
+
 	printok
 	set_progress
 }
@@ -363,7 +363,7 @@ setupdir_var() {
 		fi
 		PREV="$CURR"
 	done
-		
+
 	mkdir -p /var/lock/subsys
 	mkdir -p /var/log && touch /var/log/wtmp && touch /var/log/messages
 	mkdir -p /var/run && touch /var/run/utmp
@@ -408,7 +408,7 @@ setuproot() {
 
 	touch /fastboot
 	mkdir -p /mnt && ln -sf $MNTCDROM /mnt/cdrom
-	
+
 	set_progress
 }
 
@@ -421,17 +421,17 @@ setupinit() {
 	if [ ! -d $CHANGES/etc ]; then
 	    if [ "$OPTION" = "no" ] || [ "`grep nodetect /proc/cmdline`" ]; then
 		SKIP="yes"
-	    fi	
+	    fi
 	else
 	    if [ "$OPTION" = "yes" ]; then
 		SKIP="no"
 	    else
                 SKIP="yes"
 	    fi
-	fi	
+	fi
 	if [ "$SKIP" = "yes" ]; then
 		echo "-- rc.sysinit: Skipping hwdetect -----------"
-	else 
+	else
 		if [ -e /initrd/usr/sbin/hwdetect ]; then
 			echo "-- rc.sysinit: Starting hwdetect -----------"
 			OLDPATH=$PATH
@@ -460,7 +460,7 @@ setupinit() {
 
 	# make sure we get halt and reboot binaries
 	cp -f /sbin/halt /sbin/reboot /initrd/sbin
-	
+
 	# restart the splash before MDK init (this is very hacky)
 	silent=`/bin/grep -i splash=silent /proc/cmdline`
 	if [ $progress_max -eq 65534 ] && [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
@@ -507,7 +507,7 @@ do_union () {
 		gunzip /$UNIONMOD.gz
 	fi
 	insmod /$UNIONMOD
-	if [ $? != "0" ]; then 
+	if [ $? != "0" ]; then
 		printfatal "Failed to load unionfs module."
 	fi
 	rm /$UNIONMOD # Don't waste memory
@@ -521,7 +521,7 @@ do_union () {
 		else
 			echo "Failed to mount $CHANGESDEV changes partition"
 		fi
-	fi 
+	fi
 	dbg "The CHANGESDEV is $CHANGESDEV, the CHANGES is $CHANGES \n"
 	mkdir $CHANGES
 
@@ -551,7 +551,7 @@ do_union () {
 
 	return 0
 
-## Testing section 
+## Testing section
 echo "Starting a shell for testing purposes."
 echo -n "Enter '"
 $SETCOLOR_OK
@@ -565,11 +565,14 @@ execshell
 ###### MAIN ######
 echo "--- MKLIVECD RC.SYSINIT ------------"
 
+# establish /sys (ignored during mklivecd)
+mkdir /sys ; chmod 755 /sys
+
 OPTION=`getbootoption unionfs`
 if [ "$OPTION" = "no" ]; then
 	echo "Unionfs option = $OPTION"
 	setuproot ""
-else 
+else
 	do_union ""
 fi
 setupinit ""
