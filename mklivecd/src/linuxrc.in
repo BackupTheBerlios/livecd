@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.104 2006/04/01 23:11:41 ikerekes Exp $
+# $Id: linuxrc.in,v 1.105 2006/06/22 02:08:25 ikerekes Exp $
 #
 
 ### global variables
@@ -305,6 +305,10 @@ find_cdroms() {
 	[ -n "$ALL_LOADED" ] && printloaded || printfail
 	set_progress
 
+	## Load the compressed loop module
+        echo -n "  Loading compressed loop module: "
+        loadmod squashfs && printloaded || printfail
+
 	echo -n  "  Starting USB support"
 	printok
 	## Probe the USB devices.
@@ -411,11 +415,6 @@ findcloop() {
                                 printok
                                 checkmd5 ""
 
-                                if [ -n "$LOOPMOD" ]; then  ## -n (not null string)
-                                        echo -n "  Loading compressed loop module: "
-                                        loadmod $LOOPMOD && printloaded || printfail
-                                fi
-
                                 echo -n "  Mounting loop image on /$MNTLIVECD: "
                                 if [ -e "$DEVLOOP" ]; then
                                         losetup $DEVLOOP $MNTCDROM/$BASEIMG$LOOPTYPE 
@@ -430,7 +429,39 @@ findcloop() {
                                         "  mount -r -t $ISOTYPE $DEVLOOP $MNTLIVECD"
                                 else
                                         ## Yes, we got it!
-                                        printok
+					# do we want copy2ram?
+					toram=`grep -iq copy2ram /proc/cmdline && echo 1`
+					if [ -n "$toram" ]; then
+						RAMDIR="/initrd/livecd.ram"
+						mkdir -p $RAMDIR
+						# make sure we have enough room for the image
+						IMAGESIZE=`ls -l $MNTCDROM/livecd.sqfs | awk '{print $5+1000000}'`
+						mount -t tmpfs -o "size=$IMAGESIZE" tmpfs $RAMDIR
+						if [ "$?" -eq 0 ]; then
+							# copy the livecd.sqfs image to a tmpfs directory to be used as the new MNTCDROM
+							echo -n " Copying to RAM, this may take some time"
+							cp -R $MNTCDROM/livecd.sqfs $RAMDIR
+							if [ "$?" -eq 0 ]; then
+								printok
+								# free the boot device
+								umount $MNTLIVECD
+								# and use our new directory as the new MNTLIVECD
+								`losetup -d $DEVLOOP 2>&1 >/dev/null`
+								losetup $DEVLOOP $RAMDIR/livecd.sqfs
+								mount -r -t squashfs $DEVLOOP $MNTLIVECD
+								rm -rf /initrd/sbin/halt.local
+							else
+								`umount $RAMDIR 2>&1 >/dev/null`
+								echo -n "copy 2 ram was unsuccesfull"
+								printfail
+							fi
+						else
+							`umount $RAMDIR 2>&1 >/dev/null`
+							echo -n "the iso is larger than the available ram"
+							printfail
+						fi
+					fi
+					printok
                                         break
                                 fi
                         fi
@@ -439,7 +470,6 @@ findcloop() {
         done
         echo "$PRINTK" >/proc/sys/kernel/printk
 }
-
 
 ### create /initrd/ramfs
 createramdisk() {
@@ -518,11 +548,16 @@ if [ -n "$bootfrom" ]; then
 
 	mkdir -p /part
 	if [ -n "$ISO_PATH" ]; then #ISO_PATH doesn't work yet
-		mount -r -o ro $LOOP_DEV /part
+		mount -r -o ro $LOOP_DEV /part || echo "could't mount the $LOOP_DEV partition"
 		losetup /dev/loop1 /part$ISO_PATH
 		mount -r -t iso9660 /dev/loop/1 $MNTCDROM && printok || printfail
-		losetup /dev/loop0 $MNTCDROM/livecd.sqfs
-		mount -r -t squashfs /dev/loop0 $MNTLIVECD && LOOPMNT=1
+                if [ -e "$MNTCDROM/livecd.sqfs" ]; then
+			losetup /dev/loop/2 $MNTCDROM/livecd.sqfs
+			mount -r -t squashfs /dev/loop/2 $MNTLIVECD && LOOPMNT=1
+			rm -rf /initrd/sbin/halt.local
+		else
+			printfatal "couldn't find the livecd.sqfs in the $bootfrom" 
+		fi
 	else
 		findcloop "$LOOP_DEV"
 	fi
