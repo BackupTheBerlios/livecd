@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.152 2006/06/06 03:57:24 ikerekes Exp $
+# $Id: mklivecd.in,v 1.153 2006/06/22 01:51:33 ikerekes Exp $
 #
 
 use strict;
@@ -62,6 +62,7 @@ my $nodirs         = '^/[.].* ^/dev$ ^/initrd$ ^/lost+found$ ^/mnt$ ^/proc$ ^/sy
 my $nofiles        = '^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*~$ .*[.]rpmnew$ .*[.]rpmsave$ [.]bash_history$ [.]fonts[.]cache-[0-9]$ [.]xauth.* [.]wh[.]* [.]xsession-errors$ ^/var/run/ ^/var/lock/subsys/';
 my $loopmod        = undef;
 my $loopcmp        = undef;
+my $o_stage2       = undef;
 my $blocksize      = 32;
 my $finaliso       = "livecd.iso";
 my $loader         = "isolinux/isolinux.bin";
@@ -426,6 +427,7 @@ sub parse_options {
 	die_("\nFATAL: Root directory (--root) '$o_root' does not exist\n") unless (-d $o_root);
 	$o_tmp =~ s|/$||;
 	$o_tmp .= "/";
+	$o_stage2 = qx(find $o_root/lib -name stage2_eltorito);
 	die_("\nFATAL: Temporary directory (--tmp) '$o_tmp' does not exist\n") unless (-d $o_tmp);
 	die_("\nFATAL: Unknown loop type (--looptype) '$o_looptype'\n") unless ($o_looptype =~ /clp|bzlp|sqfs|iso|ziso/);
 
@@ -554,7 +556,7 @@ sub check_root {
 ### see if we are indeed root
 sub check_apps {
 	die_("\nFATAL: The '/usr/bin/mkisofs' program is not available, please install the correct package\n") unless (-f '/usr/bin/mkisofs');
-	die("\nFATAL: The Grub program is not available, please install the correct package\n") unless (-f '/lib/grub/i386-pc/stage2_eltorito' || ($o_bootloader =~ m/^grub/));
+	die("\nFATAL: The Grub program is not available, please install the correct package\n") unless (!defined($o_stage2) ||  ($o_bootloader =~ m/^grub/));
 	die("\nFATAL: The '$loopcmp' program is not available, please install the correct package\n") unless (!defined($loopcmp) || -f $loopcmp);
 }
 
@@ -808,7 +810,7 @@ sub create_isolinux {
 	die_("\nFATAL: The kernel '".$o_root."boot/vmlinuz-$o_kernel' does not exist on your machine.\n") unless (-f $o_root."boot/vmlinuz-$o_kernel");
 	do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/isolinux/vmlinuz", ++$pos);
 	do_copy($o_root."boot/memtest*.*.bin", 644, "$workdir/livecd/isolinux/memtest", ++$pos);
-	do_copy($o_root."lib/grub/i386-pc/stage2_eltorito", 644, "$workdir/livecd/boot/grub/stage2_eltorito", ++$pos);
+	do_copy($o_stage2, 644, "$workdir/livecd/boot/grub/stage2_eltorito", ++$pos);
 	do_copy($o_root."boot/grub/mdv*.xpm.gz", 644, "$workdir/livecd/boot/grub/pclinuxos.xpm.gz", ++$pos);
 	do_copy("/usr/bin/mediacheck", 755, "$workdir/livecd/isolinux/mediacheck", ++$pos);
 
