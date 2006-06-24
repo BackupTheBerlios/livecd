@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.153 2006/06/22 01:51:33 ikerekes Exp $
+# $Id: mklivecd.in,v 1.154 2006/06/24 01:30:42 ikerekes Exp $
 #
 
 use strict;
@@ -556,7 +556,11 @@ sub check_root {
 ### see if we are indeed root
 sub check_apps {
 	die_("\nFATAL: The '/usr/bin/mkisofs' program is not available, please install the correct package\n") unless (-f '/usr/bin/mkisofs');
-	die("\nFATAL: The Grub program is not available, please install the correct package\n") unless (!defined($o_stage2) ||  ($o_bootloader =~ m/^grub/));
+#	die("\nFATAL: The Grub program is not available, please install the correct package\n") unless (!defined($o_stage2) ||  ($o_bootloader =~ m/^grub/));
+	if (($o_bootloader =~m/^grub/) && ($o_stage2 eq ''))
+	{
+	die("\nFATAL: The Grub program is not available, please install the correct package\n")
+	}
 	die("\nFATAL: The '$loopcmp' program is not available, please install the correct package\n") unless (!defined($loopcmp) || -f $loopcmp);
 }
 
