@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.155 2006/06/26 16:13:31 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.156 2006/06/26 16:24:32 tom_kelly33 Exp $
 #
 
 use strict;
@@ -816,7 +816,7 @@ sub create_isolinux {
 	do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/isolinux/vmlinuz", ++$pos);
 	do_copy($o_root."boot/memtest*.*.bin", 644, "$workdir/livecd/isolinux/memtest", ++$pos);
 	do_copy($o_stage2, 644, "$workdir/livecd/boot/grub/stage2_eltorito", ++$pos);
-	do_copy($o_root."boot/grub/mdv*.xpm.gz", 644, "$workdir/livecd/boot/grub/pclinuxos.xpm.gz", ++$pos);
+	do_copy($o_root."boot/grub/*.xpm.gz", 644, "$workdir/livecd/boot/grub/*.xpm.gz", ++$pos);
 	do_copy("/usr/bin/mediacheck", 755, "$workdir/livecd/isolinux/mediacheck", ++$pos);
 
 	# copy messages
