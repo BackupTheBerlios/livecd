@@ -1,4 +1,5 @@
-# $Id: CHANGELOG,v 1.152 2006/04/23 01:55:14 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.153 2006/06/26 16:13:31 tom_kelly33 Exp $
+* 2006-06-26 Grub updates
 * 2006-04-22 added Ivan as author, various changes
              cut new release 0.6.0
 * 2005-06-19 added cdrom to Modules.mk (safe if missing)

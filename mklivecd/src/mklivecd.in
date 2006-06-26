@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.154 2006/06/24 01:30:42 ikerekes Exp $
+# $Id: mklivecd.in,v 1.155 2006/06/26 16:13:31 tom_kelly33 Exp $
 #
 
 use strict;
@@ -427,7 +427,8 @@ sub parse_options {
 	die_("\nFATAL: Root directory (--root) '$o_root' does not exist\n") unless (-d $o_root);
 	$o_tmp =~ s|/$||;
 	$o_tmp .= "/";
-	$o_stage2 = qx(find $o_root/lib -name stage2_eltorito);
+#	$o_stage2 = qx(find $o_root/lib -name stage2_eltorito);
+	$o_stage2 = get_exec("find $o_root/lib -name stage2_eltorito");
 	die_("\nFATAL: Temporary directory (--tmp) '$o_tmp' does not exist\n") unless (-d $o_tmp);
 	die_("\nFATAL: Unknown loop type (--looptype) '$o_looptype'\n") unless ($o_looptype =~ /clp|bzlp|sqfs|iso|ziso/);
 
@@ -768,7 +769,7 @@ sub create_compressed {
 				}
 			}
 			close CMP;
-			do_cmd("chmod 644 $workdir/livecd/livecd.$o_looptype", $total+1);
+			do_cmd("chmod 644 $workdir/livecd/livecd.$o_looptype", $total+1); # Failure = out of space
 			do_cmd("ln $workdir/livecd/livecd.$o_looptype $opts{img}", $total+2) if (defined($opts{img}));
 			end_progress();
 		}
