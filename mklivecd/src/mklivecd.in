@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.156 2006/06/26 16:24:32 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.157 2006/06/26 17:03:01 tom_kelly33 Exp $
 #
 
 use strict;
@@ -708,8 +708,11 @@ sub create_initrd {
 
 	# make splash
 	if ($o_splash !~ m/no/) {
-	do_cmd("mv -f $initrd.gz $o_root/tmp ; \
-		chroot $o_root /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz $o_resolution; \
+#	do_cmd("mv -f $initrd.gz $o_root/tmp ; \
+#		chroot $o_root /usr/share/bootsplash/scripts/make-boot-splash /tmp/initrd.gz $o_resolution; \
+	do_cmd("[ -d $o_root/tmp ] || mkdir $o_root/tmp ; \
+		mv -f $initrd.gz $o_root/tmp ; \
+		/usr/share/bootsplash/scripts/make-boot-splash $o_root/tmp/initrd.gz $o_resolution; \
 		mv -f $o_root/tmp/initrd.gz $workdir/livecd/isolinux", ++$pos);
 	}
 	# we are done

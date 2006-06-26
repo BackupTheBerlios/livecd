@@ -21,7 +21,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: rc.sysinit.in,v 1.62 2006/06/06 02:36:40 ikerekes Exp $
+# $Id: rc.sysinit.in,v 1.63 2006/06/26 17:03:01 tom_kelly33 Exp $
 #
 
 export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
@@ -578,5 +578,8 @@ fi
 setupinit ""
 echo "--- Exiting MKLIVECD RC.SYSINIT ----"
 grep -v "^si" /etc/inittab >/inittab;mv /inittab /etc/inittab
+# Comment out the line that invokes rc.sysinit instead of deleting it
+# grep -v "^si" /etc/inittab >/inittab;mv /inittab /etc/inittab
+cat /etc/inittab | sed -e /^si/'s/si/# si/' >/inittab;mv /inittab /etc/inittab
 exec /etc/rc.d/rc.sysinit <dev/console >dev/console 2>&1
 exit 0

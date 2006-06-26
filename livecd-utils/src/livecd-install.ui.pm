@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.73 2006/06/06 02:37:34 ikerekes Exp $
+# $Id: livecd-install.ui.pm,v 1.74 2006/06/26 17:03:40 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -670,7 +670,10 @@ sub showInstall
 	do_system("grep -v \/mnt\/cdrom $mnt/etc/fstab>/tmp/fstab;mv /tmp/fstab $mnt/etc/fstab");
 
 	# re-establish original inittab
-	do_system("cp -a /initrd/etc/inittab $mnt/etc/");
+	#do_system("cp -a /initrd/etc/inittab $mnt/etc/");
+	# If "on the fly ' remastering, uncomment the rc.sysinit line
+	# do_system("cp -a /initrd/etc/inittab $mnt/etc/");
+	do_system("cat /initrd/etc/inittab |sed -e /'^# si'/'s/# si/si/' > $mnt/etc/inittab");
 
 	$infotext = getStr('inst_done');
 	print "$infotext\n";
