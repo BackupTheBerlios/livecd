@@ -1,5 +1,6 @@
-# $Id: CHANGELOG,v 1.12 2006/04/23 03:09:47 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.13 2006/06/27 01:35:01 tom_kelly33 Exp $
 
+* 2006-06-26 Brian Burns patches -mount, init
 * 2006-04-22 Ivan as author, new release
 * 2005-11-01 Hungarian lang added
 
