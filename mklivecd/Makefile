@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.33 2004/01/24 08:59:19 jaco Exp $
+# $Id: Makefile,v 1.34 2006/06/27 01:21:28 tom_kelly33 Exp $
 
 include Rules.mk
 include Modules.mk
@@ -102,6 +102,7 @@ spec:
 clean:
 	$(RM) -rf $(MKLIVECDDIST)
 	$(RM) -rf $(DISTDIR)
+	$(RM) -rf $(SRCDIR)/*~
 
 dist: spec
 	$(MKDIR) -p $(MKLIVECDDIST)/$(SRCDIR)
