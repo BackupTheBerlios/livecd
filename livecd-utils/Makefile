@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.10 2004/03/05 05:23:17 jaco Exp $
+# $Id: Makefile,v 1.11 2006/06/27 01:28:24 tom_kelly33 Exp $
 
 include Rules.mk
 
@@ -14,7 +14,6 @@ livecd-install:
 	$(CAT) $(SRCDIR)/livecd-install-lang.pm.in >>$(DISTDIR)/livecd-install
 	$(CAT) $(SRCDIR)/livecd-install.pm.in >>$(DISTDIR)/livecd-install
 	$(CAT) $(SRCDIR)/livecd-install.pl.in >>$(DISTDIR)/livecd-install
-	$(CAT) $(DISTDIR)/livecd-install >$(SRCDIR)/livecd-install 
 
 install:
 	$(MKDIR) -p $(DESTDIR)$(SBINDIR)

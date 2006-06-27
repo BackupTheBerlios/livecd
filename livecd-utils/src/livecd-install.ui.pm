@@ -29,7 +29,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: livecd-install.ui.pm,v 1.74 2006/06/26 17:03:40 tom_kelly33 Exp $
+# $Id: livecd-install.ui.pm,v 1.75 2006/06/27 01:28:24 tom_kelly33 Exp $
 #
 
 #use LCDLang;
@@ -578,33 +578,33 @@ sub showInstall
   my $union = qx(lsmod|grep unionfs|cut -f1 -d' ');
 
 	if ($union == "unionfs") {       #Unionfs mount
-		@dirs = qx(find $initrd/ -type d -mount | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev) unless ($destroy);
+		@dirs = qx(find $initrd/ -mount -type d | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev) unless ($destroy);
 		print "scalar(dirs)=".scalar(@dirs)."\n";
 		my $copysteps = scalar(@dirs);
 
-		@changesdirs = qx(find $changes/ -type d -mount | sed -s 's,$changes,,') unless ($destroy);
+		@changesdirs = qx(find $changes/ -mount -type d | sed -s 's,$changes,,') unless ($destroy);
 		print "scalar(changesdirs)=".scalar(@changesdirs)."\n";
 		$copysteps = $copysteps + scalar(@changesdirs);
 		$pb_c_tot = $copysteps;
 	}
 	else {
-		@dirs = qx(find $initrd/ -type d -mount | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root | grep -v ^/etc | grep -v ^/lib/dev-state) unless ($destroy);
+		@dirs = qx(find $initrd/ -mount -type d | sed -s 's,$initrd,,' | grep -v ^/proc | grep -v ^/dev | grep -v ^/home | grep -v ^/root | grep -v ^/etc | grep -v ^/lib/dev-state) unless ($destroy);
 		print "scalar(dirs)=".scalar(@dirs)."\n";
 		my $copysteps = scalar(@dirs);
 
-		@etcdirs = qx(find /etc -type d -mount) unless ($destroy);
+		@etcdirs = qx(find /etc -mount -type d) unless ($destroy);
 		print "scalar(etcdirs)=".scalar(@etcdirs)."\n";
 		$copysteps = $copysteps + scalar(@etcdirs);
 
-		@homedirs = qx(find /home -type d -mount) unless ($destroy);
+		@homedirs = qx(find /home -mount -type d) unless ($destroy);
 		print "scalar(homedirs)=".scalar(@homedirs)."\n";
 		$copysteps = $copysteps + scalar(@homedirs);
 
-		@rootdirs = qx(find /root -type d -mount) unless ($destroy);
+		@rootdirs = qx(find /root -mount -type d) unless ($destroy);
 		print "scalar(rootdirs)=".scalar(@rootdirs)."\n";
 		$copysteps = $copysteps + scalar(@rootdirs);
 
-		@devstatedirs = qx(find /lib/dev-state -type d -mount) unless ($destroy);
+		@devstatedirs = qx(find /lib/dev-state -mount -type d) unless ($destroy);
 		print "scalar(devstatedirs)=".scalar(@devstatedirs)."\n";
 		$copysteps = $copysteps + scalar(@devstatedirs);
 		$pb_c_tot = $copysteps;
@@ -674,6 +674,15 @@ sub showInstall
 	# If "on the fly ' remastering, uncomment the rc.sysinit line
 	# do_system("cp -a /initrd/etc/inittab $mnt/etc/");
 	do_system("cat /initrd/etc/inittab |sed -e /'^# si'/'s/# si/si/' > $mnt/etc/inittab");
+
+  # place warning message into /initrd on installed system
+  do_system("echo '(mkinitrd) Do not remove this directory, it is needed at boot time, in the initrd, to perform the pivot_root.' > $mnt/initrd/README.WARNING");
+
+  # revert changes made by rc.sysinit on installed system
+  do_system("mv -f $mnt/etc/rc.d/init.d/halt.livecd $mnt/etc/rc.d/init.d/halt");
+  do_system("mv -f $mnt/etc/rc.d/init.d/netfs.livecd $mnt/etc/rc.d/init.d/netfs");
+  do_system("mv -f $mnt/etc/sysconfig/network.livecd $mnt/etc/sysconfig/network") if (-e "$mnt/etc/sysconfig/network.livecd");
+  do_system("rename .livecd '' $mnt/etc/sysconfig/network-scripts/ifcfg-eth*.livecd");
 
 	$infotext = getStr('inst_done');
 	print "$infotext\n";
