@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.157 2006/06/26 17:03:01 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.158 2006/06/27 00:46:15 tom_kelly33 Exp $
 #
 
 use strict;
@@ -557,10 +557,8 @@ sub check_root {
 ### see if we are indeed root
 sub check_apps {
 	die_("\nFATAL: The '/usr/bin/mkisofs' program is not available, please install the correct package\n") unless (-f '/usr/bin/mkisofs');
-#	die("\nFATAL: The Grub program is not available, please install the correct package\n") unless (!defined($o_stage2) ||  ($o_bootloader =~ m/^grub/));
-	if (($o_bootloader =~m/^grub/) && ($o_stage2 eq ''))
-	{
-	die("\nFATAL: The Grub program is not available, please install the correct package\n")
+	if (($o_bootloader =~m/^grub/) && ($o_stage2 eq '')) {
+	    die("\nFATAL: The Grub program is not available, please install the correct package\n")
 	}
 	die("\nFATAL: The '$loopcmp' program is not available, please install the correct package\n") unless (!defined($loopcmp) || -f $loopcmp);
 }
@@ -819,7 +817,7 @@ sub create_isolinux {
 	do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/isolinux/vmlinuz", ++$pos);
 	do_copy($o_root."boot/memtest*.*.bin", 644, "$workdir/livecd/isolinux/memtest", ++$pos);
 	do_copy($o_stage2, 644, "$workdir/livecd/boot/grub/stage2_eltorito", ++$pos);
-	do_copy($o_root."boot/grub/*.xpm.gz", 644, "$workdir/livecd/boot/grub/*.xpm.gz", ++$pos);
+	do_copy($o_root."boot/grub/*.xpm.gz", 644, "$workdir/livecd/boot/grub/livecd.xpm.gz", ++$pos);
 	do_copy("/usr/bin/mediacheck", 755, "$workdir/livecd/isolinux/mediacheck", ++$pos);
 
 	# copy messages
@@ -872,9 +870,12 @@ sub create_isolinux {
 	print CFG "timeout 30\n";
 	print CFG "color 2\n";
 	print CFG "shade 1\n";
-	print CFG "splashimage (cd)/boot/grub/pclinuxos.xpm.gz\n\n";
+	print CFG "splashimage (cd)/boot/grub/livecd.xpm.gz\n\n";
 	print CFG "title livecd with default parameters\n";
 	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt\n";
+	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
+	print CFG "title Copy2ram\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd copy2ram root=/dev/rd/3\n";
 	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
 	print CFG "title safeboot\n";
 	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd root=/dev/rd/3 acpi=off vga=normal keyb=us noapic nolapic noscsi nopcmcia nomce unionfs=no\n";
@@ -893,7 +894,7 @@ sub create_isolinux {
 	print CFG "timeout 30\n";
 	print CFG "color 2\n";
 	print CFG "shade 1\n";
-	print CFG "splashimage (cd)/boot/grub/pclinuxos.xpm.gz\n\n";
+	print CFG "splashimage (cd)/boot/grub/livecd.xpm.gz\n\n";
 	print CFG "title Framebuffer Mode 1280x1024\n";
 	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt xdrv=fbset xres=1280x1024 xbpp=16\n";
 	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
