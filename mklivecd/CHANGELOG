@@ -1,4 +1,5 @@
-# $Id: CHANGELOG,v 1.154 2006/06/27 01:32:19 tom_kelly33 Exp $
+# $Id: CHANGELOG,v 1.155 2006/06/28 17:25:15 tom_kelly33 Exp $
+* 2005-06-28 Out of Space error added
 * 2006-06-26 Grub updates, Brian Burns patches
 * 2006-04-22 added Ivan as author, various changes
              cut new release 0.6.0

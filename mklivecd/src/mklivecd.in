@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.159 2006/06/27 01:21:29 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.160 2006/06/28 17:25:15 tom_kelly33 Exp $
 #
 
 use strict;
@@ -770,7 +770,8 @@ sub create_compressed {
 				}
 			}
 			close CMP;
-			do_cmd("chmod 644 $workdir/livecd/livecd.$o_looptype", $total+1); # Failure = out of space
+			die_("\nFATAL:Out of space while creating livecd.$o_looptype\n") unless (-e "$workdir/livecd/livecd.$o_looptype");
+			do_cmd("chmod 644 $workdir/livecd/livecd.$o_looptype", $total+1);
 			do_cmd("ln $workdir/livecd/livecd.$o_looptype $opts{img}", $total+2) if (defined($opts{img}));
 			end_progress();
 		}
