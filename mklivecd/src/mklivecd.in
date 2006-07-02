@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.160 2006/06/28 17:25:15 tom_kelly33 Exp $
+# $Id: mklivecd.in,v 1.161 2006/07/02 23:37:27 ikerekes Exp $
 #
 
 use strict;
@@ -897,13 +897,13 @@ sub create_isolinux {
 	print CFG "shade 1\n";
 	print CFG "splashimage (cd)/boot/grub/livecd.xpm.gz\n\n";
 	print CFG "title Framebuffer Mode 1280x1024\n";
-	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt xdrv=fbset xres=1280x1024 xbpp=16\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt xdrv=fbdev xres=1280x1024 xbpp=16\n";
 	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
 	print CFG "title Framebuffer Mode 1024x768\n";
-	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt xdrv=fbset xres=1024x768 xbpp=16\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt xdrv=fbdev xres=1024x768 xbpp=16\n";
 	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
 	print CFG "title Framebuffer Mode 800x600\n";
-	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt xdrv=fbset xres=800x600 xbpp=16\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd $appopt xdrv=fbdev xres=800x600 xbpp=16\n";
 	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
 	print CFG "title Console only\n";
 	print CFG "kernel (cd)/isolinux/vmlinuz $appopt 3\n";
