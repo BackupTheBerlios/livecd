@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.105 2006/06/22 02:08:25 ikerekes Exp $
+# $Id: linuxrc.in,v 1.106 2006/07/04 03:33:00 ikerekes Exp $
 #
 
 ### global variables
@@ -445,6 +445,7 @@ findcloop() {
 								printok
 								# free the boot device
 								umount $MNTLIVECD
+								umount $MNTCDROM
 								# and use our new directory as the new MNTLIVECD
 								`losetup -d $DEVLOOP 2>&1 >/dev/null`
 								losetup $DEVLOOP $RAMDIR/livecd.sqfs
