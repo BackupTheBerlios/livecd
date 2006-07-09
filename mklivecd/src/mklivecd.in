@@ -22,7 +22,7 @@
 #
 # Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
 #
-# $Id: mklivecd.in,v 1.161 2006/07/02 23:37:27 ikerekes Exp $
+# $Id: mklivecd.in,v 1.162 2006/07/09 01:28:40 ikerekes Exp $
 #
 
 use strict;
@@ -882,7 +882,7 @@ sub create_isolinux {
 	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd root=/dev/rd/3 acpi=off vga=normal keyb=us noapic nolapic noscsi nopcmcia nomce unionfs=no\n";
 	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
 	print CFG "title MediaCheck - Checks the md5sum of the cd\n";
-	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd md5sum $appopt\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz livecd=livecd md5sum $appopt splash=verbose\n";
 	print CFG "initrd (cd)/isolinux/initrd.gz\n\n";
 	print CFG "title MEMTEST - memory test\n";
 	print CFG "kernel (cd)/isolinux/memtest\n\n\n";
