@@ -1,0 +1,598 @@
+#!/initrd/bin/ash
+#
+# LiveCD init (rc.sysinit) script
+#
+# Copyright (C) 2003-2004, Jaco Greeff <jaco@puxedo.org>
+# Copyright (C) 2004, Tom Kelly  <tom_kelly33@yahoo.com>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# The latest version of this script can be found at http://livecd.berlios.de
+#
+# $Id: rc.sysinit.in,v 1.1 2007/12/09 23:03:41 didouph Exp $
+#
+
+export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
+
+#common variables
+
+MNTCDROM=/initrd/cdrom
+MNTLIVECD=/initrd/loopfs
+KERNELVER=`uname -r`
+MNTRAMDISK=/ramfs
+KERNEL26=1
+MODEXT=".ko.gz"
+
+### progress indicator
+progress_num=0
+progress_full=20
+progress_max=32768
+progress_on=1
+
+### screen colors
+RES_COL=65
+MOVE_TO_COL="echo -en \\033[${RES_COL}G\\033[K"
+SETCOLOR_OK="echo -en \\033[1;32m"
+SETCOLOR_FAIL="echo -en \\033[1;31m"
+SETCOLOR_WARN="echo -en \\033[1;33m"
+SETCOLOR_NORMAL="echo -en \\033[0;39m"
+SETCOLOR_CLEAR="echo -en \\033c"
+SETCOLOR_CEOL="echo -en \\033[0G\\033[K"
+
+#common (library) functions
+
+### print a success msg
+printok() {
+        $MOVE_TO_COL
+        echo -n "[  "
+        $SETCOLOR_OK
+        echo -n "OK"
+        $SETCOLOR_NORMAL
+        echo "  ]"
+        return 0
+}
+
+### print a loaded success msg
+printloaded() {
+        $MOVE_TO_COL
+        echo -n "["
+        $SETCOLOR_OK
+        echo -n "LOADED"
+        $SETCOLOR_NORMAL
+        echo "]"
+        return 0
+}
+
+
+### print a warning msg
+printwarn() {
+        $MOVE_TO_COL
+        echo -n "[ "
+        $SETCOLOR_WARN
+        echo -n "WARN"
+        $SETCOLOR_NORMAL
+        echo " ]"
+        return 0
+}
+
+
+### print a failure msg
+printfail() {
+        $MOVE_TO_COL
+        echo -n "["
+        $SETCOLOR_FAIL
+        echo -n "DONE"
+        $SETCOLOR_NORMAL
+        echo "]"
+        return 0
+}
+
+### print error message and exit to limited shell
+printfatal() {
+	printfail
+	$SETCOLOR_FAIL
+	echo ""
+	echo "$1"
+	shift
+	while [ $# -gt 0 ]; do
+		echo "$1"
+		shift
+	done
+	echo ""
+	echo "       Dropping you to a limited shell."
+	$SETCOLOR_NORMAL
+	execshell
+}
+
+### execute a command/commands printing the success or failure msg on completion
+docmd() {
+        echo -n "$1: "
+        shift
+        CMD="($1)"
+        shift
+        while [ $# -gt 0 ]; do
+                CMD="$CMD && ($1)"
+                shift
+        done
+        (eval "$CMD") 2>&1 >/dev/null && printok || printfail
+}
+
+
+### load a module
+loadmod() {
+        MODULE="/lib/modules/$KERNELVER/kernel/$1$MODEXT"
+        [ ! -f $MODULE ] && MODULE="/initrd$MODULE"
+        [ ! -f $MODULE ] && return 1
+        if [ -n "$DEBUG" ]; then
+                RET=0
+                echo -n "$MODULE: "
+                modprobe $MODULE $2 && RET=0 || RET=1
+                echo "($RET)"
+                return $RET
+        else
+                (modprobe $MODULE $2 2>&1)>/dev/null && return 0 || return 1
+        fi
+}
+
+
+### set progress bar
+set_progress() {
+        silent=`grep -i splash=silent /proc/cmdline`
+        if [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
+                progress_num=$(($progress_num+1));
+                progress=$(($progress_max*($progress_num+1)/$progress_full));
+                echo "show $progress" >/proc/splash
+        fi
+}
+
+dbg()
+{
+    	  if [ -n "$DEBUG" ]; then
+       	echo
+       	$SETCOLOR_FAIL
+       	echo -e "DBG: ${@}"
+       	$SETCOLOR_NORMAL
+       	echo
+    	  fi
+}
+
+### this is if we are to execute a limited shell
+execshell() {
+        export HOSTNAME="localhost.localdomain"
+        export PS1="$ "
+        export PS2="> "
+        export PS4="+ "
+        echo "6" >/proc/sys/kernel/printk
+
+        # find the best shell available to us at this point
+        if [ -e /bin/bash ]; then
+                echo "  Loading /bin/bash"
+                export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
+                SHELL="/bin/bash"
+        elif [ -e /initrd/bin/ash ]; then
+                echo "  Loading /initrd/bin/ash"
+                export PATH=/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
+                SHELL="/initrd/bin/ash"
+        else
+                export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+                if [ -e /bin/ash ]; then
+                        echo "  Loading /bin/ash"
+                        SHELL="/bin/ash"
+                else
+                        echo "  Loading /bin/busybox ash"
+                        SHELL="/bin/busybox ash"
+                fi
+        fi
+        exec $SHELL
+}
+
+mountit(){
+# Usage: mountit src dst "options"
+    	  BUILTIN_FS="iso9660 vfat ext3 ext2 msdos reiserfs ntfs"
+    	  for fs in $BUILTIN_FS; do
+        	test -b $1 && mount -t $fs $3 $1 $2 >/dev/null 2>&1 && return 0
+    	  done
+    	  return 1
+}
+
+### function to get the value of an option from the kernel command line
+getbootoption() {
+	option="$1"
+	val=`$MNTLIVECD/bin/sed -r -e "s/(.*)${option}=([[:alnum:]-]*)(.*)/\2/i" /proc/cmdline`
+	if [ -n "$val" -a "$val" != "`$MNTLIVECD/bin/cat /proc/cmdline`" ]; then
+		echo $val
+		return 0
+	else
+		return 1
+	fi
+}
+
+### function to check for an option from the kernel command line
+checkbootoption() {
+	if [ `grep -iq $1 /proc/cmdline` ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+#--------------------------------------------------------------------#
+# rc.sysinit subroutines                                             #
+# Display debugging info if debug is on. Allow extended echo chars.  #
+#--------------------------------------------------------------------#
+
+### setup an arbitrary directory
+setupdir_dir() { # rootdir
+	rootdir=$1
+	echo -n "  Linking  /$1: "
+	rm -rf /$rootdir && ln -s $MNTLIVECD/$rootdir /$rootdir
+	printok
+}
+
+
+### setup an /etc structure
+setupdir_etc() {
+	echo -n "  Building /etc structure: "
+
+	rm -rf /etc && cp -a $MNTLIVECD/etc /
+
+	mkdir -p /etc/livecd/hwdetect
+	rm -rf /etc/fstab && touch /etc/fstab
+
+        echo '### LIVECD rc.sysinit ###' >/etc/fstab
+	echo 'none      /proc    proc   defaults  0 0' >>/etc/fstab
+	echo 'none      /sys     sysfs  defaults  0 0' >>/etc/fstab
+	echo 'none      /dev/pts devpts mode=0620 0 0' >>/etc/fstab
+	echo '/dev/rd/3 /        tmpfs  defaults  0 0' >>/etc/fstab
+
+	rm -f /etc/mtab && touch /etc/mtab
+	rm -rf /etc/modules.conf && touch /etc/modules.conf
+
+	printok
+	set_progress
+}
+
+
+### setup the /home structure
+setupdir_home() {
+	echo -n "  Building /home structure: "
+	cp -a $MNTLIVECD/home /
+	printok
+	set_progress
+}
+
+
+### setup the /lib structure
+setupdir_lib() {
+	echo -n "  Building /lib structure: "
+
+	rm -rf /lib && mkdir -p /lib
+	cd $MNTLIVECD/lib/
+	for f in *; do
+		case $f in
+			dev-state)
+				mkdir -p /lib/$f
+			;;
+			modules)
+				mkdir -p /lib/$f
+				for k in $f/*; do
+					if `echo $k | grep -q $f/$KERNELVER`; then
+						mkdir -p /lib/$k
+						for s in $k/*; do
+							if [ -f $MNTLIVECD/lib/$s ]; then
+								cp $MNTLIVECD/lib/$s /lib/$s
+								chmod 644 /lib/$s
+							else
+								mkdir -p /lib/$s
+								for d in `find $s -type d`; do
+									mkdir -p /lib/$d || true
+									for m in $d/*; do
+										[ -f $MNTLIVECD/lib/$m ] && ln -sf $MNTLIVECD/lib/$m /lib/$m || true
+									done
+								done
+							fi
+						done
+					else
+						ln -sf $MNTLIVECD/lib/$k /lib/$k || true
+					fi
+				done
+			;;
+			*)
+				ln -sf $MNTLIVECD/lib/$f /lib/$f || true
+			;;
+		esac
+	done
+	cd /
+
+	printok
+	set_progress
+}
+
+
+### setup the /root structure
+setupdir_root() {
+	echo -n "  Building /root structure: "
+
+	cp -a $MNTLIVECD/root /
+
+	printok
+	set_progress
+}
+
+
+### setup a /var structure
+setupdir_var() {
+	echo -n "  Building /var structure: "
+	PREV=
+	rm -rf /var && mkdir -p /var
+	for d in `find $MNTLIVECD/var/ -type d`; do
+		CURR=${d#$MNTLIVECD/var/}
+		[ -n "$PREV" ] && CURR="$PREV $CURR"
+		if [ -e "$MNTLIVECD/var/$CURR" ]; then
+			d="$CURR"
+			case $d in
+				tmp*)
+					;;
+				lib/menu*|lib/rpm*|lib/nxserver/nxhome*|lib/urpmi*|lib/samba*|lib/gnome*|lib/mysql*)
+					[ ! -e "/var/$d" ] && ln -sf "$MNTLIVECD/var/$d" "/var/$d" || true
+					;;
+				cache*|db*|lib*|local*|lock*|log*|mail*|mtink*|nis*|opt*|preserve*|run*|spool*|xkb*|yp*)
+					mkdir -p "/var/$d" || true
+					$MNTLIVECD/bin/chown --reference="$MNTLIVECD/var/$d" "/var/$d"
+					$MNTLIVECD/bin/chmod --reference="$MNTLIVECD/var/$d" "/var/$d"
+					;;
+				*)
+					[ ! -e "/var/$d" ] && ln -sf "$MNTLIVECD/var/$d" "/var/$d" || true
+					;;
+			esac
+			CURR=
+		fi
+		PREV="$CURR"
+	done
+
+	mkdir -p /var/lock/subsys
+	mkdir -p /var/log && touch /var/log/wtmp && touch /var/log/messages
+	mkdir -p /var/run && touch /var/run/utmp
+	rm -rf /var/tmp && ln -sf /tmp /var/tmp
+
+	printok
+	set_progress
+}
+
+
+### Setup the root fs
+setuproot() {
+	for d in $MNTLIVECD/*; do
+		d=${d#$MNTLIVECD/}
+		if [ -d $MNTLIVECD/$d ]; then
+			case $d in
+				dev|proc|sys|mnt|tmp|udev|initrd)	# Remain in RAM
+					;;
+				etc)
+					setupdir_etc
+					;;
+				home)
+					setupdir_home
+					;;
+				lib)
+					setupdir_lib
+					;;
+				root)
+					setupdir_root
+					;;
+				var)
+					setupdir_var
+					;;
+				*)					# Any extra/custom
+					setupdir_dir $d
+					;;
+			esac
+		else
+			cp $MNTLIVECD/$d /
+		fi
+	done
+
+	touch /fastboot
+	mkdir -p /mnt && ln -sf $MNTCDROM /mnt/cdrom
+
+	set_progress
+}
+
+
+### setup for init of the actual mdk image
+setupinit() {
+	echo "6" >/proc/sys/kernel/printk
+        # perform hwdetect if not disabled
+	OPTION=`getbootoption hwdetect`
+	if [ ! -d $CHANGES/etc ]; then
+	    if [ "$OPTION" = "no" ] || [ "`grep nodetect /proc/cmdline`" ]; then
+		SKIP="yes"
+	    fi
+	else
+	    if [ "$OPTION" = "yes" ]; then
+		SKIP="no"
+	    else
+                SKIP="yes"
+	    fi
+	fi
+	if [ "$SKIP" = "yes" ]; then
+		echo "-- rc.sysinit: Skipping hwdetect -----------"
+	else
+		if [ -e /initrd/usr/sbin/hwdetect ]; then
+			echo "-- rc.sysinit: Starting hwdetect -----------"
+			OLDPATH=$PATH
+			export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+			/initrd/usr/sbin/hwdetect
+			export PATH=$OLDPATH
+			echo "-- rc.sysinit: Done with hwdetect ----------"
+		else
+			echo "-- rc.sysinit: Missing hwdetect ------------"
+		fi
+       fi
+	# Don't run depmod (must be run before imaging system)
+	/bin/sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
+
+	# Do various other configuration tasks (now that /etc is available)
+	if hostname=`getbootoption hostname`; then
+		/bin/sed -i.livecd -e "s/\(\S*HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network
+		for i in /etc/sysconfig/network-scripts/ifcfg-eth*; do
+			/bin/sed -i.livecd -e "s/\(\S*DHCP_HOSTNAME=\).*/\1${hostname}/g" $i
+		done
+	fi
+
+	# clean up the shutdown sequence:
+	/bin/sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/initrd\\\/\.\*\/\3,;s,/sbin/halt.local,/initrd/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /initrd/sbin/halt.local,   exec /initrd/sbin/halt.local \$command,g;s,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/halt
+	[ -f /etc/rc.d/init.d/netfs ] && /bin/sed -i.livecd -e 's,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/netfs
+
+	# make sure we get halt and reboot binaries
+	cp -f /sbin/halt /sbin/reboot /initrd/sbin
+
+	# restart the splash before MDK init (this is very hacky)
+	silent=`/bin/grep -i splash=silent /proc/cmdline`
+	if [ $progress_max -eq 65534 ] && [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
+		echo 0 > /proc/splash
+		. /etc/sysconfig/bootsplash
+		res=`/bin/fbresolution`
+		[ -f /etc/bootsplash/themes/$THEME/config/bootsplash-$res.cfg ] && /sbin/splash -s -u 0 /etc/bootsplash/themes/$THEME/config/bootsplash-$res.cfg
+		echo "silent" >/proc/splash
+	fi
+
+	# do we just want to complete the initrd (debug)?
+	if [ `/bin/grep -iq livecd=initrd /proc/cmdline` ]; then
+		execshell
+	fi
+
+	# clean up /sys (init mounts it via rc.sysinit)
+	docmd   "  Unmounting /sys filesystem" \
+		"umount /sys"
+
+	# clean up /proc/bus/usb (needed to be able to clean up /proc) quetly
+	echo "0" >/proc/sys/kernel/printk
+	umount /proc/bus/usb  >/dev/null 2>&1
+	echo "6" >/proc/sys/kernel/printk
+
+	# clean up /proc (init mounts it via rc.sysinit)
+	docmd   "  Unmounting /proc filesystem" \
+		"umount /proc"
+
+	# display some info
+	distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
+	# moved to end echo "  Starting $distro Linux init sequence ..."
+
+	# setup the full path as now available and start distro boot
+	export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
+	# moved to end /etc/rc.d/rc.sysinit
+}
+
+do_union () {
+	echo "Setting up union file system"
+#	UNIONMOD=aufs
+#	cp `find /initrd/loopfs/lib/modules/$KERNELVER/kernel -name $UNIONMOD* ` /
+#       unzip if zipped
+#	if [ -e /$UNIONMOD.gz ]; then
+#		gunzip /$UNIONMOD.gz
+#	fi
+#	modprobe /$UNIONMOD
+#	if [ $? != "0" ]; then
+#		printfatal "Failed to load aufs module."
+#	fi
+#	rm /$UNIONMOD # Don't waste memory
+	mkdir /union
+	mkdir /initrd/changes
+	CHANGES=/changes
+	CHANGESDEV=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/changes/ {print}'|awk -F"=" '{print $2}')
+	LOOP_DEV=$(echo $CHANGESDEV|awk -F/ '{print $1 "/" $2 "/" $3}')
+	CHANGES_PATH=$(echo $CHANGESDEV|sed "s|$LOOP_DEV||g" )
+	
+	if [ -n "$CHANGESDEV" ]; then
+		if [ -n $CHANGES_PATH ]; then #The changes= describes a loop mounted persistent changes
+			mkdir -p /part1
+			if mountit $LOOP_DEV /part1; then
+				#mount  $LOOP_DEV /part1 || echo "could't mount the $LOOP_DEV partition"
+				losetup /dev/loop3 /part1$CHANGES_PATH
+				if mountit /dev/loop3 /initrd/changes; then
+					#mount  /dev/loop3 /initrd/changes && printok || printfail
+					CHANGES=/initrd/changes/changes
+				else
+					echo "failed to mount $CHANGES_PATH loopfile"
+				fi
+			else
+				echo "could't mount the $LOOP_DEV partition"
+			fi
+		else
+			if mountit  $CHANGESDEV /initrd/changes; then
+				CHANGES=/initrd/changes/changes
+			else
+				echo "Failed to mount $CHANGESDEV changes partition"
+			fi
+		fi
+	fi
+
+	dbg "The CHANGESDEV is $CHANGESDEV, the CHANGES is $CHANGES \n"
+	mkdir $CHANGES
+
+	mount -t aufs -o dirs=$CHANGES=rw:/initrd/loopfs=ro none /union
+
+	export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
+	echo "6" > /proc/sys/kernel/printk # enable kernel messages
+
+	## Make the directories writeable
+	for d in $MNTLIVECD/*; do
+		d=${d#$MNTLIVECD/}
+		if [ -d $MNTLIVECD/$d ]; then
+			case $d in
+				dev|proc|sys|mnt|tmp|udev|initrd|changes)  	# Remain in RAM
+			;;
+				*)					# Any extra/custom dirs
+				rm -f $d && ln -s /union/$d /$d		# Replace link
+			;;
+			esac
+		else
+	   		ln -s /union/$d /$d  ## link the files
+		fi
+	done
+
+	## fix /var/tmp
+	rm -f /var/tmp; ln -s /tmp /var/tmp
+
+	return 0
+
+## Testing section
+echo "Starting a shell for testing purposes."
+echo -n "Enter '"
+$SETCOLOR_OK
+echo -n "exit"
+$SETCOLOR_NORMAL
+echo -n "' to continue booting."
+execshell
+### End of testing section
+}
+
+###### MAIN ######
+echo "--- MKLIVECD RC.SYSINIT ------------"
+
+OPTION=`getbootoption unionfs`
+if [ "$OPTION" = "no" ]; then
+	echo "Unionfs option = $OPTION"
+	setuproot ""
+else
+	do_union ""
+fi
+setupinit ""
+echo "--- Exiting MKLIVECD RC.SYSINIT ----"
+# Comment out the line that invokes rc.sysinit instead of deleting it
+cat /etc/inittab | sed -e /^si/'s/si/# si/' >/inittab;mv /inittab /etc/inittab
+exec /etc/rc.d/rc.sysinit <dev/console >dev/console 2>&1
+exit 0
