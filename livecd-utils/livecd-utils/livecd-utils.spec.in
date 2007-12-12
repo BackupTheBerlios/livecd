@@ -1,0 +1,79 @@
+# $Id: livecd-utils.spec.in,v 1.1 2007/12/12 00:48:38 didouph Exp $
+
+%define name		livecd-utils
+%define version		@UTILSVER@
+%define release		@UTILSREL@mdk
+
+%define summary		Various LiveCD utilities for installation of a LiveCD
+
+Summary:		%{summary}
+Name:			%{name}
+Version:		%{version}
+Release:		%{release}
+License:		GPL
+Group:			System/Configuration/Boot and Init
+URL:			http://livecd.berlios.de/
+Source0:		%{name}-@ARCHIVEVER@.tar.bz2
+Source1:		%{name}.icons.tar.bz2
+Requires:		perl-Qt
+BuildRequires:		perl-Qt
+BuildRoot:		%{_tmppath}/%{name}-root
+Buildarch:		noarch
+
+%description
+%{summary}
+
+%prep
+%setup -q -n %{name}-@ARCHIVEVER@
+tar --bzip2 -xf %{SOURCE1}
+
+%build
+%make
+
+%install
+rm -rf %buildroot
+%makeinstall DESTDIR=%buildroot
+
+#icons
+mkdir -p %buildroot/%_miconsdir \
+	 %buildroot/%_liconsdir \
+	 %buildroot/%_iconsdir
+install -m 644 %{name}_16.png %buildroot/%{_miconsdir}/%{name}.png
+install -m 644 %{name}_32.png %buildroot/%{_iconsdir}/%{name}.png
+install -m 644 %{name}_48.png %buildroot/%{_liconsdir}/%{name}.png
+
+# Menu
+mkdir -p %buildroot/%_menudir
+cat > %buildroot/%_menudir/%{name}  <<EOF
+?package(%{name}): command="%_sbindir/livecd-install" needs="X11" \
+icon="%{name}.png" section="Configuration/Hardware" \
+title="LiveCD-Install" longtitle="LiveCD Installer"
+EOF
+
+%post
+%{update_menus}
+
+%postun
+%{clean_menus}
+
+%clean
+rm -rf %buildroot
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS CHANGELOG COPYING CREDITS 
+%{_sbindir}/livecd-install
+%{_miconsdir}/%{name}.png
+%{_iconsdir}/%{name}.png
+%{_liconsdir}/%{name}.png
+%{_menudir}/*
+
+%changelog
+* @SPECDATE@ Jaco Greeff <jaco@linuxminicd.org> @UTILSVER@-@UTILSREL@mdk
+- version @ARCHIVEVER@
+
+* Sun Nov 23 2003 Texstar <texstar@houston.rr.com> 0.1.0-0.cvs.20031123.2mdk
+- Make icons and menu entry for livecd-utils
+
+* Sun Nov 23 2003 Jaco Greeff <jaco@linuxminicd.org> 0.1.0-0.cvs.20031123.1mdk
+- version 0.1.0-cvs.20031123
