@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.34 2006/06/27 01:21:28 tom_kelly33 Exp $
+# $Id: Makefile,v 1.35 2008/04/12 09:31:05 ikerekes Exp $
 
 include Rules.mk
 include Modules.mk
@@ -28,24 +28,21 @@ mklivecd:
 		$(SED) -e 's,@VAL_SPLASH_LINUXRC@,$(VAL_SPLASH_LINUXRC),g' | \
 		$(SED) -e 's,@VAL_SPLASH_SYSINIT@,$(VAL_SPLASH_SYSINIT),g' | \
 		$(SED) -e 's,@VAL_SPLASH_HWDETECT@,$(VAL_SPLASH_HWDETECT),g' | \
-		$(SED) -e 's,@DEF_MODULES_24@,$(DEF_MODULES_24),g' | \
-		$(SED) -e 's,@DEF_MODULES_OPT_24@,$(DEF_MODULES_OPT_24),g' | \
-		$(SED) -e 's,@DEF_MODULES_DEP_24@,$(DEF_MODULES_DEP_24),g' | \
-		$(SED) -e 's,@DEF_SCSI_MODULES_24@,$(DEF_SCSI_MODULES_24),g' | \
-		$(SED) -e 's,@DEF_SCSI_MODULES_OPT_24@,$(DEF_SCSI_MODULES_OPT_24),g' | \
-		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_24@,$(DEF_SCSI_MODULES_DEP_24),g' | \
-		$(SED) -e 's,@DEF_USB_MODULES_24@,$(DEF_USB_MODULES_24),g' | \
-		$(SED) -e 's,@DEF_USB_MODULES_DRV_24@,$(DEF_USB_MODULES_DRV_24),g' | \
 		$(SED) -e 's,@DEF_MODULES_26@,$(DEF_MODULES_26),g' | \
 		$(SED) -e 's,@DEF_MODULES_OPT_26@,$(DEF_MODULES_OPT_26),g' | \
 		$(SED) -e 's,@DEF_MODULES_DEP_26@,$(DEF_MODULES_DEP_26),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_26@,$(DEF_SCSI_MODULES_26),g' | \
+		$(SED) -e 's,@DEF_SCSI_MODULES_old26@,$(DEF_SCSI_MODULES_old26),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_OPT_26@,$(DEF_SCSI_MODULES_OPT_26),g' | \
 		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_26@,$(DEF_SCSI_MODULES_DEP_26),g' | \
+		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_old26@,$(DEF_SCSI_MODULES_DEP_old26),g' | \
 		$(SED) -e 's,@DEF_USB_MODULES_26@,$(DEF_USB_MODULES_26),g' | \
 		$(SED) -e 's,@DEF_USB_MODULES_DRV_26@,$(DEF_USB_MODULES_DRV_26),g' \
 			>$(DISTDIR)/linuxrc
 	$(CP) $(SRCDIR)/halt.local.in $(DISTDIR)/halt.local
+	$(CP) $(SRCDIR)/liveusb.in $(DISTDIR)/liveusb
+	$(CP) $(SRCDIR)/mkchgsloop.in $(DISTDIR)/mkchgsloop
+	$(CP) $(SRCDIR)/mkremaster.in $(DISTDIR)/mkremaster
 	$(CAT) $(SRCDIR)/rc.sysinit.in | \
 		$(SED) -e 's,@MAX_SPLASH@,$(MAX_SPLASH),g' | \
 		$(SED) -e 's,@VAL_SPLASH_FULL@,$(VAL_SPLASH_FULL),g' | \
@@ -57,24 +54,17 @@ mklivecd:
 		$(SED) -e 's,@PKGNAME@,$(PKGNAME),g' | \
 		$(SED) -e 's,@MKLIVECDVER@,$(ARCHIVEVER),g' | \
 		$(SED) -e 's,@DEF_KEYBOARD@,$(DEF_KEYBOARD),g' | \
+		$(SED) -e 's,@DEF_UNION@,$(DEF_UNION),g' | \
 		$(SED) -e 's,@DEF_RESOLUTION@,$(DEF_RESOLUTION),g' | \
 		$(SED) -e 's,@DEF_VGAMODE@,$(DEF_VGAMODE),g' | \
-		$(SED) -e 's,@DEF_MODULES_PATH_24@,$(DEF_MODULES_PATH_24),g' | \
-		$(SED) -e 's,@DEF_MODULES_OPT_PATH_24@,$(DEF_MODULES_OPT_PATH_24),g' | \
-		$(SED) -e 's,@DEF_MODULES_DEP_PATH_24@,$(DEF_MODULES_DEP_PATH_24),g' | \
-		$(SED) -e 's,@DEF_SCSI_MODULES_PATH_24@,$(DEF_SCSI_MODULES_PATH_24),g' | \
-		$(SED) -e 's,@DEF_SCSI_MODULES_OPT_PATH_24@,$(DEF_SCSI_MODULES_OPT_PATH_24),g' | \
-		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_PATH_24@,$(DEF_SCSI_MODULES_DEP_PATH_24),g' | \
-		$(SED) -e 's,@DEF_USB_MODULES_PATH_24@,$(DEF_USB_MODULES_PATH_24),g' | \
-		$(SED) -e 's,@DEF_USB_MODULES_DRV_PATH_24@,$(DEF_USB_MODULES_DRV_PATH_24),g' | \
-		$(SED) -e 's,@DEF_MODULES_PATH_26@,$(DEF_MODULES_PATH_26),g' | \
-		$(SED) -e 's,@DEF_MODULES_OPT_PATH_26@,$(DEF_MODULES_OPT_PATH_26),g' | \
-		$(SED) -e 's,@DEF_MODULES_DEP_PATH_26@,$(DEF_MODULES_DEP_PATH_26),g' | \
-		$(SED) -e 's,@DEF_SCSI_MODULES_PATH_26@,$(DEF_SCSI_MODULES_PATH_26),g' | \
-		$(SED) -e 's,@DEF_SCSI_MODULES_OPT_PATH_26@,$(DEF_SCSI_MODULES_OPT_PATH_26),g' | \
-		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_PATH_26@,$(DEF_SCSI_MODULES_DEP_PATH_26),g' | \
-		$(SED) -e 's,@DEF_USB_MODULES_PATH_26@,$(DEF_USB_MODULES_PATH_26),g' | \
-		$(SED) -e 's,@DEF_USB_MODULES_DRV_PATH_26@,$(DEF_USB_MODULES_DRV_PATH_26),g' \
+		$(SED) -e 's,@DEF_MODULES_26@,$(DEF_MODULES_26),g' | \
+		$(SED) -e 's,@DEF_MODULES_OPT_26@,$(DEF_MODULES_OPT_26),g' | \
+		$(SED) -e 's,@DEF_MODULES_DEP_26@,$(DEF_MODULES_DEP_26),g' | \
+		$(SED) -e 's,@DEF_SCSI_MODULES_26@,$(DEF_SCSI_MODULES_26),g' | \
+		$(SED) -e 's,@DEF_SCSI_MODULES_OPT_26@,$(DEF_SCSI_MODULES_OPT_26),g' | \
+		$(SED) -e 's,@DEF_SCSI_MODULES_DEP_26@,$(DEF_SCSI_MODULES_DEP_26),g' | \
+		$(SED) -e 's,@DEF_USB_MODULES_26@,$(DEF_USB_MODULES_26),g' | \
+		$(SED) -e 's,@DEF_USB_MODULES_DRV_26@,$(DEF_USB_MODULES_DRV_26),g' \
 			>$(DISTDIR)/$(PKGNAME)
 
 install:
@@ -85,6 +75,9 @@ install:
 	$(INSTALL) -m 644 $(DISTDIR)/rc.sysinit $(DESTDIR)$(SHAREDIR)
 	$(INSTALL) -m 755 $(DISTDIR)/$(PKGNAME) $(DESTDIR)$(SBINDIR)
 	$(INSTALL) -m 755 $(DISTDIR)/hwdetect $(DESTDIR)$(SBINDIR)
+	$(INSTALL) -m 755 $(DISTDIR)/liveusb $(DESTDIR)$(SBINDIR)
+	$(INSTALL) -m 755 $(DISTDIR)/mkchgsloop $(DESTDIR)$(SBINDIR)
+	$(INSTALL) -m 755 $(DISTDIR)/mkremaster $(DESTDIR)$(SBINDIR)
 
 install-doc:
 	$(MKDIR) -p $(DESTDIR)$(DOCDIR)
@@ -109,6 +102,7 @@ dist: spec
 	$(CP) $(DOCDIST) $(MKLIVECDDIST)
 	$(CP) $(BUILDDIST) $(MKLIVECDDIST)
 	$(CP) $(SRCDIST) $(MKLIVECDDIST)/$(SRCDIR)
+	$(CP) $(PKGNAME).spec.in $(MKLIVECDDIST)
 	$(TAR) -c $(MKLIVECDDIST) | \
 		$(BZIP2) >$(DISTDIR)/$(MKLIVECDDIST).tar.bz2
 	$(MD5SUM) $(DISTDIR)/$(MKLIVECDDIST).tar.bz2 \
@@ -116,4 +110,4 @@ dist: spec
 	$(RM) -rf $(MKLIVECDDIST)
 
 rpm: dist
-	$(RPMBUILD) -ta $(DISTDIR)/$(MKLIVECDDIST).tar.bz2
+	$(RPMBUILD) -ta $(DISTDIR)/$(MKLIVECDDIST).tar.bz2 --clean

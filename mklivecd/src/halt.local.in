@@ -5,7 +5,7 @@ use MDK::Common;
 use detect_devices;
 use c;
 
-system("mount -t proc none /proc");
+#system("mount -t proc none /proc");
 my ($device) = cat_("/proc/mounts") =~ m!(/dev/\S+)\s+/initrd/cdrom\s+iso9660!;
 system("umount /proc");
 $device or exit;

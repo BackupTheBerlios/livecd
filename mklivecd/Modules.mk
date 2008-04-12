@@ -1,210 +1,184 @@
-# $Id: Modules.mk,v 1.34 2006/03/19 15:13:02 ikerekes Exp $
+# $Id: Modules.mk,v 1.35 2008/04/12 09:31:05 ikerekes Exp $
 
 # these are base modules to be used for the fs types, IDE and
 # their dependancies
-DEF_MODULES_PATH_24=\
-	fs/ext3/ext3 \
-	fs/jbd/jbd \
-	fs/nls/nls_iso8859-13 \
-	fs/nls/nls_iso8859-14 \
-	fs/nls/nls_iso8859-15 \
-	fs/nls/nls_iso8859-1 \
-	fs/nls/nls_iso8859-2 \
-	fs/nls/nls_iso8859-3 \
-	fs/nls/nls_iso8859-4 \
-	fs/nls/nls_iso8859-5 \
-	fs/nls/nls_iso8859-6 \
-	fs/nls/nls_iso8859-7 \
-	fs/nls/nls_iso8859-8 \
-	fs/nls/nls_iso8859-9 \
-	fs/nls/nls_utf8
 
-# modules not loaded/needed:
-#	fs/ext3/ext3
-#	fs/jbd/jbd
-DEF_MODULES_PATH_26=\
-	fs/nls/nls_iso8859-1 \
-	fs/nls/nls_iso8859-2 \
-	fs/nls/nls_cp437 \
-        fs/jbd/jbd \
-        fs/ext3/ext3 \
-        fs/reiserfs/reiserfs \
-        fs/fat/fat \
-        fs/msdos/msdos \
-        fs/vfat/vfat \
-        fs/ntfs/ntfs \
-	fs/nls/nls_utf8
+DEF_MODULES_26=\
+	nls_iso8859-1 \
+	nls_iso8859-2 \
+	nls_cp437 \
+	jbd \
+        ext3 \
+        reiserfs \
+        fat \
+        msdos \
+	vfat \
+        ntfs \
+	nls_utf8
 
 # these are the dependancies for the above
-DEF_MODULES_OPT_PATH_24=\
-	lib/zlib_inflate/zlib_inflate
 
-DEF_MODULES_OPT_PATH_26=\
-	lib/zlib_inflate/zlib_inflate
+DEF_MODULES_OPT_26=\
+	zlib_deflate
 
-DEF_MODULES_DEP_PATH_24=\
-	fs/isofs/isofs \
-	drivers/cdrom/cdrom \
-	drivers/ide/ide-cd \
-        drivers/scsi/ata_piix \
-        drivers/scsi/libata \
-	drivers/misc/aes \
-	drivers/block/loop
-
-DEF_MODULES_DEP_PATH_26=\
-	fs/isofs/isofs \
-	drivers/cdrom/cdrom \
-	drivers/ide/ide-cd \
-	drivers/block/loop 
+DEF_MODULES_DEP_26=\
+	isofs \
+	cdrom \
+	ide-cd \
+	squashfs \
+	loop \
+	paride \
+	parport 
+#	drivers/block/paride/pcd \
+#	sqlzma \
+#	unlzma \
 
 # these modules are for all the SCSI types out there
 # not available: ncr53c8xx
 # removed: drivers/scsi/aic7xxx_old (two modules seems to hang Adaptec controllers)
-DEF_SCSI_MODULES_PATH_24=\
-	drivers/scsi/aic7xxx/aic7xxx \
-	drivers/scsi/BusLogic \
-	drivers/scsi/initio \
-	drivers/scsi/advansys \
-	drivers/scsi/aha1542 \
-	drivers/scsi/aha152x \
-	drivers/scsi/aha1740 \
-	drivers/scsi/atp870u \
-	drivers/scsi/dtc \
-	drivers/scsi/eata \
-	drivers/scsi/fdomain \
-	drivers/scsi/gdth \
-	drivers/scsi/megaraid \
-	drivers/scsi/NCR53c406a \
-	drivers/scsi/pas16 \
-	drivers/scsi/pci2220i \
-	drivers/scsi/pci2000 \
-	drivers/scsi/psi240i \
-	drivers/scsi/qlogicfas \
-	drivers/scsi/qlogicfc \
-	drivers/scsi/qlogicisp \
-	drivers/scsi/seagate \
-	drivers/scsi/t128 \
-	drivers/scsi/tmscsim \
-	drivers/scsi/u14-34f \
-	drivers/scsi/ultrastor \
-	drivers/scsi/wd7000 \
-	drivers/scsi/a100u2w \
-	drivers/scsi/3w-xxxx \
-	drivers/message/fusion/mptscsih
+DEF_SCSI_MODULES_26=\
+	ahci \
+	ata_generic \
+	ata_piix \
+	pata_ali \
+	pata_amd \
+	pata_artop \
+	pata_atiixp \
+	pata_cmd640 \
+	pata_cmd64x \
+	pata_cs5520 \
+	pata_cs5530 \
+	pata_cs5535 \
+	pata_cypress \
+	pata_efar \
+	pata_hpt366 \
+	pata_hpt37x \
+	pata_hpt3x2n \
+	pata_hpt3x3 \
+	pata_isapnp \
+	pata_it8213 \
+	pata_it821x \
+	pata_jmicron \
+	pata_legacy \
+	pata_marvell \
+	pata_mpiix \
+	pata_netcell \
+	pata_ns87410 \
+	pata_oldpiix \
+	pata_optidma \
+	pata_opti \
+	pata_pcmcia \
+	pata_pdc2027x \
+	pata_pdc202xx_old \
+	pata_platform \
+	pata_qdi \
+	pata_radisys \
+	pata_rz1000 \
+	pata_sc1200 \
+	pata_serverworks \
+	pata_sil680 \
+	pata_sis \
+	pata_sl82c105 \
+	pata_triflex \
+	pata_via \
+	pata_winbond \
+	pdc_adma \
+	sata_inic162x \
+	sata_mv \
+	sata_nv \
+	sata_promise \
+	sata_qstor \
+	sata_sil24 \
+	sata_sil \
+	sata_sis \
+	sata_svw \
+	sata_sx4 \
+	sata_uli \
+	sata_via \
+	sata_vsc \
+	3w-9xxx \
+	3w-xxxx \
+	a100u2w \
+	aacraid \
+	advansys \
+	aha152x \
+	aha1542 \
+	aic79xx \
+	aic7xxx \
+	aic7xxx_old \
+	aic94xx \
+	arcmsr \
+	atp870u \
+	BusLogic \
+	ch \
+	dc395x \
+	dmx3191d \
+	dpt_i2o \
+	dtc \
+	eata \
+	fdomain \
+	gdth \
+	g_NCR5380 \
+	g_NCR5380_mmio \
+	hptiop \
+	ide-scsi \
+	imm \
+	in2000 \
+	initio \
+	ipr \
+	ips \
+	lpfc \
+	megaraid \
+	megaraid_mbox \
+	megaraid_sas \
+	NCR53c406a \
+	nsp32 \
+	osst \
+	pas16 \
+	ppa \
+	psi240i \
+	qla1280 \
+	qla2xxx \
+	qla4xxx \
+	qlogicfas \
+	raid_class \
+	seagate \
+	stex \
+	st \
+	sym53c416 \
+	sym53c8xx \
+	tmscsim \
+	u14-34f \
+	ultrastor \
+	wd7000 \
+	sx8 
 
-# insmod module segfaults (no chip): 
-#	drivers/scsi/a100u2w
-#	drivers/scsi/dc395x
-#	drivers/scsi/megaraid
-#	drivers/scsi/nsp32
-#	drivers/scsi/qla1280
-#	drivers/scsi/sym53c8xx_2/sym53c8xx
-#	drivers/scsi/atp870u
-# insmod hangs (no chip):
-#	drivers/scsi/ips
-# insmod loads wrongly (no chip):
-#	drivers/scsi/53c700
-#	drivers/scsi/aacraid/aacraid
-#	drivers/scsi/aha152x
-#	drivers/scsi/aha1740
-DEF_SCSI_MODULES_PATH_26=\
-	drivers/scsi/aha1542 \
-	drivers/scsi/ahci \
-	drivers/scsi/aic7xxx/aic7xxx \
-	drivers/scsi/BusLogic \
-	drivers/scsi/dmx3191d \
-	drivers/scsi/dtc \
-	drivers/scsi/eata \
-	drivers/scsi/fdomain \
-	drivers/scsi/gdth \
-	drivers/scsi/g_NCR5380 \
-	drivers/scsi/in2000 \
-	drivers/scsi/NCR53c406a \
-	drivers/scsi/pas16 \
-	drivers/scsi/psi240i \
-	drivers/scsi/qlogicfas \
-	drivers/scsi/qlogicfc \
-	drivers/scsi/sata_nv \
-	drivers/scsi/sata_promise \
-	drivers/scsi/sata_qstor \
-	drivers/scsi/sata_sil \
-	drivers/scsi/sata_sis \
-	drivers/scsi/sata_svw \
-	drivers/scsi/sata_sx4 \
-	drivers/scsi/sata_uli \
-	drivers/scsi/sata_via \
-	drivers/scsi/sata_vsc \
-	drivers/scsi/sym53c416 \
-	drivers/scsi/t128 \
-	drivers/scsi/tmscsim \
-	drivers/scsi/u14-34f \
-	drivers/scsi/wd7000 \
-	drivers/block/sx8 \
-	drivers/message/fusion/mptscsih
-#	drivers/scsi/pata_pdc2027x \
-#	drivers/scsi/advansys \
-#	drivers/scsi/cpqfc \
-#	drivers/scsi/qlogicisp \
-#	drivers/scsi/ultrastor \
-
-# depending on kernel version, these have different names
-DEF_SCSI_MODULES_OPT_PATH_24=\
-	drivers/scsi/sym53c8xx_2/sym53c8xx \
-	drivers/scsi/sym53c8xx_2/sym53c8xx_2
 
 # this one is just here to ensure we work (already included)
-DEF_SCSI_MODULES_OPT_PATH_26=\
-	drivers/scsi/3w-xxxx
+DEF_SCSI_MODULES_OPT_26=\
+	3w-xxxx
 
 # these are dependancies for the above modules
-DEF_SCSI_MODULES_DEP_PATH_24=\
-	drivers/scsi/scsi_mod \
-	drivers/scsi/sr_mod \
-	drivers/scsi/sg \
-	drivers/scsi/sd_mod \
-	drivers/message/fusion/mptbase
+DEF_SCSI_MODULES_DEP_26=\
+	scsi_mod \
+	sr_mod \
+	libata \
+	sg \
+	sd_mod \
+	scsi_transport_fc \
+	scsi_transport_sas \
+	scsi_transport_spi \
+	mptbase \
+	mptscsih \
+	i2o_core \
+	megaraid_mm \
+	qlogicfas408
+	
+DEF_USB_MODULES_26=\
+	usbcore
 
-DEF_SCSI_MODULES_DEP_PATH_26=\
-	drivers/scsi/scsi_mod \
-	drivers/scsi/sr_mod \
-        drivers/scsi/libata \
-	drivers/scsi/ata_piix \
-	drivers/scsi/sg \
-	drivers/scsi/sd_mod \
-	drivers/scsi/scsi_transport_spi \
-	drivers/message/fusion/mptbase
-
-DEF_USB_MODULES_PATH_24=\
-	drivers/usb/usbcore
-
-DEF_USB_MODULES_DRV_PATH_24=\
-	drivers/usb/host/uhci \
-	drivers/usb/storage/usb-storage
-
-DEF_USB_MODULES_PATH_26=\
-	drivers/usb/core/usbcore
-
-DEF_USB_MODULES_DRV_PATH_26=\
-	drivers/usb/host/uhci-hcd \
-	drivers/usb/host/ohci-hcd \
-	drivers/usb/host/ehci-hcd \
-	drivers/usb/storage/usb-storage
-
-# convert our module paths to their basenames
-DEF_MODULES_24=$(shell for m in $(DEF_MODULES_PATH_24); do basename $$m; done)
-DEF_MODULES_DEP_24=$(shell for m in $(DEF_MODULES_DEP_PATH_24); do basename $$m; done)
-DEF_MODULES_OPT_24=$(shell for m in $(DEF_MODULES_OPT_PATH_24); do basename $$m; done)
-DEF_SCSI_MODULES_24=$(shell for m in $(DEF_SCSI_MODULES_PATH_24); do basename $$m; done)
-DEF_SCSI_MODULES_OPT_24=$(shell for m in $(DEF_SCSI_MODULES_OPT_PATH_24); do basename $$m; done)
-DEF_SCSI_MODULES_DEP_24=$(shell for m in $(DEF_SCSI_MODULES_DEP_PATH_24); do basename $$m; done)
-DEF_USB_MODULES_24=$(shell for m in $(DEF_USB_MODULES_PATH_24); do basename $$m; done)
-DEF_USB_MODULES_DRV_24=$(shell for m in $(DEF_USB_MODULES_DRV_PATH_24); do basename $$m; done)
-
-DEF_MODULES_26=$(shell for m in $(DEF_MODULES_PATH_26); do basename $$m; done)
-DEF_MODULES_DEP_26=$(shell for m in $(DEF_MODULES_DEP_PATH_26); do basename $$m; done)
-DEF_MODULES_OPT_26=$(shell for m in $(DEF_MODULES_OPT_PATH_26); do basename $$m; done)
-DEF_SCSI_MODULES_26=$(shell for m in $(DEF_SCSI_MODULES_PATH_26); do basename $$m; done)
-DEF_SCSI_MODULES_OPT_26=$(shell for m in $(DEF_SCSI_MODULES_OPT_PATH_26); do basename $$m; done)
-DEF_SCSI_MODULES_DEP_26=$(shell for m in $(DEF_SCSI_MODULES_DEP_PATH_26); do basename $$m; done)
-DEF_USB_MODULES_26=$(shell for m in $(DEF_USB_MODULES_PATH_26); do basename $$m; done)
-DEF_USB_MODULES_DRV_26=$(shell for m in $(DEF_USB_MODULES_DRV_PATH_26); do basename $$m; done)
+DEF_USB_MODULES_DRV_26=\
+	uhci-hcd \
+	ohci-hcd \
+	ehci-hcd \
+	usb-storage

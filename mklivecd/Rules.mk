@@ -1,10 +1,11 @@
-# $Id: Rules.mk,v 1.35 2006/04/23 03:36:23 tom_kelly33 Exp $
+# $Id: Rules.mk,v 1.36 2008/04/12 09:31:05 ikerekes Exp $
 
 # User parameters: These are parameters that can be changed for
 # your installation (See the FAQ for valid options)
 # The preferred way to change/overeride this is with a
 #     make DEF_KEYBOARD=dvorak
 DEF_KEYBOARD=us
+DEF_UNION=aufs
 
 # these two parameters need to match up to allow splash to work
 # The preferred way to change/override this is with a
@@ -30,10 +31,10 @@ VAL_SPLASH_FULL=20
 # manager as part of making a new release
 PKGNAME=mklivecd
 MAJORVER=0
-MINORVER=6
-PATCHVER=0
-RELVER=1
-CVSVER=yes
+MINORVER=7
+PATCHVER=1
+RELVER=0
+CVSVER=no
 
 # Automatic variable updates, leave alone
 MKLIVECDVER=$(MAJORVER).$(MINORVER).$(PATCHVER)
@@ -105,4 +106,7 @@ SRCDIST=\
 	$(SRCDIR)/$(PKGNAME).in \
 	$(SRCDIR)/hwdetect.in \
 	$(SRCDIR)/hwdetect-lang.in \
-	$(SRCDIR)/halt.local.in
+	$(SRCDIR)/halt.local.in \
+        $(SRCDIR)/liveusb.in \
+        $(SRCDIR)/mkchgsloop.in \
+	$(SRCDIR)/mkremaster.in

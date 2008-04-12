@@ -23,7 +23,7 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) hwdetect script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect.in,v 1.170 2006/03/19 15:13:46 ikerekes Exp $
+# $Id: hwdetect.in,v 1.171 2008/04/12 09:31:05 ikerekes Exp $
 #
 
 use lib qw(/usr/lib/libDrakX);
@@ -38,7 +38,7 @@ use harddrake::autoconf;
 use harddrake::sound;
 use modules;
 use Storable qw(store retrieve);
-my $modules_conf = modules::any_conf->read;
+
 use fsedit;
 use fs;
 use Getopt::Long;
@@ -98,14 +98,13 @@ my $kernel26      = 0;
 my $kernel_ver    = "x.x.x";
 my $lang 	  = 0;
 my $module;
-my $modules_conf; 
+my $modules_conf = modules::any_conf->read;
+my $isLaptop = detect_devices::isLaptop();
 my $num;
 my $numusb	  = 0;
 my $numwin	  = 'c';
 my $old_X;
 my $usbfstab	  = 0;
-my $modules_conf = modules::any_conf->read;
-my %cmdline;
 
 ### progress stuff
 my $progress_now  = @VAL_SPLASH_LINUXRC@+@VAL_SPLASH_SYSINIT@;
@@ -267,7 +266,6 @@ sub is_loaded {
 	my $umodule = $module;
 	$umodule =~ s/\-/\_/g;
 	
-	# for 2.4.x we probe usb_?hci, but ?hci is loaded
 	# for 2.6.x we probe usb_?hci, but ?hci_hcd is loaded
 	my $usbmod;
 	if ($umodule =~ m/^usb\_/ && $umodule =~ m/ehci|ohci|uhci/) {
@@ -312,158 +310,255 @@ sub hwdetect_deinitusb() {
 	system("umount /proc/bus/usb 2>/dev/null");
 }
 
-sub hwdetect_getvideo() {
-	print getStr('video_probe') . ": ";
-	my @probed_cards;
-	eval { @probed_cards = Xconfig::card::probe() };
-	print scalar(@probed_cards) . " " . getStr('found');
-	my $probed_card;
-	if (scalar @probed_cards) {
-		print_success();
-		foreach $card (@probed_cards) {
-			my ($probed_vendor, $_probed_desc) = split(/\|/, $card->{description});
-			my $module = 'unknown';
-			unless ($probed_card) { # one card only :(
-				$probed_card = $card;
-				if (defined($cmdline{xdrv})) {
-					$probed_card->{Driver} = $cmdline{xdrv};
-					$probed_card->{Driver2} = $probed_card->{Driver};
-				}
-				if ($probed_card->{Driver2} eq 'nvidia' &&
-					-e "/usr/X11R6/lib/modules/drivers/nvidia_drv.o" &&
-					-e "/usr/X11R6/lib/modules/extensions/libglx.so" &&
-					(-e "/lib/modules/$kernel_ver/kernel/drivers/char/nvidia.o.gz" ||
-					-e "/lib/modules/$kernel_ver/kernel/drivers/video/nvidia.ko" ||
-					-e "/lib/modules/$kernel_ver/kernel/drivers/video/nvidia.o")) {
-					$probed_card->{Driver} = $probed_card->{Driver2};
-					$probed_card->{DRI_GLX_SPECIAL} = 1;
-					$module = $probed_card->{Driver2};
-					$modules_conf->set_alias("/dev/nvidia*", $module);
-				}
-				if ($probed_card->{Driver2} eq 'fglrx' &&
-					-e "/usr/X11R6/lib/modules/dri/fglrx_dri.so" &&
-					-e "/usr/X11R6/lib/modules/drivers/fglrx_drv.o" &&
-					(-e "/lib/modules/$kernel_ver/kernel/drivers/char/fglrx.o.gz" ||
-					 -e "/lib/modules/$kernel_ver/kernel/drivers/video/fglrx.ko" ||
-					 -e "/lib/modules/$kernel_ver/kernel/drivers/video/fglrx.o")) {
-					$probed_card->{Driver} = $probed_card->{Driver2};
-					$probed_card->{use_DRI_GLX} = 1;
-					$module = $probed_card->{Driver2};
-				}
-				if (!$probed_card->{DRI_GLX_SPECIAL} && $probed_card->{Driver} ne 'fbdev'){
-				$probed_card->{use_DRI_GLX} = 1;
-				}
-			}
-			$card->{VideoRam} = $cmdline{xram} if defined($cmdline{xram});
-			hwdetect_loadmod($module, $probed_vendor, $card->{card_name});
-			print_hash($card) if $debug;
-		}
-	}
-	else {
-		print_warning();
-		$probed_card = { 
-			Driver      => 'fbdev', 
-			description => 'Linux|Default Framebuffer Device', 
-			VideoRam    => 4096
-		};
-		
-		my ($probed_vendor, $_probed_desc) = split(/\|/, $card->{description});
-		$probed_card->{Driver} = $cmdline{xdrv} if defined($cmdline{xdrv});
-		$probed_card->{VideoRam} = $cmdline{xram} if defined($cmdline{xram});
-		hwdetect_loadmod($module, $probed_vendor, $card->{card_name});
-	}
-	$probed_card;
-}
 
-# res => [ laptop (monitor), generic (monitor), x, y ]
-my %generic_res = (
-	'640x480'   => [ 'Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 60 Hz',  640,  480  ],
-	'800x600'   => [ 'Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 60 Hz',  800,  600  ],
-	'1024x768'  => [ 'Generic|Flat Panel 1024x768',  'Generic|1024x768 @ 60 Hz',  1024, 768  ],
-	'1280x1024' => [ 'Generic|Flat Panel 1280x1024', 'Generic|1280x1024 @ 60 Hz', 1280, 1024 ],
-	'1400x1050' => [ 'Generic|Flat Panel 1400x1050', 'Generic|1280x1024 @ 60 Hz', 1400, 1050 ],
-	'1600x1400' => [ 'Generic|Flat Panel 1600x1200', 'Generic|1600x1200 @ 70 Hz', 1600, 1400 ]
-);
-
-sub hwdetect_getmonitors {
-	my ($rawX) = @_;
-	print getStr('monitor_probe') . ": ";
-	my $probed_monitors;
-
-        # try to get a monitor via DDC
-	eval { 
-		$probed_monitors = Xconfig::monitor::configure_auto_install($rawX, {});
-	};
-	if (int @$probed_monitors > 0) {
-		print_success();
-	} else {
-		print_failed();
-	}
-	foreach my $monitor (@$probed_monitors) {
-		hwdetect_loadmod('unknown', $monitor->{VendorName}, $monitor->{ModelName}, 0);
-		print_hash($monitor) if $debug;
-	}
-	$probed_monitors;
-}
 
 sub hwdetect_getxfree() {
-#	my $def_keyboard = hwdetect_getkeyb();
-#	my $def_mouse = hwdetect_getmouse();
-	my $def_card = hwdetect_getvideo();
-	my $rawX = Xconfig::default::configure(undef, $def_keyboard, $def_mouse);
-	my $def_monitors = hwdetect_getmonitors($rawX);
+my $XORGFILE=('
+# File generated by XFdrake (rev 57713)
 
-	# config card and screen
-	Xconfig::card::to_raw_X($def_card, $rawX);
-	Xconfig::screen::configure($rawX, $def_card);
+# **********************************************************************
+# Refer to the xorg.conf man page for details about the format of
+# this file.
+# **********************************************************************
 
-	# detect a resolution
-	print getStr('resolution_probe') . ": ";
-	$old_X->{default_depth} = defined($cmdline{xbpp}) ? $cmdline{xbpp} : 16;
-	my $resolution_wanted;
-	if (defined($cmdline{xres})) {
-		$resolution_wanted->{Depth} = $old_X->{default_depth};
-		$resolution_wanted->{X} = $generic_res{$cmdline{xres}}[2] || 1024;
-		$resolution_wanted->{Y} = $generic_res{$cmdline{xres}}[3] || 768;
-		$old_X->{resolution_wanted} = $resolution_wanted;
-	}
-        
-	# set the desired res, and override if failed and we are not safe
-	my $resolution;
-	# PCLOS P9 
-	if (-e "/etc/pclinuxos-release") {
-		eval { $resolution = Xconfig::resolution_and_depth::configure_resolution($rawX, $def_card, $def_monitors, $old_X) };
-	}
-	# Mandriva Cooker
-	if (-e "/etc/mandriva-release") {
-	  	eval { $resolution = Xconfig::resolution_and_depth::configure_auto_install($rawX, $def_card, $def_monitors, $old_X) };
-	}
-	if (!defined($resolution) && defined($resolution_wanted) && !defined($cmdline{safex})) {
-		eval { $rawX->set_resolution($resolution_wanted) };
-		eval { $resolution = $rawX->get_resolution };
-	}
+Section "Files"
+    # font server independent of the X server to render fonts.
+    FontPath "unix/:-1"
+    
+    # minimal fonts to allow X to run without xfs
+    FontPath "/usr/share/fonts/misc:unscaled"
+EndSection
 
-	# try to make sure we have at least a valid 1024x768 before finally setting it
-	if (!defined($resolution) ||
-	    !defined($resolution->{X}) || !defined($resolution->{Y}) || !defined($resolution->{Depth}) ||
-	    ($resolution->{X} < 1024 && !defined($cmdline{xres}) && !defined($cmdline{xbpp}))) {
-		$resolution->{X} = 1024;
-		$resolution->{Y} = 768;
-		$resolution->{Depth} = 16;
-	}
-	eval { $rawX->set_resolution($resolution) };
-	eval { $resolution = $rawX->get_resolution and print_success() } or print_failed();
-	hwdetect_loadmod('unknown', $resolution->{X} . "x" . $resolution->{Y}, $resolution->{Depth} . " bpp", 0);
+Section "Extensions"
+    Option "Composite"
+EndSection
 
-	unless ($probe) {
-		print getStr('x_write') . ": ";
-#		eval { mouse::write(undef, $def_mouse) };
-#		eval { keyboard::write($def_keyboard) };
-		eval { $rawX->write and print_success() } or print_failed();
-	}
-#	set_progress();
+Section "ServerFlags"
+    #DontZap # disable <Crtl><Alt><BS> (server abort)
+    AllowMouseOpenFail # allows the server to start up even if the mouse does not work
+    #DontZoom # disable <Crtl><Alt><KP_+>/<KP_-> (resolution switching)
+EndSection
+
+Section "Module"
+    Load "dbe" # Double-Buffering Extension
+    Load "v4l" # Video for Linux
+    Load "extmod"
+    Load "type1"
+    Load "freetype"
+EndSection
+
+Section "InputDevice"
+    Identifier "Keyboard1"
+    Driver "kbd"
+    Option "XkbModel" "pc105"
+    Option "XkbLayout" "us"
+    Option "XkbOptions" "compose:rwin"
+EndSection
+
+Section "InputDevice"
+    Identifier "Mouse1"
+    Driver "mouse"
+    Option "Protocol" "ExplorerPS/2"
+    Option "Device" "/dev/mouse"
+EndSection
+
+Section "InputDevice"
+    Identifier "Mouse2"
+    Driver "evdev"
+    Option "product" "0x0006"
+    Option "HWheelRelativeAxisButtons" "7 6"
+    Option "vendor" "0x0002"
+EndSection
+
+Section "Monitor"
+    Identifier "monitor1"
+    VendorName "Generic"
+    ModelName "1024x768 @ 60 Hz"
+    HorizSync 31.5-48.5
+    VertRefresh 50-70
+    
+    # Monitor preferred modeline (60.0 Hz vsync, 64.0 kHz hsync, ratio 5/4)
+    ModeLine "1280x1024" 108 1280 1328 1440 1688 1024 1025 1028 1066 +hsync +vsync
+    
+    # TV fullscreen mode or DVD fullscreen output.
+    # 768x576 @ 79 Hz, 50 kHz hsync
+    ModeLine "768x576"     50.00  768  832  846 1000   576  590  595  630
+    
+    # 768x576 @ 100 Hz, 61.6 kHz hsync
+    ModeLine "768x576"     63.07  768  800  960 1024   576  578  590  616
+EndSection
+
+Section "Device"
+    Identifier "device1"
+    Driver "fbdev"
+    Option "DPMS"
+EndSection
+
+Section "Screen"
+    Identifier "screen1"
+    Device "device1"
+    Monitor "monitor1"
+    DefaultColorDepth 16
+    
+    Subsection "Display"
+        Depth 8
+        Modes "1024x768" "800x600" "640x480"
+    EndSubsection
+    
+    Subsection "Display"
+        Depth 15
+        Modes "1024x768" "800x600" "640x480"
+    EndSubsection
+    
+    Subsection "Display"
+        Depth 16
+        Modes "1024x768" "800x600" "640x480"
+    EndSubsection
+    
+    Subsection "Display"
+        Depth 24
+        Modes "1024x768" "800x600" "640x480"
+    EndSubsection
+EndSection
+
+Section "ServerLayout"
+    Identifier "layout1"
+    InputDevice "Keyboard1" "CoreKeyboard"
+    InputDevice "Mouse1" "CorePointer"
+    InputDevice "Mouse2" "SendCoreEvents"
+    Screen "screen1"
+EndSection');
+
+my $FBDEV;
+	open $FBDEV, '>', "$prefix/etc/X11/xorg.conf";
+	print $FBDEV $XORGFILE;
+		close $FBDEV;
+		print_success();
 }
 
+sub hwdetect_getxfree1() {
+my $XORGFILE=('
+# File generated by XFdrake (rev 57713)
+
+# **********************************************************************
+# Refer to the xorg.conf man page for details about the format of
+# this file.
+# **********************************************************************
+
+Section "Files"
+    # font server independent of the X server to render fonts.
+    FontPath "unix/:-1"
+    
+    # minimal fonts to allow X to run without xfs
+    FontPath "/usr/share/fonts/misc:unscaled"
+EndSection
+
+Section "Extensions"
+    Option "Composite"
+EndSection
+
+Section "ServerFlags"
+    #DontZap # disable <Crtl><Alt><BS> (server abort)
+    AllowMouseOpenFail # allows the server to start up even if the mouse does not work
+    #DontZoom # disable <Crtl><Alt><KP_+>/<KP_-> (resolution switching)
+EndSection
+
+Section "Module"
+    Load "dbe" # Double-Buffering Extension
+    Load "v4l" # Video for Linux
+    Load "extmod"
+    Load "type1"
+    Load "freetype"
+EndSection
+
+Section "InputDevice"
+    Identifier "Keyboard1"
+    Driver "kbd"
+    Option "XkbModel" "pc105"
+    Option "XkbLayout" "us"
+    Option "XkbOptions" "compose:rwin"
+EndSection
+
+Section "InputDevice"
+    Identifier "Mouse1"
+    Driver "mouse"
+    Option "Protocol" "ExplorerPS/2"
+    Option "Device" "/dev/mouse"
+EndSection
+
+Section "InputDevice"
+    Identifier "Mouse2"
+    Driver "evdev"
+    Option "product" "0x0006"
+    Option "HWheelRelativeAxisButtons" "7 6"
+    Option "vendor" "0x0002"
+EndSection
+
+Section "Monitor"
+    Identifier "monitor1"
+    VendorName "Generic"
+    ModelName "1024x768 @ 60 Hz"
+    HorizSync 31.5-48.5
+    VertRefresh 50-70
+    
+    # Monitor preferred modeline (60.0 Hz vsync, 64.0 kHz hsync, ratio 5/4)
+    ModeLine "1280x1024" 108 1280 1328 1440 1688 1024 1025 1028 1066 +hsync +vsync
+    
+    # TV fullscreen mode or DVD fullscreen output.
+    # 768x576 @ 79 Hz, 50 kHz hsync
+    ModeLine "768x576"     50.00  768  832  846 1000   576  590  595  630
+    
+    # 768x576 @ 100 Hz, 61.6 kHz hsync
+    ModeLine "768x576"     63.07  768  800  960 1024   576  578  590  616
+EndSection
+
+Section "Device"
+    Identifier "device1"
+    Driver "vesa"
+    Option "DPMS"
+EndSection
+
+Section "Screen"
+    Identifier "screen1"
+    Device "device1"
+    Monitor "monitor1"
+    DefaultColorDepth 16
+    
+    Subsection "Display"
+        Depth 8
+        Modes "1024x768" "800x600" "640x480"
+    EndSubsection
+    
+    Subsection "Display"
+        Depth 15
+        Modes "1024x768" "800x600" "640x480"
+    EndSubsection
+    
+    Subsection "Display"
+        Depth 16
+        Modes "1024x768" "800x600" "640x480"
+    EndSubsection
+    
+    Subsection "Display"
+        Depth 24
+        Modes "1024x768" "800x600" "640x480"
+    EndSubsection
+EndSection
+
+Section "ServerLayout"
+    Identifier "layout1"
+    InputDevice "Keyboard1" "CoreKeyboard"
+    InputDevice "Mouse1" "CorePointer"
+    InputDevice "Mouse2" "SendCoreEvents"
+    Screen "screen1"
+EndSection');
+
+my $FBDEV;
+	open $FBDEV, '>', "$prefix/etc/X11/xorg.conf";
+	print $FBDEV $XORGFILE;
+		close $FBDEV;
+		print_success();
+}
 
 # descriptive name, type (or auto), mount defaults
 my %fstypes = (
@@ -597,11 +692,11 @@ my %fsopts = (
 	'ext2'     => [1,     undef,                                      undef],
 	'ext3'     => [1,     undef,                                      undef],
 	'jfs'      => [1,     undef,                                      undef],
-	'ntfs'     => [undef, 'iocharset=iso8859-1,umask=0',              'ro'],
+	'ntfs'     => [undef, 'nls=utf8,umask=0',                          'ro'],
 	'reiserfs' => [1,     'notail,noatime',                           undef],
 	'swap'     => [undef, 'defaults',                                 undef],
-	'ufs'      => [1,     'iocharset=iso8859-1,umask=0',              undef],
-	'vfat'     => [1,     'iocharset=iso8859-1,codepage=850,umask=0', undef],
+	'ufs'      => [1,     'iocharset=utf8,umask=0',                   undef],
+	'vfat'     => [1,     'iocharset=utf8,umask=0',                   undef],
 	'xfs'      => [1,     undef,                                      undef]
 );
 
@@ -689,7 +784,6 @@ sub hwdetect_getdisks() {
 	}
 
 	### do all the cd, floppy stuff
-	my $cdsymlinks = "/etc/udev/scripts/cdsymlinks.sh";
 	my $numfloppy = ""; # floppy, floppy1
 	my $numcd = ""; # cdrom, cdrom1
 	foreach my $disk (@{$all_hdds->{raw_hds}}) {
@@ -700,19 +794,18 @@ sub hwdetect_getdisks() {
 		unless ($disk->{media_type} =~ /^hd/) {
 			if ($disk->{media_type} =~ /^fd|^cdrom/) {
 				my $dev = $disk->{device};
-				my $extopts = "iocharset=iso8859-1,codepage=850,umask=0";
-				## $extopts = $extopts . ",nohide" if $disk->{media_type} =~ /^cdrom/;
+				my $extopts = "";
 				$all_devs{$dev}{info}   = $disk->{media_type} . ": " . $disk->{info};
 				$all_devs{$dev}{dev}    = "/dev/" . $disk->{device};
 				$all_devs{$dev}{devfs}  = "/dev/" . $disk->{devfs_device};
 				$all_devs{$dev}{media}  = $disk->{media_type};
 				if ($disk->{media_type} =~ /^fd/) {
-					$all_devs{$dev}{mount}  = "/mnt/floppy$numfloppy";
+					$all_devs{$dev}{mount}  = "/media/floppy$numfloppy";
 					$numfloppy++;
 					if ($numfloppy eq "1") { $numfloppy++ } # skip 1
 				}
 				else {
-					$all_devs{$dev}{mount}  = "/mnt/cdrom$numcd";
+					$all_devs{$dev}{mount}  = "/media/cdrom$numcd";
 					$numcd++;
 					if ($numcd eq "1") { $numcd++ }  # skip 1
 				}
@@ -730,11 +823,6 @@ sub hwdetect_getdisks() {
 				$all_devs{$dev}{supermount} = 0;
 			}
 		}
-	}
-
-	### update cdsymlinks
-	if ( -e "$cdsymlinks" ) {
-		eval { "$cdsymlinks" }
 	}
 
 	### do the hard disks
@@ -831,7 +919,7 @@ sub hwdetect_writedisks() {
 		print_success();
 
 		# write /etc/fstab
-		mkdir_p("$prefix/etc/livecd/hwdetect/");
+		system ("mkdir -p $prefix/etc/livecd/hwdetect/");
 		print "    Writing $prefix/etc/fstab: ";
           my $FSTAB;
 		open $FSTAB, '>', "$prefix/etc/fstab";
@@ -850,7 +938,6 @@ sub hwdetect_writedisks() {
 				$entry .= $all_devs{$dev}{mount} . "\t";
 				$entry .= "supermount\t";
 				my $opt = "dev=" . $all_devs{$dev}{dev} . ",";
-				# my $opt = "dev=" . $all_devs{$dev}{dev} . ",fs=udf:iso9660,";
 				$opt .= $all_devs{$dev}{opt} if $all_devs{$dev}{opt};
 				$opt .= "," if $all_devs{$dev}{opt} && $all_devs{$dev}{extopt};
 				$opt .= $all_devs{$dev}{extopt} if $all_devs{$dev}{extopt};
@@ -957,23 +1044,30 @@ MAIN: { print "\n$COLOR_YELLOW"."HWDETECT - MAIN ---------------$COLOR_NORMAL\n"
 	unless (defined($fdisk)) {
 	# Configure USB_CONTROLLERS - writes to /etc/modprobe.conf
 	config_usb();
-	# Configure PCMCIA_CONTROLLER - writes to etc/sysconfig/pcmcia
+	# Configure PCMCIA_CONTROLLER 
 	config_pcmcia();
 	# Configure AUDIO - writes to /etc/modprobe.conf
 	# automatic sound slots configuration
 	config_sound();
 	#Configure ETHERNET - writes to /etc/modprobe.conf
-	config_network();
+#	config_network();
 	#Configure VIDEO - writes to /etc/X11/xorg.conf & /etc/modprobe.preload for agp drivers
 	config_video();
 	#Configure MOUSE - writes to /etc/sysconfig/mouse
 	config_mouse();
 	#Configure KEYBOARD routine goes here if $cmdline keyb
 	config_keyboard();
+	#Configure Laptop - have laptop users uncomment this on livecd and then run hwdetect in konsole
+#	config_laptop ();
 	#Configure sata drives
-	config_sata() unless (`lsmod|grep sata`);
+	config_sata();
 	#Configure numlock
-	config_numlock();
+#	config_numlock();
+	config_cpufreq();
+	#Configure finishinstall
+	config_finishinstall();
+	#Default modprobe.conf
+	config_modprobeconf();
 	}
 	
 # New hwdetect routines
@@ -990,8 +1084,10 @@ sub config_usb() {
 sub config_pcmcia() {
 	if (!defined($cmdline{nopcmcia})) {
 		print getStr('pcmcia_probe');
-		harddrake::autoconf::pcmcia(keys %ID ? first(values(%ID))->{driver} : '');
-		$modules_conf->write;
+		my $controller = detect_devices::pcmcia_controller_probe();
+		harddrake::autoconf::pcmcia($controller && $controller->{driver});
+		if($controller ne '') {
+		system "/sbin/modprobe pcmcia"};
 		print_success();
 		set_progress();
 	}
@@ -1017,39 +1113,27 @@ sub config_sound() {
 	}
 }
 
-sub config_network() {		
-	if (!defined($cmdline{nonetwork})) {
-		print getStr('network_probe');
-		$modules_conf->remove_alias_regexp('^(wlan|eth)[0-9]*$');
-		modules::load_category($modules_conf, 'network/main|gigabit|usb|wireless|firewire|pcmcia');
-		require network::ethernet;
-		network::ethernet::update_iftab();
-		network::ethernet::configure_eth_aliases($modules_conf);
-		$modules_conf->set_alias('net-pf-10', 'off');
-		$modules_conf->write;
-		print_success();
-		set_progress();
-	}
-	else {
-		disable_service('network');
-		set_progress();
-	}
+sub config_video() {
+# If user selects safevideomode from grub
+if (defined($cmdline{framebuffer})) {
+	      print getStr('video_probe');
+              hwdetect_getxfree();
+              set_progress();
+        }
+elsif (defined($cmdline{vesa})) {
+	      print getStr('video_probe');
+              hwdetect_getxfree1();
+              set_progress();
+	 }
+      else {
+               print getStr('video_probe');
+                harddrake::autoconf::xconf($modules_conf, {});
+                $modules_conf->write;
+                print_success();
+                set_progress();
+  } 
 }
 
-sub config_video() {
-	if (defined($cmdline{xauto})) {
-		print getStr('video_probe');
-		harddrake::autoconf::xconf($modules_conf, {});
-		$modules_conf->write;
-		print_success();
-		set_progress();
-	}
-	# If user specifies xres,xbpp or xdrv then use routine from original hwdetect below
-	else {
-	    hwdetect_getxfree();
-	    set_progress();
-	}
-}
 
 sub config_mouse() {
 	print getStr('mouse_probe');	
@@ -1076,31 +1160,11 @@ sub config_keyboard() {
 	set_progress();
 }
 
+
 sub config_sata() {
 	print "Probing for sata: ";
-	my $sata;
-	my $total = 0;
-	my $res = "";
-
-	# Return if nosata
-	if (defined($cmdline{noscsi})) {
-		print getStr('skip_sata');
-		print_success();
-		return
-	}
-	my @satalist = 	my @satalist = qw(libata ata_piix sg sata_sis
-	ahci ata_adma sata_qstor sata_sil24 sata_sis sata_sx4 sata_uli sx8
-	sata_nv sata_promise sata_sil sata_svw sata_via sata_vsc scsi_transport_spi);
-
-#	print getStr('mod_loaded') . ": ";
-	foreach $sata (@satalist) {
-		$res = modprobe("", $sata);
-		if ($res eq 0) {
-#			print "$sata "; 
-			$total+=1;
-		}
-	}
-	print "Modules loaded = $total";
+	modules::load_category($modules_conf, 'disk/ide|sata|scsi');
+	$modules_conf->write;
 	print_success();
 }	
 						    
@@ -1108,6 +1172,76 @@ sub config_numlock() {
 	detect_devices::isLaptop() or enable_service('numlock');
 }
 
+sub config_cpufreq(){
+	if (!defined($cmdline{nocpufreq})) {
+	print getStr('cpu_freq');	
+	harddrake::autoconf::cpufreq();
+	print_success();
+	}
+}
+
+sub config_finishinstall(){
+	if (!defined($cmdline{nofinishinstall})) {
+        open FINISH, '>', "/etc/sysconfig/finish-install";
+        print FINISH "FINISH_INSTALL=yes\n";
+        print FINISH "LICENSE=no\n";
+        print FINISH "LANGUAGE=no\n";
+        print FINISH "KEYBOARD=yes\n";
+        print FINISH "TIMEZONE=no\n";
+        print FINISH "NETWORK=no\n";
+        print FINISH "AUTHENTICATION=no\n";
+        print FINISH "USERS=no\n";
+        print FINISH "GLX=no\n";
+        close FINISH;
+}
+    else {
+       print getStr('network_probe');
+       $modules_conf->remove_alias_regexp('^(wlan|eth)[0-9]*$');
+       modules::load_category($modules_conf, 'network/main|gigabit|usb|wireless|firewire|pcmcia');
+       require network::connection::ethernet;
+       network::connection::ethernet::configure_eth_aliases($modules_conf);
+       $modules_conf->write;
+       system ("touch /etc/sysconfig/network-scripts/ifcfg-eth0");
+       system ("chmod 755 /etc/sysconfig/network-scripts/ifcfg-eth0");
+       open IFCFG, '>', "/etc/sysconfig/network-scripts/ifcfg-eth0";
+       print IFCFG "DEVICE=eth0\n";
+       print IFCFG "ONBOOT=yes\n";
+       print IFCFG "BOOTPROTO=dhcp\n";
+       print IFCFG "DHCP_CLIENT=dhclient\n";
+       close IFCFG;
+       print_success();
+       set_progress();
+    }
+}
+
+sub config_modprobeconf(){
+        open FINISH, '>>', "/etc/modprobe.conf";
+        print FINISH "alias net-pf-1 unix\n";
+        print FINISH "alias net-pf-2 ipv4\n";
+        print FINISH "alias net-pf-3 ax25\n";
+        print FINISH "alias net-pf-4 ipx\n";
+        print FINISH "alias net-pf-5 appletalk\n";
+        print FINISH "alias net-pf-6 netrom\n";
+        print FINISH "alias net-pf-7 bridge\n";
+        print FINISH "alias net-pf-8 atm\n";
+        print FINISH "alias net-pf-9 x25\n";
+        print FINISH "alias net-pf-10 off\n";
+        print FINISH "alias net-pf-11 rose\n";
+        print FINISH "alias net-pf-12 decnet\n";
+        print FINISH "alias ipv6 off\n";
+        print FINISH "alias net-pf-15 af_key\n";
+        print FINISH "alias net-pf-16 af_netlink\n";
+        print FINISH "alias net-pf-17 af_packet\n";
+        print FINISH "alias net-pf-19 af_econet\n";
+        print FINISH "alias net-pf-20 atm\n";
+        print FINISH "alias net-pf-23 irda\n";
+        print FINISH "alias net-pf-24 pppoe\n";
+        print FINISH "alias net-pf-25 wanrouter\n";
+        print FINISH "alias net-pf-26 llc\n";
+        print FINISH "alias net-pf-31 bluetooth\n";
+        print FINISH "alias eth1394 off\n";
+        close FINISH;
+}
 
 	# CONFIGURE FSTAB here only for hard drive partitions and such Dont put in floppy or cdrom entries	
 	# get disks

@@ -19,7 +19,7 @@
 #
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: hwdetect-lang.in,v 1.9 2005/10/09 23:58:07 ikerekes Exp $
+# $Id: hwdetect-lang.in,v 1.10 2008/04/12 09:31:05 ikerekes Exp $
 #
 
 sub getLanguages() {
@@ -68,12 +68,13 @@ sub getStrings() {
 	'monitor_probe'    => [ "Selecting monitor", undef ],
 	'resolution_probe' => [ "Selecting resolution", undef ],
 	'x_write'          => [ "Writing X configuration", undef ],
+	'cpu_freq'         => [ "Configuring cpufreq", undef ],
 
 	'skip_sata'	   => [ "noscsi option: Skipping SATA detection", undef ],
 	'sound_probe'      => [ "Detecting sound cards", undef ],
 	'network_probe'    => [ "Detecting network cards", undef ],
 	'printer_probe'    => [ "Detecting local printers", undef ],
-
+	'laptop_probe'     => [ "Detecting Laptop", undef ],
 	'serial_probe'     => [ "Detecting serial devices", undef ],
 	# Detecting serial devices: ***(not implemented)***
 	'not_impl'         => [ "(not implemented)", undef ],

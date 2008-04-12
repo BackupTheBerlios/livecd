@@ -23,23 +23,26 @@
 # Adapted for mklivecd from the MiniCD (http://www.linuxminicd.org) linuxrc script
 # The latest version of this script can be found at http://livecd.berlios.de
 #
-# $Id: linuxrc.in,v 1.106 2006/07/04 03:33:00 ikerekes Exp $
+# $Id: linuxrc.in,v 1.107 2008/04/12 09:31:05 ikerekes Exp $
 #
 
 ### global variables
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:/initrd/bin:/initrd/sbin:/initrd/usr/bin:/initrd/usr/sbin
 umask 022
 DEBUG=
-FOUND_ISO=""
+nocd=
+nohd=
+silent=
+dounionfs=
+usblive=
 OPT_MODULES="@DEF_MODULES_OPT_26@"
-DEP_MODULES="@DEF_MODULES_26@ @DEF_MODULES_DEP_26@ @DEF_SCSI_MODULES_DEP_26@"
-SCSI_MODULES="@DEF_SCSI_MODULES_26@ @DEF_SCSI_MODULES_OPT_26@" # these are for the SCSI drivers
+DEP_MODULES="@DEF_MODULES_26@ @DEF_MODULES_DEP_26@"
+#SCSI_MODULES="@DEF_SCSI_MODULES_DEP_26@ @DEF_SCSI_MODULES_26@ @DEF_SCSI_MODULES_OPT_26@" # these are for the SCSI drivers
+SCSI_MODULES="sd_mod sg libata ahci ata_piix ata_generic scsi_transport_fc scsi_transport_iscsi scsi_transport_sas scsi_transport_spi"
 USB_MODULES="@DEF_USB_MODULES_26@"
 USB_MODULES_DRV="@DEF_USB_MODULES_DRV_26@"
 
-FOUND_SCSI=""
-FOUND_USB=""
-BASEIMG="livecd"          # name of the base cloop image, with a .sqfs (squashfs) extension
+CDROM_LIST=""
 LOOPSEXT=".sqfs"
 ISOTYPE="iso9660"
 MEDIACHECK="isolinux/mediacheck"
@@ -54,31 +57,25 @@ MINRAMSIZE=15000          # the minimum ramdisk size
 KERNELVER="@KERNELVER@"   # this is setup via uname -r in the initialise section
 MKLIVECDVER="@MKLIVECDVER@"
 NAME_VERSION_STR="@NAME_VERSION_STR@"
-CLOOPVER="@CLOOPVER@"
 
 #common variables 
 
 MNTCDROM=initrd/cdrom
 MNTLIVECD=initrd/loopfs
 MNTRAMDISK=/ramfs
-KERNEL26=1
 MODEXT=".ko"
 
 ### progress indicator
 progress_num=0
 progress_full=@VAL_SPLASH_FULL@
 progress_max=32768
-progress_on=1
 
 ### screen colors
 RES_COL=65
 MOVE_TO_COL="echo -en \\033[${RES_COL}G\\033[K"
 SETCOLOR_OK="echo -en \\033[1;32m"
 SETCOLOR_FAIL="echo -en \\033[1;31m"
-SETCOLOR_WARN="echo -en \\033[1;33m"
 SETCOLOR_NORMAL="echo -en \\033[0;39m"
-SETCOLOR_CLEAR="echo -en \\033c"
-SETCOLOR_CEOL="echo -en \\033[0G\\033[K"
 
 #common (library) functions
 
@@ -103,19 +100,6 @@ printloaded() {
         echo "]"
         return 0
 }
-
-
-### print a warning msg
-printwarn() {
-        $MOVE_TO_COL
-        echo -n "[ "
-        $SETCOLOR_WARN
-        echo -n "WARN"
-        $SETCOLOR_NORMAL
-        echo " ]"
-        return 0
-}
-
 
 ### print a failure msg
 printfail() {
@@ -167,34 +151,32 @@ loadmod() {
         if [ -n "$DEBUG" ]; then
                 RET=0
                 echo -n "$MODULE: "
-                insmod $MODULE $2 && RET=0 || RET=1
+		modprobe $1 $2 && RET=0 || RET=1
                 echo "($RET)"
                 return $RET
         else
-                (insmod $MODULE $2 2>&1)>/dev/null && return 0 || return 1
+		(modprobe $1 $2 2>&1)>/dev/null && return 0 || return 1
         fi
 }
 
 
 ### set progress bar
 set_progress() {
-        silent=`grep -i splash=silent /proc/cmdline`
-        if [ -e /proc/splash ] && [ -n "$silent" ] && [ -n "$progress_on" ]; then
+        if [ -e /proc/splash ] && [ -n "$silent" ]; then
                 progress_num=$(($progress_num+1));
                 progress=$(($progress_max*($progress_num+1)/$progress_full));
                 echo "show $progress" >/proc/splash
         fi
 }
 
-dbg()
-{
-    	  if [ -n "$DEBUG" ]; then
+dbg() {
+    if [ -n "$DEBUG" ]; then
        	echo
        	$SETCOLOR_FAIL
        	echo -e "DBG: ${@}"
        	$SETCOLOR_NORMAL
        	echo
-    	  fi 
+    fi 
 }
 
 ### this is if we are to execute a limited shell
@@ -221,7 +203,7 @@ execshell() {
                         SHELL="/bin/ash"
                 else
                         echo "  Loading /bin/busybox ash"
-                        SHELL="/bin/busybox ash"
+                        SHELL="/bin/busybox ash && <dev/tty >dev/console 2>&1"
                 fi
         fi
         exec $SHELL
@@ -229,32 +211,54 @@ execshell() {
 
 mountit(){
 # Usage: mountit src dst "options"
-    	  BUILTIN_FS="iso9660 vfat ext3 ext2 msdos reiserfs ntfs"
-    	  for fs in $BUILTIN_FS; do
+    	BUILTIN_FS="iso9660 vfat ext3 ext2 msdos reiserfs ntfs"
+    	for fs in $BUILTIN_FS; do
         	test -b $1 && mount -t $fs $3 $1 $2 >/dev/null 2>&1 && return 0
-    	  done
-    	  return 1
+    	done
+    	return 1
 }
 
-### function to get the value of an option from the kernel command line
-getbootoption() {
-	option="$1"
-	val=`$MNTLIVECD/bin/sed -r -e "s/(.*)${option}=([[:alnum:]-]*)(.*)/\2/i" /proc/cmdline`
-	if [ -n "$val" -a "$val" != "`$MNTLIVECD/bin/cat /proc/cmdline`" ]; then
-		echo $val
-		return 0
-	else
-		return 1
-	fi
+# ===========================================================
+# discovery functions
+# ===========================================================
+
+# List all CD-ROMs
+# by using /proc entries
+#
+list_cdrom_devices()
+{
+   if [ -n "$nocd" ]; then return 1; fi
+   for CDDEVICE in `cat /proc/sys/dev/cdrom/info | head -n 3 | tail -n 1 | cut -d ":" -f 2`; do
+      echo "/dev/$CDDEVICE"
+   done
 }
 
-### function to check for an option from the kernel command line
-checkbootoption() {
-	if [ `grep -iq $1 /proc/cmdline` ]; then
-		return 0
-	else
-		return 1
-	fi
+# List all partition devices
+# take list of all partitions and output unique disks.
+# Return empty result when nohd parameter was given.
+#
+list_partition_devices()
+{
+   if [ -n "$nohd" ]; then return 1; fi
+   for part in `cat /proc/partitions|tail  +3|awk '{print $4}'`
+   do
+     echo "/dev/$part"
+   done
+}
+
+# List all disk devices
+#
+list_disk_devices()
+{
+   list_partition_devices | grep  "[0-9]"
+}
+
+# List all block devices
+#
+list_block_devices()
+{
+   list_cdrom_devices
+   list_disk_devices
 }
 
 #--------------------------------------------------------------------#
@@ -281,104 +285,105 @@ initialise() {
 
         # Unhide the udev files
         docmd "  Restoring udev files" \
-        "mv /sbin/tmp/* /sbin"
+              "mv /sbin/tmp/* /sbin"
 
-        # debugging?
-	DEBUG=`grep -iq debug /proc/cmdline && echo 1`
+        # parameter parsing
+        for x in $(cat /proc/cmdline); do
+                case $x in
+                        debug) DEBUG=y; ;;
+                        md5sum) domd5=y; ;;
+                        splash=silent) silent=y; ;;
+                        unionfs=no) dounionfs=n; ;;
+                        copy2ram) toram=y; ;;
+                        nocd) nocd=y; ;;
+                        nohd) nohd=y; ;;
+			fromusb) usblive=y; ;;
+                        livecd=*) BASEIMG="${x#livecd=}"; [ -z "$BASEIMG" ] &&  BASEIMG="livecd"; ;;
+                        bootfromiso=*) ISO_PATH="${x#bootfromiso=}"; ;;
+                esac
+        done
         set_progress
 }
 
-# modprobe kernel modules needed for the LiveCD
 find_cdroms() {
+	# modprobe kernel modules needed for the LiveCD
 	## Initialise
-	echo -n "  Loading basic cdrom modules for Kernel 2.6"
+	echo -n "  Loading basic cdrom modules for Kernel: $KERNELVER"
 	## Load basic modules
-	for i in $OPT_MODULES; do
-		loadmod $i
-	done
-	set_progress
-
 	ALL_LOADED=1
-	for i in $DEP_MODULES; do
+	for i in $OPT_MODULES $DEP_MODULES; do
 		loadmod $i || ALL_LOADED=
 	done
 	[ -n "$ALL_LOADED" ] && printloaded || printfail
 	set_progress
 
+	## load probe-modules for detecting chipset and load modules ?
+        docmd  "  Loading basic Chipset modules for kernel $KERNELVER" \
+               "echo '/bin/probe-modules'"
+        sleep 2
+        set_progress
+
 	## Load the compressed loop module
         echo -n "  Loading compressed loop module: "
         loadmod squashfs && printloaded || printfail
 
-	echo -n  "  Starting USB support"
-	printok
-	## Probe the USB devices.
-	dousb=`grep -iq nousb /proc/cmdline || echo 1`
-	if [ -n "$dousb" ]; then
-		echo -n "  Probing USB devices: "
-        	USB_FOUND=1
-		for i in $USB_MODULES; do
-			loadmod $i || USB_FOUND=
-        	done
+        ## load unionfs
+        if [ -n "$dounionfs" ]; then
+        	echo -n  "  Starting UNIONFS support"
+        	docmd   "  Loading unionfs modules" \
+                        "echo '/sbin/modprobe /lib/modules/$KERNELVER/kernel/unionfs.ko'"
+        fi
+        set_progress
 
-        	for i in $USB_MODULES_DRV; do
-			loadmod $i
-        	done
-        	sleep 2
-        	[ -n "$USB_FOUND" ] && printloaded || printok
-	fi
-	set_progress
-	sleep 6
-
-	#find_scsi_cdroms
-	## Probe the SCSI devices.
-	doscsi=`grep -iq noscsi /proc/cmdline || echo 1`
-	if [ -n "$doscsi" ]; then
-		echo -n "  Probing SCSI devices: "
-		SCSI_FOUND=
-		for i in $SCSI_MODULES; do
-			loadmod $i && SCSI_FOUND=1
-		done
-		sleep 2
-		[ -n "$SCSI_FOUND" ] && printloaded || printok
+	## Do we want to boot from USB?
+	if [ -n "$usblive" ]; then
+		echo -n " Booting from USB "
+		rm -rf /initrd/sbin/halt.local
 	fi
 
 	## Kernel 26 udev additions
 	## Search for cdrom devices and add them to CDROM_LIST
 	## Check for ide channels.
-	for ide_channel in /proc/ide/ide[0-9]; do
-		## If there are no ide channels found, then skip this
-		if [ ! -d "$ide_channel" ]; then
-			echo "  No ide channels found"
-			break
-		fi
 
-		## Try each ide device to see if we can find the cd-rom drive (up to 20 - hdt)
-		for ide_device in hda hdb hdc hdd hde hdf hdg hdh hdi hdj hdk hdl hdm hdn hdo hdp hdq hdr hds hdt; do
-			device_media_file="$ide_channel/$ide_device/media"
-			if [ -e "$device_media_file" ]; then
-				grep -i "cdrom" $device_media_file > /dev/null 2>&1
-				if [ $? -eq 0 ]; then
-					CDROM_LIST="$CDROM_LIST /dev/$ide_device"
-				fi
-                       fi
+	if [ ! -e /sbin/udevstart ]; then
+		#echo -n "  Starting mdev: "
+		# make needed device
+		mknod /dev/console c 5 1
+		# Run Busybox mdev to create devices
+		# echo "Listing of /dev before running mdev: "; cd /dev; ls -l; cd /
+		mdev -s
+		# echo "Listing of /dev after running mdev: "; cd /dev; ls -l; cd /
+		#echo /sbin/mdev > /proc/sys/kernel/hotplug
+	else
+		#echo -n "  Starting udev: "
+		/sbin/udevstart
+	fi
+
+	if [ -n "$usblive" ]; then
+		## Check for usb stick
+		for usb_device in /dev/sd[a-h][0-2]; do
+			if [ -e "$usb_device" ]; then
+				CDROM_LIST="$CDROM_LIST $usb_device"
+			fi
 		done
-	done
+	else	
+		# List of cdroms + all the partition devices
+		CDROM_LIST=`list_block_devices`
 
-	## Check for scsi cds, usb cd, usb flash
-        for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99] /dev/sd[a-b][0-99]; do
-		if [ -e "$scsi_cdrom" ]; then
-			CDROM_LIST="$CDROM_LIST $scsi_cdrom"
-		fi
-	done
-
-	printok
-	set_progress
+		## Check for scsi cds and partitions - if exist, add to the list 
+		for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99]; do
+			if [ -e "$scsi_cdrom" ]; then
+				CDROM_LIST="$CDROM_LIST $scsi_cdrom"
+			fi
+		done
+		printok
+		set_progress
+	fi
 }
 
 ### check the MD5 sum of the cloop iso image
 checkmd5() {
         if [ -f $MNTCDROM/$MEDIACHECK ]; then
-                domd5=`grep -iq md5sum /proc/cmdline && echo 1`
                 if [ -n "$domd5" ]; then
                         echo -n "  Verifying MD5 checksum of iso image: "
                         $MNTCDROM/$MEDIACHECK $CDDEV && printok || printfail
@@ -411,7 +416,6 @@ findcloop() {
 
                         # if it exists, load the correct module and mount
                         if [ -n "$LOOPTYPE" ]; then
-                        FOUND_ISO="$i"
                                 printok
                                 checkmd5 ""
 
@@ -426,43 +430,46 @@ findcloop() {
                                         printfatal "ERROR: Unable to mount loop filesystem," \
                                         "  Commands were:" \
                                         "  losetup $DEVLOOP $MNTCDROM/$BASEIMG$LOOPTYPE" \
-                                        "  mount -r -t $ISOTYPE $DEVLOOP $MNTLIVECD"
+                                        "  mount -r -t $ISOTYPE $DEVLOOP $MNTLIVECD" \
+                                        "  Most likely cause is bad burn or bad download" \
+                                        "  Please run mediacheck on livecd" 
                                 else
                                         ## Yes, we got it!
-					# do we want copy2ram?
-					toram=`grep -iq copy2ram /proc/cmdline && echo 1`
-					if [ -n "$toram" ]; then
-						RAMDIR="/initrd/livecd.ram"
-						mkdir -p $RAMDIR
-						# make sure we have enough room for the image
-						IMAGESIZE=`ls -l $MNTCDROM/livecd.sqfs | awk '{print $5+1000000}'`
-						mount -t tmpfs -o "size=$IMAGESIZE" tmpfs $RAMDIR
-						if [ "$?" -eq 0 ]; then
-							# copy the livecd.sqfs image to a tmpfs directory to be used as the new MNTCDROM
-							echo -n " Copying to RAM, this may take some time"
-							cp -R $MNTCDROM/livecd.sqfs $RAMDIR
-							if [ "$?" -eq 0 ]; then
-								printok
-								# free the boot device
-								umount $MNTLIVECD
-								umount $MNTCDROM
-								# and use our new directory as the new MNTLIVECD
-								`losetup -d $DEVLOOP 2>&1 >/dev/null`
-								losetup $DEVLOOP $RAMDIR/livecd.sqfs
-								mount -r -t squashfs $DEVLOOP $MNTLIVECD
-								rm -rf /initrd/sbin/halt.local
-							else
-								`umount $RAMDIR 2>&1 >/dev/null`
-								echo -n "copy 2 ram was unsuccesfull"
-								printfail
-							fi
-						else
-							`umount $RAMDIR 2>&1 >/dev/null`
-							echo -n "the iso is larger than the available ram"
-							printfail
-						fi
-					fi
-					printok
+                                        # do we want copy2ram?
+                                        toram=`grep -iq copy2ram /proc/cmdline && echo 1`
+                                        if [ -n "$toram" ]; then
+                                                RAMDIR="/initrd/livecd.ram"
+                                                mkdir -p $RAMDIR
+                                                # make sure we have enough room for the image
+                                                IMAGESIZE=`ls -l $MNTCDROM/livecd.sqfs | awk '{print $5+1000000}'`
+                                                mount -t tmpfs -o "size=$IMAGESIZE" tmpfs $RAMDIR
+                                                if [ "$?" -eq 0 ]; then
+                                                        # copy the livecd.sqfs image to a tmpfs directory to be used as the new MNTCDROM
+                                                        echo -n 
+                                                        echo -n " Copying to memory, please stand by..."
+                                                        cp -R $MNTCDROM/livecd.sqfs $RAMDIR
+                                                        if [ "$?" -eq 0 ]; then
+                                                                printok
+                                                                # free the boot device
+                                                                umount $MNTLIVECD
+                                                                umount $MNTCDROM
+                                                                # and use our new directory as the new MNTLIVECD
+                                                                `losetup -d $DEVLOOP 2>&1 >/dev/null`
+                                                                losetup $DEVLOOP $RAMDIR/livecd.sqfs
+                                                                mount -r -t squashfs $DEVLOOP $MNTLIVECD
+                                                                rm -rf /initrd/sbin/halt.local
+                                                        else
+                                                                `umount $RAMDIR 2>&1 >/dev/null`
+                                                                echo -n "copy 2 ram was unsuccesfull"
+                                                                printfail
+                                                        fi
+                                                else
+                                                        `umount $RAMDIR 2>&1 >/dev/null`
+                                                        echo -n "the iso is larger than the available ram"
+                                                        printfail
+                                                fi
+                                        fi
+                                        printok
                                         break
                                 fi
                         fi
@@ -479,10 +486,9 @@ createramdisk() {
         FOUNDMEM="$(awk '/MemTotal/{print $2}' /proc/meminfo)"
         TOTALMEM="$(awk 'BEGIN{m=0};/MemFree|Cached/{m+=$2};END{print m}' /proc/meminfo)"
         MAXSIZE="$(expr $TOTALMEM - $MINLEFT)"
-        RAMSIZE="$(expr $TOTALMEM / 3)"
+        RAMSIZE="$(expr $TOTALMEM / 2)"
         [ -z "$RAMSIZE" ] && RAMSIZE=$MINRAMSIZE
         [ $RAMSIZE -lt $MINRAMSIZE ] && RAMSIZE=$MINRAMSIZE
-        #RAMSIZE=$(expr $RAMSIZE \* 4) # tmpfs/varsize version, can use swap
         echo -n " (${RAMSIZE}/${TOTALMEM}/${FOUNDMEM}kB)"
         printok
 
@@ -497,6 +503,7 @@ createramdisk() {
                         "mkdir -p /proc && mount -n -t proc none /proc" \
                         "mkdir -p /sys && mount -n -t sysfs none /sys" \
                         "mkdir -p /tmp && chmod 1777 /tmp" \
+                        "mkdir -p /media && chmod 755 /media" \
                         "mkdir -p /dev && mount -n -t tmpfs none /dev" \
                         "mkdir -p /dev/pts" \
                         "cd /" \
@@ -518,8 +525,6 @@ createramdisk() {
                                 echo /sbin/udev > /proc/sys/kernel/hotplug
                         fi
 
-                        echo -n "  Starting udevstart"
-                        ( `/sbin/udevstart >/dev/null 2>/dev/null` & ) && printok || printfail
                 set_progress
         else
                 printfatal "ERROR: Insufficient memory to create ramdisk."
@@ -528,47 +533,76 @@ createramdisk() {
 
 
 ### main script entry point
+
 initialise    ""
 $SETCOLOR_NORMAL
 createramdisk ""
 
 # try to find all the cdrom and partitions
-#
 
 find_cdroms ""
 
 dbg "Devices to check: $CDROM_LIST\n"
 
-# First see if bootfrom= cheatcode is given, Try that one first
-bootfrom=`grep -iq bootfrom /proc/cmdline && echo 1`
-if [ -n "$bootfrom" ]; then
-	SOURCE_DEV=$(cat  /proc/cmdline|awk 'BEGIN {OFS="\n"} {$1=$1; print}'|awk '/bootfrom/ {print}'|awk -F"=" '{print $2}')
-	LOOP_DEV=$(echo $SOURCE_DEV|awk -F/ '{print $1 "/" $2 "/" $3}')
-	ISO_PATH=$(echo $SOURCE_DEV|sed "s|$LOOP_DEV||g" )
-	case "$ISO_PATH" in /*.[iI][sS][oO]) ;; *) ISO_PATH="" ;; esac
-
-	mkdir -p /part
-	if [ -n "$ISO_PATH" ]; then #ISO_PATH doesn't work yet
-		mount -r -o ro $LOOP_DEV /part || echo "could't mount the $LOOP_DEV partition"
-		losetup /dev/loop1 /part$ISO_PATH
-		mount -r -t iso9660 /dev/loop/1 $MNTCDROM && printok || printfail
-                if [ -e "$MNTCDROM/livecd.sqfs" ]; then
-			losetup /dev/loop/2 $MNTCDROM/livecd.sqfs
-			mount -r -t squashfs /dev/loop/2 $MNTLIVECD && LOOPMNT=1
-			rm -rf /initrd/sbin/halt.local
-		else
-			printfatal "couldn't find the livecd.sqfs in the $bootfrom" 
-		fi
-	else
-		findcloop "$LOOP_DEV"
-	fi
-	dbg "I am after bootfrom. The LOOPMNT is: $LOOPMNT\n"
+if [ "$CDROM_LIST" = "" ]; then
+	printfatal "Error: No suitable media for the livecd content found." \
+	"Workaround: Copy the content of the livecd from your boot device to an IDE/SATA disk," \ 
+	"eg. to /mnt/hda1/livecd.sqfs or C:\\livecd.sqfs Then try to boot again."
 fi
+
+# First see if bootfrom= cheatcode is given, Try that one first
+
+case "$ISO_PATH" in *.[iI][sS][oO]) ;; *) ISO_PATH="" ;; esac
+
+if [ -n "$ISO_PATH" ]; then
+         mkdir -p /part 
+         #try to find the iso
+         for i in $CDROM_LIST; do
+                  CDDEV="$i"
+                  $MOVE_TO_COL
+                  $SETCOLOR_OK
+                  echo "$i"
+                  $SETCOLOR_NORMAL
+                  if mountit $CDDEV $MNTCDROM ; then
+                           dbg "Mounted $CDDEV\n"
+                           # try to find the iso image
+                           LOOP_DEV=""
+                           if [ -f $MNTCDROM/$ISO_PATH ]; then
+                                   LOOP_DEV=$CDDEV
+                                   `umount $MNTCDROM 2>&1 >/dev/null`
+				   break
+                           fi
+                          `umount $MNTCDROM 2>&1 >/dev/null`
+		  else
+			  dbg "Could not mount $CDDEV on $MNTCDROM. The ISO_PATH is $ISO_PATH\n" 	
+                  fi
+         done
+         if [ -z $LOOP_DEV ]; then
+                  echo -n "couldn't find the $ISO_PATH iso image in your computer"
+                  printfail
+         else
+                  mount -r -o ro $LOOP_DEV /part || echo "could't mount the $LOOP_DEV partition"
+                  losetup /dev/loop1 /part$ISO_PATH
+                  mount -r -t iso9660 /dev/loop1 $MNTCDROM && printok || printfail
+                  if [ -e "$MNTCDROM/$BASEIMG$LOOPSEXT" ]; then
+                           losetup /dev/loop2 $MNTCDROM/$BASEIMG$LOOPSEXT
+                           mount -r -t squashfs /dev/loop2 $MNTLIVECD && LOOPMNT=1
+                           rm -rf /initrd/sbin/halt.local
+                  else
+                           printfatal "couldn't find the $BASEIMG$LOOPSEXT in the $ISO_PATH" 
+                  fi
+        fi
+fi
+dbg "I am after bootfrom. The LOOPMNT is: $LOOPMNT\n"
+
+# no bootfrom -lets try all the mountable devices
 
 if [ -z "$LOOPMNT" ]; then
 	findcloop "$CDROM_LIST"
 	dbg "I am after find_cloop The LOOPMNT is: $LOOPMNT\n"
 fi
+
+# Did we find _any_ livecd.sqfs?
 
 if [ -z "$LOOPMNT" ]; then
 	printfatal "ERROR: Unable to mount the livecd"

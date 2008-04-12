@@ -1,194 +1,239 @@
-# $Id: README.BOOTCODES,v 1.5 2006/04/23 01:55:14 tom_kelly33 Exp $
-                                                                                                                                                                                                                                                               
-LiveCD bootcodes: These codes allow you to override the LiveCD defaults to 
-modify the boot process for your specific needs. The codes can be used on 
-their own (as specified) on the syslinux (initial) boot command-line or can 
-be combined to specify more than one listed option, eg.
+# $Id: README.BOOTCODES,v 1.6 2008/04/12 09:31:05 ikerekes Exp $
 
-livecd xres=800x600 keyb=de
+Cheatcodes for PCLinuxOS.
+====================
 
-The latest list will always be available from the LiveCD website (CVS) which 
-can be accessed from:
+Boot parameters (also known as cheatcodes) are used to affect the
+booting process of PCLinuxOS. Some of them are common for all Linuxes, others
+are specific for PCLinuxOS only. You can use them to disable desired kind of
+hardware detection, to start PCLinuxOS from harddisk/usb key, to make the changes persistent etc.
+   
+Reboot your computer and wait several seconds until nice  graphical pclinuxos
+logo appears with a boot menu (it's there usually for less then 9 seconds).
+Choose your desired menu entry, and in the last line on the screen, you see the command line 
+which will allow you to edit it. Add your desired boot argument from the list below, to affect
+booting the way you like:
 
-http://livecd.berlios.de
 
-The following codes are available as of 01 December 2005:
+acpi=off
 
-livecd bootfrom=<dev>   Boots the livehd from a disk partition instead of the cdrom
-			The <dev> can be any msdos, vfat, ntfs, ext2, ext3, reiserfs filesystem 
-			on IDE, SCSI, or USB disk specified in the same format as the 
-			root=lilo parameter. The filesystem has to have the /isolinux directory 
-			and the livecd.sqfs file copied to the root.
+nocd
 
-livecd changes=<dev>    When the livecd boots in unionfs mode, it will write the changes into the 
-			<dev>/changes directory instead of the memory. All the changes, in this way, 
-			are made persistent. The format of the <dev> is the same as the bootfrom <dev>. 
-			They can be the same partition (preferable) or it can be a different one. 
-			If the /changes directory doesnt exist on first invocation, it will be 
-			automatically created. 
+       The livecd will not search for the compressed loop image (clop) on the cd. Usefull if for some reason the livecd doesn't recognizes your cd/dvd drive
 
-livecd debug            Prints usefull information (for developers)
-			from the various scripts while loading the LiveCD.
+nohd
 
-livecd fstab=<opts>     Override the default generation of the
-			fstab. Valid options, combined with ","
-			are the following: auto or noauto and ro or rw.
+      The livecd will not search for the compressed loop image (clop) on the hard drives. Usefull if for some reason the livecd doesn't recognizes your hard drives
 
-livecd hostname=<host>  Sets the hostname for the machine, as
-			specified by <host>, eg. mybox.cool.com
-			the parameter modifies the DHCP_HOSTNAME in the 
-			/etc/sysconfig/network-scripts/ifcfg-eth* scripts
+fromusb
 
-livecd lang=<lang>      Override the default language (en), for
-			the boot scripts and (eventually) CD
-			language selection. Currently only the lang=en is working
+       The livecd tries to look for the clop image only on the usb drives
 
-livecd keyb=<mapping>   Use a different keyboard layout mapping
-			from the one the LiveCD was built with.
-			Valid values for mapping can be found in
-			the first column of the following table:
-			al              Albanian
-			am              Armenian (typewriter)
-			am_old          Armenian (old)
-			am_phonetic     Armenian (phonetic)
-			ar              Arabic
-			az              Azerbaidjani (latin)
-			be              Belgian
-			ben             Bengali
-			bg              Bulgarian (BDS)
-			bg_phonetic     Bulgarian (phonetic)
-			br              Brazilian (ABNT-2)
-			bs              Bosnian
-			by              Belarusian
-			ch_de           Swiss (German layout)
-			ch_fr           Swiss (French layout)
-			cz              Czech (QWERTZ)
-			cz_qwerty       Czech (QWERTY)
-			de              German
-			de_nodeadkeys   German (no dead keys)
-			dev             Devanagari
-			dk              Danish
-			dvorak          Dvorak (US)
-			dvorak_no       Dvorak (Norwegian)
-			dvorak_se       Dvorak (Swedish)
-			ee              Estonian
-			es              Spanish
-			fi              Finnish
-			fr              French
-			ge_la           Georgian ("Latin" layout)
-			ge_ru           Georgian ("Russian" layout)
-			gr              Greek
-			gr_pl           Greek (polytonic)
-			guj             Gujarati
-			gur             Gurmukhi
-			hr              Croatian
-			hu              Hungarian
-			ie              Irish
-			il              Israeli
-			il_phonetic     Israeli (Phonetic)
-			ir              Iranian
-			is              Icelandic
-			it              Italian
-			iu              Inuktitut
-			jp              Japanese 106 keys
-			kan             Kannada
-			kr              Korean keyboard
-			la              Latin American
-			lao             Laotian
-			lt_b            Lithuanian "number row" QWERTY
-			lt              Lithuanian AZERTY (old)
-			lt_new          Lithuanian AZERTY (new)
-			lt_p            Lithuanian "phonetic" QWERTY
-			lv              Latvian
-			mal             Malayalam
-			mk              Macedonian
-			mm              Myanmar (Burmese)
-			mng             Mongolian (cyrillic)
-			mt              Maltese (UK)
-			mt_us           Maltese (US)
-			nl              Dutch
-			no              Norwegian
-			ori             Oriya
-			pl2             Polish (qwertz layout)
-			pl              Polish (qwerty layout)
-			pt              Portuguese
-			qc              Canadian (Quebec)
-			ro2             Romanian (qwertz)
-			ro              Romanian (qwerty)
-			ru              Russian
-			ru_yawerty      Russian (Phonetic)
-			sapmi           Saami (norwegian)
-			sapmi_sefi      Saami (swedish/finnish)
-			se              Swedish
-			si              Slovenian
-			sk_qwerty       Slovakian (QWERTY)
-			sk              Slovakian (QWERTZ)
-			sr              Serbian (cyrillic)
-			syr_p           Syriac (phonetic)
-			syr             Syriac
-			tel             Telugu
-			th              Thai keyboard
-			tj              Tajik keyboard
-			tml             Tamil (ISCII-layout)
-			tr_f            Turkish (traditional "F" model)
-			tr_q            Turkish (modern "Q" model)
-			tscii           Tamil (Typewriter-layout)
-			ua              Ukrainian
-			uk              UK keyboard
-			us_intl         US keyboard (international)
-			us              US keyboard
-			uz              Uzbek (cyrillic)
-			vn              Vietnamese "numeric row" QWERTY
-			yu              Yugoslavian (latin)
+bootfromiso=/pclinuxos.iso
+bootfromiso=/path/to/pclinuxos.iso
 
-livecd md5sum           Checks the MD5 sum of the iso image,
-			verifying the integrity of the downloaded 
-			and running iso.
+   ... To load PCLinuxOS iso data from different place instead of the boot device.
+   ... First example will search for pclinuxos.iso, on all the available media or HD partition
+   ... Second example will search for '/path/to/pclinuxos.iso' on all devices.
+       The first device containing the /path/file is used
 
-livecd noeject          Disable the ejection of the CD on
-			shutdown (power-down) or reboot. Currently the 
-			eject option disabled
+livecd=minime
 
-livecd nodetect         Don't run the hardware detection script,
-			booting with the default hardware
-			configuration as stored on the LiveCD.
+   ... To load the livecd compressed loop filesystem (name.sqfs) from the available media
+   ... in this example the livecd will searc for the minime.sqfs cloop (compressed loop) file
+       on all devices. The first device containing the minime.sqfs file is used.
+       There is only the media capacity limits the number of different cloop images.
+       The cloop image and the corresponding initrd.gz has to be compiled with the same kernel.
 
-livecd nonetwork        Don't probe/detect network cards
+passwd=somepass
+passwd=ask
 
-livecd nopcmcia         Don't probe/detect PCMCIA devices
+   ... set root's password to "somepass", or ask (with =ask) for a new password
+       during the boot, before starting pclinuxos (don't worry, the new password
+       won't be shown at the login screen)
 
-livecd nosound          Don't probe/detect sound cards
 
-livecd noscsi           Disable the probing of SCSI devices at boot.
-			Do not use this option when booting from a
-			SCSI device since the boot will fail.
+changes_dev=/dev/device
+changes_dev=LABEL=PCLinuxOS 
+changes_file=file.dat
+changes_file=/path/file.dat
+changes_dev=<changes_device> changes_file=<changes_file>
 
-livecd nousb            Disable the probing of USB devices at boot.
-			Do not use this option when booting from a
-			USB device since the boot will fail.
+   ... all changes you made in PCLinuxOS are kept in memory until you reboot.
+       But with this boot parameter, you tell PCLinuxOS to use different device
+       (or a file or directory) than the memory for storing changes. You can,
+       for example, format your disk partition /dev/hda1 with some Linux
+       filesystem (eg. ext2/3, reiserfs) and then use changes=/dev/hda1 to store all changes
+       to that disk (it will be stored in 'changes' directory on that disk.
+       This way you won't loose your changes after reboot.
+   ... if you use a file name instead of device, and the file contains valid
+       filesystem, the livecd will mount it as a loop device and will store changes
+       to it. Moreover if you don't specify the device where the file is stored,
+       PCLinuxOS will try to find it on all your partitions.
+   ... if you use a directory, PCLinuxos will save changes to it (it will make a
+       'changes' subdirectory in there). The directory has to be on a Linux filesystem
+       on that disk. If you use a file (changes_file parameter is specified) you can save your changes even to VFAT or NTFS.
+   ... the <changes_device> can take any format the mount command would except 
+       i.e. /dev/device, LABEL=partition_label, UUID=partition_uuid
 
-livecd xauto		Don't allow our specified xbpp, xres result in
-			an invalid configuration. If the user-specified
-			resolution will not work for the current card, 
-			allow fallback to a safe detection default.
+hwdetect=no
+nodetect 
+hwdetect=yes
 
-livecd unionfs=no       Don't use unionfs file overlay mounts, even if 
-			available on the LiveCD.  This option overrides 
-			unionfs support, resorting to the normal file operation. 
-			(Slower, more memory required, but safer)
+   ... If you use persistent changes (changes_dev and/or changes_file) and the persistent changes media exists the livecd will not run the hardware detectiton routine again. If you want to rerun the hardware discovery, you can force it with the hwdetect=yes parameter.
+   ... If the livecd boot hangs in the hwdetect phase, you can bypass it with nodetect or hwdetect=no
 
-livecd xbpp=<depth>     Specify the bitdepth for X. <depth> can
-			be one of 8, 15, 16, 24 or 32.
+copy2ram 
 
-livecd xdrv=<driver>    Override the default driver chosen for your 
-			video card with <driver>.
+   ... copy all files (all required and optional modules) to RAM.
+       You'll need at least 320MB of RAM to do this and boot PCLinuxOS properly.
+       This will slow down the boot phase but it will speed up PCLinuxOS!
 
-livecd xram=<videoram>  Use <videoram> (KB) instead of the probed
-			vide card RAM
+debug
 
-livecd xres=<res>       Specify the resolution for X. <res> can
-			be one of 800x600, 1024x768, 1280x1024 or
-			1600x1400.
+   ... enable debug mode 
+
+hostname=<host>
+
+       Sets the hostname for the machine, as specified by <host>, eg. mybox.cool.com the parameter modifies the DHCP_HOSTNAME in the /etc/sysconfig/network-scripts/ifcfg-eth* scripts
+
+lang=<lang>
+      Override the default language (en), for the boot scripts and (eventually) CD language selection. Currently only the lang=en is working
+
+keyb=<mapping>
+
+      Use a different keyboard layout mapping from the one the LiveCD was built with.
+      Valid values for mapping can be found in the first column of the following table:
+		al              Albanian
+		am              Armenian (typewriter)
+		am_old          Armenian (old)
+		am_phonetic     Armenian (phonetic)
+		ar              Arabic
+		az              Azerbaidjani (latin)
+		be              Belgian
+		ben             Bengali
+		bg              Bulgarian (BDS)
+		bg_phonetic     Bulgarian (phonetic)
+		br              Brazilian (ABNT-2)
+		bs              Bosnian
+		by              Belarusian
+		ch_de           Swiss (German layout)
+		ch_fr           Swiss (French layout)
+		cz              Czech (QWERTZ)
+		cz_qwerty       Czech (QWERTY)
+		de              German
+		de_nodeadkeys   German (no dead keys)
+		dev             Devanagari
+		dk              Danish
+		dvorak          Dvorak (US)
+		dvorak_no       Dvorak (Norwegian)
+		dvorak_se       Dvorak (Swedish)
+		ee              Estonian
+		es              Spanish
+		fi              Finnish
+		fr              French
+		ge_la           Georgian ("Latin" layout)
+		ge_ru           Georgian ("Russian" layout)
+		gr              Greek
+		gr_pl           Greek (polytonic)
+		guj             Gujarati
+		gur             Gurmukhi
+		hr              Croatian
+		hu              Hungarian
+		ie              Irish
+		il              Israeli
+		il_phonetic     Israeli (Phonetic)
+		ir              Iranian
+		is              Icelandic
+		it              Italian
+		iu              Inuktitut
+		jp              Japanese 106 keys
+		kan             Kannada
+		kr              Korean keyboard
+		la              Latin American
+		lao             Laotian
+		lt_b            Lithuanian "number row" QWERTY
+		lt              Lithuanian AZERTY (old)
+		lt_new          Lithuanian AZERTY (new)
+		lt_p            Lithuanian "phonetic" QWERTY
+		lv              Latvian
+		mal             Malayalam
+		mk              Macedonian
+		mm              Myanmar (Burmese)
+		mng             Mongolian (cyrillic)
+		mt              Maltese (UK)
+		mt_us           Maltese (US)
+		nl              Dutch
+		no              Norwegian
+		ori             Oriya
+		pl2             Polish (qwertz layout)
+		pl              Polish (qwerty layout)
+		pt              Portuguese
+		qc              Canadian (Quebec)
+		ro2             Romanian (qwertz)
+		ro              Romanian (qwerty)
+		ru              Russian
+		ru_yawerty      Russian (Phonetic)
+		sapmi           Saami (norwegian)
+		sapmi_sefi      Saami (swedish/finnish)
+		se              Swedish
+		si              Slovenian
+		sk_qwerty       Slovakian (QWERTY)
+		sk              Slovakian (QWERTZ)
+		sr              Serbian (cyrillic)
+		syr_p           Syriac (phonetic)
+		syr             Syriac
+		tel             Telugu
+		th              Thai keyboard
+		tj              Tajik keyboard
+		tml             Tamil (ISCII-layout)
+		tr_f            Turkish (traditional "F" model)
+		tr_q            Turkish (modern "Q" model)
+		tscii           Tamil (Typewriter-layout)
+		ua              Ukrainian
+		uk              UK keyboard
+		us_intl         US keyboard (international)
+		us              US keyboard
+		uz              Uzbek (cyrillic)
+		vn              Vietnamese "numeric row" QWERTY
+		yu              Yugoslavian (latin)
+
+nonetwork
+
+	Don't probe/detect network cards
+
+nopcmcia
+
+        Don't probe/detect PCMCIA devices
+
+noscsi
+
+	Disable the probing of SCSI devices at boot. Do not use this option when booting from a SCSI device since the boot will fail.
+
+nousb
+
+	Disable the probing of USB devices at boot. Do not use this option when booting from a	USB device since the boot will fail.
+
+nocpufreq
+
+        Don't probe/setup cpufreq routines
+
+nofinishinstall
+
+        bypass the language, clock, network setup during hardware detection
+
+unionfs=no
+
+       Don't use unionfs file overlay mounts, even if available on the LiveCD.  This option overrides unionfs support, resorting to the normal file operation. (Slower, more memory required, but safer)
+
+framebuffer
+
+       Use the fbdev driver for the video card instead of try to autodetect (default resolution is 1024x768x16).
+
+vesa
+
+       Override the default driver chosen for your video card with vesa driver and default resolution.
+
 
 Besides the above mentioned bootcodes, the isolinux will accept all the normal kernel
 Boot codes i.e. 	vga=xxx for the framebuffer resolution,
@@ -198,17 +243,27 @@ Boot codes i.e. 	vga=xxx for the framebuffer resolution,
 			will be booted. 
 Full documentation can be found in /usr/src/linux/Documentation/kernel-parameters.txt 
 
-Single function bootcodes are boot codes which dont need the livecd in front.
+noeject
 
-mediacheck              Same as livecd md5sum
+	Disable the ejection of the CD on shutdown (power-down) or reboot.
 
-initrd                  Only boot the initrd, not the actual CD.
-			This option is (mostly) only useful to
-			LiveCD developers.
+splash=silent
 
-memtest			Runs the built in memory (RAM) diagnostic program
-			
-safeboot          	Boots the livecd with almost no detection. Equivalent to boot with the 
-			livecd acpi=off vga=normal keyb=us noapic nolapic noscsi nopcmcia nomce unionfs=no
+   ... enable splash screen on boot
+	
+splash=verbose
+splash=no
 
+   ... enable verbose boot up
 
+md5sum
+
+   ... enable checksum verification of the livecd
+
+unionfs=no
+
+  ... disable use of unionfs ovelay on the livecd
+
+initrd
+
+  ... if you want to execute only the initrd, for debuging purposes.
